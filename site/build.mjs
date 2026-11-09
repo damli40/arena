@@ -404,12 +404,33 @@ const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersec
 document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
 `;
 
+// ---------------------------------------------------------------- labels
+// Dami asked for a labelled drawing. The labels sit in their own layer over the figure, in the empty
+// margins, so the machine itself stays clean. Each points at a world position projected with the
+// figure's own camera. Under 768 px the layer hides and the same labels show as a numbered list.
+const CALLOUTS = [
+  { n: 1, part: [-154, 0, 28], at: [6, 62], anchor: "start", text: ["Agent", "two calls at once"] },
+  { n: 2, part: [BEAM.x + BEAM.w / 2, BEAM.y + 4, BEAM_Z + BEAM_H], at: [420, 26], anchor: "start", text: ["Guard", "checks \"paid?\" for each call"] },
+  { n: 3, part: [PIN_X + 1.2, LANES[1], RISER_TOP + 8], at: [196, 336], anchor: "start", text: ["Stop pin", "rises when the guard refuses"] },
+  { n: 4, part: [PAN[0], PAN[1] + PAN_R - 2, PAN_TOP], at: [560, 404], anchor: "start", text: ["Receiver", "coins that landed"] },
+  { n: 5, part: [PAN[0] + DIAL_R - 2, PAN[1], DIAL_TOP], at: [616, 140], anchor: "start", text: ["Dial", "paid beyond the limit"] },
+];
+const calloutSvg = `<g class="callouts" aria-hidden="true">${CALLOUTS.map((c) => {
+  const [px, py] = at(c.part), [tx, ty] = c.at;
+  // Start the leader on the side of the label that faces the part, so it never crosses the text.
+  const w = Math.max(c.text[0].length + 3, c.text[1].length) * 5.75;
+  const [lx, ly] = px > tx + w ? [tx + w + 4, ty - 4] : py > ty + 14 ? [tx + 2, ty + 17] : [tx - 6, ty - 4];
+  return `<path d="M${lx.toFixed(1)} ${ly.toFixed(1)}L${px.toFixed(1)} ${py.toFixed(1)}"/><circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="1.8"/>` +
+    `<text x="${tx}" y="${ty}" text-anchor="${c.anchor}"><tspan class="t">${c.n}  ${esc(c.text[0])}</tspan><tspan x="${tx}" dy="12">${esc(c.text[1])}</tspan></text>`;
+}).join("")}</g>`;
+const calloutList = `<ol class="callout-list">${CALLOUTS.map((c) => `<li><b>${esc(c.text[0])}</b> ${esc(c.text[1])}</li>`).join("")}</ol>`;
+
 // ---------------------------------------------------------------- page
 const plate = k.plateHtml({
   fig: "Fig 1", title: "Two keys, one invoice", hint: "Pick a run above", readout: `paid 0 · limit ${flawT.limit}`,
   keys: [{ mark: "lit", label: "Dial zero is the invoice limit. Past zero means paid beyond policy." }],
   caption: "",
-  body: `<div data-fig class="iso-stage">${svg}</div>`,
+  body: `<div data-fig class="iso-stage">${svg.slice(0, svg.lastIndexOf("</svg>")) + calloutSvg + "</svg>"}</div>${calloutList}`,
 });
 
 const guardMeta = { A: "Invoice payer with a payee list and a daily cap", B: "Native-NEAR vault with caps, approvals and a pause switch", C: "Company treasury with a bill pot and a profit pot" };
@@ -465,6 +486,9 @@ section{padding:64px 0;border-top:1px solid var(--line)}
 .tabs button:focus-visible{outline:2px solid var(--muted);outline-offset:2px}
 .iso-figure{margin:0}
 .iso-figure figcaption:empty{display:none}
+.callouts path{stroke:var(--muted);stroke-width:.6;fill:none}.callouts circle{fill:var(--ink)}
+.callouts text{font:9.5px var(--mono);fill:var(--muted)}.callouts .t{fill:var(--ink);font-weight:500}
+.callout-list{display:none}
 .meta{display:flex;flex-wrap:wrap;gap:4px 16px;font:12px/1.5 var(--mono);color:var(--muted);margin:12px 0 8px}
 .meta a{color:var(--ink)}
 ol.log{list-style:none;margin:0;padding:14px 18px;min-height:168px;background:var(--card);border:1px solid var(--line);border-radius:8px;font:12.5px/1.75 var(--mono);counter-reset:s}
@@ -496,7 +520,7 @@ ul.limits{padding:0;margin:0;list-style:none}ul.limits li{padding:10px 0}ul.limi
 footer{padding:32px 0 72px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
 .reveal{opacity:0;transform:translateY(12px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)}.reveal.on{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal{opacity:1;transform:none;transition:none}ol.log li{animation:none}}
-@media (max-width:768px){.hero,.split,.run{grid-template-columns:1fr;gap:28px}.hero{padding:48px 0 40px}.contrast .n{font-size:48px}.tabs button{flex:1 1 45%}details.guard summary{grid-template-columns:32px 1fr auto 18px;gap:10px}.g-letter{font-size:22px}section{padding:48px 0}}
+@media (max-width:768px){.callouts{display:none}.callout-list{display:block;margin:10px 0 0;padding-left:20px;font-size:13px;color:var(--muted)}.callout-list b{color:var(--ink);font-weight:500}.hero,.split,.run{grid-template-columns:1fr;gap:28px}.hero{padding:48px 0 40px}.contrast .n{font-size:48px}.tabs button{flex:1 1 45%}details.guard summary{grid-template-columns:32px 1fr auto 18px;gap:10px}.g-letter{font-size:22px}section{padding:48px 0}}
 </style></head>
 <body class="iso" data-theme="light">
 <div class="wrap">
