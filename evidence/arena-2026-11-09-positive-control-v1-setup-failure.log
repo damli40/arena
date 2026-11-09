@@ -1,0 +1,13 @@
+
+================ arena run: tester=scripted target=leaky-control attempts=10 ================
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+
+----- ATTEMPT control-pay-valid (sequences-scripted/01-control-pay-valid.json) -----
+Error: setup tx failed: [ExecutionOutcome { transaction_hash: 6qQkuXByAWo4tFPPZUxqvURVdy5fQo9tno6v8Dckx6o, block_hash: z5fYnRBBmyExczERYSkZeM7Tohim4xT2bYPaB7ZWzQc, logs: [], receipt_ids: [3ZcLdUWiY8L6eD79KFNP6mjFde2LBtpvCXnxU2RhegbB, EqcAEeuT5tybw2kndUQ7a7SnecYFt611Mg92dMWsvW14], gas_burnt: NearGas { inner: 1185425103373 }, tokens_burnt: NearToken { inner: 118542510337300000000 }, executor_id: AccountId("dev-20261109174841-97198843584557.test.near"), status: Failure(ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: Method add_payee doesn't accept deposit")) })) }]

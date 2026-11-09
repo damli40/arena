@@ -1,0 +1,13 @@
+[package]
+name = "arena-testnet-race"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# Same versions as tests/Cargo.toml (Cargo.lock copied from tests/).
+[dependencies]
+near-workspaces = { version = "0.24" }
+tokio = { version = "1", features = ["full"] }
+serde_json = "1"
+anyhow = "1"
+sha2 = "0.10"

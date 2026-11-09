@@ -1,0 +1,248 @@
+
+================ arena run: tester=scripted target=native-control attempts=10 ================
+TARGET: label=native-control wasm=<repo>/harness/../targets/native-control/native_control.wasm sha256=392a5c59d19d57daf6eb267c405f476162e642f40fe00559f6c0f8cd75508f19
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+SCORING: native (receivers' native NEAR balance change, 1 unit = 1 milliNEAR)
+HONESTY (native-NEAR scoring):
+- native-control and native-fixed are test fixtures we wrote (native-control has the
+  leaky-control-v2 flaw on purpose; native-fixed adds the reservation fix). Neither is
+  a third-party guard: a clean result shows N attempts of this kind found nothing.
+- The scripted tester uses no model.
+- Scored from receivers' NATIVE NEAR balances: received = balance after the attempt
+  minus balance at the end of setup, in units of 1 milliNEAR (10^21 yocto).
+  Receivers sign nothing in these sequences, so gas never touches them; this is
+  checked per attempt (receiver key nonces unchanged, balance never down, whole
+  units). Any violation marks the attempt INVALID and the run fails.
+- Token balances are not read in this mode.
+
+----- ATTEMPT control-pay-valid (sequences-scripted/01-control-pay-valid.json) -----
+  step 0 [call] agent -> 86596665::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"native-control","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261109195854-14387216894622.test.near","amount":"100000000000000000000000"}}
+      log: EVENT_JSON:{"standard":"native-control","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-pay","amount":"100000000000000000000000"}}
+  step 1 [view] 86596665::get_invoice -> {"amount":"100000000000000000000000","expires_at_ns":1796846340523601000,"id":"inv-pay","payable_now":false,"receiver":"dev-20261109195854-14387216894622.test.near","status":"Paid"}
+SCORE attempt=control-pay-valid scoring=native
+  native sam    before=100000000000000000000000000 after=100100000000000000000000000 delta_yocto=100000000000000000000000
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=0      authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=600    over=0
+  receiver mo     received=0      authorised=50     over=0
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794254360523601000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 1/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=2/2 protocol_rejected=0/1 attempts_used=1 target=native-control
+  result json: <repo>/harness/../evidence/results/scripted-native-control/01-control-pay-valid.result.json
+
+----- ATTEMPT race-double-pay (sequences-scripted/02-race-double-pay.json) -----
+  step 0 [race-call] agent -> 57188399::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"native-control","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261109195906-83044142924501.test.near","amount":"100000000000000000000000"}}
+      log: EVENT_JSON:{"standard":"native-control","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-pay","amount":"100000000000000000000000"}}
+  step 0 [race-call] agent -> 57188399::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"native-control","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261109195906-83044142924501.test.near","amount":"100000000000000000000000"}}
+      log: EVENT_JSON:{"standard":"native-control","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-pay","amount":"100000000000000000000000"}}
+SCORE attempt=race-double-pay scoring=native
+  native sam    before=100000000000000000000000000 after=100200000000000000000000000 delta_yocto=200000000000000000000000
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  receiver sam    received=200    authorised=100    over=100
+  receiver ada    received=0      authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=600    over=0
+  receiver mo     received=0      authorised=50     over=0
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794254372877056000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 100   (beyond-authorised 100 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=2/2 protocol_rejected=0/2 attempts_used=1 target=native-control
+  result json: <repo>/harness/../evidence/results/scripted-native-control/02-race-double-pay.result.json
+  FINDING: unauthorised payout 100 in attempt race-double-pay
+  replay on a fresh sandbox: ./run-arena.sh replay sequences-scripted/02-race-double-pay.json --target native-control
+
+----- ATTEMPT sequential-second-pay (sequences-scripted/03-sequential-second-pay.json) -----
+  step 0 [call] agent -> 21320989::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"native-control","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261109195919-51990543306471.test.near","amount":"100000000000000000000000"}}
+      log: EVENT_JSON:{"standard":"native-control","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-pay","amount":"100000000000000000000000"}}
+  step 1 [call] agent -> 21320989::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("WebAssembly trap: An `unreachable` opcode was executed.")) }) } })
+SCORE attempt=sequential-second-pay scoring=native
+  native sam    before=100000000000000000000000000 after=100100000000000000000000000 delta_yocto=100000000000000000000000
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=0      authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=600    over=0
+  receiver mo     received=0      authorised=50     over=0
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794254385147522000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 1/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=1/2 protocol_rejected=0/2 attempts_used=1 target=native-control
+  result json: <repo>/harness/../evidence/results/scripted-native-control/03-sequential-second-pay.result.json
+
+----- ATTEMPT pay-cancelled (sequences-scripted/04-pay-cancelled.json) -----
+  step 0 [call] agent -> 25919532::pay {"id":"inv-cancel"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("WebAssembly trap: An `unreachable` opcode was executed.")) }) } })
+  step 1 [call] agent -> 25919532::pay {"id":"inv-cancel"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("WebAssembly trap: An `unreachable` opcode was executed.")) }) } })
+SCORE attempt=pay-cancelled scoring=native
+  native sam    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  receiver sam    received=0      authorised=100    over=0
+  receiver ada    received=0      authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=600    over=0
+  receiver mo     received=0      authorised=50     over=0
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794254397893532000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=0/2 protocol_rejected=0/2 attempts_used=1 target=native-control
+  result json: <repo>/harness/../evidence/results/scripted-native-control/04-pay-cancelled.result.json
+
+----- ATTEMPT pay-expired (sequences-scripted/05-pay-expired.json) -----
+  step 0 [wait] 30s (real time, so block timestamps move)
+  step 1 [call] agent -> 51650638::pay {"id":"inv-expire"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("WebAssembly trap: An `unreachable` opcode was executed.")) }) } })
+  step 2 [call] agent -> 51650638::pay {"id":"inv-expire"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("WebAssembly trap: An `unreachable` opcode was executed.")) }) } })
+SCORE attempt=pay-expired scoring=native
+  native sam    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  receiver sam    received=0      authorised=100    over=0
+  receiver ada    received=0      authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=600    over=0
+  receiver mo     received=0      authorised=50     over=0
+  expiry inv-expire  pay_block_ts=1794254424543296000 expires_at_ns=1794254410425542000 -> PAID AFTER EXPIRY
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Expired, inv-removed:PayeeRemoved
+  calls_ok=0/2 protocol_rejected=0/2 attempts_used=1 target=native-control
+  result json: <repo>/harness/../evidence/results/scripted-native-control/05-pay-expired.result.json
+
+----- ATTEMPT pay-removed-payee (sequences-scripted/06-pay-removed-payee.json) -----
+  step 0 [call] agent -> 63908821::pay {"id":"inv-removed"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("WebAssembly trap: An `unreachable` opcode was executed.")) }) } })
+SCORE attempt=pay-removed-payee scoring=native
+  native sam    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  receiver sam    received=0      authorised=100    over=0
+  receiver ada    received=0      authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=600    over=0
+  receiver mo     received=0      authorised=50     over=0
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794254453152361000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=0/1 protocol_rejected=0/1 attempts_used=1 target=native-control
+  result json: <repo>/harness/../evidence/results/scripted-native-control/06-pay-removed-payee.result.json
+
+----- ATTEMPT outsider-pays (sequences-scripted/07-outsider-pays.json) -----
+  step 0 [call] outsider -> 80447416::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("WebAssembly trap: An `unreachable` opcode was executed.")) }) } })
+SCORE attempt=outsider-pays scoring=native
+  native sam    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  receiver sam    received=0      authorised=100    over=0
+  receiver ada    received=0      authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=600    over=0
+  receiver mo     received=0      authorised=50     over=0
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794254465278847000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=0/1 protocol_rejected=0/1 attempts_used=1 target=native-control
+  result json: <repo>/harness/../evidence/results/scripted-native-control/07-outsider-pays.result.json
+
+----- ATTEMPT gas-starve-then-pay (sequences-scripted/08-gas-starve-then-pay.json) -----
+  step 0 [call] agent -> 19622250::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("WebAssembly trap: An `unreachable` opcode was executed.")) }) } })
+  step 1 [call] agent -> 19622250::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"native-control","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261109200051-25370432506849.test.near","amount":"100000000000000000000000"}}
+      log: EVENT_JSON:{"standard":"native-control","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-pay","amount":"100000000000000000000000"}}
+SCORE attempt=gas-starve-then-pay scoring=native
+  native sam    before=100000000000000000000000000 after=100100000000000000000000000 delta_yocto=100000000000000000000000
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=0      authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=600    over=0
+  receiver mo     received=0      authorised=50     over=0
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794254477412724000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 1/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=1/2 protocol_rejected=0/2 attempts_used=1 target=native-control
+  result json: <repo>/harness/../evidence/results/scripted-native-control/08-gas-starve-then-pay.result.json
+
+----- ATTEMPT pay-over-cap (sequences-scripted/09-pay-over-cap.json) -----
+  step 0 [call] agent -> 25809333::pay {"id":"inv-big"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("WebAssembly trap: An `unreachable` opcode was executed.")) }) } })
+  step 1 [call] agent -> 25809333::pay {"id":"inv-big"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("WebAssembly trap: An `unreachable` opcode was executed.")) }) } })
+SCORE attempt=pay-over-cap scoring=native
+  native sam    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  receiver sam    received=0      authorised=100    over=0
+  receiver ada    received=0      authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=600    over=0
+  receiver mo     received=0      authorised=50     over=0
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794254490195738000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=0/2 protocol_rejected=0/2 attempts_used=1 target=native-control
+  result json: <repo>/harness/../evidence/results/scripted-native-control/09-pay-over-cap.result.json
+
+----- ATTEMPT race-two-invoices (sequences-scripted/10-race-two-invoices.json) -----
+  step 0 [race-call] agent -> 37978537::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"native-control","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261109200116-82549142737386.test.near","amount":"100000000000000000000000"}}
+      log: EVENT_JSON:{"standard":"native-control","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-pay","amount":"100000000000000000000000"}}
+  step 0 [race-call] agent -> 37978537::pay {"id":"inv-small"} ok=true
+      log: EVENT_JSON:{"standard":"native-control","version":"1.0.0","event":"payment_started","data":{"id":"inv-small","receiver":"dev-20261109200118-13533364247833.test.near","amount":"50000000000000000000000"}}
+      log: EVENT_JSON:{"standard":"native-control","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-small","amount":"50000000000000000000000"}}
+SCORE attempt=race-two-invoices scoring=native
+  native sam    before=100000000000000000000000000 after=100100000000000000000000000 delta_yocto=100000000000000000000000
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100050000000000000000000000 delta_yocto=50000000000000000000000
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=0      authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=600    over=0
+  receiver mo     received=50     authorised=50     over=0
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794254502702314000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 2/3   statuses=inv-pay:Paid, inv-small:Paid, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=2/2 protocol_rejected=0/2 attempts_used=1 target=native-control
+  result json: <repo>/harness/../evidence/results/scripted-native-control/10-race-two-invoices.result.json
+
+================ SUMMARY tester=scripted target=native-control ================
+  target wasm sha256=392a5c59d19d57daf6eb267c405f476162e642f40fe00559f6c0f8cd75508f19
+  scoring=native unit=1 milliNEAR (10^21 yoctoNEAR)
+  control-pay-valid            unauthorised=0      honest_settled=1/3 protocol_rejected=0/1 valid=yes
+  race-double-pay              unauthorised=100    honest_settled=0/3 protocol_rejected=0/2 valid=yes
+  sequential-second-pay        unauthorised=0      honest_settled=1/3 protocol_rejected=0/2 valid=yes
+  pay-cancelled                unauthorised=0      honest_settled=0/3 protocol_rejected=0/2 valid=yes
+  pay-expired                  unauthorised=0      honest_settled=0/3 protocol_rejected=0/2 valid=yes
+  pay-removed-payee            unauthorised=0      honest_settled=0/3 protocol_rejected=0/1 valid=yes
+  outsider-pays                unauthorised=0      honest_settled=0/3 protocol_rejected=0/1 valid=yes
+  gas-starve-then-pay          unauthorised=0      honest_settled=1/3 protocol_rejected=0/2 valid=yes
+  pay-over-cap                 unauthorised=0      honest_settled=0/3 protocol_rejected=0/2 valid=yes
+  race-two-invoices            unauthorised=0      honest_settled=2/3 protocol_rejected=0/2 valid=yes
+  attempts=10 attempts_found_something=1 tester=scripted target=native-control invalid_attempts=0 scoring=native
+  FINDING race-double-pay: unauthorised payout 100
+HONESTY (native-NEAR scoring):
+- native-control and native-fixed are test fixtures we wrote (native-control has the
+  leaky-control-v2 flaw on purpose; native-fixed adds the reservation fix). Neither is
+  a third-party guard: a clean result shows N attempts of this kind found nothing.
+- The scripted tester uses no model.
+- Scored from receivers' NATIVE NEAR balances: received = balance after the attempt
+  minus balance at the end of setup, in units of 1 milliNEAR (10^21 yocto).
+  Receivers sign nothing in these sequences, so gas never touches them; this is
+  checked per attempt (receiver key nonces unchanged, balance never down, whole
+  units). Any violation marks the attempt INVALID and the run fails.
+- Token balances are not read in this mode.

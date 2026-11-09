@@ -1,0 +1,6 @@
+leaky-control frozen 2026-11-09, before any arena run against it.
+TEST FIXTURE built to be vulnerable (see README.md). DO NOT DEPLOY WITH REAL MONEY.
+sha256 leaky_control.wasm 84ff523f288a5bc49d6f851ad20d7c9f76b372f00a7f96aefd48eac74ad35760
+sha256 src/lib.rs     af46e5d4d55181885ab11a73510f8770b76458db031e13f020d271581393f4d7
+sha256 README.md      3e46a3e1a4daf85c3f2a8b75ad376dc4db4d5e9c83ad1e423870c2f54a498b3a
+Positive control for the arena scorer; checked by ../../run-arena.sh together with vault-a.

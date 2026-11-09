@@ -1,0 +1,17 @@
+[package]
+name = "guard"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+near-sdk.workspace = true
+
+[features]
+# TEST BUILDS ONLY. Makes `on_transfer` panic for invoice ids starting with `crash-`,
+# to simulate a callback that fails (e.g. runs out of gas). `./run.sh` builds it into a
+# separate target dir (`target-fault/`). The normal build never enables it.
+fault-injection = []

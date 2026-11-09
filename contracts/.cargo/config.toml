@@ -1,0 +1,5 @@
+# `--cfg near` is what `cargo near build` sets: it makes near-sdk call the real
+# on-chain host functions (e.g. panic messages). Without it near-sdk 5.2x silently
+# compiles "pure-Rust fallbacks" and every require! becomes a bare `unreachable` trap.
+[target.wasm32-unknown-unknown]
+rustflags = ["--cfg", "near", "-C", "link-arg=-s"]

@@ -1,0 +1,19 @@
+[workspace]
+members = ["test-token", "guard"]
+resolver = "3"
+
+[workspace.package]
+edition = "2021"
+rust-version = "1.86"
+
+[workspace.dependencies]
+near-sdk = "5.17"
+near-contract-standards = "5.17"
+
+[profile.release]
+codegen-units = 1
+opt-level = "z"
+lto = true
+debug = false
+panic = "abort"
+overflow-checks = true

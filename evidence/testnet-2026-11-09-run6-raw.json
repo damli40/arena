@@ -1,0 +1,94 @@
+{
+  "errors": [],
+  "header": {
+    "funder": "dev-20261109195231-98743803426969.testnet",
+    "guard_wasm_sha256": "fcce82bf9bad46ae9c7d85952470faf664aa5905bea2df7111ab97601b773372",
+    "network": "testnet",
+    "rpc": "https://rpc.testnet.fastnear.com",
+    "started_unix_ms": "1794257644515",
+    "token_wasm_sha256": "c8071a2265b6dbd595f319972dc3271d928a73b5a98456538ae5246abf8d3e61",
+    "trials_per_mode": 5
+  },
+  "trials": [
+    {
+      "accounts": {
+        "agent": "r6vf0-agent.dev-20261109195231-98743803426969.testnet",
+        "funder": "dev-20261109195231-98743803426969.testnet",
+        "guard": "r6vf0-guard.dev-20261109195231-98743803426969.testnet",
+        "owner": "r6vf0-owner.dev-20261109195231-98743803426969.testnet",
+        "receiver": "r6vf0-sam.dev-20261109195231-98743803426969.testnet",
+        "token": "r6vf0-token.dev-20261109195231-98743803426969.testnet"
+      },
+      "agent_txs_sent_during_race": 0,
+      "earlier_pay_callback_height": null,
+      "elapsed_s": 170,
+      "guard_paid_out": "0",
+      "invoice_amount": "100",
+      "invoice_id": "inv-vulnerable_fixture-0",
+      "invoice_record_after": {
+        "amount": "100",
+        "confirmed_payouts": 0,
+        "pending_since_block": 0,
+        "receiver": "r6vf0-sam.dev-20261109195231-98743803426969.testnet",
+        "status": "Approved",
+        "transfers_started": 0
+      },
+      "later_pay_check_height": null,
+      "mode": "vulnerable_fixture",
+      "mode_onchain": "vulnerable_fixture",
+      "overlapped": null,
+      "pay_a": {
+        "broadcast_returned_unix_ms": "1794257681127",
+        "failure": "",
+        "link": "https://testnet.nearblocks.io/txns/3oizgFhKz2Sfz8GVi74Q165Qmz9J32dsxauYm89Qz913",
+        "outcome_fetch_error": "tx 3oizgFhKz2Sfz8GVi74Q165Qmz9J32dsxauYm89Qz913 not resolved within 120 s (the library may have re-signed it after a broadcast error; check the signer's key nonce)",
+        "sent_unix_ms": "1794257680550",
+        "steps": [],
+        "success": null,
+        "tx": "3oizgFhKz2Sfz8GVi74Q165Qmz9J32dsxauYm89Qz913"
+      },
+      "pay_b": {
+        "broadcast_returned_unix_ms": "1794257681175",
+        "failure": "",
+        "link": "https://testnet.nearblocks.io/txns/AD8rxoUVm8fLmxo4Xdtr6eur57T95Untddv5y59nz6sw",
+        "outcome_fetch_error": "tx AD8rxoUVm8fLmxo4Xdtr6eur57T95Untddv5y59nz6sw not resolved within 120 s (the library may have re-signed it after a broadcast error; check the signer's key nonce)",
+        "sent_unix_ms": "1794257680550",
+        "steps": [],
+        "success": null,
+        "tx": "AD8rxoUVm8fLmxo4Xdtr6eur57T95Untddv5y59nz6sw"
+      },
+      "receiver_balance_after": "0",
+      "receiver_balance_before": "0",
+      "receiver_received": "0",
+      "rule": "an invoice may pay at most its amount (100 test tokens)",
+      "rule_held": true,
+      "setup_txs": [
+        {
+          "step": "token.new",
+          "tx": "H5FDNcDCdYH8Xv9yCkVaSeKsM2feyUSp1d7Fsf5C4oTH"
+        },
+        {
+          "step": "guard.new",
+          "tx": "ArUXh6U1v2H6PefNuoX8PxTAvTeH72BzsfuMMYnGfHLt"
+        },
+        {
+          "step": "storage_deposit r6vf0-guard.dev-20261109195231-98743803426969.testnet",
+          "tx": "HtKxdGc8SnbUhbohVnk5WtZf8unHsvQxHuyZGqmeioxp"
+        },
+        {
+          "step": "storage_deposit r6vf0-sam.dev-20261109195231-98743803426969.testnet",
+          "tx": "6YCDFEXm8GXoEb6oyxXA6nC5aBYTFcnszCjtn9WQdPKS"
+        },
+        {
+          "step": "fund guard 1000",
+          "tx": "J2FSFT4LumHafcdNWpE8E6aSGS4sRZFhfNPCmNRVfgQ3"
+        },
+        {
+          "step": "approve_invoice 100",
+          "tx": "At7fHsSEeq4QcyjevPSkkCbBe1wJL6jRM2FGcuyQ92xE"
+        }
+      ],
+      "trial": 0
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+{"name":"race-two-invoices","steps":[
+        {"race":[{"actor":"agent","method":"pay","args":{"id":"inv-pay"}},
+                 {"actor":"agent","method":"pay","args":{"id":"inv-small"}}]}
+    ]}

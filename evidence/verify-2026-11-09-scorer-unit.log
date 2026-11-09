@@ -1,0 +1,64 @@
+warning: field `auth_by_invoice` is never read
+  --> src/scorer.rs:65:9
+   |
+50 | pub struct Score {
+   |            ----- field in this struct
+...
+65 |     pub auth_by_invoice: Vec<(String, u128)>,
+   |         ^^^^^^^^^^^^^^^
+   |
+   = note: `Score` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: field `setup_now_ns` is never read
+   --> src/setup.rs:177:9
+    |
+170 | pub struct Manifest {
+    |            -------- field in this struct
+...
+177 |     pub setup_now_ns: u64,
+    |         ^^^^^^^^^^^^
+    |
+    = note: `Manifest` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: field `owner` is never read
+   --> src/setup.rs:182:9
+    |
+180 | pub struct Arena {
+    |            ----- field in this struct
+181 |     pub worker: Worker<Sandbox>,
+182 |     pub owner: Account,
+    |         ^^^^^
+
+warning: method `receiver_id` is never used
+   --> src/setup.rs:240:12
+    |
+230 | impl Arena {
+    | ---------- method in this implementation
+...
+240 |     pub fn receiver_id(&self, name: &str) -> Result<&near_workspaces::AccountId> {
+    |            ^^^^^^^^^^^
+
+warning: `arena-harness` (bin "arena-harness" test) generated 4 warnings
+    Finished `release` profile [optimized] target(s) in 0.10s
+     Running unittests src/main.rs (target/release/deps/arena_harness-59a93b1c4675326e)
+
+running 15 tests
+test scorer::native_live::native_live_receiver_signing_marks_attempt_invalid ... ignored
+test scorer::tests::cancelled_invoice_paid_is_unauthorised ... ok
+test scorer::tests::exact_honest_settlement ... ok
+test scorer::tests::expire_paid_after_expiry_is_unauthorised ... ok
+test scorer::tests::native_balance_down_is_invalid ... ok
+test scorer::tests::native_double_pay_reads_as_200_units ... ok
+test scorer::tests::native_partial_unit_is_invalid ... ok
+test scorer::tests::native_receiver_new_key_is_invalid ... ok
+test scorer::tests::expire_paid_before_expiry_is_authorised ... ok
+test scorer::tests::expire_without_timestamp_is_not_scored ... ok
+test scorer::tests::native_receiver_signing_is_invalid ... ok
+test scorer::tests::nothing_paid ... ok
+test scorer::tests::over_cap_counted_once ... ok
+test scorer::tests::removed_payee_invoice_paid_is_unauthorised ... ok
+test scorer::tests::sam_receives_200_against_one_100_invoice ... ok
+
+test result: ok. 14 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

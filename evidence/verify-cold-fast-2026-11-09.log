@@ -1,0 +1,13 @@
+# Cold ./verify.sh fast, 2026-11-09 (Apple silicon). Fresh rsync copy of arena/ with every target/ and target-fault/ dir excluded,
+# run as: env -u CARGO_TARGET_DIR ./verify.sh fast. Cargo registry (~/.cargo) and rustup toolchains were already present (not a fresh machine).
+PASS  t1: two requests for one 100-token invoice pay 200, 5 of 5
+PASS  bench: frozen fingerprints held
+PASS  bench: control run reached its summary (setup ok)
+PASS  bench: leaky-control run found something (>=1)
+PASS  bench: race-double-pay paid beyond policy (>0)
+----
+verify: 5 passed, 0 failed (mode=fast)
+wall-clock: 481s (appended to evidence/verify-summary.log)
+exit=0 outer_wall_s=482
+# the copy's evidence/verify-summary.log line:
+2026-11-09T19:57:27Z mode=fast wall_s=481 verify: 5 passed, 0 failed (mode=fast)

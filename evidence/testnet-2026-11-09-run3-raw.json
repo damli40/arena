@@ -1,0 +1,24 @@
+{
+  "errors": [
+    {
+      "error": "unable to broadcast the transaction to the network",
+      "mode": "vulnerable_fixture",
+      "trial": 0
+    },
+    {
+      "error": "unable to fulfill the query request",
+      "mode": "vulnerable_fixture",
+      "trial": 1
+    }
+  ],
+  "header": {
+    "funder": "dev-20261109195231-98743803426969.testnet",
+    "guard_wasm_sha256": "fcce82bf9bad46ae9c7d85952470faf664aa5905bea2df7111ab97601b773372",
+    "network": "testnet",
+    "rpc": "https://rpc.testnet.near.org",
+    "started_unix_ms": "1794255065558",
+    "token_wasm_sha256": "c8071a2265b6dbd595f319972dc3271d928a73b5a98456538ae5246abf8d3e61",
+    "trials_per_mode": 5
+  },
+  "trials": []
+}

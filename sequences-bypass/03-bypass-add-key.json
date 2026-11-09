@@ -1,0 +1,4 @@
+{"name":"bypass-add-key","steps":[
+  {"add_key":{"actor":"agent","permission":"full_access"}},
+  {"add_key":{"actor":"agent","permission":"function_call_token"}}
+]}

@@ -1,0 +1,8 @@
+leaky-control-v2 frozen 2026-11-09, before any arena run against it.
+TEST FIXTURE built to be vulnerable (see README.md). DO NOT DEPLOY WITH REAL MONEY.
+v2 of leaky-control: v1 lacked #[payable] on 4 owner methods, so setup failed before any attack (evidence/arena-2026-11-09-positive-control-v1-setup-failure.log). Only those 4 attributes differ.
+sha256 leaky_control.wasm 9b0ea03b25ecee6d6133790aa6a220511dad7bfaacf90d38a622732fd9e545b4
+sha256 src/lib.rs     485e7861a34d999e1bbd2671b6cc39766810cbe3648b2fb7a79d22461412d1b0
+sha256 README.md      3e46a3e1a4daf85c3f2a8b75ad376dc4db4d5e9c83ad1e423870c2f54a498b3a
+Built with rustc 1.86.0 (rust-toolchain.toml), cargo build --release --target wasm32-unknown-unknown.
+The src/lib.rs diff against v1 is in CHANGES.diff. Checked by ../../run-arena.sh together with vault-a and v1.

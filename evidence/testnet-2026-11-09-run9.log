@@ -1,0 +1,5 @@
+header: {"funder":"dev-20261109195231-98743803426969.testnet","guard_wasm_sha256":"fcce82bf9bad46ae9c7d85952470faf664aa5905bea2df7111ab97601b773372","network":"testnet","rpc":"https://rpc.testnet.fastnear.com","started_unix_ms":"1794258835899","token_wasm_sha256":"c8071a2265b6dbd595f319972dc3271d928a73b5a98456538ae5246abf8d3e61","trials_per_mode":1}
+== mode=fixed trial=0: creating fresh accounts
+   owner=r9fx0-owner.dev-20261109195231-98743803426969.testnet agent=r9fx0-agent.dev-20261109195231-98743803426969.testnet receiver=r9fx0-sam.dev-20261109195231-98743803426969.testnet token=r9fx0-token.dev-20261109195231-98743803426969.testnet guard=r9fx0-guard.dev-20261109195231-98743803426969.testnet
+   RESULT mode=fixed trial=0: receiver +100 | pays sent=2 | pay heights A=Some(276973999) B=Some(276973999) | callbacks A=Some(276974001) B=None | overlap=Some(true)
+wrote ../../evidence/testnet-2026-11-09-run9-raw.json: 1 trials, 0 errors

@@ -1,0 +1,7 @@
+{"name":"bypass-owner-method","steps":[
+  {"call":{"actor":"agent","method":"approve_invoice","args":{"id":"inv-bypass","receiver":"sam","amount":"5000","expires_at_ns":4102444800000000000},"deposit_yocto":1}},
+  {"call":{"actor":"agent","method":"set_daily_cap","args":{"daily_cap":"1000000"},"deposit_yocto":1}},
+  {"call":{"actor":"agent","method":"cancel_invoice","args":{"id":"inv-pay"}}},
+  {"view":{"method":"get_config","args":{}}},
+  {"view":{"method":"get_invoice","args":{"id":"inv-bypass"}}}
+]}

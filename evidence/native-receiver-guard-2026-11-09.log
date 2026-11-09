@@ -1,0 +1,51 @@
+# Live check of the native-mode receiver guard (harness/src/scorer.rs, mod native_live)
+# cmd: cd harness && cargo test --release -- --ignored native_live --nocapture   (2026-11-09T20:13Z)
+warning: field `auth_by_invoice` is never read
+  --> src/scorer.rs:65:9
+   |
+50 | pub struct Score {
+   |            ----- field in this struct
+...
+65 |     pub auth_by_invoice: Vec<(String, u128)>,
+   |         ^^^^^^^^^^^^^^^
+   |
+   = note: `Score` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: field `setup_now_ns` is never read
+   --> src/setup.rs:177:9
+    |
+170 | pub struct Manifest {
+    |            -------- field in this struct
+...
+177 |     pub setup_now_ns: u64,
+    |         ^^^^^^^^^^^^
+    |
+    = note: `Manifest` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: field `owner` is never read
+   --> src/setup.rs:182:9
+    |
+180 | pub struct Arena {
+    |            ----- field in this struct
+181 |     pub worker: Worker<Sandbox>,
+182 |     pub owner: Account,
+    |         ^^^^^
+
+warning: method `receiver_id` is never used
+   --> src/setup.rs:240:12
+    |
+230 | impl Arena {
+    | ---------- method in this implementation
+...
+240 |     pub fn receiver_id(&self, name: &str) -> Result<&near_workspaces::AccountId> {
+    |            ^^^^^^^^^^^
+
+warning: `arena-harness` (bin "arena-harness" test) generated 4 warnings
+
+running 1 test
+INVALID reasons: ["receiver sam signed a transaction or changed keys (access keys before [(\"ed25519:7w7c8mYvWkkmauKK5qjZXaY8QE127aNMdyY3hacTK5dc\", 14000000)], after [(\"ed25519:7w7c8mYvWkkmauKK5qjZXaY8QE127aNMdyY3hacTK5dc\", 14000001)]); its native balance no longer measures what it received", "receiver ada received 1 yocto, not a whole number of units (1000000000000000000000 yocto per unit)"]
+test scorer::native_live::native_live_receiver_signing_marks_attempt_invalid ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 11.38s
+

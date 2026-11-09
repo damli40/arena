@@ -1,0 +1,12 @@
+Guard C, frozen before any run (2026-11-09)
+
+commit: recorded privately and withheld here to keep the team anonymous (MIT licence)
+built from source, workspace contracts/, near-sdk =5.29.1, rustc 1.99.1 (stable)
+command: CARGO_TARGET_DIR=../../C-build RUSTFLAGS="--cfg near -C target-cpu=mvp -C link-arg=-s" cargo +stable build --release --target wasm32-unknown-unknown --lib -p <guard crate> -p <test token crate> -p <swap stand-in crate>   (crate names withheld for anonymity)
+
+sha256:
+guard.wasm          dc99ccdfc57ab5dc57a6d5aebdcf1571dbe74ed68e7e5a746002b7bc25ad7e46  (416,237 bytes)  the guard under test
+test-token.wasm     760e0bec8c9f1f45b41f5b3ffa3b46702519533ae488b29355e22ac1c0911fa0  (181,051 bytes)  their test stablecoin
+swap-stand-in.wasm  23336a13487f801b5d72fdf6eacfedbcea4d3f927ad35db71ca1f3072dfe2b69  (168,036 bytes)  their swap-venue stand-in
+
+Not used: the prebuilt files in the team's repo (different build settings give different hashes).

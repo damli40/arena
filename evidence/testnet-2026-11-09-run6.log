@@ -1,0 +1,6 @@
+header: {"funder":"dev-20261109195231-98743803426969.testnet","guard_wasm_sha256":"fcce82bf9bad46ae9c7d85952470faf664aa5905bea2df7111ab97601b773372","network":"testnet","rpc":"https://rpc.testnet.fastnear.com","started_unix_ms":"1794257644515","token_wasm_sha256":"c8071a2265b6dbd595f319972dc3271d928a73b5a98456538ae5246abf8d3e61","trials_per_mode":5}
+== mode=vulnerable_fixture trial=0: creating fresh accounts
+   owner=r6vf0-owner.dev-20261109195231-98743803426969.testnet agent=r6vf0-agent.dev-20261109195231-98743803426969.testnet receiver=r6vf0-sam.dev-20261109195231-98743803426969.testnet token=r6vf0-token.dev-20261109195231-98743803426969.testnet guard=r6vf0-guard.dev-20261109195231-98743803426969.testnet
+   RESULT mode=vulnerable_fixture trial=0: receiver +0 | pays sent=0 | pay heights A=None B=None | callbacks A=None B=None | overlap=None
+== mode=vulnerable_fixture trial=1: creating fresh accounts
+   owner=r6vf1-owner.dev-20261109195231-98743803426969.testnet agent=r6vf1-agent.dev-20261109195231-98743803426969.testnet receiver=r6vf1-sam.dev-20261109195231-98743803426969.testnet token=r6vf1-token.dev-20261109195231-98743803426969.testnet guard=r6vf1-guard.dev-20261109195231-98743803426969.testnet

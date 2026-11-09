@@ -1,0 +1,146 @@
+--- ../native-control/src/lib.rs	2026-11-09 20:49:46
++++ src/lib.rs	2026-11-09 20:50:06
+@@ -1,23 +1,17 @@
+-//! native-control: a deliberately vulnerable invoice vault that pays in NATIVE NEAR.
++//! native-fixed: targets/native-control with the double-pay fix. Pays in NATIVE NEAR.
+ //!
+-//! TEST FIXTURE ONLY. DO NOT DEPLOY.
++//! TEST FIXTURE ONLY. DO NOT DEPLOY. (It exists to calibrate the arena's native
++//! scorer, not as a reviewed production contract.)
+ //!
+-//! It is leaky-control-v2 (targets/leaky-control-v2) with one change: `pay` sends
+-//! the invoice amount as a native NEAR transfer (`Promise::new(receiver).transfer`)
+-//! instead of an NEP-141 `ft_transfer`. Invoice amounts and `daily_cap` are in
+-//! yoctoNEAR. Every method name, argument, deposit and view is the same as
+-//! targets/vault-a/INTERFACE.md; `new` still takes a `token` argument, which is
+-//! stored and shown by `get_config` but never used.
++//! THE FIX: `pay` marks the invoice `Pending` BEFORE it starts the transfer, so a
++//! second `pay` for the same invoice is refused ("invoice already paid, cancelled
++//! or in flight") until the callback runs. The callback sets `Paid` if the
++//! transfer went through, or back to `Approved` if it failed (payable again).
++//! Everything else is byte-for-byte native-control; CHANGES.diff is the full
++//! difference.
+ //!
+-//! THE LEAK (kept on purpose, identical to leaky-control-v2): `pay` checks "is it
+-//! paid?" and starts the transfer, but the invoice is marked `Paid` only in the
+-//! callback that runs after the transfer (blocks later). A second `pay` that lands
+-//! before the callback still sees `Approved` and starts a second transfer.
+-//! The arena uses this as the native-NEAR positive control: a native-mode run that
+-//! scores 0 against it means the native scorer is blind.
+-//!
+-//! targets/native-fixed is the same contract with the fix (reserve before the
+-//! transfer); targets/native-fixed/CHANGES.diff is the full difference.
++//! The arena uses this as the native-NEAR negative control: the native scorer
++//! must report 0 overpaid on every sequence against it.
+ 
+ use near_sdk::json_types::U128;
+ use near_sdk::store::{IterableMap, IterableSet, LookupMap};
+@@ -44,6 +38,7 @@
+ #[derive(Clone, Debug, PartialEq, Eq)]
+ pub enum Status {
+     Approved,
++    Pending,
+     Paid,
+     Cancelled,
+ }
+@@ -73,7 +68,7 @@
+ 
+ #[derive(PanicOnDefault)]
+ #[near(contract_state)]
+-pub struct NativeControl {
++pub struct NativeFixed {
+     owner: AccountId,
+     agent: AccountId,
+     token: AccountId,
+@@ -88,7 +83,7 @@
+ 
+ fn event(name: &str, data: &impl serde::Serialize) {
+     env::log_str(&format!(
+-        "EVENT_JSON:{{\"standard\":\"native-control\",\"version\":\"1.0.0\",\"event\":\"{name}\",\"data\":{}}}",
++        "EVENT_JSON:{{\"standard\":\"native-fixed\",\"version\":\"1.0.0\",\"event\":\"{name}\",\"data\":{}}}",
+         serde_json::to_string(data).unwrap_or_default()
+     ));
+ }
+@@ -109,7 +104,7 @@
+ }
+ 
+ #[near]
+-impl NativeControl {
++impl NativeFixed {
+     /// INTERFACE.md: init is callable by the vault account itself only.
+     #[init]
+     pub fn new(owner: AccountId, agent: AccountId, token: AccountId, daily_cap: U128) -> Self {
+@@ -207,11 +202,11 @@
+         event("daily_cap_set", &daily_cap.0.to_string());
+     }
+ 
+-    // ---- agent method: THE LEAK ----
++    // ---- agent method: THE FIX ----
+ 
+-    /// Same check-and-transfer shape as vault-a's interface, but the invoice
+-    /// is marked Paid only in `on_transfer` (blocks later). No `Pending`
+-    /// reservation is made, so overlapping `pay` calls both transfer.
++    /// Same check-and-transfer shape as native-control, but the invoice is
++    /// marked `Pending` before the transfer starts, so an overlapping `pay`
++    /// for the same invoice is refused.
+     pub fn pay(&mut self, id: String) -> Promise {
+         require!(env::predecessor_account_id() == self.agent, "only the agent can pay");
+         require!(
+@@ -219,7 +214,7 @@
+             "not enough gas attached to pay safely"
+         );
+         let inv = self.invoices.get_mut(&id).expect("unknown invoice");
+-        require!(inv.status == Status::Approved, "invoice already paid or cancelled");
++        require!(inv.status == Status::Approved, "invoice already paid, cancelled or in flight");
+         require!(!inv.payee_revoked, "receiver is no longer a payee");
+         require!(
+             env::block_timestamp() < inv.expires_at_ns,
+@@ -232,8 +227,9 @@
+             committed + inv.amount <= self.daily_cap,
+             "daily cap exceeded"
+         );
+-        // LEAK: nothing is recorded here. The invoice stays `Approved` until
+-        // the callback runs, so another pay in between passes the check above.
++        // FIX: reserve the invoice before the transfer, so another pay in
++        // between fails the Approved check above.
++        inv.status = Status::Pending;
+         self.in_flight.insert(day, self.in_flight.get(&day).copied().unwrap_or(0) + inv.amount);
+         let receiver = inv.receiver.clone();
+         let amount = inv.amount;
+@@ -262,6 +258,7 @@
+             self.paid.insert(day, p + inv.amount);
+             event("payment_succeeded", &serde_json::json!({"id": id, "amount": inv.amount.to_string()}));
+         } else {
++            inv.status = Status::Approved;
+             event("payment_failed", &serde_json::json!({"id": id}));
+         }
+         confirmed
+@@ -278,6 +275,8 @@
+             "PayeeRemoved"
+         } else if inv.status == Status::Paid {
+             "Paid"
++        } else if inv.status == Status::Pending {
++            "Pending"
+         } else if now >= inv.expires_at_ns {
+             "Expired"
+         } else {
+--- ../native-control/Cargo.toml	2026-11-09 20:49:35
++++ Cargo.toml	2026-11-09 20:50:00
+@@ -1,5 +1,5 @@
+ [package]
+-name = "native-control"
++name = "native-fixed"
+ version = "0.1.0"
+ edition = "2021"
+ publish = false
+--- ../native-control/Cargo.lock	2026-11-09 20:49:35
++++ Cargo.lock	2026-11-09 20:50:00
+@@ -416,7 +416,7 @@
+ ]
+ 
+ [[package]]
+-name = "native-control"
++name = "native-fixed"
+ version = "0.1.0"
+ dependencies = [
+  "borsh",

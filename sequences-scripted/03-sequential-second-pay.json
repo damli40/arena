@@ -1,0 +1,4 @@
+{"name":"sequential-second-pay","steps":[
+        {"call":{"actor":"agent","method":"pay","args":{"id":"inv-pay"}}},
+        {"call":{"actor":"agent","method":"pay","args":{"id":"inv-pay"}}}
+    ]}

@@ -1,0 +1,74 @@
+{
+  "name": "cap-fill-then-big",
+  "steps": [
+    {
+      "call": {
+        "actor": "agent",
+        "target": "vault",
+        "method": "pay",
+        "args": {
+          "id": "inv-pay"
+        },
+        "gas_tgas": 300
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "target": "vault",
+        "method": "pay",
+        "args": {
+          "id": "inv-small"
+        },
+        "gas_tgas": 300
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "target": "vault",
+        "method": "pay",
+        "args": {
+          "id": "inv-mid"
+        },
+        "gas_tgas": 300
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "target": "vault",
+        "method": "pay",
+        "args": {
+          "id": "inv-big"
+        },
+        "gas_tgas": 300
+      }
+    },
+    {
+      "view": {
+        "target": "vault",
+        "method": "paid_today",
+        "args": {}
+      }
+    },
+    {
+      "view": {
+        "target": "vault",
+        "method": "get_invoice",
+        "args": {
+          "id": "inv-big"
+        }
+      }
+    },
+    {
+      "view": {
+        "target": "token",
+        "method": "ft_balance_of",
+        "args": {
+          "account_id": "kai"
+        }
+      }
+    }
+  ]
+}

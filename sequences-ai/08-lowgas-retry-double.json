@@ -1,0 +1,64 @@
+{
+  "name": "lowgas-retry-double",
+  "steps": [
+    {
+      "call": {
+        "actor": "agent",
+        "target": "vault",
+        "method": "pay",
+        "args": {
+          "id": "inv-pay"
+        },
+        "gas_tgas": 50
+      }
+    },
+    {
+      "view": {
+        "target": "vault",
+        "method": "get_invoice",
+        "args": {
+          "id": "inv-pay"
+        }
+      }
+    },
+    {
+      "wait_blocks": 5
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "target": "vault",
+        "method": "pay",
+        "args": {
+          "id": "inv-pay"
+        },
+        "gas_tgas": 300
+      }
+    },
+    {
+      "view": {
+        "target": "vault",
+        "method": "get_invoice",
+        "args": {
+          "id": "inv-pay"
+        }
+      }
+    },
+    {
+      "view": {
+        "target": "vault",
+        "method": "paid_today",
+        "args": {}
+      }
+    },
+    {
+      "view": {
+        "target": "token",
+        "method": "ft_balance_of",
+        "args": {
+          "account_id": "sam"
+        }
+      }
+    }
+  ]
+}

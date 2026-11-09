@@ -1,0 +1,3 @@
+{"name":"outsider-pays","steps":[
+        {"call":{"actor":"outsider","method":"pay","args":{"id":"inv-pay"}}}
+    ]}

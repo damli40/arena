@@ -1,0 +1,9 @@
+header: {"guard_wasm_sha256":"fcce82bf9bad46ae9c7d85952470faf664aa5905bea2df7111ab97601b773372","network":"testnet","rpc":"https://rpc.testnet.near.org","started_unix_ms":"1794254297378","token_wasm_sha256":"c8071a2265b6dbd595f319972dc3271d928a73b5a98456538ae5246abf8d3e61","trials_per_mode":5}
+== mode=vulnerable_fixture trial=0: creating fresh accounts
+  retry create funder (faucet): attempt 1 failed: The faucet (helper service) server failed with status code <429 Too Many Requests>
+  retry create funder (faucet): attempt 2 failed: The faucet (helper service) server failed with status code <429 Too Many Requests>
+  retry create funder (faucet): attempt 3 failed: The faucet (helper service) server failed with status code <429 Too Many Requests>
+  retry create funder (faucet): attempt 4 failed: The faucet (helper service) server failed with status code <429 Too Many Requests>
+  retry create funder (faucet): attempt 5 failed: The faucet (helper service) server failed with status code <429 Too Many Requests>
+  retry create funder (faucet): attempt 6 failed: The faucet (helper service) server failed with status code <429 Too Many Requests>
+   TRIAL ERROR mode=vulnerable_fixture trial=0: create funder (faucet) failed after retries: Some(Error { repr: Message { kind: Other, message: "The faucet (helper service) server failed with status code <429 Too Many Requests>" } })

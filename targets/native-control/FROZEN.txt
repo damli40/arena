@@ -1,0 +1,14 @@
+native-control re-frozen 2026-11-09T20:06Z, before any arena run against this build.
+TEST FIXTURE. DO NOT DEPLOY. (see README.md)
+leaky-control-v2 with native NEAR payouts instead of ft_transfer; same flaw (Paid recorded only in the callback).
+sha256 native_control.wasm cc7fb389cad0b04729df5eaefe8f7624be8529b0e526477761937cbe985244de
+sha256 src/lib.rs 4b008696a8660dc40580b2a87679196fdc31d338368561703fe709b1de6f33c9
+sha256 README.md 149d0f86c84e51af6fc37030ff0e8eefb8fdec3bec0e02037e51ca4c17ad960d
+sha256 Cargo.toml 9f63d29755974d2c223f236065130341a358ea3bad9ff52ccc3f3001dcd701ef
+sha256 Cargo.lock 71f6bc113b17c3a4beb08b6ee8c4ecc4ae7f48a381828d64ff026f96d31fbb0f
+sha256 .cargo/config.toml 74891c6e23394c7f061b89e3ab1539f87a0568df2aeb44a26fc057c120b5f65b
+Built with rustc 1.86.0 (rust-toolchain.toml) and .cargo/config.toml (--cfg near, -s), cargo build --release --target wasm32-unknown-unknown.
+This recipe reproduces leaky-control-v2's frozen wasm byte for byte (9b0ea03b...).
+SUPERSEDED first build (frozen 2026-11-09T19:58Z, then run once): wasm sha256 392a5c59d19d57daf6eb267c405f476162e642f40fe00559f6c0f8cd75508f19, same src/lib.rs, built WITHOUT --cfg near,
+  so every refusal was a bare 'unreachable' trap with no message. Its runs: evidence/arena-2026-11-09-native-control-superseded-no-cfg-near.log.
+  The source did not change; only the build flags (and this file, README.md is unchanged).

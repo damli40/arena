@@ -1,0 +1,10 @@
+Guard B (another hackathon team's guard; name kept private, see the fairness rules in the README).
+Frozen 2026-11-09, before any Arena run.
+
+wasm sha256: b44e991a469b510fbb871504be9c614dba8939aedb8223131852ce58ccd0dee6
+size: 247250 bytes
+source commit: recorded privately and withheld here to keep the team anonymous (their repo is public, MIT licence)
+built: their contract crate only, unmodified, with its own Cargo.lock; cargo +stable (rustc 1.99.1), wasm32-unknown-unknown,
+       RUSTFLAGS="--cfg near -C target-cpu=mvp -C link-arg=-s" (their docs use cargo-near; not installed here)
+
+Their source and the wasm stay outside this repo. The team can rebuild from their own commit and compare the hash; we share the commit with them on request.

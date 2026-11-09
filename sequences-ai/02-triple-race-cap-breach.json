@@ -1,0 +1,70 @@
+{
+  "name": "triple-race-cap-breach",
+  "steps": [
+    {
+      "race": [
+        {
+          "call": {
+            "actor": "agent",
+            "target": "vault",
+            "method": "pay",
+            "args": {
+              "id": "inv-mid"
+            },
+            "gas_tgas": 300
+          }
+        },
+        {
+          "call": {
+            "actor": "agent",
+            "target": "vault",
+            "method": "pay",
+            "args": {
+              "id": "inv-mid"
+            },
+            "gas_tgas": 300
+          }
+        },
+        {
+          "call": {
+            "actor": "agent",
+            "target": "vault",
+            "method": "pay",
+            "args": {
+              "id": "inv-mid"
+            },
+            "gas_tgas": 300
+          }
+        }
+      ]
+    },
+    {
+      "wait_blocks": 5
+    },
+    {
+      "view": {
+        "target": "vault",
+        "method": "paid_today",
+        "args": {}
+      }
+    },
+    {
+      "view": {
+        "target": "vault",
+        "method": "get_invoice",
+        "args": {
+          "id": "inv-mid"
+        }
+      }
+    },
+    {
+      "view": {
+        "target": "token",
+        "method": "ft_balance_of",
+        "args": {
+          "account_id": "ada"
+        }
+      }
+    }
+  ]
+}

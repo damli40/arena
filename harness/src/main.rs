@@ -1,0 +1,280 @@
+//! arena harness CLI.
+//!
+//!   harness manifest                          print the starting-state manifest (logical names)
+//!   harness gen-scripted <dir>               write the scripted tester's sequences as files
+//!   harness run <dir> [--budget N] [--target vault|control | --wasm <path> [--wasm-label L]]
+//!                     [--label TESTER] [--meta "line"]
+//!                                            run every sequence in <dir> (sorted), fresh sandbox each
+//!   harness replay <file.json> [target flags] run one sequence (a finding must replay identically)
+//!   harness attempt <file.json> [target flags] [--out result.json] [--meta "line"]
+//!                                            run ONE sequence and write the full result JSON
+//!                                            (this is the adaptive AI tester's per-round entry)
+//!
+//! Target flags: `--target vault|control|native-control|native-fixed`, or
+//! `--wasm <path>` for any guard wasm implementing targets/vault-a/INTERFACE.md
+//! (`--wasm-label` names it in logs; `run` already uses `--label` for the
+//! tester name; add `--native` for a guard that pays in native NEAR).
+//! native-* targets are scored from receivers' native NEAR balances (scorer.rs).
+//! Result JSON per attempt goes to evidence/results/<tester>-<target>/
+//! (or `--out` for `attempt`), never into the sequence folder.
+
+mod scorer;
+mod scripted;
+mod seq;
+mod setup;
+
+use anyhow::{bail, Context, Result};
+use setup::Target;
+use std::path::PathBuf;
+
+const HONESTY_LINES: &str = "\
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).";
+
+const HONESTY_LINES_NATIVE: &str = "\
+HONESTY (native-NEAR scoring):
+- native-control and native-fixed are test fixtures we wrote (native-control has the
+  leaky-control-v2 flaw on purpose; native-fixed adds the reservation fix). Neither is
+  a third-party guard: a clean result shows N attempts of this kind found nothing.
+- The scripted tester uses no model.
+- Scored from receivers' NATIVE NEAR balances: received = balance after the attempt
+  minus balance at the end of setup, in units of 1 milliNEAR (10^21 yocto).
+  Receivers sign nothing in these sequences, so gas never touches them; this is
+  checked per attempt (receiver key nonces unchanged, balance never down, whole
+  units). Any violation marks the attempt INVALID and the run fails.
+- Token balances are not read in this mode.";
+
+fn honesty(native: bool) -> &'static str {
+    if native { HONESTY_LINES_NATIVE } else { HONESTY_LINES }
+}
+
+/// Flags that take a value (so their value is never read as a positional).
+const VALUE_FLAGS: [&str; 7] = ["--budget", "--label", "--target", "--meta", "--wasm", "--wasm-label", "--out"];
+
+fn arg_dir(args: &[String], what: &str) -> Result<PathBuf> {
+    let mut it = args.iter();
+    while let Some(a) = it.next() {
+        if VALUE_FLAGS.contains(&a.as_str()) {
+            it.next();
+        } else if !a.starts_with("--") {
+            return Ok(PathBuf::from(a));
+        }
+    }
+    bail!("expected {what}")
+}
+
+/// `--wasm <path>` (any guard) wins over `--target`; default vault-a.
+fn target_of(args: &[String]) -> Result<Target> {
+    if let Some(w) = flag(args, "--wasm") {
+        return Target::custom(w, flag(args, "--wasm-label"), args.iter().any(|a| a == "--native"));
+    }
+    if args.iter().any(|a| a == "--native") {
+        bail!("--native only applies to --wasm <path>; the native-control/native-fixed targets are native already");
+    }
+    Ok(flag(args, "--target").map(Target::from_str).transpose()?.unwrap_or(Target::VaultA))
+}
+
+fn results_dir(run_label: &str) -> PathBuf {
+    let safe: String = run_label
+        .chars()
+        .map(|c| if c.is_ascii_alphanumeric() || c == '-' || c == '_' { c } else { '-' })
+        .collect();
+    setup::resolve("../evidence/results").join(safe)
+}
+
+fn flag<'a>(args: &'a [String], name: &str) -> Option<&'a str> {
+    args.iter()
+        .position(|a| a == name)
+        .and_then(|i| args.get(i + 1))
+        .map(|s| s.as_str())
+}
+
+fn metas(args: &[String]) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut it = args.iter();
+    while let Some(a) = it.next() {
+        if a == "--meta" {
+            if let Some(m) = it.next() {
+                out.push(m.clone());
+            }
+        }
+    }
+    out
+}
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    match args.first().map(|s| s.as_str()) {
+        Some("manifest") => {
+            let a = setup::setup(Target::VaultA).await?;
+            println!("arena starting-state manifest (logical names; identical for every attempt):");
+            println!("{}", serde_json::to_string_pretty(&setup::manifest_json(&a.manifest))?);
+        }
+        Some("gen-scripted") => {
+            let dir = arg_dir(&args[1..], "gen-scripted [dir]")?;
+            scripted::generate(&dir)?;
+            println!("{} scripted sequences written to {}", scripted::SEQUENCES.len(), dir.display());
+        }
+        Some("replay") => {
+            let file = arg_dir(&args[1..], "replay <file.json>")?;
+            let target = target_of(&args)?;
+            run_files(vec![file.clone()], "replay", usize::MAX, target, &metas(&args), None).await?;
+        }
+        // One attempt: the adaptive AI tester's per-round entry (FIXES fix 3).
+        // The full result JSON goes to --out if given, else evidence/results/.
+        Some("attempt") => {
+            let file = arg_dir(&args[1..], "attempt <file.json>")?;
+            let target = target_of(&args)?;
+            let out = flag(&args, "--out").map(PathBuf::from);
+            run_files(vec![file], "attempt", 1, target, &metas(&args), out).await?;
+        }
+        Some("run") => {
+            let mut dir: Option<PathBuf> = None;
+            let mut budget: usize = 10;
+            let mut label: Option<String> = None;
+            let mut it = args[1..].iter();
+            while let Some(a) = it.next() {
+                match a.as_str() {
+                    "--budget" => budget = it.next().and_then(|v| v.parse().ok()).unwrap_or(10),
+                    "--label" => label = it.next().cloned(),
+                    f if VALUE_FLAGS.contains(&f) => {
+                        it.next();
+                    }
+                    s if !s.starts_with("--") && dir.is_none() => dir = Some(PathBuf::from(s)),
+                    _ => {}
+                }
+            }
+            let target = target_of(&args)?;
+            let dir = dir.context("expected: run <sequence-dir> [--budget N] [--target vault|control | --wasm PATH] [--label X]")?;
+            // Sequences only: never the *.result.json files an older harness
+            // wrote next to them (they would fail to parse and eat budget).
+            let mut files: Vec<PathBuf> = std::fs::read_dir(&dir)?
+                .filter_map(|e| e.ok().map(|e| e.path()))
+                .filter(|p| p.extension().map(|e| e == "json").unwrap_or(false))
+                .filter(|p| !p.to_string_lossy().ends_with(".result.json"))
+                .collect();
+            files.sort();
+            let name = label
+                .or_else(|| {
+                    dir.file_name()
+                        .and_then(|n| n.to_str())
+                        .map(|n| n.trim_start_matches("sequences-").to_string())
+                })
+                .unwrap_or_else(|| "run".to_string());
+            run_files(files, &name, budget, target, &metas(&args), None).await?;
+        }
+        _ => {
+            eprintln!("usage: harness manifest | gen-scripted [dir] | run <dir> [--budget N] [--target vault|control | --wasm PATH [--wasm-label L]] [--label TESTER] [--meta M] | replay <file> [target flags] | attempt <file> [target flags] [--out result.json]");
+            bail!("bad args");
+        }
+    }
+    Ok(())
+}
+
+async fn run_files(
+    files: Vec<PathBuf>,
+    tester: &str,
+    budget: usize,
+    target: Target,
+    meta: &[String],
+    out: Option<PathBuf>,
+) -> Result<()> {
+    if files.is_empty() {
+        bail!("no sequence files found");
+    }
+    let n = files.len().min(budget);
+    if files.len() > budget {
+        println!("NOTE: tester={tester} submitted {} sequences; the budget is {budget}. Running the first {n} (sorted) and ignoring the rest.", files.len());
+    }
+    let tl = target.label();
+    let wasm = target.wasm_path();
+    let wasm_sha = setup::sha256_file(&wasm)?;
+    println!("\n================ arena run: tester={tester} target={tl} attempts={n} ================");
+    println!("TARGET: label={tl} wasm={} sha256={wasm_sha}", wasm.display());
+    println!(
+        "AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods={:?}, allowance={} NEAR). The agent's full-access key signs no tester step.",
+        setup::AGENT_METHODS,
+        setup::AGENT_KEY_ALLOWANCE_NEAR
+    );
+    let native = target.is_native();
+    if native {
+        println!("SCORING: native (receivers' native NEAR balance change, 1 unit = 1 milliNEAR)");
+    }
+    for m in meta {
+        println!("META: {m}");
+    }
+    println!("{}", honesty(native));
+    let rdir = results_dir(&format!("{tester}-{tl}"));
+    let mut findings = Vec::new();
+    let mut summary = Vec::new();
+    let mut invalid_attempts: Vec<(String, Vec<String>)> = Vec::new();
+    for f in files.iter().take(n) {
+        let (name, steps) = seq::load_sequence(f)?;
+        println!("\n----- ATTEMPT {name} ({}) -----", f.display());
+        let a = setup::setup(target.clone()).await?;
+        let outcome = seq::execute(&a, &steps).await?;
+        seq::settle(&a).await?;
+        let s = scorer::score(&a).await?;
+        scorer::print_score(&name, &s);
+        let ok_calls = outcome.iter().filter(|o| o.success).count();
+        let tx_steps = outcome.iter().filter(|o| o.kind != "view").count();
+        let rejected = outcome.iter().filter(|o| o.outcome == seq::OUTCOME_PROTOCOL_REJECTED).count();
+        println!("  calls_ok={ok_calls}/{} protocol_rejected={rejected}/{tx_steps} attempts_used=1 target={tl}", outcome.len());
+        // Result JSON (fix 3: the adaptive tester's feedback).
+        let rj = seq::outcome_json(&a, &name, &outcome, &s);
+        let rpath = match &out {
+            Some(p) => p.clone(),
+            None => {
+                let stem = f.file_stem().and_then(|s| s.to_str()).unwrap_or("attempt");
+                rdir.join(format!("{stem}.result.json"))
+            }
+        };
+        if let Some(parent) = rpath.parent() {
+            if !parent.as_os_str().is_empty() {
+                std::fs::create_dir_all(parent)?;
+            }
+        }
+        std::fs::write(&rpath, serde_json::to_string_pretty(&rj)?)?;
+        println!("  result json: {}", rpath.display());
+        if !s.invalid.is_empty() {
+            println!("  ATTEMPT INVALID ({name}): its score must not be used");
+            invalid_attempts.push((name.clone(), s.invalid.clone()));
+        } else if s.unauthorised > 0 {
+            println!("  FINDING: unauthorised payout {} in attempt {name}", s.unauthorised);
+            println!("  replay on a fresh sandbox: ./run-arena.sh replay {} {}", f.display(), target.replay_flags());
+            findings.push((name.clone(), s.unauthorised));
+        }
+        summary.push((name, s.unauthorised, s.settled, s.should_pay, rejected, tx_steps, s.invalid.is_empty()));
+    }
+    println!("\n================ SUMMARY tester={tester} target={tl} ================");
+    println!("  target wasm sha256={wasm_sha}");
+    if native {
+        println!("  scoring=native unit=1 milliNEAR (10^21 yoctoNEAR)");
+    }
+    for (name, u, settled, should, rej, txs, valid) in &summary {
+        // Token-mode rows are unchanged (verify.sh and the README match them);
+        // native rows add valid=yes|NO.
+        let extra = if native { format!(" valid={}", if *valid { "yes" } else { "NO" }) } else { String::new() };
+        println!("  {name:<28} unauthorised={u:<6} honest_settled={settled}/{should} protocol_rejected={rej}/{txs}{extra}");
+    }
+    let extra = if native { format!(" invalid_attempts={} scoring=native", invalid_attempts.len()) } else { String::new() };
+    println!("  attempts={} attempts_found_something={} tester={tester} target={tl}{extra}", summary.len(), findings.len());
+    for (name, u) in &findings {
+        println!("  FINDING {name}: unauthorised payout {u}");
+    }
+    for (name, why) in &invalid_attempts {
+        println!("  INVALID {name}: {}", why.join(" ; "));
+    }
+    println!("{}", honesty(native));
+    if !invalid_attempts.is_empty() {
+        bail!("RUN INVALID: {} attempt(s) broke a native-scoring assertion (see INVALID lines)", invalid_attempts.len());
+    }
+    Ok(())
+}

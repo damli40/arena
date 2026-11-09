@@ -1,0 +1,11 @@
+r7vf0-owner.dev-20261109195231-98743803426969.testnet: deleted ok=true tx=HAjDe2xNNHv89Phg9LN9qTJ6wNSt8ZVNh8XW7bNQ9xSH
+r7vf0-agent.dev-20261109195231-98743803426969.testnet: deleted ok=true tx=85ddyA2yPW7ExCpsGKM1otNvKhTLHSXBWXeA2YJwtkyN
+r7vf0-sam.dev-20261109195231-98743803426969.testnet: deleted ok=true tx=EmQ7mix9viRRoLA9jAUSGoTGEzz532zsy2GChkdnmWhh
+r7vf0-token.dev-20261109195231-98743803426969.testnet: deleted ok=true tx=7RniXWahz439e91rAvfGqWhNkCHYB4FcNALQVyxWW5Zn
+r7vf0-guard.dev-20261109195231-98743803426969.testnet: deleted ok=true tx=CwdPbMJnBFsjaC43PTahZk3Kbp5oe4SgokdGgfgBDgVJ
+r7vf1-owner.dev-20261109195231-98743803426969.testnet: deleted ok=true tx=2A8sB6uKYW8FJ2ApnDDV3RYiY4sTEEuMrnQXY5PWPtqV
+r7vf1-agent.dev-20261109195231-98743803426969.testnet: deleted ok=true tx=AZrVvU34UFyYrzxLtZRB6kC9SJbXrAB1oT1fvbo9nBGW
+r7vf1-sam.dev-20261109195231-98743803426969.testnet: deleted ok=true tx=26j4QNe26iYVqdw76NcPGL3C7giHnKFXTZMNypaT4Tdo
+r7vf1-token.dev-20261109195231-98743803426969.testnet: deleted ok=true tx=AUGoM2uU6dXaX3NtiGrmiAPsutuNPqybmEyoYtqV4fjy
+r7vf1-guard.dev-20261109195231-98743803426969.testnet: delete failed: Failed to query access key
+funder balance now 45.79 NEAR

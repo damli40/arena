@@ -1,0 +1,13 @@
+header: {"guard_wasm_sha256":"fcce82bf9bad46ae9c7d85952470faf664aa5905bea2df7111ab97601b773372","network":"testnet","rpc":"https://rpc.testnet.near.org","started_unix_ms":"1794253968133","token_wasm_sha256":"c8071a2265b6dbd595f319972dc3271d928a73b5a98456538ae5246abf8d3e61","trials_per_mode":5}
+== mode=vulnerable_fixture trial=0: creating fresh accounts
+   owner=dev-20261109195248-62788519656453.testnet agent=dev-20261109195251-60511470306146.testnet receiver=dev-20261109195254-77013920266657.testnet token=dev-20261109195258-30576098772059.testnet guard=dev-20261109195310-52341039135886.testnet
+   RESULT mode=vulnerable_fixture trial=0: receiver +100 | pays sent=2 | pay heights A=Some(276965687) B=Some(276965698) | callbacks A=Some(276965689) B=None | overlap=Some(false)
+== mode=vulnerable_fixture trial=1: creating fresh accounts
+  retry deploy guard: attempt 1 failed: The faucet (helper service) server failed with status code <429 Too Many Requests>
+  retry deploy guard: attempt 2 failed: The faucet (helper service) server failed with status code <429 Too Many Requests>
+  retry deploy guard: attempt 3 failed: The faucet (helper service) server failed with status code <429 Too Many Requests>
+  retry deploy guard: attempt 4 failed: The faucet (helper service) server failed with status code <429 Too Many Requests>
+   TRIAL ERROR mode=vulnerable_fixture trial=1: deploy guard failed after retries: Some(Error { repr: Message { kind: Other, message: "The faucet (helper service) server failed with status code <429 Too Many Requests>" } })
+== mode=vulnerable_fixture trial=2: creating fresh accounts
+  retry create owner: attempt 1 failed: The faucet (helper service) server failed with status code <429 Too Many Requests>
+  retry create owner: attempt 2 failed: The faucet (helper service) server failed with status code <429 Too Many Requests>

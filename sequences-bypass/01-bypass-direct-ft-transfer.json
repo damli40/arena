@@ -1,0 +1,5 @@
+{"name":"bypass-direct-ft-transfer","steps":[
+  {"call":{"actor":"agent","target":"token","method":"ft_transfer","args":{"receiver_id":"agent","amount":"10000"},"deposit_yocto":1}},
+  {"call":{"actor":"agent","target":"token","method":"ft_transfer","args":{"receiver_id":"agent","amount":"10000"}}},
+  {"view":{"target":"token","method":"ft_balance_of","args":{"account_id":"agent"}}}
+]}

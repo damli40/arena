@@ -1,0 +1,6 @@
+r8fx4-owner.dev-20261109195231-98743803426969.testnet: deleted ok=true tx=A37caPLgLLTf1Xb9uAyrzNUACgHYnuiBaBhbv6iMhNTK
+r8fx4-agent.dev-20261109195231-98743803426969.testnet: deleted ok=true tx=9aimCg1SSZLxDxJ65Z8h13YMPBe9LhuubyH6PG4Zw4tZ
+r8fx4-sam.dev-20261109195231-98743803426969.testnet: deleted ok=true tx=2Fm5q5HuEdSWsGZgfJ7GWHvDvT5WMyfjqSKeqNj2W6tE
+r8fx4-token.dev-20261109195231-98743803426969.testnet: deleted ok=true tx=7kp7RqADRFysSkTDA7FWPaEd6GBW4xNXUMmRFXGosygr
+r8fx4-guard.dev-20261109195231-98743803426969.testnet: delete failed: Failed to query access key
+funder balance now 8.00 NEAR

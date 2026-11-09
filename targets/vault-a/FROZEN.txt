@@ -1,0 +1,6 @@
+vault-a frozen 2026-11-08, before any sandbox test or tester saw it.
+Written blind from a spec by an AI subagent (not independent of us).
+sha256 vault_a.wasm   52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1
+sha256 src/lib.rs     afd682b47f3ca2f2cc7f45a14bcaf61b4d674791be8633a7faed597c0c634c20
+sha256 INTERFACE.md   f5b61c70b211ea1932958a8b2316c24bc9bec3184c14b77ed36a3ddebceac2f3
+Testers may read INTERFACE.md only. Scoring rules: ../../policy/vault-a.policy.md

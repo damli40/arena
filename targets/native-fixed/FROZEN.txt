@@ -1,0 +1,15 @@
+native-fixed re-frozen 2026-11-09T20:06Z, before any arena run against this build.
+TEST FIXTURE. DO NOT DEPLOY. (see README.md)
+native-control plus the reservation fix (Pending before the transfer); full diff in CHANGES.diff.
+sha256 native_fixed.wasm 5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44
+sha256 src/lib.rs 38121ecfd076d749f692ffa3bbd7588cf43f22f8a4cc2a1bc2abe746af675999
+sha256 README.md 88fbc80b27816404d7f1ce83bb876df43855e7d8c16e25546d4a26a1381c3b56
+sha256 CHANGES.diff c537c5e808349af84830b9a240c56c5a785641d64285f00651ffc3e059f999f1
+sha256 Cargo.toml 97909153776c4fcd6723d6e06fe45aca56ce303baa649c114112087515b0a902
+sha256 Cargo.lock 2b6d58427512e02f551d6d46cacc100aad86d3af9b9a4987f794e8baec1c570f
+sha256 .cargo/config.toml 74891c6e23394c7f061b89e3ab1539f87a0568df2aeb44a26fc057c120b5f65b
+Built with rustc 1.86.0 (rust-toolchain.toml) and .cargo/config.toml (--cfg near, -s), cargo build --release --target wasm32-unknown-unknown.
+This recipe reproduces leaky-control-v2's frozen wasm byte for byte (9b0ea03b...).
+SUPERSEDED first build (frozen 2026-11-09T19:58Z, then run once): wasm sha256 88d36c9448a8e127d15acd008f828de1f7f7f76d0bdd0d5258c9fc4e926f6ecd, same src/lib.rs, built WITHOUT --cfg near,
+  so every refusal was a bare 'unreachable' trap with no message. Its runs: evidence/arena-2026-11-09-native-fixed-superseded-no-cfg-near.log.
+  The source did not change; only the build flags (and this file, README.md is unchanged).

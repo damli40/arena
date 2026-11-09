@@ -1,0 +1,31 @@
+header: {"funder":"dev-20261109195231-98743803426969.testnet","guard_wasm_sha256":"fcce82bf9bad46ae9c7d85952470faf664aa5905bea2df7111ab97601b773372","network":"testnet","rpc":"https://rpc.testnet.fastnear.com","started_unix_ms":"1794258263172","token_wasm_sha256":"c8071a2265b6dbd595f319972dc3271d928a73b5a98456538ae5246abf8d3e61","trials_per_mode":5}
+== mode=vulnerable_fixture trial=0: creating fresh accounts
+   owner=r8vf0-owner.dev-20261109195231-98743803426969.testnet agent=r8vf0-agent.dev-20261109195231-98743803426969.testnet receiver=r8vf0-sam.dev-20261109195231-98743803426969.testnet token=r8vf0-token.dev-20261109195231-98743803426969.testnet guard=r8vf0-guard.dev-20261109195231-98743803426969.testnet
+   RESULT mode=vulnerable_fixture trial=0: receiver +200 | pays sent=2 | pay heights A=Some(276973001) B=Some(276973001) | callbacks A=Some(276973003) B=Some(276973003) | overlap=Some(true)
+== mode=vulnerable_fixture trial=1: creating fresh accounts
+   owner=r8vf1-owner.dev-20261109195231-98743803426969.testnet agent=r8vf1-agent.dev-20261109195231-98743803426969.testnet receiver=r8vf1-sam.dev-20261109195231-98743803426969.testnet token=r8vf1-token.dev-20261109195231-98743803426969.testnet guard=r8vf1-guard.dev-20261109195231-98743803426969.testnet
+   RESULT mode=vulnerable_fixture trial=1: receiver +200 | pays sent=2 | pay heights A=Some(276973085) B=Some(276973085) | callbacks A=Some(276973087) B=Some(276973087) | overlap=Some(true)
+== mode=vulnerable_fixture trial=2: creating fresh accounts
+   owner=r8vf2-owner.dev-20261109195231-98743803426969.testnet agent=r8vf2-agent.dev-20261109195231-98743803426969.testnet receiver=r8vf2-sam.dev-20261109195231-98743803426969.testnet token=r8vf2-token.dev-20261109195231-98743803426969.testnet guard=r8vf2-guard.dev-20261109195231-98743803426969.testnet
+   RESULT mode=vulnerable_fixture trial=2: receiver +200 | pays sent=2 | pay heights A=Some(276973171) B=Some(276973171) | callbacks A=Some(276973173) B=Some(276973173) | overlap=Some(true)
+== mode=vulnerable_fixture trial=3: creating fresh accounts
+   owner=r8vf3-owner.dev-20261109195231-98743803426969.testnet agent=r8vf3-agent.dev-20261109195231-98743803426969.testnet receiver=r8vf3-sam.dev-20261109195231-98743803426969.testnet token=r8vf3-token.dev-20261109195231-98743803426969.testnet guard=r8vf3-guard.dev-20261109195231-98743803426969.testnet
+   RESULT mode=vulnerable_fixture trial=3: receiver +200 | pays sent=2 | pay heights A=Some(276973257) B=Some(276973257) | callbacks A=Some(276973259) B=Some(276973259) | overlap=Some(true)
+== mode=vulnerable_fixture trial=4: creating fresh accounts
+   owner=r8vf4-owner.dev-20261109195231-98743803426969.testnet agent=r8vf4-agent.dev-20261109195231-98743803426969.testnet receiver=r8vf4-sam.dev-20261109195231-98743803426969.testnet token=r8vf4-token.dev-20261109195231-98743803426969.testnet guard=r8vf4-guard.dev-20261109195231-98743803426969.testnet
+   RESULT mode=vulnerable_fixture trial=4: receiver +200 | pays sent=2 | pay heights A=Some(276973342) B=Some(276973342) | callbacks A=Some(276973344) B=Some(276973344) | overlap=Some(true)
+== mode=fixed trial=0: creating fresh accounts
+   owner=r8fx0-owner.dev-20261109195231-98743803426969.testnet agent=r8fx0-agent.dev-20261109195231-98743803426969.testnet receiver=r8fx0-sam.dev-20261109195231-98743803426969.testnet token=r8fx0-token.dev-20261109195231-98743803426969.testnet guard=r8fx0-guard.dev-20261109195231-98743803426969.testnet
+   RESULT mode=fixed trial=0: receiver +100 | pays sent=2 | pay heights A=Some(276973419) B=Some(276973419) | callbacks A=Some(276973421) B=None | overlap=Some(true)
+== mode=fixed trial=1: creating fresh accounts
+   owner=r8fx1-owner.dev-20261109195231-98743803426969.testnet agent=r8fx1-agent.dev-20261109195231-98743803426969.testnet receiver=r8fx1-sam.dev-20261109195231-98743803426969.testnet token=r8fx1-token.dev-20261109195231-98743803426969.testnet guard=r8fx1-guard.dev-20261109195231-98743803426969.testnet
+   RESULT mode=fixed trial=1: receiver +100 | pays sent=2 | pay heights A=Some(276973503) B=Some(276973503) | callbacks A=None B=Some(276973505) | overlap=None
+== mode=fixed trial=2: creating fresh accounts
+   owner=r8fx2-owner.dev-20261109195231-98743803426969.testnet agent=r8fx2-agent.dev-20261109195231-98743803426969.testnet receiver=r8fx2-sam.dev-20261109195231-98743803426969.testnet token=r8fx2-token.dev-20261109195231-98743803426969.testnet guard=r8fx2-guard.dev-20261109195231-98743803426969.testnet
+   RESULT mode=fixed trial=2: receiver +100 | pays sent=2 | pay heights A=Some(276973589) B=Some(276973589) | callbacks A=Some(276973591) B=None | overlap=Some(true)
+== mode=fixed trial=3: creating fresh accounts
+   owner=r8fx3-owner.dev-20261109195231-98743803426969.testnet agent=r8fx3-agent.dev-20261109195231-98743803426969.testnet receiver=r8fx3-sam.dev-20261109195231-98743803426969.testnet token=r8fx3-token.dev-20261109195231-98743803426969.testnet guard=r8fx3-guard.dev-20261109195231-98743803426969.testnet
+   RESULT mode=fixed trial=3: receiver +100 | pays sent=2 | pay heights A=Some(276973667) B=Some(276973667) | callbacks A=None B=Some(276973669) | overlap=None
+== mode=fixed trial=4: creating fresh accounts
+   TRIAL ERROR mode=fixed trial=4: create guard acct: unable to broadcast the transaction to the network: handler error: [An error happened during transaction execution: NotEnoughBalance { signer_id: AccountId("dev-20261109195231-98743803426969.testnet"), balance: NearToken { inner: 700860815133221699999991 }, cost: NearToken { inner: 2007607442456250000000000 } }]
+wrote ../../evidence/testnet-2026-11-09-run8-raw.json: 9 trials, 1 errors

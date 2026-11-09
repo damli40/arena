@@ -1,0 +1,3 @@
+# Host-side harness only (never compiled to wasm), so current stable is fine.
+[toolchain]
+channel = "stable"

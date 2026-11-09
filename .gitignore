@@ -1,0 +1,4 @@
+target/
+target-fault/
+evidence/verify-*.out
+.DS_Store

@@ -1,0 +1,153 @@
+{
+  "attempt": "race-two-invoices",
+  "final": {
+    "invoice_statuses": [
+      {
+        "id": "inv-pay",
+        "status": "Paid"
+      },
+      {
+        "id": "inv-small",
+        "status": "Paid"
+      },
+      {
+        "id": "inv-mid",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-big",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-cancel",
+        "status": "Cancelled"
+      },
+      {
+        "id": "inv-expire",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-removed",
+        "status": "PayeeRemoved"
+      }
+    ],
+    "received": [
+      {
+        "authorised": "100",
+        "over": "0",
+        "received": "100",
+        "receiver": "sam"
+      },
+      {
+        "authorised": "200",
+        "over": "0",
+        "received": "0",
+        "receiver": "ada"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "lin"
+      },
+      {
+        "authorised": "600",
+        "over": "0",
+        "received": "0",
+        "receiver": "kai"
+      },
+      {
+        "authorised": "50",
+        "over": "0",
+        "received": "50",
+        "receiver": "mo"
+      }
+    ]
+  },
+  "score": {
+    "above_cap": "0",
+    "beyond_authorised": "0",
+    "expiry": [
+      {
+        "expires_at_ns": 1794255978098368000,
+        "id": "inv-expire",
+        "pay_block_ts": 0,
+        "verdict": "no pay recorded"
+      }
+    ],
+    "expiry_not_scored": false,
+    "honest_settled": 2,
+    "invalid_reasons": [],
+    "native_yocto": [
+      {
+        "after": "100100000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "sam"
+      },
+      {
+        "after": "100000000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "ada"
+      },
+      {
+        "after": "100000000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "lin"
+      },
+      {
+        "after": "100000000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "kai"
+      },
+      {
+        "after": "100050000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "mo"
+      }
+    ],
+    "scoring": "native",
+    "should_pay": 3,
+    "unauthorised_payout": "0",
+    "valid": true
+  },
+  "steps": [
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-pay"
+      },
+      "failure": "",
+      "kind": "race-call",
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"native-control\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261109202552-10331681683940.test.near\",\"amount\":\"100000000000000000000000\"}}",
+        "EVENT_JSON:{\"standard\":\"native-control\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100000000000000000000000\"}}"
+      ],
+      "method": "pay",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-small"
+      },
+      "failure": "",
+      "kind": "race-call",
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"native-control\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261109202553-43177084346604.test.near\",\"amount\":\"50000000000000000000000\"}}",
+        "EVENT_JSON:{\"standard\":\"native-control\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-small\",\"amount\":\"50000000000000000000000\"}}"
+      ],
+      "method": "pay",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    }
+  ],
+  "target": "native-control",
+  "target_wasm_sha256": "cc7fb389cad0b04729df5eaefe8f7624be8529b0e526477761937cbe985244de"
+}
