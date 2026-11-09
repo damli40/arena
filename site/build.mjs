@@ -17,7 +17,7 @@ const json = (p) => JSON.parse(readFileSync(ev(p), "utf8"));
 
 // ---------------------------------------------------------------- data from evidence
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-const md = (s) => esc(s).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>").replace(/`([^`]+)`/g, "<code>$1</code>").replace(/ ✅/g, "");
+const md = (s) => esc(s).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>").replace(/`([^`]+)`/g, "<code>$1</code>").replace(/ ✅/g, "").replace(/[–—]/g, "-");
 
 // The testnet runs are split across two files, and run 8 holds both modes, so pool them and filter by mode.
 const TESTNET = ["testnet-2026-11-09-run8-raw.json", "testnet-2026-11-09-run9-raw.json"];
@@ -204,7 +204,7 @@ function riser() {
   for (const y of LANES) {
     o.push(S(k.slabOf({ x: PIN_X - 0.8, y: y - 5, w: 4, d: 10, r: 0.6 }, RISER_TOP, 0.01, P, 2), { tone: "lo", flat: true }));
     o.push(L(k.lineOnTop([RISER.x + 4, y], [PIN_X - 0.8, y], RISER_TOP, P), { tone: "faint" }));
-    o.push(L(k.lineOnTop([PIN_X + 3.2, y], [RISER.x + RISER.w - 4, y], RISER_TOP, P), { tone: "faint" }));
+    o.push(L(k.lineOnTop([PIN_X + 3.2, y], [RISER.x + RISER.w, y], RISER_TOP, P), { tone: "faint" }));
   }
   return o.join("");
 }
@@ -406,113 +406,121 @@ document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
 
 // ---------------------------------------------------------------- page
 const plate = k.plateHtml({
-  fig: "Fig 1", title: "Two keys, one invoice", hint: "Choose a run above", readout: `paid 0 · limit ${flawT.limit}`,
-  keys: [
-    { mark: "lit", label: "Stop pins and dial plunger: what the guard does, and what it cost" },
-    { mark: "raised", label: "Coins: one payment each. The flag on the gate is the guard's record of \"paid\"" },
-  ],
-  caption: "Two pay calls for one invoice leave the feeder at the same moment. A guard that records \"paid\" only after the tokens move lets both coins through, and the dial swings past zero. A guard that records it at the check raises the second pin. The dial's zero is the invoice limit, so the needle reads tokens paid beyond policy.",
+  fig: "Fig 1", title: "Two keys, one invoice", hint: "Pick a run above", readout: `paid 0 · limit ${flawT.limit}`,
+  keys: [{ mark: "lit", label: "Dial zero is the invoice limit. Past zero means paid beyond policy." }],
+  caption: "",
   body: `<div data-fig class="iso-stage">${svg}</div>`,
 });
 
-const guardMeta = { A: "invoice payer with payee list and daily cap, test token", B: "vault in native NEAR with caps, approvals and a pause switch", C: "company treasury with a server-bill pot and a profit pot" };
-const notEval = { A: "cross-chain payments, escrow", B: "a refund that lands after UTC midnight", C: "swaps and withdrawals that need secure hardware and NEAR's shared signing network" };
-const guardTables = ["A", "B", "C"].map((G) => `
-  <details class="guard"${G === "A" ? " open" : ""}>
-    <summary><span class="g-letter">Guard ${G}</span><span class="g-what">${esc(guardMeta[G])}</span><span class="tag ok">${cov[G].rows.length} of ${cov[G].rows.length} held</span></summary>
-    <div class="card"><table><thead><tr><th>Test</th><th>Claim</th><th>What we tried</th><th>Result</th><th>Paid (limit)</th></tr></thead><tbody>
-    ${cov[G].rows.map((r) => `<tr><td>${md(r.test)}</td><td>${md(r.claim)}</td><td>${md(r.tried)}</td><td>${md(r.result)}</td><td class="num">${md(r.paid)}</td></tr>`).join("")}
+const guardMeta = { A: "Invoice payer with a payee list and a daily cap", B: "Native-NEAR vault with caps, approvals and a pause switch", C: "Company treasury with a bill pot and a profit pot" };
+const guardRows = ["A", "B", "C"].map((G) => `
+  <details class="guard">
+    <summary><span class="g-letter">${G}</span><span class="g-what">${esc(guardMeta[G])}</span><span class="g-n">${cov[G].rows.length}/${cov[G].rows.length}</span></summary>
+    <div class="card"><table><thead><tr><th>Test</th><th>What we tried</th><th>Result</th><th>Paid (limit)</th></tr></thead><tbody>
+    ${cov[G].rows.map((r) => `<tr><td>${md(r.test)}</td><td>${md(r.tried)}</td><td>${md(r.result)}</td><td class="num">${md(r.paid)}</td></tr>`).join("")}
     </tbody></table></div>
-    <p class="small">Not evaluated: ${esc(notEval[G])}. Claims and build fingerprint: <code>targets/entrant-${G}/</code>.</p>
   </details>`).join("");
 
 const cap = (n) => n[0].toUpperCase() + n.slice(1);
-const injRows = inj.map((r) => `<tr><td>${esc(r.scenario)}</td><td class="num">${r.wrong.length ? r.wrong.map(([n, v]) => `${v} to ${cap(n)}`).join(", ") : "0"}</td><td class="num">${r.missed ? `Sam got ${100 - r.missed} of 100` : "none"}</td><td class="num">${r.policy}</td><td class="num">${r.refused}</td></tr>`).join("");
+const injRows = inj.map((r) => `<tr><td>${esc(r.scenario)}</td><td class="num${r.wrong.length ? " bad" : ""}">${r.wrong.length ? r.wrong.map(([n, v]) => `${v} to ${cap(n)}`).join(", ") : "0"}</td><td class="num">${r.policy}</td></tr>`).join("");
 
 const page = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Arena</title>
 <meta name="description" content="Arena tests the guards that stop AI agents overspending on NEAR, and scores them from final token balances.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>${k.ISO_CSS}
-:root{--bg:#F7F6F3;--card:#FFFFFF;--ink:#2F3437;--muted:#787774;--line:#EAEAEA;--ok-bg:#EDF3EC;--ok:#346538;--bad-bg:#FDEBEC;--bad:#9F2F2D;--warn-bg:#FBF3DB;--serif:"Newsreader","Instrument Serif",Georgia,serif;--sans:"Geist","SF Pro Display","Helvetica Neue",sans-serif;--mono:"Geist Mono","SF Mono","JetBrains Mono",monospace}
-@media (prefers-color-scheme:dark){:root{--bg:#191918;--card:#202020;--ink:#E6E5E1;--muted:#9B9A97;--line:rgba(255,255,255,.08);--ok-bg:rgba(68,131,97,.18);--ok:#8FC79A;--bad-bg:rgba(190,80,70,.18);--bad:#F0A39C;--warn-bg:rgba(203,145,47,.16)}}
-*{box-sizing:border-box}html{background:var(--bg)}
+:root{--bg:#F7F6F3;--card:#FFFFFF;--ink:#2F3437;--muted:#787774;--line:#EAEAEA;--bad-bg:#FDEBEC;--bad:#9F2F2D;--code:#F1F0EC;--sans:"Geist","SF Pro Display","Helvetica Neue",sans-serif;--mono:"Geist Mono","SF Mono","JetBrains Mono",monospace}
+@media (prefers-color-scheme:dark){:root{--bg:#191918;--card:#202020;--ink:#E6E5E1;--muted:#9B9A97;--line:rgba(255,255,255,.08);--bad-bg:rgba(190,80,70,.16);--bad:#F0A39C;--code:#2A2A28}}
+*{box-sizing:border-box}html{background:var(--bg);scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
 body.iso{--anatomy-page:var(--bg);--anatomy-card:var(--card);--anatomy-text:var(--ink);--anatomy-mono:var(--mono)}
-.wrap{width:min(960px,100% - 32px);margin:0 auto}
-header{padding:88px 0 40px}
+.wrap{width:min(1080px,100% - 32px);margin:0 auto}
 .eyebrow{font:500 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-h1{font:400 clamp(44px,8vw,76px)/1.02 var(--serif);letter-spacing:-.03em;margin:18px 0 18px}
-h2{font:400 34px/1.1 var(--serif);letter-spacing:-.02em;margin:0 0 12px}
-.lede{font-size:18px;max-width:640px;margin:0}
-.lede strong{font-weight:600}
+h1{font:600 clamp(36px,5.4vw,58px)/1.04 var(--sans);letter-spacing:-.035em;margin:16px 0 18px;max-width:15ch;text-wrap:balance}
+h2{font:600 28px/1.15 var(--sans);letter-spacing:-.025em;margin:0 0 10px}
+.sub{color:var(--muted);max-width:56ch;margin:0 0 28px}
+/* hero: text left, the contrast right */
+.hero{display:grid;grid-template-columns:1.15fr 1fr;gap:56px;align-items:center;padding:72px 0 64px}
+.lede{font-size:17px;max-width:40ch;margin:0 0 28px}
+.ctas{display:flex;gap:10px;flex-wrap:wrap}
+.btn{font:500 14px/1 var(--sans);padding:12px 18px;border-radius:6px;text-decoration:none;white-space:nowrap;transition:transform .2s cubic-bezier(.16,1,.3,1)}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:var(--ink);color:var(--bg)}
+.btn.ghost{color:var(--ink);border:1px solid var(--line);background:var(--card)}
+.contrast{display:grid;grid-template-rows:auto auto;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card)}
+.contrast > div{padding:28px 30px}
+.contrast .n{font:500 64px/1 var(--sans);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.contrast .k{font:500 12px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;margin-top:10px}
+.contrast .note{font-size:13px;color:var(--muted);margin-top:6px}
+.contrast .bad{background:var(--bad-bg);color:var(--bad)}.contrast .bad .note{color:var(--bad);opacity:.8}
+.held{font:13px/1.5 var(--mono);color:var(--muted);margin-top:14px}
 section{padding:64px 0;border-top:1px solid var(--line)}
-.sub{color:var(--muted);max-width:660px;margin:0 0 28px}
-.stats{display:grid;grid-template-columns:1.1fr 1fr 1.3fr;gap:12px;margin-top:40px}
-.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px}
-.stat .n{font:400 46px/1 var(--serif);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.stat .k{font:500 11px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:12px}
-.stat p{margin:10px 0 0;font-size:13.5px;color:var(--muted)}
-.stat.alarm{background:var(--bad-bg);border-color:transparent}.stat.alarm .n,.stat.alarm .k{color:var(--bad)}
-.tag{display:inline-block;font:500 10.5px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:6px 9px;border-radius:9999px;white-space:nowrap}
-.tag.ok{background:var(--ok-bg);color:var(--ok)}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
-.tabs button{font:500 13px/1 var(--sans);color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:10px 14px;cursor:pointer}
-.tabs button .small{font-size:12px}
+.tabs button{font:500 13px/1.2 var(--sans);color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:10px 14px;cursor:pointer;text-align:left}
+.tabs button small{display:block;font:11px/1.3 var(--mono);color:var(--muted);margin-top:3px}
 .tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.tabs button[aria-selected="true"] .small{color:inherit;opacity:.7}
+.tabs button[aria-selected="true"] small{color:inherit;opacity:.7}
 .tabs button:active{transform:scale(.98)}
 .tabs button:focus-visible{outline:2px solid var(--muted);outline-offset:2px}
-.meta{display:flex;flex-wrap:wrap;gap:6px 18px;font:12px/1.5 var(--mono);color:var(--muted);margin:14px 0 8px}
+.iso-figure{margin:0}
+.iso-figure figcaption:empty{display:none}
+.meta{display:flex;flex-wrap:wrap;gap:4px 16px;font:12px/1.5 var(--mono);color:var(--muted);margin:12px 0 8px}
 .meta a{color:var(--ink)}
-ol.log{list-style:none;margin:0;padding:16px 18px;min-height:190px;background:var(--card);border:1px solid var(--line);border-radius:8px;font:12.5px/1.75 var(--mono);counter-reset:s}
+ol.log{list-style:none;margin:0;padding:14px 18px;min-height:168px;background:var(--card);border:1px solid var(--line);border-radius:8px;font:12.5px/1.75 var(--mono);counter-reset:s}
 ol.log li{counter-increment:s;animation:in .5s cubic-bezier(.16,1,.3,1) both}
 ol.log li::before{content:counter(s,decimal-leading-zero) "  ";color:var(--muted)}
-ol.log li.result{font-weight:500;margin-top:6px}
-ol.log li.result::before{content:"=   "}
+ol.log li.result{font-weight:500;margin-top:6px}ol.log li.result::before{content:"=   "}
 @keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.iso-figure{margin:0}
+/* where the 450 went: rule left, table right */
+.split{display:grid;grid-template-columns:1fr 1.5fr;gap:48px;align-items:start}
+.rule{font-size:20px;line-height:1.4;letter-spacing:-.01em;margin:0 0 16px;max-width:24ch}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
 th{font:500 10.5px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}
-td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
-tbody tr:last-child td{border-bottom:0}
-td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
-code{font:12px var(--mono);background:var(--warn-bg);color:var(--ink);padding:1px 5px;border-radius:4px}
+td{padding:11px 12px;vertical-align:top}
+tbody tr + tr td{border-top:1px solid var(--line)}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}td.bad{color:var(--bad);font-weight:500}
+code{font:12px var(--mono);background:var(--code);color:var(--ink);padding:1px 5px;border-radius:4px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 6px;overflow-x:auto}
-.contrast{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 16px}
-details.guard{border-bottom:1px solid var(--line);padding-bottom:4px}
-details.guard summary{list-style:none;display:flex;gap:16px;align-items:center;padding:18px 4px;cursor:pointer}
+.small{font-size:13px;color:var(--muted);margin:12px 0 0}
+details.guard{border-bottom:1px solid var(--line)}
+details.guard summary{list-style:none;display:grid;grid-template-columns:48px 1fr auto 24px;gap:16px;align-items:center;padding:20px 4px;cursor:pointer}
 details.guard summary::-webkit-details-marker{display:none}
-details.guard summary::after{content:"+";margin-left:auto;font:400 20px/1 var(--mono);color:var(--muted)}
+details.guard summary::after{content:"+";font:400 20px/1 var(--mono);color:var(--muted);text-align:right}
 details.guard[open] summary::after{content:"\\2212"}
-.g-letter{font:400 22px/1 var(--serif);min-width:84px}.g-what{color:var(--muted);font-size:14px}
-.small{font-size:13px;color:var(--muted)}
-ul.limits{padding:0;margin:0;list-style:none}ul.limits li{padding:12px 0;border-bottom:1px solid var(--line)}ul.limits li:last-child{border-bottom:0}
-pre{font:12.5px/1.7 var(--mono);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px 18px;overflow-x:auto;margin:0 0 12px}
-footer{padding:40px 0 80px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+details.guard[open] .card{margin-bottom:20px}
+.g-letter{font:600 28px/1 var(--sans);letter-spacing:-.03em}.g-what{color:var(--muted)}.g-n{font:500 14px var(--mono)}
+.run{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+pre{font:12.5px/1.8 var(--mono);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px 18px;overflow-x:auto;margin:0}
+ul.limits{padding:0;margin:0;list-style:none}ul.limits li{padding:10px 0}ul.limits li + li{border-top:1px solid var(--line)}
+footer{padding:32px 0 72px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
 .reveal{opacity:0;transform:translateY(12px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)}.reveal.on{opacity:1;transform:none}
-@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}ol.log li{animation:none}}
-@media (max-width:720px){.stats,.contrast{grid-template-columns:1fr}header{padding:56px 0 24px}h2{font-size:28px}details.guard summary{flex-wrap:wrap;gap:8px}.g-letter{min-width:0}.tabs button{flex:1 1 45%}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal{opacity:1;transform:none;transition:none}ol.log li{animation:none}}
+@media (max-width:768px){.hero,.split,.run{grid-template-columns:1fr;gap:28px}.hero{padding:48px 0 40px}.contrast .n{font-size:48px}.tabs button{flex:1 1 45%}details.guard summary{grid-template-columns:32px 1fr auto 18px;gap:10px}.g-letter{font-size:22px}section{padding:48px 0}}
 </style></head>
 <body class="iso" data-theme="light">
 <div class="wrap">
-<header>
-  <div class="eyebrow">NEAR hackathon · AI Security &amp; Defense</div>
-  <h1>Arena</h1>
-  <p class="lede">A test bench for the guards that stop AI agents overspending on NEAR. It runs attacks on a fresh local chain and scores every guard from <strong>final token balances</strong>, never from what the guard or the agent says happened.</p>
-  <div class="stats">
-    <div class="stat"><div class="n">${totalTests} / ${totalTests}</div><div class="k">tests held, three teams' guards</div><p>Each guard tested on its own written claims.</p></div>
-    <div class="stat"><div class="n">0</div><div class="k">tokens paid beyond policy</div><p>Our planted-flaw guard paid ${flawT.paid} on a ${flawT.limit} invoice, and the bench caught it.</p></div>
-    <div class="stat alarm"><div class="n">${injWrong}</div><div class="k">tokens paid against the owner's intent</div><p>By a fully fooled agent, through payments every guard rule allowed.</p></div>
+<header class="hero">
+  <div>
+    <div class="eyebrow">NEAR hackathon · AI Security</div>
+    <h1>The guard held. The owner still lost.</h1>
+    <p class="lede">Arena attacks AI payment guards on a fresh NEAR chain and scores them by where the money actually went.</p>
+    <div class="ctas"><a class="btn primary" href="#replay">Watch the replay</a><a class="btn ghost" href="#run">Run it yourself</a></div>
+  </div>
+  <div>
+    <div class="contrast">
+      <div><div class="n">${injPolicy}</div><div class="k">tokens paid beyond policy</div><div class="note">Every guard rule held.</div></div>
+      <div class="bad"><div class="n">${injWrong}</div><div class="k">tokens paid against the owner's intent</div><div class="note">By a scripted agent fooled by every injection.</div></div>
+    </div>
+    <div class="held">${totalTests}/${totalTests} tests held across three teams' guards</div>
   </div>
 </header>
 
-<section class="reveal">
+<section id="replay" class="reveal">
   <h2>Two keys, one invoice</h2>
-  <p class="sub">NEAR runs one payment across several blocks. If a guard writes "paid" after the tokens move, two calls sent together both see "not paid", and both pay. Pick a run to replay it. The two testnet runs use the real block heights.</p>
+  <p class="sub">Two pay calls for one invoice, sent at once. A guard that records "paid" too late pays twice.</p>
   <div class="tabs" role="tablist" data-tablist aria-label="Runs to replay">
-    ${scenarios.map((s, i) => `<button role="tab" data-scenario="${s.id}" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}">${esc(s.label)}<span class="small"> · ${esc(s.where)}</span></button>`).join("")}
+    ${scenarios.map((s, i) => `<button role="tab" data-scenario="${s.id}" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}">${esc(s.label)}<small>${esc(s.where)}</small></button>`).join("")}
   </div>
   ${plate}
   <div class="meta" data-meta></div>
@@ -520,44 +528,49 @@ footer{padding:40px 0 80px;border-top:1px solid var(--line);color:var(--muted);f
 </section>
 
 <section class="reveal">
-  <h2>The guard held. The owner still lost.</h2>
-  <p class="sub">The owner's instruction, fixed before any run: <em>pay Sam's 100-token invoice, and no other invoice today.</em> A scripted agent then obeyed every injected instruction. The guard enforced each of its rules, and these payments still went out, because each one was an approved invoice.</p>
-  <div class="contrast">
-    <div class="stat"><div class="n">${injPolicy}</div><div class="k">tokens paid beyond policy</div><p>The guard broke none of its own rules.</p></div>
-    <div class="stat alarm"><div class="n">${injWrong}</div><div class="k">tokens paid against the owner's intent</div><p>Scored against the owner's allocation, which the agent never sees.</p></div>
+  <div class="split">
+    <div>
+      <h2>Where the ${injWrong} went</h2>
+      <p class="rule">The owner's rule, set before any run: pay Sam 100. Nothing else.</p>
+      <p class="sub">Every payment below went to a creditor the owner had approved, so the guard allowed it.</p>
+    </div>
+    <div>
+      <div class="card"><table><thead><tr><th>Injected through</th><th>Against intent</th><th>Beyond policy</th></tr></thead><tbody>${injRows}</tbody></table></div>
+      <p class="small">The real model, Muse Spark 1.3, was fooled 0 times in 52 runs.</p>
+    </div>
   </div>
-  <div class="card"><table><thead><tr><th>Injected through</th><th>Paid against intent</th><th>Missed</th><th>Beyond policy</th><th>Calls the guard refused</th></tr></thead><tbody>${injRows}</tbody></table></div>
-  <p class="small">All recipients are creditors the owner approved; none of the money reached an attacker's account. The real model we tested (Muse Spark 1.3) was fooled 0 times in 52 trials where it read the email, including 28 against an attacker that rewrote its email after each failure. That does not show it always resists. Source: <code>evidence/injection-intent-by-recipient.md</code>.</p>
 </section>
 
 <section class="reveal">
-  <h2>Three teams' guards</h2>
-  <p class="sub">Named by letter only. For each guard we wrote down its claims and its build fingerprint before any run, then tested only those claims. All three record the payment before moving the money, which is why the race in Fig 1 never got through them.</p>
-  ${guardTables}
+  <h2>Three teams' guards, ${totalTests} of ${totalTests} held</h2>
+  <p class="sub">Each guard was tested only against its own written claims. Named by letter.</p>
+  ${guardRows}
 </section>
 
-<section class="reveal">
-  <h2>Run it yourself</h2>
-  <p class="sub">Rust through rustup, and Python 3. The scripts pin the toolchain and download the NEAR sandbox. Tested on macOS, Apple silicon.</p>
-<pre>./verify.sh fast     # 5 checks, the headline. 481 s from a fresh copy
-./verify.sh          # 41 checks, every local result. 923 s
+<section id="run" class="reveal">
+  <div class="run">
+    <div>
+      <h2>Run it yourself</h2>
+      <p class="sub">Needs Rust and Python 3. Each check prints PASS or FAIL.</p>
+    </div>
+<pre>./verify.sh fast   # 5 checks, about 8 min
+./verify.sh        # 41 checks, about 15 min
 ARENA_AGENT=compromised python3 -I tools/injection/run.py
 python3 -I tools/injection/rescore.py</pre>
-  <p class="small">Each check prints PASS or FAIL. The full run ends with <code>verify: 41 passed, 0 failed (mode=full)</code>.</p>
+  </div>
 </section>
 
 <section class="reveal">
   <h2>Limits</h2>
   <ul class="limits">
-    <li>Only the planted-flaw guard and its fix ran on testnet. We tested the three teams' guards on the local sandbox.</li>
-    <li>33 of 33 held means each guard kept its own claims. The three guards faced different tests, and some of their paths could not run locally.</li>
-    <li>The ${injWrong} tokens came from a scripted agent that obeys every injection, not from the real model.</li>
-    <li>In the injection test the agent never sees a refusal: the chain runs after the conversation.</li>
-    <li>We tested races with both calls in the same block only.</li>
+    <li>Only our planted flaw and its fix ran on testnet. The three teams' guards ran on a local sandbox.</li>
+    <li>${totalTests}/${totalTests} means each guard kept its own claims. It is not a security proof.</li>
+    <li>The ${injWrong} came from a scripted agent, not the real model.</li>
+    <li>Races were tested with both calls in the same block only.</li>
   </ul>
 </section>
 
-<footer>Every number on this page is read from <code>evidence/</code> when the page is built (<code>site/build.mjs</code>). Fig 1 is drawn with the anatomy kit, MIT licence, © 2026 Ryan. Arena is MIT licensed.</footer>
+<footer>Numbers are read from <code>evidence/</code> at build time. Fig 1 uses the anatomy kit (MIT, © 2026 Ryan).</footer>
 </div>
 <script type="module">${(kitScript() + live).replace(/<\/(script)/gi, "<\\/$1")}</script>
 </body></html>`;
