@@ -20,6 +20,14 @@
 (*  - the reconcile waiting rule (RECONCILE_MIN_BLOCKS, lib.rs:44,         *)
 (*    :246-253) is the ASSUMPTION WaitRule, not time: near-tla receipts    *)
 (*    have no deadline, so a block count cannot bound when one runs.       *)
+(*                                                                         *)
+(* Added 2026-11-11 (evidence/proofs-adversarial-review-2026-11-11.md):    *)
+(*  - Donate: TRUE adds one outside token holder DN who may send 100       *)
+(*    tokens to the guard, once (review H1).  FALSE (every original check) *)
+(*    leaves the model exactly as it was: DN does not exist.               *)
+(*  - GhostRec: TRUE records which invoices on_reconcile set back to       *)
+(*    Approved (ghost recApp), for one witness (review L3).  FALSE keeps   *)
+(*    recApp = {} forever, so state counts are unchanged.                  *)
 (***************************************************************************)
 EXTENDS Tokens
 
@@ -28,14 +36,18 @@ CONSTANTS
     NInv,        \* number of invoices
     MaxPay,      \* number of pay transactions (any invoice)
     MaxRec,      \* number of reconcile transactions (any invoice)
-    WaitRule     \* TRUE: reconcile runs only after the pending pay settled
+    WaitRule,    \* TRUE: reconcile runs only after the pending pay settled
+    Donate,      \* TRUE: an outside account may send 100 tokens to the guard once (review H1)
+    GhostRec     \* TRUE: track recApp for Wit_repaid_after_reconcile (review L3)
 
 VARIABLES
     g,           \* the guard's own state, see GInit
     cbFailed,    \* ghost: invoices whose on_transfer was forced to fail, not yet reconciled
-    npay, nrec, ntx
+    npay, nrec, ntx,
+    ndon,        \* outside transfers into the guard so far (stays 0 unless Donate)
+    recApp       \* ghost: invoices on_reconcile set back to Approved (stays {} unless GhostRec)
 
-guardVars == <<g, cbFailed, npay, nrec, ntx>>
+guardVars == <<g, cbFailed, npay, nrec, ntx, ndon, recApp>>
 vars == <<platformVars, tk, guardVars>>
 
 OW == "owner"
@@ -47,9 +59,13 @@ Rcv  == [i \in Inv |-> IF i = 1 THEN "sam" ELSE "sam2"]   \* one receiver per in
 Amt  == [i \in Inv |-> 100]                                \* 100 test tokens, as on testnet
 Fund == 1000                                               \* guard's token balance at start
 NearG == MaxPay                                            \* guard's yoctoNEAR: 1 per ft_transfer
-Holders == {G} \cup {Rcv[i] : i \in Inv}
-Accts == {OW, AG, G, FT} \cup {Rcv[i] : i \in Inv}
-TxIds == 1..(MaxPay + MaxRec)
+DN == "donor"                                              \* outside token holder (Donate only)
+Others == IF Donate THEN {DN} ELSE {}
+DonAmt == 100                                              \* what DN holds and sends: one invoice's amount
+Holders == {G} \cup Others \cup {Rcv[i] : i \in Inv}
+Accts == {OW, AG, G, FT} \cup Others \cup {Rcv[i] : i \in Inv}
+TxIds == 1..(MaxPay + MaxRec + (IF Donate THEN 1 ELSE 0))
+NearTotal == NearG + (IF Donate THEN 1 ELSE 0)             \* DN holds 1 yocto for its ft_transfer deposit
 
 (* ---- values for the platform / token constants (bound in the .cfg) ----- *)
 PFloor      == [a \in Accts |-> 0]
@@ -152,7 +168,9 @@ RunG(r) ==
     /\ Exec(r, O)
     /\ g' = IF Ok(r, O) THEN p[2] ELSE g
     /\ cbFailed' = IF Ok(r, O) /\ r.m = "on_reconcile" THEN cbFailed \ {r.a.cx[1]} ELSE cbFailed
-    /\ UNCHANGED <<tk, npay, nrec, ntx>>
+    /\ recApp' = IF GhostRec /\ Ok(r, O) /\ r.m = "on_reconcile" /\ p[2].st[r.a.cx[1]] = "Approved"
+                 THEN recApp \cup {r.a.cx[1]} ELSE recApp
+    /\ UNCHANGED <<tk, npay, nrec, ntx, ndon>>
 
 RunTok(r) ==
     \E ch \in TokChoices(r) :
@@ -170,7 +188,7 @@ PayTx ==
     /\ \E i \in Inv :
          Submit(WithGas(Rcpt(nid, ntx + 1, G, AG, "pay", CxArgs(i), 0, AG, 0), 0))
     /\ npay' = npay + 1 /\ ntx' = ntx + 1
-    /\ UNCHANGED <<tk, g, cbFailed, nrec>>
+    /\ UNCHANGED <<tk, g, cbFailed, nrec, ndon, recApp>>
 
 \* The owner signs reconcile(i); any invoice, any time, up to MaxRec times.
 RecTx ==
@@ -178,7 +196,7 @@ RecTx ==
     /\ \E i \in Inv :
          Submit(WithGas(Rcpt(nid, ntx + 1, G, OW, "reconcile", CxArgs(i), 0, OW, 0), 0))
     /\ nrec' = nrec + 1 /\ ntx' = ntx + 1
-    /\ UNCHANGED <<tk, g, cbFailed, npay>>
+    /\ UNCHANGED <<tk, g, cbFailed, npay, ndon, recApp>>
 
 \* A forced failure (MayFail / MaxFails): a panic, or out of gas, with no writes.
 \* For on_transfer this is the fault-injection panic (lib.rs:216-219).
@@ -186,17 +204,28 @@ Fault ==
     \E r \in Runnable :
         /\ ForcedFail(r)
         /\ cbFailed' = IF r.m = "on_transfer" THEN cbFailed \cup {r.a.cx[1]} ELSE cbFailed
-        /\ UNCHANGED <<tk, g, npay, nrec, ntx>>
+        /\ UNCHANGED <<tk, g, npay, nrec, ntx, ndon, recApp>>
 
 Init ==
-    /\ PlatformInit([a \in Accts |-> IF a = G THEN NearG ELSE 0], TxIds)
-    /\ tk = [t \in {FT} |-> Ledger([h \in Holders |-> IF h = G THEN Fund ELSE 0], Holders)]
+    /\ PlatformInit([a \in Accts |-> IF a = G THEN NearG ELSE IF a = DN THEN 1 ELSE 0], TxIds)
+    /\ tk = [t \in {FT} |-> Ledger([h \in Holders |-> IF h = G THEN Fund
+                                                      ELSE IF h = DN THEN DonAmt ELSE 0], Holders)]
     /\ g = GInit
     /\ cbFailed = {}
     /\ npay = 0 /\ nrec = 0 /\ ntx = 0
+    /\ ndon = 0 /\ recApp = {}
+
+\* Added 2026-11-11 (review H1). An outside account (the owner topping the guard up, or
+\* anyone else) calls the token's ft_transfer(guard, 100), once, at any time. The guard
+\* is not told: its ledger g.exp does not move. Only enabled when Donate = TRUE.
+DonTx ==
+    /\ Donate /\ ndon < 1
+    /\ Submit(WithGas(Rcpt(nid, ntx + 1, FT, DN, "ft_transfer", FtArgs(G, DonAmt, ""), TokYocto, DN, 0), 0))
+    /\ ndon' = ndon + 1 /\ ntx' = ntx + 1
+    /\ UNCHANGED <<tk, g, cbFailed, npay, nrec, recApp>>
 
 RunReceipt == \E r \in Runnable : Step(r)
-Next == PayTx \/ RecTx \/ RunReceipt \/ Fault
+Next == PayTx \/ RecTx \/ RunReceipt \/ Fault \/ DonTx
 Spec == Init /\ [][Next]_vars
 
 \* Trace filter for the run vuln_testnet_order (an ACTION_CONSTRAINT, not a property):
@@ -221,7 +250,7 @@ FailedStaysPayable ==
             \/ (g.st[i] = "Pending" /\ i \in cbFailed)
 
 \* near-tla's library sanity checks.
-Sane == NearConserved(NearG) /\ TokSupplyOK /\ TokTypeOK /\ NoOrphans
+Sane == NearConserved(NearTotal) /\ TokSupplyOK /\ TokTypeOK /\ NoOrphans
 
 (* ---- witnesses: each must be REACHED (TLC reports Wit_x violated) ---------- *)
 Wit_paid               == ~(\E i \in Inv : Received(i) = Amt[i])
@@ -239,4 +268,9 @@ Wit_reconcile_says_approved ==
                           /\ g.st[r.a.cx[1]] = "Pending" /\ r.res.v = g.exp)
 Wit_reconcile_ambiguous ==
     ~(\E r \in Runnable : r.m = "reconcile" /\ g.pend = 2)
+\* Added 2026-11-11 (review L3): the whole recovery path completes. on_reconcile set the
+\* invoice back to Approved, it was paid again, and the receiver holds exactly the amount.
+\* Needs GhostRec = TRUE (recApp is always {} otherwise, so this cannot be reached).
+Wit_repaid_after_reconcile ==
+    ~(\E i \in recApp : Received(i) = Amt[i])
 =============================================================================

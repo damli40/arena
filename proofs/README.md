@@ -4,9 +4,11 @@ Arena tests guards by attacking them. This folder checks two properties for **ev
 
 | Proof | Question | Tool | One command | Runtime (M-series Mac, after first build) |
 |---|---|---|---|---|
-| 1 | Can one invoice be paid twice, in any order NEAR runs the steps? | Kani (on a model) + an exhaustive run of the real contract | `proofs/run.sh proof1` | about 255 s; the full `run.sh` took 257 s on Nov 10 (6 Kani harnesses 121 s of solver time, 2 playbacks, 6 exhaustive runs 58 s); the first build of `guard-real` adds a few minutes |
+| 1 | Can the `pay`/callback race pay one invoice twice (callbacks complete, no `reconcile`), in any order NEAR runs those receipts, up to 4 `pay` calls? | Kani (on a model) + an exhaustive run of the real contract | `proofs/run.sh proof1` | about 255 s; the full `run.sh` took 257 s on Nov 10 (6 Kani harnesses 121 s of solver time, 2 playbacks, 6 exhaustive runs 58 s); the first build of `guard-real` adds a few minutes |
 | 2 | Can the owner's policy pay more than the owner intended? | z3 | `proofs/run.sh proof2` | about 1-2 s |
 | 2, cross-check | Does the chain pay what z3 predicted? | the Arena harness on a local sandbox | `proofs/crosscheck.sh` | about 17 s |
+
+**Correction (2026-11-11).** Proof 1's question used to read "Can one invoice be paid twice, in any order NEAR runs the steps?". That was broader than what was checked: every callback runs to completion, and `reconcile` / `sync_ledger` are not in the checked world. The adversarial review (`evidence/proofs-adversarial-review-2026-11-11.md`, M1) found the fixed guard CAN pay twice on the `reconcile` path (H1, H2). Proof 2 is scoped to vault-a's 7 setup invoices with no owner action during the run (M2).
 
 `proofs/run.sh` (no argument) runs both and exits 0 only if every outcome matches the plan. Logs go to `proofs/out/` (or `$OUT`).
 

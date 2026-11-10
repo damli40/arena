@@ -13,12 +13,14 @@
 //! - A `pay` the guard refuses panics; on NEAR that rolls back its state. Here the world
 //!   keeps the storage from before the call.
 //!
-//! Two drivers use this world:
-//! - `tests/exhaustive.rs` (plain Rust): tries every schedule, really calls `pay` every
+//! Who uses this world (corrected 2026-11-11, review L2: the files named here before,
+//! `tests/exhaustive.rs` and `src/kani_harness.rs`, never existed):
+//! - `src/bin/exhaustive.rs` (plain Rust): tries every schedule, really calls `pay` every
 //!   time and catches the panic of a refused one.
-//! - `src/kani_harness.rs` (Kani): the scheduler choices are `kani::any()`. Kani cannot
-//!   catch a panic, so a `pay` is only run when [`pay_would_be_accepted`] says so, and
-//!   the exhaustive run checks that rule against the real `pay` on every schedule.
+//! - the `kani_probe` module at the end of this file: a feasibility probe only. Kani
+//!   0.68.0 could not compile this crate, so the Kani proof runs on the separate model
+//!   (`proofs/guard-model`), and the exhaustive run checks [`pay_would_be_accepted`]
+//!   against the real `pay` on every schedule.
 
 #[cfg(not(feature = "mutant"))]
 pub use guard::{Guard, Mode, Status};
@@ -226,18 +228,30 @@ impl World {
             .collect()
     }
 
-    /// Run a `pay` that is expected to be accepted. Returns the receipts it created,
-    /// turned into waiting items. Panics (inside the guard) if the guard refuses.
-    fn run_pay_unchecked(&mut self, inv: usize) -> (Item, Item) {
+    /// Call the real `pay` only. Returns the receipts it created and its storage
+    /// afterwards. Panics (inside the guard) if the guard refuses. Nothing of the
+    /// world's own decoding runs here, so a panic from this function is the guard's.
+    fn call_pay(&self, inv: usize) -> (Vec<near_sdk::mock::Receipt>, HashMap<Vec<u8>, Vec<u8>>) {
         install(self.storage.clone(), AGENT, self.block, vec![]);
         let promise = with_guard(|g| g.pay(INVOICES[inv].0.to_string()));
         drop(promise); // the Promise schedules its receipts when dropped
         let receipts = near_sdk::mock::with_mocked_blockchain(|b| b.created_receipts());
-        let storage = take_storage();
+        (receipts, take_storage())
+    }
+
+    /// Turn an accepted `pay`'s receipts into waiting items. A malformed receipt panics
+    /// here, OUTSIDE any catch_unwind, so it stops the run loudly (review L1).
+    fn accept_pay(&mut self, inv: usize, receipts: &[near_sdk::mock::Receipt], storage: HashMap<Vec<u8>, Vec<u8>>) -> (Item, Item) {
         self.storage = storage;
         let tag = self.next_tag;
         self.next_tag += 1;
-        decode_receipts(inv, tag, &receipts)
+        decode_receipts(inv, tag, receipts)
+    }
+
+    /// Run a `pay` that is expected to be accepted (the Kani driver).
+    fn run_pay_unchecked(&mut self, inv: usize) -> (Item, Item) {
+        let (receipts, storage) = self.call_pay(inv);
+        self.accept_pay(inv, &receipts, storage)
     }
 
     /// Execute pending item `idx`. For a transfer, `transfer_ok` picks its outcome.
@@ -261,12 +275,13 @@ impl World {
                     }
                     None => {
                         let saved = self.storage.clone();
-                        let mut probe = self.clone();
-                        let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| probe.run_pay_unchecked(inv)));
+                        // Only the guard's own call is inside catch_unwind (review L1):
+                        // a panic here is the guard refusing. Decoding the receipts is
+                        // outside it, so a decoder failure is an error, not a refusal.
+                        let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.call_pay(inv)));
                         match r {
-                            Ok((t, c)) => {
-                                self.storage = probe.storage;
-                                self.next_tag = probe.next_tag;
+                            Ok((receipts, storage)) => {
+                                let (t, c) = self.accept_pay(inv, &receipts, storage);
                                 self.pending.push(t);
                                 self.pending.push(c);
                                 true

@@ -2,8 +2,10 @@
 //!
 //! It is NOT the contract. Every line cites the guard source line it mirrors
 //! (`contracts/guard/src/lib.rs`, as of the wasm Arena tested). Kani proves things
-//! about this model; `proofs/guard-kani` (the conformance run) checks that this model
-//! and the real contract agree on every schedule within the bound.
+//! about this model; `proofs/guard-real` (the conformance run, `src/bin/exhaustive.rs`;
+//! named `proofs/guard-kani` here before, which never existed: review L2, 2026-11-11)
+//! checks that this model and the real contract agree in every distinct state explored
+//! within the bound.
 //!
 //! Left out on purpose (out of scope, see evidence/proofs-plan.md): `approve_invoice`
 //! beyond the initial approvals, `reconcile`, `sync_ledger`, logs, gas, the ledger

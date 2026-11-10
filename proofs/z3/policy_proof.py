@@ -25,6 +25,21 @@ counted for its day from the moment it was reserved, so the successful payments
 reserved on one day always fit under the cap together. Any such set can also be paid
 one after another. So the sequential model reaches exactly the same final balances.
 
+Scope (added 2026-11-11, evidence/proofs-adversarial-review-2026-11-11.md, M2):
+- Every result is about THIS setup: vault-a's 7 invoices from harness/src/setup.rs,
+  with no owner action during the run (no new invoice, no payee change, no cap
+  change). It is not a statement about the policy in general.
+- Merging "pay + callback" into one step also needs vault-a's own in-flight lock: a
+  second `pay` on an invoice whose transfer is still in flight is refused
+  (targets/vault-a/src/lib.rs:270-299; the callback ignores anything not Pending,
+  :341-356). That is what `Not(paid[i])` below stands for. z3 ASSUMES the lock; it
+  does not check it. It was checked by hand and by vault-a's unit test
+  `no_pay_while_pending`, not here.
+- K = 10 is not what limits the results. Under the broad policy only 4 invoices are
+  payable at all (sam 100, mo 50, ada 200, ada 300), and 1 under the narrow one, and
+  each pays at most once. So K >= 4 already covers every outcome. What limits the
+  results is the fixed setup, not the number of requests.
+
 Expiry: inv-expire is payable only for 20 s after setup. The model lets it be paid
 any time on the setup day (day 0). That is generous to the attacker; the harness
 replay checks that the worst case is really reachable (pay inv-expire first).
@@ -92,6 +107,8 @@ class Encoding:
             spent_today = z3.If(self.day[j] == prev_day, spent, 0)  # roll_day
             pays_j, allowed_j = [], []
             for i, inv in enumerate(invs):
+                # Not(paid[i]): an invoice pays at most once. This stands for vault-a's
+                # in-flight lock (lib.rs:270-299), which z3 assumes and does not check.
                 ok_rules = [z3.BoolVal(inv["payable"]), z3.Not(paid[i])]
                 if inv["expires_soon"]:
                     ok_rules.append(self.day[j] == 0)

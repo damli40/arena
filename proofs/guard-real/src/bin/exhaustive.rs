@@ -27,17 +27,21 @@ struct Stats {
 }
 
 fn dfs(w: World, pays: &[usize], st: &mut Stats) {
-    // Each distinct state is explored once (different orders often reach the same state).
-    if !st.seen.insert(w.key()) {
-        return;
-    }
-    st.nodes += 1;
+    // Mismatches are checked BEFORE the "already seen" skip (review M3, 2026-11-11).
+    // The state key leaves out the mismatch list, so a path that disagreed with the
+    // model on the way and then reached a state already seen used to go uncounted.
+    // Now every visit that carries a mismatch is counted, first visit or not.
     if !w.mismatches.is_empty() {
         st.model_mismatch_states += 1;
         if st.first_mismatch.is_none() {
             st.first_mismatch = Some((w.trace.clone(), w.mismatches.clone()));
         }
     }
+    // Each distinct state is explored once (different orders often reach the same state).
+    if !st.seen.insert(w.key()) {
+        return;
+    }
+    st.nodes += 1;
     for i in 0..NINV {
         st.max_sent[i] = st.max_sent[i].max(w.sent[i]);
         if w.sent[i] > INVOICES[i].2 {

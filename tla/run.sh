@@ -32,6 +32,12 @@ selected() {
 }
 
 # write_cfg DIR MODE NINV MAXPAY MAXREC WAITRULE MAYFAIL MAXFAILS "INV1 INV2 ..." [ACTION_CONSTRAINT]
+# Two switches added 2026-11-11 come from the environment, default FALSE, so every
+# original check gets exactly the model it had before:
+#   DONATE=TRUE    an outside account may send 100 tokens to the guard once (review H1)
+#   GHOSTREC=TRUE  record invoices reconciled back to Approved (review L3 witness)
+DONATE=FALSE
+GHOSTREC=FALSE
 write_cfg() {
   local dir=$1 mode=$2 ninv=$3 maxpay=$4 maxrec=$5 wait=$6 mayfail=$7 maxfails=$8 invs=$9 ac=${10:-}
   {
@@ -44,6 +50,8 @@ write_cfg() {
     echo "  WaitRule = $wait"
     echo "  MayFail = $mayfail"
     echo "  MaxFails = $maxfails"
+    echo "  Donate = $DONATE"
+    echo "  GhostRec = $GHOSTREC"
     cat <<'EOF'
   Accounts <- Accts
   Exists <- Accts
@@ -150,6 +158,10 @@ check wit_reconcile_says_approved_1fault pass "$SPEC" fixed 1 3 1 TRUE "$FAULTS"
 check wit_reconcile_says_approved violation:Wit_reconcile_says_approved "$SPEC" fixed 1 3 1 TRUE "$FAULTS" 2 "Wit_reconcile_says_approved"
 check wit_reconcile_ambiguous violation:Wit_reconcile_ambiguous "$SPEC" fixed 2 3 1 TRUE "$FAULTS" 1 "Wit_reconcile_ambiguous"
 
+# added 2026-11-11 (review L3): the full recovery path completes. reconcile sets the stuck
+# invoice back to Approved, the agent pays again, the receiver holds exactly 100.
+GHOSTREC=TRUE check wit_repaid_after_reconcile violation:Wit_repaid_after_reconcile "$SPEC" fixed 1 3 1 TRUE "$FAULTS" 2 "Wit_repaid_after_reconcile"
+
 # ---- mutants: each must be caught by fixed_1inv's bounds -------------------------------
 if selected mut_no_pending_write; then
   m=$(mutant no_pending_write '!.st[i] = "Pending", !.pend' '!.pend') && \
@@ -161,6 +173,13 @@ if selected mut_no_release_on_failure; then
 fi
 # no_wait_rule changes a constant, not the text: WaitRule = FALSE
 check mut_no_wait_rule      violation:NoOverpay  "$SPEC" fixed               1   3   1  FALSE "$FAULTS" 1  "$PROPS"
+
+# ---- open world: a must-fail on the unmodified fixed guard (added 2026-11-11, review H1) --
+# One outside account sends 100 tokens to the guard (an owner top-up, or a gift). The guard's
+# ledger does not see it. With the waiting rule ON and a single forced failure, reconcile reads
+# "balance = ledger", sets Approved, and the second pay lands: 200 on the 100 invoice.
+# This is EXPECTED to fail. It documents a real limit of reconcile (contracts/guard/src/lib.rs:282-293).
+DONATE=TRUE check h1_outside_transfer_reconcile violation:NoOverpay "$SPEC" fixed 1 2 1 TRUE '{"on_transfer"}' 1 "$PROPS"
 
 echo
 if [ "$FAILED" -eq 0 ]; then
