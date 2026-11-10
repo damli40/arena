@@ -40,9 +40,11 @@ runs your steps through its fixed actions and scores the result from final balan
    }
    ```
 
-   `source` is `hand`, `ai`, `paper` or `combined`. For `combined` (an attack that joins the core
+   `source` is `hand`, `ai`, `paper`, `combined` or `news`. For `combined` (an attack that joins the core
    idea of 2-4 library attacks), add `"parents": ["<library id>", "<library id>"]`. For `paper`, add
    `"paper": {"arxiv_id": "2104.08638", "title": "...", "url": "https://arxiv.org/abs/2104.08638"}`.
+   For `news` (written from a hack-news summary, see `docs/NEWS-SOURCE.md`), add
+   `"news": {"item_id": "n-<10 hex>", "date": "YYYY-MM-DD", "links": ["https://x.com/..."]}`.
    `steps_sha256` fingerprints what the attack does (views dropped, defaults filled in). Two files
    with the same fingerprint are the same attack, and the hunter drops the second one.
 
@@ -85,6 +87,10 @@ pays a fully fooled agent would make. To test a real model against the email, ad
 
 `./run-arena.sh hunt` does the steps above on its own, with Muse Spark as the attacker:
 
+0. With `--source news` or `--source all` it also reads recent hack news (Elfa AI summaries of
+   posts on X and Telegram; at most 2 calls, about 5 credits each). Each item is an unchecked lead.
+   Items that don't map to a payment guard (stolen keys, bridges, oracles) are logged as "doesn't
+   map" with the reason. Details: `docs/NEWS-SOURCE.md`.
 1. It finds recent papers on arXiv and **scores them before attacking**: novelty + distance from the
    attacks already here + the attack success the paper reports (0-15). The model budget goes to the
    top papers first, and every score is logged with its reason in the hunt file.

@@ -39,19 +39,20 @@ def build(hunts_dir=HUNTS):
         for e in rows:
             if not e.get("_canary"):
                 attacks[e["id"]] = {"id": e["id"], "title": e["title"], "source": e["source"], "kind": e["kind"],
-                                    "paper": e.get("paper"), "parents": e.get("parents"), "family": e.get("family"), "breaks": e["breaks"],
+                                    "paper": e.get("paper"), "news": e.get("news"), "parents": e.get("parents"), "family": e.get("family"), "breaks": e["breaks"],
                                     "expected_safe_result": e["expected_safe_result"],
                                     "saved_to": e.get("saved_to") or attacks.get(e["id"], {}).get("saved_to")}
+            src = "library" if e.get("_canary") else e.get("source")
             for gid, c in e.get("results", {}).items():
                 if c.get("status") == "skipped":
                     continue
-                cells[f"{e['id']}|{gid}"] = {"attack": e["id"], "guard": gid, "result": c["status"],
+                cells[f"{e['id']}|{gid}"] = {"attack": e["id"], "guard": gid, "result": c["status"], "source": src,
                                              "unauthorised": c.get("unauthorised"), "why": c.get("why", ""),
                                              "date": h["finished_utc"][:10], "hunt_id": h["hunt_id"],
                                              "evidence": f"evidence/hunts/{h['hunt_id']}.md"}
     order = {"subject": 0, "negative-control": 1, "positive-control": 2}
     glist = sorted(guards.values(), key=lambda g: (order.get(g["role"], 9), g["id"]))
-    src_order = {"paper": 0, "combined": 1, "ai": 2, "hand": 3}
+    src_order = {"news": 0, "paper": 1, "combined": 2, "ai": 3, "hand": 4}
     alist = sorted((a for a in attacks.values() if any(k.startswith(a["id"] + "|") for k in cells)),
                    key=lambda a: (src_order.get(a["source"], 9), a["id"]))
     return {
@@ -88,7 +89,7 @@ a{color:inherit}
 </style></head><body>
 <section class="board" id="arena-board">
 <h2>Results board</h2>
-<p class="lede">Every attack the bench knows, against every guard whose owner opted in. <b>broke</b> means a receiver got tokens beyond that guard's own policy. <b>held</b> means these attempts found nothing, not that the guard is safe. Guards marked leaky on purpose are there to prove the bench can see a break.</p>
+<p class="lede">Every attack the bench knows, against every guard whose owner opted in. Attacks marked "from the news" were written from a summary of posts on X/Telegram: an unchecked lead, not a confirmed incident. <b>broke</b> means a receiver got tokens beyond that guard's own policy. <b>held</b> means these attempts found nothing, not that the guard is safe. Guards marked leaky on purpose are there to prove the bench can see a break.</p>
 <div class="wrap"><table id="board-table"></table></div>
 <p class="lede" id="board-foot"></p>
 </section>
@@ -104,7 +105,9 @@ a{color:inherit}
   h += '</tr></thead><tbody>';
   d.attacks.forEach(function(a){
     var src = a.source==='paper' && a.paper ? 'paper <a href="'+esc(a.paper.url)+'" rel="noopener">'+esc(a.paper.arxiv_id)+'</a>'
-            : a.source==='combined' && a.parents ? 'combined: '+a.parents.map(esc).join(' + ') : esc(a.source);
+            : a.source==='combined' && a.parents ? 'combined: '+a.parents.map(esc).join(' + ')
+            : a.source==='news' && a.news ? 'from the news, '+esc(a.news.date)+(a.news.links && a.news.links.length && ['https://x.com/','https://twitter.com/','https://t.me/'].some(function(p){return a.news.links[0].indexOf(p)===0;}) ? ' <a href="'+esc(a.news.links[0])+'" rel="noopener nofollow">post</a>' : '')+' (unchecked lead)'
+            : esc(a.source);
     h += '<tr><td title="'+esc(a.breaks)+'">'+esc(a.title)+'<small>'+src+'</small></td>';
     d.guards.forEach(function(g){
       var c = cells[a.id+'|'+g.id];

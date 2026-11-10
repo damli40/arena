@@ -1,5 +1,6 @@
-# Daily paper hunt: Muse reads recent security papers, proposes attacks as data, and the bench runs
-# them on a LOCAL sandbox (inside this runner) against every opt-in guard in guards/registry.json.
+# Daily hunt: Muse reads recent security papers and recent hack news (Elfa AI summaries of posts on
+# X/Telegram), proposes attacks as data, and the bench runs them on a LOCAL sandbox (inside this
+# runner) against every opt-in guard in guards/registry.json.
 #
 # Results leave as a workflow ARTIFACT only. This job never pushes. Why not commit to a
 # hunt-results branch: that needs `contents: write`, and this job feeds untrusted text (paper
@@ -8,10 +9,12 @@
 # permissions, the worst a slip can do is spoil one artifact. To publish results, download the
 # artifact and commit it by hand (or add a separate job that only reads the artifact).
 #
-# The used-paper list survives between runs through actions/cache, so a paper is not re-attacked
-# every day even though nothing is committed.
+# The used list (papers and news post links) survives between runs through actions/cache, so a
+# paper or news item is not re-attacked every day even though nothing is committed.
 #
-# Needs one repository secret: MUSE_API_KEY. All logic is in tools/hunter/ci-steps.sh
+# Needs one repository secret: MUSE_API_KEY. ELFA_API_KEY is optional: without it the news source is
+# skipped with a log line and the paper hunt still runs. Each news hunt makes at most 2 Elfa calls
+# (about 5 credits each; the free tier fails closed and never bills). All logic is in tools/hunter/ci-steps.sh
 # (tools/hunter/ci-local.sh runs the same steps locally and fails if this file drifts).
 name: paper-hunt
 
@@ -29,6 +32,9 @@ on:
       paper:
         description: "Optional: attack this one arXiv id (e.g. 2104.08638)"
         default: ""
+      source:
+        description: "papers, news or all"
+        default: "all"
 
 permissions:
   contents: read
@@ -76,10 +82,12 @@ jobs:
       - name: Hunt
         env:
           MUSE_API_KEY: ${{ secrets.MUSE_API_KEY }}
+          ELFA_API_KEY: ${{ secrets.ELFA_API_KEY }}   # optional; missing = news skipped
           # Inputs go through env, never pasted into the script; ci-steps.sh validates each.
           HUNT_DAYS: ${{ inputs.days || '7' }}
           HUNT_MAX_PAPERS: ${{ inputs.max_papers || '5' }}
           HUNT_PAPER: ${{ inputs.paper || '' }}
+          HUNT_SOURCE: ${{ inputs.source || 'all' }}
           HUNT_JOBS: "4"
         run: bash tools/hunter/ci-steps.sh hunt
 

@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # Local dry run of .github/workflows/hunt.yml: the same ci-steps.sh steps, in the same order.
 #
-#   tools/hunter/ci-local.sh          offline: canned paper + canned model reply (no key, no Muse call),
-#                                     but REAL sandbox runs against every guard; writes to a temp dir only
-#   tools/hunter/ci-local.sh --real   same, with a real arXiv search and real Muse calls (still a temp dir)
+#   tools/hunter/ci-local.sh          offline: canned paper + canned news (stand-in for Elfa, no network)
+#                                     + canned model replies (no key, no Muse call), but REAL sandbox runs
+#                                     against every guard; writes to a temp dir only
+#   tools/hunter/ci-local.sh --real   same, with a real arXiv search, real Elfa calls and real Muse calls
+#                                     (still a temp dir)
 #
 # It first checks that the workflow still calls exactly these steps, so the two cannot drift apart.
 set -euo pipefail
@@ -19,9 +21,10 @@ fi
 echo "workflow steps match: $actual"
 
 export HUNT_OUT_DIR="$TMP/evidence/hunts" HUNT_BOARD_OUT="$TMP/site" HUNT_ARTIFACT_DIR="$TMP/artifact" HUNT_NO_SAVE=1
-export HUNT_DAYS=7 HUNT_MAX_PAPERS=5 HUNT_JOBS=4 HUNT_PAPER=""
+export HUNT_DAYS=7 HUNT_MAX_PAPERS=5 HUNT_JOBS=4 HUNT_PAPER="" HUNT_SOURCE=all
 if [ "${1:-}" != "--real" ]; then
   export HUNT_OFFLINE_REPLIES=tools/hunter/tests/fixtures/replies.json HUNT_PAPERS_FILE=tools/hunter/tests/fixtures/papers.json
+  export HUNT_NEWS_FILE=tools/hunter/tests/fixtures/news.json
 fi
 mkdir -p "$HUNT_OUT_DIR"
 

@@ -15,8 +15,8 @@
 #                                      targets/vault-a/INTERFACE.md (fingerprinted before/after)
 #   ./run-arena.sh any-native <guard.wasm> [label]
 #                                      same, for a guard that pays in native NEAR (native scoring)
-#   ./run-arena.sh hunt [--days N] [--max-papers N] [--paper <arxiv id>] [--library]
-#                                      paper hunter: see tools/hunter/hunt.py
+#   ./run-arena.sh hunt [--source papers|news|all] [--days N] [--max-papers N] [--paper <arxiv id>] [--library]
+#                                      hunter (papers by default; news = Elfa AI): see tools/hunter/hunt.py
 #   ./run-arena.sh replay <file.json> [--target vault|control|native-control|native-fixed
 #                                      | --wasm <path> [--wasm-label L] [--native]]
 #                                      replay one sequence on a fresh sandbox

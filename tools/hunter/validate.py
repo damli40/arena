@@ -33,18 +33,20 @@ MAX_INT = 2**63 - 1
 ACTORS = ("agent", "outsider")
 TARGETS = ("vault", "token")
 ADD_KEY_PERMISSIONS = ("full_access", "function_call_token")
-SOURCES = ("hand", "ai", "paper", "combined")
+SOURCES = ("hand", "ai", "paper", "combined", "news")
 VALIDATION = ("broke", "valid-nothing-broke")
 KINDS = ("sequence", "injection")
 STEP_KEYS = ("call", "view", "race", "wait_blocks", "wait_seconds", "add_key")
 CALL_KEYS = ("actor", "target", "method", "args", "gas_tgas", "deposit_yocto")
 VIEW_KEYS = ("target", "method", "args")
 ADD_KEY_KEYS = ("actor", "permission")
-META_KEYS = ("id", "title", "source", "kind", "paper", "breaks", "expected_safe_result",
+META_KEYS = ("id", "title", "source", "kind", "paper", "news", "breaks", "expected_safe_result",
              "added", "author", "steps_sha256", "injection", "found_in_hunt", "broke_guards", "held_guards",
              "parents", "validation")
 META_REQUIRED = ("id", "title", "source", "kind", "breaks", "expected_safe_result", "added", "author", "steps_sha256")
 PAPER_KEYS = ("arxiv_id", "title", "url")
+NEWS_KEYS = ("item_id", "date", "links")
+MAX_NEWS_LINKS = 3
 INJECTION_KEYS = ("email", "injected_pays", "scenario_id")
 MAX_INJECTED_PAYS = 6
 MAX_EMAIL = 4000
@@ -58,6 +60,9 @@ ARXIV_RE = re.compile(r"^\d{4}\.\d{4,5}(v\d+)?$")
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 INVOICE_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
+# A news item's post links: recorded as text, never fetched. Only plain https post links survive.
+NEWS_LINK_RE = re.compile(r"^https://(x\.com|twitter\.com|t\.me)/[A-Za-z0-9_./?=&%-]{1,200}$")
+NEWS_ID_RE = re.compile(r"^n-[0-9a-f]{10}$")
 CONTROL_RE = re.compile(r"[\x00-\x08\x0b-\x1f\x7f]")  # \t and \n allowed
 
 
@@ -228,6 +233,17 @@ def check_meta(meta, steps):
               "meta.paper.url must be https://arxiv.org/abs/<arxiv_id>")
     else:
         _need("paper" not in meta, "meta.paper only belongs on source=paper")
+    if meta["source"] == "news":
+        n = meta.get("news")
+        _need(isinstance(n, dict), "meta.news is required when source is news")
+        _need(not (set(n) - set(NEWS_KEYS)) and all(k in n for k in NEWS_KEYS), f"meta.news needs exactly {NEWS_KEYS}")
+        _need(isinstance(n["item_id"], str) and NEWS_ID_RE.match(n["item_id"]), "meta.news.item_id must look like n-<10 hex>")
+        _need(isinstance(n["date"], str) and DATE_RE.match(n["date"]), "meta.news.date must be YYYY-MM-DD")
+        _need(isinstance(n["links"], list) and len(n["links"]) <= MAX_NEWS_LINKS
+              and all(isinstance(x, str) and NEWS_LINK_RE.match(x) for x in n["links"]),
+              f"meta.news.links must be at most {MAX_NEWS_LINKS} https post links (x.com, twitter.com, t.me)")
+    else:
+        _need("news" not in meta, "meta.news only belongs on source=news")
     if meta["source"] == "combined":
         par = meta.get("parents")
         _need(isinstance(par, list) and 2 <= len(par) <= 4 and len(set(par)) == len(par)
@@ -306,6 +322,10 @@ def self_test():
     same("meta keys", sorted(META_KEYS), sorted(d["meta"]["properties"]))
     same("name pattern", NAME_RE.pattern, s["properties"]["name"]["pattern"])
     same("arxiv pattern", ARXIV_RE.pattern, d["paper"]["properties"]["arxiv_id"]["pattern"])
+    same("news keys", sorted(NEWS_KEYS), sorted(d["news"]["properties"]))
+    same("news id pattern", NEWS_ID_RE.pattern, d["news"]["properties"]["item_id"]["pattern"])
+    same("news link pattern", NEWS_LINK_RE.pattern, d["news"]["properties"]["links"]["items"]["pattern"])
+    same("news links max", MAX_NEWS_LINKS, d["news"]["properties"]["links"]["maxItems"])
     for k, lim in TEXT_LIMITS.items():
         same(f"{k} maxLength", lim, d["meta"]["properties"][k]["maxLength"])
     return problems

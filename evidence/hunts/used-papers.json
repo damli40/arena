@@ -28,5 +28,215 @@
     "date": "2026-11-10",
     "hunt_id": "2026-11-10-papers-c1bea9",
     "title": "BioBind: Binding Biometric Deduplication to Zero-Knowledge Authentication"
+  },
+  "news:https://x.com/AGTPinsights/status/2120203765559038450": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Posts described Google\u2019s release of Gemini 4 Carbon and highlighted benchmark claims, including a 0% prompt-injection su"
+  },
+  "news:https://x.com/AISafetyMemes/status/2118941658121433451": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "A viral \u201cBlack October\u201d roundup claimed a surge of cyber incidents involving AI, including an agent that escaped a test "
+  },
+  "news:https://x.com/CFBenchmarks/status/2119827903277899940": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Tweets referenced the Oct. 29 Binance breach described as a $6.3B hack and its aftermath: a market roundup said Binance "
+  },
+  "news:https://x.com/Casper_Network/status/2119801714945466579": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Posts detailed the roughly $6.34B Binance theft as a months-long operation involving a tampered AI coding tool, fake rec"
+  },
+  "news:https://x.com/CobaltHere/status/2118737904205795437": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Security writeups described risks in agent skills and MCP servers: Snyk reportedly found many popular skills promoting u"
+  },
+  "news:https://x.com/CobaltHere/status/2118976749765583235": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Security writeups described risks in agent skills and MCP servers: Snyk reportedly found many popular skills promoting u"
+  },
+  "news:https://x.com/Crypt0Proselyte/status/2119332709105312127": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Tweets claimed Kaspa's proof-of-work blockDAG targets about 1-second blocks (now 100 ms/10 BPS after Crescendo), so paym"
+  },
+  "news:https://x.com/CryptoHamsterIO/status/2119234232933343295": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Market roundups framed the Binance theft as a hot-wallet, custody, and signing failure rather than a Bitcoin protocol co"
+  },
+  "news:https://x.com/Dadivan_sol/status/2119821248662495349": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Tweets referenced the Oct. 29 Binance breach described as a $6.3B hack and its aftermath: a market roundup said Binance "
+  },
+  "news:https://x.com/DamiDefi/status/2120191252876648588": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Guides advised developers to security-audit AI-built apps for common vulnerabilities including prompt injection, exposed"
+  },
+  "news:https://x.com/DiamondEyesFox/status/2119343166113673359": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "An analysis of Meta\u2019s Muse agent argued that making its system prompt visible is by design; the bigger security concern "
+  },
+  "news:https://x.com/Hercules_Defi/status/2120066626381037922": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Posts cited prompt-injection incidents in which AI agents were reportedly manipulated into moving funds, including a Mor"
+  },
+  "news:https://x.com/LuxWire/status/2119134396275937572": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Market roundups framed the Binance theft as a hot-wallet, custody, and signing failure rather than a Bitcoin protocol co"
+  },
+  "news:https://x.com/Olyvia_Tweets/status/2120102939989807109": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "A post circulated via repost and quote described Tripwire as a tiered co-signer between AI agents and Kite Passport USDC"
+  },
+  "news:https://x.com/PixelRainbowNFT/status/2119978026070859995": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Posts discussed a leaked Claude web-app system prompt for Fable 5.2, focusing on its prompt-injection defenses, memory r"
+  },
+  "news:https://x.com/RonakDaya/status/2118722797627216059": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Articles argued that per-agent spending caps are insufficient for autonomous money: one proposed a shared, enforceable r"
+  },
+  "news:https://x.com/SasuRobert/status/2119840445500936599": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Commentators argued prompt injection should be treated as an authorization/security-boundary bug rather than merely a te"
+  },
+  "news:https://x.com/UberEng/status/2118769501332463762": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Enterprise-focused posts argued for centralized AI platform teams and runtime governance for agents, including controls "
+  },
+  "news:https://x.com/WraithOnX_/status/2119621069963206950": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Tweets framed wallet risk as increasingly about malicious approvals/signatures and phishing permissions rather than stol"
+  },
+  "news:https://x.com/_gammafi/status/2120205178645188905": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Posts cited prompt-injection incidents in which AI agents were reportedly manipulated into moving funds, including a Mor"
+  },
+  "news:https://x.com/bradmenezes/status/2120206529005568343": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Enterprise-focused posts argued for centralized AI platform teams and runtime governance for agents, including controls "
+  },
+  "news:https://x.com/cl0w5/status/2119812543887946098": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Hydration said its XCM kill switch is live: a single Technical Committee member can stop inbound and outbound XCM in one"
+  },
+  "news:https://x.com/connect24h/status/2118947575399317941": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "An analysis of Meta\u2019s Muse agent argued that making its system prompt visible is by design; the bigger security concern "
+  },
+  "news:https://x.com/cyb3rops/status/2119769142643265574": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Security researchers flagged an active Miasma/testmetest supply-chain worm that poisoned GitHub repos and used a \u201cDEVOPS"
+  },
+  "news:https://x.com/drained99/status/2120023287799357661": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "A post circulated via repost and quote described Tripwire as a tiered co-signer between AI agents and Kite Passport USDC"
+  },
+  "news:https://x.com/elder_plinius/status/2119944696852341064": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Posts discussed a leaked Claude web-app system prompt for Fable 5.2, focusing on its prompt-injection defenses, memory r"
+  },
+  "news:https://x.com/foxriverdevops/status/2119464106486886715": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "A reposted interview discussed Sui/Mysten Labs\u2019 approach to AI-agent security and liability, citing Move capability secu"
+  },
+  "news:https://x.com/foxriverdevops/status/2119811183700254923": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "A reposted interview discussed Sui/Mysten Labs\u2019 approach to AI-agent security and liability, citing Move capability secu"
+  },
+  "news:https://x.com/fr0gger_/status/2119730348699640060": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Security researchers flagged an active Miasma/testmetest supply-chain worm that poisoned GitHub repos and used a \u201cDEVOPS"
+  },
+  "news:https://x.com/francis_cgl/status/2119558476011638964": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Tweets framed wallet risk as increasingly about malicious approvals/signatures and phishing permissions rather than stol"
+  },
+  "news:https://x.com/goassay/status/2119870550365667706": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Assay announced security updates for agent payments, including a provider allow-list to stop prompt-injected payments fr"
+  },
+  "news:https://x.com/grok/status/2119332366225211615": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Tweets claimed Kaspa's proof-of-work blockDAG targets about 1-second blocks (now 100 ms/10 BPS after Crescendo), so paym"
+  },
+  "news:https://x.com/hydration_net/status/2119812254178681207": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Hydration said its XCM kill switch is live: a single Technical Committee member can stop inbound and outbound XCM in one"
+  },
+  "news:https://x.com/pbsIdentity/status/2119091287282332024": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Posts detailed the roughly $6.34B Binance theft as a months-long operation involving a tampered AI coding tool, fake rec"
+  },
+  "news:https://x.com/pratikbin/status/2119737026643951958": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Commentators argued prompt injection should be treated as an authorization/security-boundary bug rather than merely a te"
+  },
+  "news:https://x.com/sseraphini/status/2119882341602464237": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Commentators argued prompt injection should be treated as an authorization/security-boundary bug rather than merely a te"
+  },
+  "news:https://x.com/sudo_ml/status/2119062313256833233": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "A viral \u201cBlack October\u201d roundup claimed a surge of cyber incidents involving AI, including an agent that escaped a test "
+  },
+  "news:https://x.com/t54ai/status/2120209552180134025": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Articles argued that per-agent spending caps are insufficient for autonomous money: one proposed a shared, enforceable r"
+  },
+  "news:https://x.com/themahis/status/2120071549801664763": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Guides advised developers to security-audit AI-built apps for common vulnerabilities including prompt injection, exposed"
+  },
+  "news:https://x.com/virtualbacon/status/2119430489857568994": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Tweets referenced the Oct. 29 Binance breach described as a $6.3B hack and its aftermath: a market roundup said Binance "
+  },
+  "news:https://x.com/wallstengine/status/2120198186149245140": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Posts described Google\u2019s release of Gemini 4 Carbon and highlighted benchmark claims, including a 0% prompt-injection su"
+  },
+  "news:https://x.com/winiam4444/status/2120090538456014859": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-news-21d429",
+    "title": "Assay announced security updates for agent payments, including a provider allow-list to stop prompt-injected payments fr"
   }
 }

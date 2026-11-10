@@ -9,8 +9,10 @@
 #
 # Inputs (env): HUNT_DAYS (1-365), HUNT_MAX_PAPERS (1-5), HUNT_PAPER (arXiv id or empty),
 #   HUNT_JOBS (1-8), HUNT_OUT_DIR, HUNT_BOARD_OUT, HUNT_ARTIFACT_DIR, HUNT_OFFLINE_REPLIES,
-#   HUNT_PAPERS_FILE, HUNT_NO_SAVE (1 = dry run). MUSE_API_KEY comes from the environment
-#   (repo secret in CI) and is never echoed: `set -x` is never used in this file.
+#   HUNT_PAPERS_FILE, HUNT_NO_SAVE (1 = dry run), HUNT_SOURCE (papers|news|all; default papers),
+#   HUNT_NEWS_FILE (canned Elfa replies: the no-network stand-in for Elfa). MUSE_API_KEY and the
+#   optional ELFA_API_KEY come from the environment (repo secrets in CI) and are never echoed:
+#   `set -x` is never used in this file. No ELFA_API_KEY = the news source is skipped, the hunt runs.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 source "$HOME/.cargo/env" 2>/dev/null || true
@@ -39,11 +41,21 @@ case "$step" in
     ;;
   hunt)
     DAYS="${HUNT_DAYS:-7}"; MAXP="${HUNT_MAX_PAPERS:-5}"; JOBS="${HUNT_JOBS:-4}"; PAPER="${HUNT_PAPER:-}"
+    SOURCE="${HUNT_SOURCE:-papers}"
     int_in HUNT_DAYS "$DAYS" 1 365; int_in HUNT_MAX_PAPERS "$MAXP" 1 5; int_in HUNT_JOBS "$JOBS" 1 8
-    args=(--days "$DAYS" --max-papers "$MAXP" --jobs "$JOBS" --out-dir "$OUT_DIR" --board-out "$BOARD_OUT")
+    case "$SOURCE" in papers|news|all) ;; *) echo "bad HUNT_SOURCE: papers, news or all" >&2; exit 2 ;; esac
+    [ -n "$PAPER" ] && [ "$SOURCE" = "all" ] && SOURCE=papers   # one pinned paper is a papers-only hunt
+    args=(--source "$SOURCE" --days "$DAYS" --max-papers "$MAXP" --jobs "$JOBS" --out-dir "$OUT_DIR" --board-out "$BOARD_OUT")
     if [ -n "$PAPER" ]; then
       [[ "$PAPER" =~ ^[0-9]{4}\.[0-9]{4,5}(v[0-9]+)?$ ]] || { echo "bad HUNT_PAPER: not an arXiv id" >&2; exit 2; }
       args+=(--paper "$PAPER")
+    fi
+    if [ "$SOURCE" != "papers" ]; then
+      if [ -n "${HUNT_NEWS_FILE:-}" ]; then
+        args+=(--news-file "$HUNT_NEWS_FILE")
+      elif [ -z "${ELFA_API_KEY:-}" ] && [ ! -f "$HOME/.config/arena/news.env" ]; then
+        echo "ELFA_API_KEY is not set (optional secret): the news source will be skipped; the rest of the hunt runs"
+      fi
     fi
     [ -n "${HUNT_OFFLINE_REPLIES:-}" ] && args+=(--offline-replies "$HUNT_OFFLINE_REPLIES")
     [ -n "${HUNT_PAPERS_FILE:-}" ] && args+=(--papers-file "$HUNT_PAPERS_FILE")
@@ -61,7 +73,7 @@ case "$step" in
     [ -f "$BOARD_OUT/board-data.json" ] && cp "$BOARD_OUT/board-data.json" "$BOARD_OUT/board.html" "$ART/site/" || true
     [ -d sequences-paper ] && cp -R sequences-paper "$ART/" || true
     # Never ship anything that looks like a key.
-    if grep -rIl -E "MUSE_API_KEY=|Bearer [A-Za-z0-9._-]{12,}" "$ART" >/dev/null 2>&1; then
+    if grep -rIl -i -E "MUSE_API_KEY=|ELFA_API_KEY=|x-elfa-api-key|Bearer [A-Za-z0-9._-]{12,}" "$ART" >/dev/null 2>&1; then
       echo "refusing to upload: something in the artifact looks like a secret" >&2; exit 1
     fi
     echo "artifact ready: $ART ($(find "$ART" -type f | wc -l | tr -d ' ') files)"

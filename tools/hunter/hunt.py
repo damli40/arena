@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
-"""The paper hunter: recent security papers -> Muse proposes attacks as data -> validate -> dedupe
--> run on the LOCAL sandbox against every registered guard -> evidence + results board.
+"""The hunter: recent security papers and/or recent hack news -> Muse proposes attacks as data ->
+validate -> dedupe -> run on the LOCAL sandbox against every registered guard -> evidence + results board.
 
-  ./run-arena.sh hunt [--days N] [--max-papers N] [--paper <arxiv id>]     (preferred: frozen checks around it)
+  ./run-arena.sh hunt [--source papers|news|all] [--days N] [--max-papers N] [--paper <arxiv id>]
+                                                   (preferred: frozen checks around it)
   python3 -I tools/hunter/hunt.py [same flags]
 
 Flags:
+  --source S          papers (default, as before), news (Elfa AI hack-news summaries), or all (both)
+  --news-window W     news from the last 24h, 7d (default) or 30d
+  --max-news-items N  at most N news items attacked (default 5, hard cap 5)
+  --max-elfa-calls N  default 2, hard cap 2 (each event-summary call costs about 5 Elfa credits)
+  --news-file F       JSON list of canned Elfa replies instead of the API (tests / CI dry run)
   --days N            papers submitted in the last N days (default 7)
   --max-papers N      at most N papers (default 5, hard cap 5)
   --paper ID          attack this one arXiv paper (ignores --days; allowed even if used before)
@@ -28,11 +34,13 @@ import argparse, datetime, hashlib, json, os, pathlib, secrets, subprocess, sys,
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import arxiv, board, catalog, memory, muse, proposals, registry, runner  # noqa: E402
+import arxiv, board, catalog, memory, muse, news, proposals, registry, runner  # noqa: E402
 import validate as V  # noqa: E402
 
 ROOT = HERE.parents[1]
-HARD_MAX_PAPERS, HARD_MAX_CALLS = 5, 20
+HARD_MAX_PAPERS, HARD_MAX_CALLS, HARD_MAX_NEWS_ITEMS, MAX_NEWS_SCORED = 5, 20, 5, 20
+NEWS_CAVEAT = ("Each news item is an Elfa AI summary of posts on X and Telegram: an unchecked lead. It says people posted "
+               "about a hack, not that the hack happened as told. The links are recorded as text and were never fetched.")
 CANARY = ROOT / "sequences-scripted" / "02-race-double-pay.json"
 DESIGN_CREDIT = ("Design credit: paper scoring, validate-before-adding, attack combination and the attack memory follow "
                  "AutoRedTeamer: Autonomous Red Teaming with Lifelong Attack Integration (Andy Zhou, Kevin Wu, Francesco Pinto, "
@@ -73,9 +81,30 @@ def parse_args(argv):
     ap.add_argument("--board-out", default=str(ROOT / "site"))
     ap.add_argument("--no-save", action="store_true")
     ap.add_argument("--candidates", type=int, default=10, help="papers scored before the top --max-papers are attacked")
-    ap.add_argument("--combine", type=int, default=2, help="combined attacks to ask for (0 = off; 1 Muse call)")
-    ap.add_argument("--memory-picks", type=int, default=6, help="library attacks re-run where the memory says (0 = off)")
+    ap.add_argument("--combine", type=int, default=None, help="combined attacks to ask for (0 = off; 1 Muse call; default 2, 0 for --source news)")
+    ap.add_argument("--memory-picks", type=int, default=None, help="library attacks re-run where the memory says (0 = off; default 6, 0 for --source news)")
+    ap.add_argument("--source", choices=("papers", "news", "all"), default="papers")
+    ap.add_argument("--news-window", choices=news.WINDOWS, default="7d")
+    ap.add_argument("--max-news-items", type=int, default=5)
+    ap.add_argument("--max-elfa-calls", type=int, default=news.HARD_MAX_CALLS)
+    ap.add_argument("--news-file")
     a = ap.parse_args(argv)
+    if a.source == "news" and (a.paper or a.papers_file):
+        ap.error("--paper / --papers-file need --source papers or all")
+    if a.news_file and a.source == "papers":
+        ap.error("--news-file needs --source news or all")
+    if a.library and (a.source != "papers" or a.news_file):
+        ap.error("--library runs the library only; it takes no source flags")
+    if a.paper and a.source == "all":
+        ap.error("--paper attacks one paper; use --source papers")
+    if a.max_news_items < 1 or a.max_elfa_calls < 0:
+        ap.error("--max-news-items >= 1, --max-elfa-calls >= 0")
+    a.max_news_items = min(a.max_news_items, HARD_MAX_NEWS_ITEMS)
+    a.max_elfa_calls = min(a.max_elfa_calls, news.HARD_MAX_CALLS)
+    if a.combine is None:
+        a.combine = 0 if a.source == "news" else 2
+    if a.memory_picks is None:
+        a.memory_picks = 0 if a.source == "news" else 6
     if not (1 <= a.days <= 365):
         ap.error("--days must be 1-365")
     if a.max_papers < 1 or a.max_muse_calls < 0 or a.jobs < 1 or a.timeout_min <= 0:
@@ -92,13 +121,162 @@ def parse_args(argv):
     return a
 
 
+def _plain(s, limit=300):
+    """Model or Elfa text bound for the markdown evidence: one line, bounded."""
+    return " ".join(str(s or "").split())[:limit]
+
+
+def fetch_news(a, H, raw, used, today):
+    """At most --max-elfa-calls event-summary calls. Missing key = skipped with a log line, the hunt
+    still runs. Returns the fresh items (not used in an earlier hunt, not repeated in this one)."""
+    NW = H["news"] = {"caveat": NEWS_CAVEAT, "endpoint": news.API + news.ENDPOINT, "cap": a.max_elfa_calls,
+                      "credits_per_call": news.CREDITS_PER_CALL, "window": a.news_window,
+                      "queries": [{"query": q, "keywords": list(k)} for q, k in news.QUERIES],
+                      "calls": 0, "credits_estimate": 0, "log": [], "returned": 0, "new": 0, "items": [],
+                      "offline": bool(a.news_file)}
+    canned, key = None, None
+    if a.news_file:
+        canned = json.loads(pathlib.Path(a.news_file).read_text())
+        if not isinstance(canned, list):
+            raise SystemExit("--news-file must be a JSON list of Elfa replies")
+    else:
+        key = news.load_key()
+    if canned is None and not key:
+        msg = "news source skipped: ELFA_API_KEY is not set (env or ~/.config/arena/news.env); the rest of the hunt runs"
+        print(msg, flush=True)
+        H["notes"].append(msg)
+        NW["skipped"] = msg
+        return []
+    nc = news.Client(a.max_elfa_calls, key=key, canned=canned)
+    items = []
+    for label, kws in news.QUERIES:
+        try:
+            print(f"elfa: event-summary '{label}' ({a.news_window}), call {nc.calls + 1} of at most {nc.max_calls}", flush=True)
+            reply = nc.event_summary(label, kws, a.news_window)
+        except news.BudgetExhausted as e:
+            H["notes"].append(f"news query '{label}' not asked: {e}")
+            continue
+        except news.ElfaError as e:
+            H["notes"].append(f"news query '{label}' failed: {e}")
+            continue
+        (raw / f"elfa-{nc.calls}-{label}.json").write_text(json.dumps(reply, indent=2) + "\n")
+        got = news.parse(reply, label, today)
+        nc.log[-1]["items"] = len(got)
+        items += got
+    NW["calls"], NW["log"] = nc.calls, nc.log
+    NW["credits_estimate"] = sum(x.get("credits_estimate", 0) for x in nc.log)
+    fresh, info = news.pick(items, used)
+    NW.update(returned=info["returned"], already_used=info["already_used"],
+              repeated_in_this_hunt=info["repeated_in_this_hunt"], new=len(fresh))
+    if not fresh:
+        H["notes"].append("No new news items (none returned, all used before, or Elfa unreachable).")
+    return fresh
+
+
+def attack_news(a, H, raw, client, author, fresh, used, fam_counts, add_new, today, hunt_id, deadline):
+    """Score the fresh items in one Muse call; items that do not map to a payment guard are logged
+    with the reason and never attacked. The top --max-news-items that map get one propose call each."""
+    NW = H["news"]
+    cand, later = fresh[:MAX_NEWS_SCORED], fresh[MAX_NEWS_SCORED:]
+    scores, why_fallback = {}, None
+    try:
+        sobj, sraw, serr = muse.score_news(client, cand)
+        (raw / "muse-news-scores.txt").write_text(sraw)
+        if sobj is None:
+            why_fallback = f"scoring reply unusable: {serr}"
+        else:
+            scores, srej = proposals.check_news_scores(sobj, cand, memory.FAMILY_TAGS)
+            H["rejections"] += [{"paper": "news-scores", "name": None, **r_} for r_ in srej]
+    except (muse.BudgetExhausted, muse.MuseError) as e:
+        why_fallback = f"scoring call failed: {e}"
+    rows = []
+    for it in cand:
+        row = {k: it[k] for k in ("item_id", "query", "date", "summary", "links", "links_dropped", "posts_summarised",
+                                  "instruction_like_text", "markers_removed")}
+        sc = scores.get(it["item_id"])
+        if sc:
+            row["families"] = sc["families"]
+            row["maps"] = sc["maps"]
+            if sc["maps"]:
+                dist = memory.distance(set(sc["families"]) - {"other"}, fam_counts)
+                row["score"] = sc["novelty"] + dist + sc["reported_success"]
+                row["reason"] = (f"novelty {sc['novelty']} + distance from library {dist} (families {'+'.join(sc['families'])}) "
+                                 f"+ reported success {sc['reported_success']} = {row['score']}. {_plain(sc['reason'], 240)}")
+            else:
+                row["score"] = 0
+                row["reason"] = f"doesn't map: {_plain(sc['doesnt_map'], 240)}"
+        else:
+            kw = news.relevance(it)
+            row["maps"] = kw > 0
+            row["score"] = None
+            row["keyword_relevance"] = kw
+            row["reason"] = (f"not scored ({why_fallback or 'model gave no score'}); keyword relevance {kw}"
+                             + ("" if kw else "; doesn't map: no payment, contract or agent-attack words in the summary"))
+        rows.append(row)
+    for it in later:
+        rows.append({k: it[k] for k in ("item_id", "query", "date", "summary", "links")} |
+                    {"maps": None, "score": None, "status": f"not scored: more than {MAX_NEWS_SCORED} new items; left for a later hunt"})
+    mapped = sorted((r for r in rows if r.get("maps")), key=lambda r: (r["score"] if r["score"] is not None else -1,
+                                                                        r.get("keyword_relevance", 0)), reverse=True)
+    chosen = {r["item_id"] for r in mapped[:a.max_news_items]}
+    by_id = {it["item_id"]: it for it in cand}
+    for r in rows:
+        if "status" in r:
+            continue
+        if not a.no_save:
+            used_item = by_id[r["item_id"]]
+            news.mark_used(used, used_item, hunt_id, today)
+        r["attacks"] = []
+        if r["maps"] is False:
+            r["status"] = "doesn't map"
+        elif r["item_id"] not in chosen:
+            r["status"] = f"not attacked: ranked below the top {a.max_news_items}"
+    NW["items"] = rows
+    for r in mapped[:a.max_news_items]:
+        it = by_id[r["item_id"]]
+        if time.time() > deadline:
+            r["status"] = "not attacked: hunt timeout"
+            continue
+        try:
+            obj, raws, err = muse.propose_news(client, it)
+        except muse.BudgetExhausted as e:
+            r["status"] = f"not attacked: {e}"
+            continue
+        except muse.MuseError as e:
+            r["status"] = f"model call failed: {e}"
+            continue
+        (raw / f"muse-{it['item_id']}.txt").write_text("\n\n----- next reply -----\n\n".join(raws))
+        r["raw_replies"] = rel(raw / f"muse-{it['item_id']}.txt")
+        if obj is None:
+            r["status"] = f"reply unusable: {err}"
+            H["rejections"].append({"paper": it["item_id"], "index": None, "name": None, "reason": err})
+            r.update(proposed=0, accepted=0, rejected=1)
+            continue
+        n_prop = len(obj["attacks"])
+        acc, rej, notes = proposals.build(obj, None, today, author, news=it)
+        H["rejections"] += [{"paper": it["item_id"], **r_} for r_ in rej]
+        H["notes"] += [f"{it['item_id']}: {n}" for n in notes]
+        kept = 0
+        for x in acc:
+            if add_new(x["doc"], {"news_idea": x["paper_idea"], "instruction_like_text_in": x["instruction_like_text_in"]}, "news"):
+                kept += 1
+                r["attacks"].append(x["doc"]["meta"]["id"])
+        r.update(status="attacked", proposed=n_prop, accepted=len(acc), rejected=len(rej), new_after_dedupe=kept)
+        if n_prop == 0:
+            r["status"] = "doesn't map (said by Muse when asked for attacks)"
+            r["maps"] = False
+            r["reason"] = f"doesn't map: {_plain(obj.get('doesnt_map'), 240) or 'Muse returned no attacks and no reason'}"
+
+
 def main(argv):
     a = parse_args(argv)
     t_start = time.time()
     deadline = t_start + a.timeout_min * 60
     now = datetime.datetime.now(datetime.timezone.utc)
     today = now.strftime("%Y-%m-%d")
-    mode = "library" if a.library else ("paper" if a.paper else "papers")
+    mode = "library" if a.library else ("paper" if a.paper else {"papers": "papers", "news": "news", "all": "all"}[a.source])
+    do_papers = not a.library and a.source in ("papers", "all")
+    do_news = not a.library and a.source in ("news", "all")
     hunt_id = f"{today}-{mode}-{secrets.token_hex(3)}"
     out_dir = pathlib.Path(a.out_dir)
     raw = out_dir / hunt_id
@@ -113,7 +291,9 @@ def main(argv):
          "model": None if a.library else {"base": muse.BASE, "model": muse.MODEL, "offline": bool(a.offline_replies)},
          "bounds": {"max_papers": a.max_papers, "max_attacks_per_paper": proposals.MAX_PER_PAPER,
                     "max_muse_calls": a.max_muse_calls, "attempt_timeout_s": runner.ATTEMPT_TIMEOUT_S,
-                    "hunt_timeout_min": a.timeout_min, "days": a.days},
+                    "hunt_timeout_min": a.timeout_min, "days": a.days,
+                    "max_news_items": a.max_news_items, "max_elfa_calls": a.max_elfa_calls, "news_window": a.news_window},
+         "sources": [] if a.library else [s for s, on in (("papers", do_papers), ("news", do_news)) if on],
          "papers": [], "attacks": [], "rejections": [], "duplicates": [], "notes": [], "trusted": True,
          "design_credit": DESIGN_CREDIT}
 
@@ -186,32 +366,39 @@ def main(argv):
         for d in uniq:
             new_attacks.append((d, {"library_path": d["path"]}))
     else:
-        # ---- papers
         used = arxiv.load_used(used_path)
-        try:
-            if a.papers_file:
-                cand = json.loads(pathlib.Path(a.papers_file).read_text())
-                for p in cand:
-                    p.setdefault("base_id", p["arxiv_id"].split("v")[0])
-                    p.setdefault("url", f"https://arxiv.org/abs/{p['arxiv_id']}")
-                H["search"] = {"source": rel(a.papers_file), "returned": len(cand)}
-                picked, info = arxiv.pick(cand, used, a.candidates) if not a.paper else ([p for p in cand if p["arxiv_id"] == a.paper][:1], {})
-            elif a.paper:
-                p = arxiv.fetch_by_id(a.paper)
-                H["search"] = {"source": "arXiv id_list", "id": a.paper}
-                if p["base_id"] in used:
-                    H["notes"].append(f"{a.paper} was used before (hunt {used[p['base_id']].get('hunt_id')}); attacked again because it was pinned with --paper")
-                picked, info = [dict(p, relevance=arxiv.relevance(p))], {}
-            else:
-                r = arxiv.search_recent(a.days)
-                H["search"] = {"source": "arXiv API", "query": r["query"], "returned": r["returned"], "within_days": r["within_days"]}
-                picked, info = arxiv.pick(r["papers"], used, a.candidates)
-            H["search"].update(info)
-        except (arxiv.ArxivError, OSError, json.JSONDecodeError, KeyError) as e:
-            H["search"] = {"error": str(e)[:300]}
-            picked = []
-        if not picked:
-            H["notes"].append("No papers to attack (none in the window, none relevant, all used before, or arXiv unreachable). Nothing was proposed or run beyond the canary.")
+        picked = []
+        if do_papers:
+            # ---- papers
+            try:
+                if a.papers_file:
+                    cand = json.loads(pathlib.Path(a.papers_file).read_text())
+                    for p in cand:
+                        p.setdefault("base_id", p["arxiv_id"].split("v")[0])
+                        p.setdefault("url", f"https://arxiv.org/abs/{p['arxiv_id']}")
+                    H["search"] = {"source": rel(a.papers_file), "returned": len(cand)}
+                    picked, info = arxiv.pick(cand, used, a.candidates) if not a.paper else ([p for p in cand if p["arxiv_id"] == a.paper][:1], {})
+                elif a.paper:
+                    p = arxiv.fetch_by_id(a.paper)
+                    H["search"] = {"source": "arXiv id_list", "id": a.paper}
+                    if p["base_id"] in used:
+                        H["notes"].append(f"{a.paper} was used before (hunt {used[p['base_id']].get('hunt_id')}); attacked again because it was pinned with --paper")
+                    picked, info = [dict(p, relevance=arxiv.relevance(p))], {}
+                else:
+                    r = arxiv.search_recent(a.days)
+                    H["search"] = {"source": "arXiv API", "query": r["query"], "returned": r["returned"], "within_days": r["within_days"]}
+                    picked, info = arxiv.pick(r["papers"], used, a.candidates)
+                H["search"].update(info)
+            except (arxiv.ArxivError, OSError, json.JSONDecodeError, KeyError) as e:
+                H["search"] = {"error": str(e)[:300]}
+                picked = []
+            if not picked:
+                H["notes"].append("No papers to attack (none in the window, none relevant, all used before, or arXiv unreachable). Nothing was proposed or run beyond the canary.")
+        else:
+            H["search"] = {"source": "not asked (--source news)"}
+
+        # ---- news (Elfa AI): at most 2 event-summary calls; raw replies cached next to the evidence
+        news_fresh = fetch_news(a, H, raw, used, today) if do_news else []
 
         # ---- Muse
         key = None
@@ -221,7 +408,7 @@ def main(argv):
             if not isinstance(replies, list):
                 print("--offline-replies must be a JSON list of strings", file=sys.stderr)
                 return 2
-        elif picked or a.combine:
+        elif picked or news_fresh or a.combine:
             key = muse.load_key()
             if not key:
                 print("MUSE_API_KEY not set and ~/.config/arena/model.env has none", file=sys.stderr)
@@ -298,6 +485,9 @@ def main(argv):
             kept = sum(add_new(x["doc"], {"paper_idea": x["paper_idea"], "instruction_like_text_in": x["instruction_like_text_in"]}, "paper")
                        for x in acc)
             pe.update(status="attacked", proposed=n_prop, accepted=len(acc), rejected=len(rej), new_after_dedupe=kept)
+        # ---- news items: score (maps to a payment guard? novelty + distance + reported success), then attack the top ones
+        if news_fresh:
+            attack_news(a, H, raw, client, author, news_fresh, used, fam_counts, add_new, today, hunt_id, deadline)
         # ---- combine library attacks (AutoRedTeamer idea 3): one call, source=combined, parents listed.
         if a.combine and time.time() < deadline:
             lines, offered = [], set()
@@ -326,7 +516,7 @@ def main(argv):
                 ce["status"] = f"model call failed: {e}"
             H["combine"] = ce
         H["muse"] = {"cap": a.max_muse_calls, "calls": client.calls, "log": client.log}
-        if not a.no_save and not a.offline_replies:
+        if not a.no_save and not a.offline_replies and not a.news_file:
             arxiv.save_used(used_path, used)
 
     # ---- memory picks (AutoRedTeamer idea 4): re-run library attacks where the record says it is worth it
@@ -334,6 +524,7 @@ def main(argv):
     if not a.library and a.memory_picks and not a.no_run:
         picks = memory.pick_library_runs(lib_unique, guards, mem, a.memory_picks)
     H["memory_picks"] = [{"attack": aid, "guards": gs, "why": why} for aid, gs, why in picks]
+    H["memory_picks_asked"] = a.memory_picks
     H["memory_before"] = {"hunts": len(mem["hunts"]), "attacks_with_results": len(mem["attacks"]), "families": len(mem["families"])}
 
     # ---- write attack files for the harness (data only)
@@ -348,6 +539,7 @@ def main(argv):
         sp.write_text(json.dumps(doc, indent=2) + "\n")
         H["attacks"].append({"id": doc["meta"]["id"], "name": doc["name"], "title": doc["meta"]["title"],
                              "source": doc["meta"]["source"], "kind": doc["meta"]["kind"], "paper": doc["meta"].get("paper"),
+                             "news": doc["meta"].get("news"),
                              "breaks": doc["meta"]["breaks"], "expected_safe_result": doc["meta"]["expected_safe_result"],
                              "steps_sha256": doc["meta"]["steps_sha256"], "family": memory.family_key(doc),
                              "parents": doc["meta"].get("parents"), "file": rel(sp), **extra, "results": {}})
@@ -390,7 +582,7 @@ def main(argv):
         broke = sorted(g for g, c in e["results"].items() if c.get("status") == "broke")
         held = sorted(g for g, c in e["results"].items() if c.get("status") == "held")
         e["broke_guards"], e["held_guards"] = broke, held
-        if e["source"] not in ("paper", "combined"):
+        if e["source"] not in ("paper", "combined", "news"):
             continue
         clean = bool(e["results"]) and len(e["results"]) == len(guards) and len(broke) + len(held) == len(e["results"])
         e["validation"] = ("broke" if broke else "valid-nothing-broke") if clean else None
@@ -413,13 +605,14 @@ def main(argv):
             e["saved_to"] = rel(dest)
 
     # ---- counts (numbers first in the evidence)
+    NW = H.get("news") or {}
     def count(status, roles=None):
         return sum(1 for e in H["attacks"] for g, c in e["results"].items()
                    if c.get("status") == status and (roles is None or next(x["role"] for x in guards_all if x["id"] == g) in roles))
     H["counts"] = {
         "papers_read": sum(1 for p in H["papers"] if p.get("status") == "attacked"),
         "papers_considered": len(H["papers"]),
-        "attacks_proposed": sum(p.get("proposed", 0) for p in H["papers"]),
+        "attacks_proposed": sum(p.get("proposed", 0) for p in H["papers"]) + sum(i.get("proposed", 0) for i in NW.get("items", [])),
         "attacks_rejected": len(H["rejections"]),
         "attacks_deduped": len([d for d in H["duplicates"] if d["where"] != "within the library"]),
         "attacks_run": sum(1 for e in H["attacks"] if e["results"] and not e.get("memory_pick")),
@@ -433,6 +626,15 @@ def main(argv):
         "combined_run": sum(1 for e in H["attacks"] if e["source"] == "combined" and e["results"]),
         "memory_reruns": len(H["memory_picks"]),
         "muse_calls": H.get("muse", {}).get("calls", 0),
+        "elfa_calls": NW.get("calls", 0),
+        "elfa_credits_estimate": NW.get("credits_estimate", 0),
+        "news_items_returned": NW.get("returned", 0),
+        "news_items_new": NW.get("new", 0),
+        "news_items_mapped": sum(1 for i in NW.get("items", []) if i.get("maps")),
+        "news_items_doesnt_map": sum(1 for i in NW.get("items", []) if i.get("maps") is False),
+        "news_items_attacked": sum(1 for i in NW.get("items", []) if i.get("status") == "attacked"),
+        "news_attacks_proposed": sum(i.get("proposed", 0) for i in NW.get("items", [])),
+        "news_attacks_run": sum(1 for e in H["attacks"] if e["source"] == "news" and e["results"]),
     }
     H["finished_utc"] = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
     H["wall_seconds"] = round(time.time() - t_start, 1)
@@ -460,6 +662,46 @@ def _cell(c):
     return f"{s}: {c.get('why', '')[:60]}"
 
 
+def _md(s):
+    """Untrusted text into markdown: one line, and no way to form a link, an image or HTML (so a
+    markdown viewer never fetches anything from it)."""
+    s = _plain(s, 2000)
+    for ch in "\\[]<>|`!":
+        s = s.replace(ch, "\\" + ch)
+    return s
+
+
+def render_news(NW):
+    L = ["", "## News items (Elfa AI)", "", NW["caveat"], ""]
+    if NW.get("skipped"):
+        return L + [f"Skipped: {NW['skipped']}."]
+    L.append(f"Endpoint `{NW['endpoint']}`, window {NW['window']}, at most {NW['cap']} calls (about {NW['credits_per_call']} credits each)"
+             + (" (OFFLINE canned replies, not a real Elfa call)" if NW.get("offline") else "") + ". "
+             f"Returned {NW.get('returned', 0)}, already used in an earlier hunt {NW.get('already_used', 0)}, "
+             f"repeated across the two queries {NW.get('repeated_in_this_hunt', 0)}, new {NW.get('new', 0)}.")
+    L.append("")
+    for q in NW["log"]:
+        L.append(f"- Elfa call #{q['n']} `{q['query']}` ({', '.join(q['keywords'])}): {'ok' if q['ok'] else 'FAILED ' + q.get('error', '')}, "
+                 f"{q.get('seconds')} s, {q.get('items', 0)} item(s), about {q.get('credits_estimate', 0)} credits")
+    L += ["", "Each new item was scored before attacking: does it map to a payment guard at all; if so, novelty (0-5, Muse) + "
+          "distance from attacks already in the library (0-5, computed here) + reported success (0-5, Muse). An item maps only if "
+          "Muse says so AND names a mechanism a payment guard has (decided by code).", "",
+          "| item | query | maps? | score | status | why |", "|---|---|---|---|---|---|"]
+    for r in NW["items"]:
+        maps = {True: "yes", False: "no", None: "-"}[r.get("maps")]
+        L.append(f"| {r['item_id']} | {r['query']} | {maps} | {r['score'] if r.get('score') is not None else '-'} | "
+                 f"{_md(r.get('status', '-'))} | {_md(r.get('reason', ''))[:400]} |")
+    L += ["", "What each item said (Elfa's summary, quoted as data) and what was made from it:", ""]
+    for r in NW["items"]:
+        links = ", ".join(f"<{x}>" for x in r["links"]) or "none kept"
+        L.append(f"- **{r['item_id']}** ({r['date']}, {r['query']}): {_md(r['summary'])}")
+        L.append(f"  - post links (not fetched): {links}" + (f"; {r['links_dropped']} other link(s) dropped" if r.get("links_dropped") else ""))
+        if r.get("instruction_like_text") or r.get("markers_removed"):
+            L.append(f"  - instruction-like text flagged: {_md(', '.join(r.get('instruction_like_text') or []))}; quote markers removed: {r.get('markers_removed', 0)}")
+        L.append(f"  - attacks made: {', '.join('`' + x + '`' for x in r.get('attacks') or []) or 'none'}")
+    return L
+
+
 def render_md(H):
     c = H["counts"]
     L = [f"# Hunt {H['hunt_id']}", ""]
@@ -467,7 +709,12 @@ def render_md(H):
         L += [f"**Library run: {c['attacks_run']} attacks x {sum(1 for g in H['guards'] if 'skipped' not in g)} guards = {c['attempts']} attempts. "
               f"{c['cells_broke']} broke (of which {c['cells_broke_subjects']} on guards that are not leaky on purpose), {c['cells_error']} errors.**", ""]
     else:
-        L += [f"**Papers read: {c['papers_read']}. Attacks proposed: {c['attacks_proposed']}, rejected: {c['attacks_rejected']}, "
+        if H.get("news"):
+            L += [f"**News: {c['elfa_calls']} Elfa call(s) of {H['news']['cap']} (about {c['elfa_credits_estimate']} credits), "
+                  f"{c['news_items_returned']} item(s) returned, {c['news_items_new']} new, {c['news_items_mapped']} map to a payment guard, "
+                  f"{c['news_items_doesnt_map']} do not, {c['news_items_attacked']} attacked, {c['news_attacks_run']} news attack(s) run.**", ""]
+        L += [(f"**Papers read: {c['papers_read']}. " if "papers" in H.get("sources", ["papers"]) else "**All sources: ")
+              + f"Attacks proposed: {c['attacks_proposed']}, rejected: {c['attacks_rejected']}, "
               f"duplicates dropped: {c['attacks_deduped']}, run: {c['attacks_run']} (x guards = {c['attempts']} attempts). "
               f"Broke: {c['cells_broke']} cells, {c['cells_broke_subjects']} of them on guards that are not leaky on purpose. "
               f"Added to the library (sequences-paper/) after running cleanly: {c['attacks_saved']} ({c['saved_broke']} broke a guard, {c['saved_valid_nothing_broke']} valid but nothing broke). "
@@ -480,7 +727,8 @@ def render_md(H):
     L += ["## What this is", "",
           "One run of the paper hunter (`tools/hunter/hunt.py`). " +
           ("It ran every attack already in the library against every registered guard, with no model." if H["mode"] == "library" else
-           "Muse read each paper's title and abstract and proposed attacks as data in the bench's step format. Each was validated, checked for duplicates, and run on a fresh local NEAR sandbox against every registered guard, scored by the existing scorer from final balances."),
+           ("Sources: " + (" and ".join(H.get("sources") or ["papers"])) + ". "
+            "Muse read each paper's title and abstract, and/or each news summary, and proposed attacks as data in the bench's step format. Each was validated, checked for duplicates, and run on a fresh local NEAR sandbox against every registered guard, scored by the existing scorer from final balances.")),
           "A guard **broke** when a receiver got tokens beyond what that guard's own policy allows. **held** = 0 beyond policy. Leaky-on-purpose controls are expected to break on the double-pay race.", "",
           f"- started {H['started_utc']}, finished {H['finished_utc']} ({H['wall_seconds']} s)",
           f"- command: `{H['command'].strip()}`",
@@ -492,7 +740,9 @@ def render_md(H):
     for g in H["guards"]:
         fp = g["fingerprint_before"]
         L.append(f"| {g['id']} | {g['role']} | {str(fp['wasm_sha256'])[:16]}... {'ok' if fp['ok'] else 'MISMATCH'} | {'no: ' + g['skipped'][:90] if 'skipped' in g else 'yes'} |")
-    if H["mode"] != "library":
+    if H.get("news"):
+        L += render_news(H["news"])
+    if H["mode"] != "library" and "papers" in H.get("sources", ["papers"]):
         L += ["", "## Papers", ""]
         s = H.get("search", {})
         if s.get("error"):
@@ -522,19 +772,22 @@ def render_md(H):
         mb = H.get("memory_before", {})
         L += ["", "## Memory: library attacks re-run because of the record", "",
               f"The record (attack x guard -> result) was rebuilt from {mb.get('hunts', 0)} earlier trusted hunt(s). It favours attacks never tried on a guard, and families that broke a guard that is not leaky on purpose. This is how the bench keeps the attacks that work.", ""]
-        L += [f"- `{m['attack']}` on {', '.join(m['guards'])}: {m['why']}" for m in H["memory_picks"]] or ["- Nothing picked: every library attack has been tried on every guard, and no family has broken a guard that is not leaky on purpose."]
+        off = H.get("memory_picks_asked", 1 if H.get("sources") != ["news"] else 0) == 0
+        L += [f"- `{m['attack']}` on {', '.join(m['guards'])}: {m['why']}" for m in H["memory_picks"]] or (["- Off for this hunt (--memory-picks 0; the default for --source news, whose re-runs would not be about the news)."] if off else ["- Nothing picked: every library attack has been tried on every guard, and no family has broken a guard that is not leaky on purpose."])
     L += ["", "## Results (attack x guard)", ""]
     gids = [g["id"] for g in H["guards"] if "skipped" not in g]
     if H["attacks"] and gids:
         L += ["| attack | source | family | " + " | ".join(gids) + " |", "|---|---|---|" + "---|" * len(gids)]
         for e in H["attacks"]:
             src = e["source"] + (f" [{e['paper']['arxiv_id']}]({e['paper']['url']})" if e.get("paper") else "") \
+                + ((f" [{e['news']['item_id']}]({e['news']['links'][0]})" if e["news"]["links"] else f" {e['news']['item_id']}") if e.get("news") else "") \
                 + (f" of {' + '.join(e['parents'])}" if e.get("parents") else "") + (" (memory re-run)" if e.get("memory_pick") else "")
             L.append(f"| `{e['id']}` {e['title']} | {src} | {e.get('family', '')} | " + " | ".join(_cell(e["results"].get(g)) for g in gids) + " |")
         L += ["", "What each attack tries (plain words):", ""]
         for e in H["attacks"]:
             L.append(f"- `{e['id']}` ({e['kind']}): {e['breaks']} Safe result: {e['expected_safe_result']}"
                      + (f" Paper idea: {e['paper_idea']}" if e.get("paper_idea") else "")
+                     + (f" News idea: {_md(e['news_idea'])}" if e.get("news_idea") else "")
                      + (f" Added to the library as {e['validation']}: `{e['saved_to']}`." if e.get("saved_to") else "")
                      + (f" Not added: {e['not_added']}." if e.get("not_added") else ""))
     else:
@@ -559,6 +812,7 @@ def render_md(H):
           "- Injection attacks run as the pays a fully fooled agent would make (no model plays the victim here).",
           "- Local sandbox only. Raw per-attempt logs and result JSON: `" + rel(pathlib.Path(H['hunt_id'])) + "/` next to this file.",
           "- Paper scores come from one Muse call reading abstracts; a high score is a reason to spend budget, not a measure of the paper.",
+          "- " + NEWS_CAVEAT + " A news attack shows a mechanism someone posted about can be tried against a guard; it is not a reproduction of that incident.",
           "", "## Design credit", "", H.get("design_credit", DESIGN_CREDIT), ""]
     return "\n".join(L)
 

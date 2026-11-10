@@ -307,7 +307,7 @@ class AutoRedTeamerParts(unittest.TestCase):
         self.assertEqual(mem["hunts"], ["h1"])
         self.assertEqual(mem["attacks"]["scripted-02-race-double-pay"]["g1"], {"tries": 1, "breaks": 1, "last": "broke", "last_date": "2026-11-10"})
         self.assertNotIn("g2", mem["attacks"]["ai-06-pay-after-expiry"])  # an error is not evidence
-        picks = memory.pick_library_runs(lib, guards, mem, 50)
+        picks = memory.pick_library_runs(lib, guards, mem, len(lib) + 1)  # room for every pick (was 50; the library outgrew it)
         why = {aid: (gs, w) for aid, gs, w in picks}
         self.assertIn("never tried", why["ai-06-pay-after-expiry"][1])
         self.assertEqual(why["ai-06-pay-after-expiry"][0], ["g2"])

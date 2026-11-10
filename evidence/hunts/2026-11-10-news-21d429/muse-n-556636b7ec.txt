@@ -1,0 +1,1 @@
+{"doesnt_map": "This item describes proposals for shared budgets and pre-settlement checks, not a concrete bypass or theft mechanism expressible as guard pay calls.", "attacks": []}

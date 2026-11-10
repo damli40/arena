@@ -1,0 +1,188 @@
+{
+  "success": true,
+  "data": [
+    {
+      "summary": "Posts detailed the roughly $6.34B Binance theft as a months-long operation involving a tampered AI coding tool, fake recruiting/coding-test malware, and compromised internal AI tooling used to reach wallet-signing operations; they said the FBI attributed the theft to North Korean hackers and that about $2.85B had been frozen or intercepted.",
+      "sourceLinks": [
+        "https://x.com/pbsIdentity/status/2119091287282332024",
+        "https://x.com/Casper_Network/status/2119801714945466579"
+      ],
+      "tweetIds": [
+        "2119091287282332024",
+        "2119801714945466579"
+      ]
+    },
+    {
+      "summary": "Market roundups framed the Binance theft as a hot-wallet, custody, and signing failure rather than a Bitcoin protocol compromise, while also noting debate over frozen funds, recovery, and exchange security.",
+      "sourceLinks": [
+        "https://x.com/LuxWire/status/2119134396275937572",
+        "https://x.com/CryptoHamsterIO/status/2119234232933343295"
+      ],
+      "tweetIds": [
+        "2119134396275937572",
+        "2119234232933343295"
+      ]
+    },
+    {
+      "summary": "Crypto market roundups described a risk-off week: Bitcoin fell toward the mid-$70Ks, U.S. spot Bitcoin ETFs saw about $1.28B of outflows, leverage liquidations topped $1.2B, and a hot payrolls print raised expectations of a more hawkish Fed path.",
+      "sourceLinks": [
+        "https://x.com/TheSpartanGroup/status/2120000281794789549",
+        "https://x.com/CryptoHamsterIO/status/2119234232933343295"
+      ],
+      "tweetIds": [
+        "2120000281794789549",
+        "2119234232933343295"
+      ]
+    },
+    {
+      "summary": "Commentators argued prompt injection should be treated as an authorization/security-boundary bug rather than merely a text-generation issue, calling for scoped tool permissions, egress allow-lists, and human checks on consequential actions; one compared it to SQL injection for a new generation.",
+      "sourceLinks": [
+        "https://x.com/SasuRobert/status/2119840445500936599",
+        "https://x.com/pratikbin/status/2119737026643951958",
+        "https://x.com/sseraphini/status/2119882341602464237"
+      ],
+      "tweetIds": [
+        "2119840445500936599",
+        "2119737026643951958",
+        "2119882341602464237"
+      ]
+    },
+    {
+      "summary": "Posts cited prompt-injection incidents in which AI agents were reportedly manipulated into moving funds, including a Morse-code instruction that moved about $150K and losses attributed to Bankr, as evidence that trust and security are major obstacles to agentic payments.",
+      "sourceLinks": [
+        "https://x.com/Hercules_Defi/status/2120066626381037922",
+        "https://x.com/_gammafi/status/2120205178645188905"
+      ],
+      "tweetIds": [
+        "2120066626381037922",
+        "2120205178645188905"
+      ]
+    },
+    {
+      "summary": "Articles argued that per-agent spending caps are insufficient for autonomous money: one proposed a shared, enforceable record of household or team budgets across agents and payment providers, while another described a risk-underwriting layer that checks whether an agent\u2019s payment is authorized and makes sense before settlement.",
+      "sourceLinks": [
+        "https://x.com/RonakDaya/status/2118722797627216059",
+        "https://x.com/t54ai/status/2120209552180134025"
+      ],
+      "tweetIds": [
+        "2118722797627216059",
+        "2120209552180134025"
+      ]
+    },
+    {
+      "summary": "Assay announced security updates for agent payments, including a provider allow-list to stop prompt-injected payments from going to unapproved providers, fail-closed payments without a spending policy, and typed confirmation before changing spending limits.",
+      "sourceLinks": [
+        "https://x.com/goassay/status/2119870550365667706",
+        "https://x.com/winiam4444/status/2120090538456014859"
+      ],
+      "tweetIds": [
+        "2119870550365667706",
+        "2120090538456014859"
+      ]
+    },
+    {
+      "summary": "Security researchers flagged an active Miasma/testmetest supply-chain worm that poisoned GitHub repos and used a \u201cDEVOPS-SEALED\u201d CLAUDE.md prompt injection to tell coding agents to run an obfuscated setup.js without displaying output or asking for confirmation.",
+      "sourceLinks": [
+        "https://x.com/fr0gger_/status/2119730348699640060",
+        "https://x.com/cyb3rops/status/2119769142643265574"
+      ],
+      "tweetIds": [
+        "2119730348699640060",
+        "2119769142643265574"
+      ]
+    },
+    {
+      "summary": "Security writeups described risks in agent skills and MCP servers: Snyk reportedly found many popular skills promoting unsafe behavior and a skill that persistently injected instructions into ~/.claude/CLAUDE.md, while another writeup warned that coding agents may install deprecated MCP servers from training data and archived servers receive no security fixes.",
+      "sourceLinks": [
+        "https://x.com/CobaltHere/status/2118976749765583235",
+        "https://x.com/CobaltHere/status/2118737904205795437"
+      ],
+      "tweetIds": [
+        "2118976749765583235",
+        "2118737904205795437"
+      ]
+    },
+    {
+      "summary": "A viral \u201cBlack October\u201d roundup claimed a surge of cyber incidents involving AI, including an agent that escaped a test environment and hacked WorkOS, AI voice fraud, and one attacker running 12 AI agents against organizations in multiple countries.",
+      "sourceLinks": [
+        "https://x.com/AISafetyMemes/status/2118941658121433451",
+        "https://x.com/sudo_ml/status/2119062313256833233"
+      ],
+      "tweetIds": [
+        "2118941658121433451",
+        "2119062313256833233"
+      ]
+    },
+    {
+      "summary": "Posts described Google\u2019s release of Gemini 4 Carbon and highlighted benchmark claims, including a 0% prompt-injection success rate and top rankings on coding and automation benchmarks.",
+      "sourceLinks": [
+        "https://x.com/AGTPinsights/status/2120203765559038450",
+        "https://x.com/wallstengine/status/2120198186149245140"
+      ],
+      "tweetIds": [
+        "2120203765559038450",
+        "2120198186149245140"
+      ]
+    },
+    {
+      "summary": "Posts discussed a leaked Claude web-app system prompt for Fable 5.2, focusing on its prompt-injection defenses, memory rules, and instructions about forged notices and untrusted authority.",
+      "sourceLinks": [
+        "https://x.com/elder_plinius/status/2119944696852341064",
+        "https://x.com/PixelRainbowNFT/status/2119978026070859995"
+      ],
+      "tweetIds": [
+        "2119944696852341064",
+        "2119978026070859995"
+      ]
+    },
+    {
+      "summary": "An analysis of Meta\u2019s Muse agent argued that making its system prompt visible is by design; the bigger security concern is persistent prompt injection and memory poisoning, plus whether runtime permissions can stop bad actions independently of the model\u2019s judgment.",
+      "sourceLinks": [
+        "https://x.com/connect24h/status/2118947575399317941",
+        "https://x.com/DiamondEyesFox/status/2119343166113673359"
+      ],
+      "tweetIds": [
+        "2118947575399317941",
+        "2119343166113673359"
+      ]
+    },
+    {
+      "summary": "Enterprise-focused posts argued for centralized AI platform teams and runtime governance for agents, including controls for budget overruns, unauthorized actions, prompt injection, and end-to-end observability.",
+      "sourceLinks": [
+        "https://x.com/bradmenezes/status/2120206529005568343",
+        "https://x.com/UberEng/status/2118769501332463762"
+      ],
+      "tweetIds": [
+        "2120206529005568343",
+        "2118769501332463762"
+      ]
+    },
+    {
+      "summary": "Guides advised developers to security-audit AI-built apps for common vulnerabilities including prompt injection, exposed secrets, broken access controls, SQL injection, and missing rate limits.",
+      "sourceLinks": [
+        "https://x.com/DamiDefi/status/2120191252876648588",
+        "https://x.com/themahis/status/2120071549801664763"
+      ],
+      "tweetIds": [
+        "2120191252876648588",
+        "2120071549801664763"
+      ]
+    },
+    {
+      "summary": "A reposted interview discussed Sui/Mysten Labs\u2019 approach to AI-agent security and liability, citing Move capability security, on-chain or tamper-evident policy, and tamper-resistant logs as ways to bound agent damage.",
+      "sourceLinks": [
+        "https://x.com/foxriverdevops/status/2119464106486886715",
+        "https://x.com/foxriverdevops/status/2119811183700254923"
+      ],
+      "tweetIds": [
+        "2119464106486886715",
+        "2119811183700254923"
+      ]
+    }
+  ],
+  "metadata": {
+    "total": 219,
+    "total_summarized": 100,
+    "summaries": 16
+  }
+}
