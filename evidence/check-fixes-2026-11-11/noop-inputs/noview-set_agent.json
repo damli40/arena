@@ -1,0 +1,5 @@
+{
+ "arena_mapping": 1,
+ "_about": "test input: set_agent mapped to a harmless view that does nothing, AND get_config mapped to a method that cannot be read as a view (a private callback), so no view can show the agent. Expect: not confirmed, never a clean held.",
+ "methods": {"set_agent": "contract_source_metadata", "get_config": "on_transfer_complete"}
+}

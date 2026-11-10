@@ -1,63 +1,113 @@
 # Copy this file to .github/workflows/arena-check.yml in YOUR guard's repo.
 # It builds your guard, runs Arena's attack library against it on a local NEAR sandbox inside
-# the runner, and puts the result in the job summary and a downloadable report.
+# GitHub's runner, and puts the result in the job summary and a downloadable report.
 #
-# Replace the three marked lines: ARENA_OWNER (where Arena lives on GitHub), ARENA_COMMIT (a full
-# 40-character commit SHA of Arena; pin a SHA, not a branch), and your build command + wasm path.
+# STATUS: this workflow has never run on GitHub. Arena has no public GitHub home yet, so
+# ARENA_OWNER/arena@ARENA_COMMIT below are placeholders: replace ARENA_OWNER with where Arena
+# lives and ARENA_COMMIT with a full 40-character commit SHA of Arena (a SHA, not a branch or tag,
+# so the code you run cannot change under you).
+#
+# Also replace the lines marked "<- your ...": your build command and your wasm path.
+#
+# Why two jobs: the "build" job runs YOUR repo's code (the build), and on a pull request that is
+# code written by whoever opened it. Code like that can change anything on the machine it runs on.
+# So the build job gets no secrets and hands over only the built files. The "check" job starts on
+# a fresh machine, never runs code from the pull request, and is the only job that may see the
+# optional MUSE_API_KEY.
+#
+# What the result is worth: a pull request can also edit this workflow file, and the copy in the
+# pull request is the one that runs. So a pass here is your repo's own word, useful to you and
+# your reviewers. Someone else can trust a result they ran themselves (./arena check) or one on
+# Arena's board.
 name: arena check
 
-# pull_request, NEVER pull_request_target: pull_request_target runs the PR's code with the base
-# repo's secrets and a write token, so a stranger's PR could steal them.
+# pull_request, NEVER pull_request_target: pull_request_target runs with the base repo's secrets
+# and a write token, so a stranger's pull request could steal them.
 on:
   pull_request:
   push:
     branches: [main]
 
-# Read-only: the check reads your code and writes nothing back to the repo.
+# Read-only: nothing here writes back to your repo.
 permissions:
   contents: read
 
+# Your guard's config and mapping files, if you use them. Set here, once, for both jobs: the check
+# job passes a config or mapping to Arena ONLY when you named one here, never just because a file
+# with that name turned up in the build job's output (the build runs the pull request's code, and
+# that code could write one).
+env:
+  GUARD_CONFIG: ""    # <- e.g. arena/guard.json, only if your init args differ from Arena's interface
+  GUARD_MAPPING: ""   # <- e.g. arena/mapping.json, only if your method names differ
+
 jobs:
-  arena:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      # 1. Build your guard. Arena needs the .wasm file, nothing else from your repo.
       - name: Build the guard
         run: |
           rustup target add wasm32-unknown-unknown
           cargo build --release --target wasm32-unknown-unknown            # <- your build command
 
-      # 2. Run Arena against it.
-      - name: Arena check
-        uses: ARENA_OWNER/arena@ARENA_COMMIT                                  # <- pin a full commit SHA
+      # Arena needs the .wasm file, and your config / mapping files if you use them. They are
+      # passed to the check job as plain files; nothing in them is run as code.
+      - name: Collect the files Arena needs
+        env:
+          GUARD_WASM: target/wasm32-unknown-unknown/release/my_guard.wasm   # <- your wasm
+        run: |
+          rm -rf arena-input && mkdir -p arena-input
+          cp -- "$GUARD_WASM" arena-input/guard.wasm
+          if [ -n "$GUARD_CONFIG" ]; then cp -- "$GUARD_CONFIG" arena-input/guard.json; fi
+          if [ -n "$GUARD_MAPPING" ]; then cp -- "$GUARD_MAPPING" arena-input/mapping.json; fi
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          wasm: target/wasm32-unknown-unknown/release/my_guard.wasm          # <- your wasm
-          # config: arena/guard.json        # only if your init args differ from Arena's interface
-          # mapping: arena/mapping.json     # only if your method names differ
+          name: arena-input
+          path: arena-input/
+          if-no-files-found: error
+          retention-days: 1
+
+  check:
+    needs: build
+    runs-on: ubuntu-latest   # Linux x86_64. Intel macOS and Windows runners cannot run Arena.
+    timeout-minutes: 60
+    outputs:
+      badge: ${{ steps.arena.outputs.badge }}
+      beyond: ${{ steps.arena.outputs.beyond-policy }}
+      intent: ${{ steps.arena.outputs.against-intent }}
+    steps:
+      # No checkout here, on purpose: this job never runs code from the pull request.
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: arena-input
+          path: arena-input
+
+      - name: Arena check
+        id: arena
+        uses: ARENA_OWNER/arena@ARENA_COMMIT              # <- placeholders, see the top of this file
+        with:
+          wasm: arena-input/guard.wasm
+          # Only when you set GUARD_CONFIG / GUARD_MAPPING at the top of this file.
+          config: ${{ env.GUARD_CONFIG != '' && 'arena-input/guard.json' || '' }}
+          mapping: ${{ env.GUARD_MAPPING != '' && 'arena-input/mapping.json' || '' }}
           fail-on: beyond-policy            # or against-intent, or never
           # muse-api-key: ${{ secrets.MUSE_API_KEY }}  # optional: lets Muse PROPOSE a mapping.
           #   Secrets are not given to pull requests from forks, so commit a mapping.json instead
           #   if outside contributors open PRs.
 
-# Optional: comment the result on the pull request. Off by default. To turn it on:
-#  1. give the "Arena check" step an id:      id: arena
-#  2. add these outputs to the `arena` job:
-#       outputs:
-#         badge: ${{ steps.arena.outputs.badge }}
-#         beyond: ${{ steps.arena.outputs.beyond-policy }}
-#         intent: ${{ steps.arena.outputs.against-intent }}
-#  3. add this second job. It alone gets `pull-requests: write`, and it runs no code from the PR
-#     (it only posts the numbers), so the PR's build step never runs next to a write token.
-#     On PRs from forks GitHub hands out a read-only token, so this job fails there; that is
-#     GitHub protecting you, not a bug.
+# Optional: comment the result on the pull request. Off by default. To turn it on, uncomment the
+# job below. It alone gets `pull-requests: write`, it runs no code from the pull request (it only
+# posts the numbers the check job produced), and no job that runs pull request code ever holds a
+# write token. On pull requests from forks GitHub hands out a read-only token, so this job fails
+# there; that is GitHub protecting you, not a bug.
 #
 #  comment:
-#    needs: arena
+#    needs: check
 #    if: always() && github.event_name == 'pull_request'
 #    runs-on: ubuntu-latest
 #    permissions:
@@ -66,9 +116,9 @@ jobs:
 #      - env:
 #          GH_TOKEN: ${{ github.token }}
 #          PR: ${{ github.event.pull_request.number }}
-#          BADGE: ${{ needs.arena.outputs.badge }}
-#          BEYOND: ${{ needs.arena.outputs.beyond }}
-#          INTENT: ${{ needs.arena.outputs.intent }}
+#          BADGE: ${{ needs.check.outputs.badge }}
+#          BEYOND: ${{ needs.check.outputs.beyond }}
+#          INTENT: ${{ needs.check.outputs.intent }}
 #        run: |
 #          gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body "arena: $BADGE
 #          Tokens paid beyond the guard's own rules: $BEYOND

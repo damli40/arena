@@ -1,0 +1,7 @@
+{
+  "arena_mapping": 1,
+  "_about": "test input: the set_agent role mapped to a harmless view that does nothing (contract_source_metadata)",
+  "methods": {
+    "set_agent": "contract_source_metadata"
+  }
+}

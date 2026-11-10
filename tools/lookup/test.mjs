@@ -228,6 +228,15 @@ describe("demo page", () => {
     }
     assert.deepEqual(ex.map((a) => a.status).sort(), ["broke", "held"]);
   });
+
+  test("site/lookup.html is built from this demo.html (rebuild with node site/build-lookup.mjs)", () => {
+    const pick = (f) => readFileSync(new URL(f, import.meta.url), "utf8").match(/<script type="application\/json" id="bundled-example">[\s\S]*<\/html>/)[0];
+    assert.equal(pick("../../site/lookup.html"), pick("./demo.html"), "site/lookup.html is out of date");
+    for (const m of ["arena-lookup.mjs", "suites.mjs"]) {
+      const copy = readFileSync(new URL(`../../site/${m}`, import.meta.url), "utf8");
+      assert.equal(copy.slice(copy.indexOf("\n") + 1), readFileSync(new URL(`./${m}`, import.meta.url), "utf8"), `site/${m} is out of date`);
+    }
+  });
 });
 
 const LIVE = process.env.ARENA_LOOKUP_OFFLINE ? { skip: "ARENA_LOOKUP_OFFLINE set" } : {};

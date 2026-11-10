@@ -180,7 +180,8 @@ const SUPPLY: u128 = 1_000_000;
 /// divide exactly.
 pub const NATIVE_UNIT: u128 = 1_000_000_000_000_000_000_000;
 const VAULT_FUNDING: u128 = 10_000;
-const DAILY_CAP: u128 = 500;
+/// Arena's daily cap (tokens). `pub` so a configured guard's result can name it (seq.rs).
+pub const DAILY_CAP: u128 = 500;
 /// Seconds after setup when `inv-expire` stops being payable.
 const EXPIRY_OFFSET_S: u64 = 20;
 
@@ -487,7 +488,10 @@ pub async fn setup(target: Target) -> Result<Arena> {
         let acct = by_name.iter().find(|(n, _)| n == &recv).unwrap().1.id().clone();
         let expiring = exp == soon;
         if let Some(c) = &adapter {
-            // Configured guard: create only the invoices whose rule it claims; the rest are
+            // Configured guard: the expiry the guard is told (in its own unit) and the expiry
+            // the scorer checks are the same instant (adapter.rs `expiry_ns_exact`).
+            let exp = c.expiry_ns_exact(exp);
+            // Create only the invoices whose rule it claims; the rest are
             // never created and authorise nothing (same rule as the contracts/guard branch).
             let f = &c.features;
             let created = (!cancelled || f.cancel) && (!remove || f.payees) && (!expiring || f.expiry);

@@ -1,0 +1,62 @@
+
+================ arena run: tester=attempt target=leaky-control-v2 attempts=1 ================
+TARGET: label=leaky-control-v2 wasm=targets/leaky-control-v2/leaky_control.wasm sha256=9b0ea03b25ecee6d6133790aa6a220511dad7bfaacf90d38a622732fd9e545b4
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+ADAPTER (fixed translation layer, adapter.rs): file=evidence/check-fixes-2-2026-11-11/leaky-control-v2/guard-config.resolved.json init=new features(payees=true, cancel=true, expiry=true, daily_cap=true) renamed=[] shapes=[] deposits={"add_payee": 1, "approve_invoice": 1, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1}
+META: arena check 9b0ea03b25ecee6d arena=b8d6f5889959 2026-11-10T22:03:08Z
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+
+----- ATTEMPT c261110-1-race-valid-double-plus-forbidd (evidence/check-fixes-2-2026-11-11/leaky-control-v2/runs/attacks/c261110-1-race-valid-double-plus-forbidd.json) -----
+ADAPTER init: new({"agent":"dev-20261110220431-58737271707428.test.near","daily_cap":"500","owner":"dev-20261110220431-18651172351737.test.near","token":"dev-20261110220434-58752264739871.test.near"})
+  step 0 [race-call] agent -> 34934087::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"leaky-control","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261110220432-25073599612945.test.near","amount":"100"}}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110220434-53645434934087.test.near","new_owner_id":"dev-20261110220432-25073599612945.test.near","amount":"100","memo":"invoice inv-pay"}]}
+      log: EVENT_JSON:{"standard":"leaky-control","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-pay","amount":"100"}}
+  step 0 [race-call] agent -> 34934087::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"leaky-control","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261110220432-25073599612945.test.near","amount":"100"}}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110220434-53645434934087.test.near","new_owner_id":"dev-20261110220432-25073599612945.test.near","amount":"100","memo":"invoice inv-pay"}]}
+      log: EVENT_JSON:{"standard":"leaky-control","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-pay","amount":"100"}}
+  step 0 [race-call] agent -> 34934087::pay {"id":"inv-cancel"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid or cancelled")) }) } })
+  step 0 [race-call] agent -> 34934087::pay {"id":"inv-removed"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: receiver is no longer a payee")) }) } })
+  step 1 [wait] 5 blocks
+  step 2 [call] outsider -> 34934087::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: only the agent can pay")) }) } })
+  step 3 [call] agent -> 34934087::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid or cancelled")) }) } })
+  step 4 [call] agent -> 34934087::pay {"id":"inv-cancel"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid or cancelled")) }) } })
+  step 5 [call] agent -> 34934087::pay {"id":"inv-removed"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: receiver is no longer a payee")) }) } })
+SCORE attempt=c261110-1-race-valid-double-plus-forbidd scoring=token
+  receiver sam    received=200    authorised=100    over=100
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=100    (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794348301220101000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 100   (beyond-authorised 100 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=2/8 protocol_rejected=0/8 attempts_used=1 target=leaky-control-v2
+  result json: evidence/check-fixes-2-2026-11-11/leaky-control-v2/runs/c261110-1-race-valid-double-plus-forbidd__leaky-control-v2.result.json
+  FINDING: unauthorised payout 100 in attempt c261110-1-race-valid-double-plus-forbidd
+  replay on a fresh sandbox: ./run-arena.sh replay evidence/check-fixes-2-2026-11-11/leaky-control-v2/runs/attacks/c261110-1-race-valid-double-plus-forbidd.json --wasm targets/leaky-control-v2/leaky_control.wasm --wasm-label leaky-control-v2 --guard-config evidence/check-fixes-2-2026-11-11/leaky-control-v2/guard-config.resolved.json
+
+================ SUMMARY tester=attempt target=leaky-control-v2 ================
+  target wasm sha256=9b0ea03b25ecee6d6133790aa6a220511dad7bfaacf90d38a622732fd9e545b4
+  c261110-1-race-valid-double-plus-forbidd unauthorised=100    honest_settled=0/3 protocol_rejected=0/8
+  attempts=1 attempts_found_something=1 tester=attempt target=leaky-control-v2
+  FINDING c261110-1-race-valid-double-plus-forbidd: unauthorised payout 100
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).

@@ -546,7 +546,13 @@ def main(argv):
         to_run.append((sp, doc["meta"]["id"], subset))
 
     meta_line = f"hunt={hunt_id} mode={mode}"
-    if not a.no_run and guards:
+    # A news-only hunt with nothing to run (no new news item mapped to an attack) stops here: the
+    # canary is a check on the attacks' results, and there are none. Saves about a minute of
+    # sandboxes on each of the three news-only runs a day that find nothing new.
+    empty_news = a.source == "news" and not to_run
+    if empty_news and not a.no_run:
+        H["notes"].append("News-only hunt with nothing to run: the canary was skipped (it checks attack results, and there are none).")
+    if not a.no_run and guards and not empty_news:
         res_dir = raw / "results"
         # Canary: the known double-pay race on every guard. Positive controls must break, or the bench is blind.
         print("canary: scripted race-double-pay on every guard", flush=True)

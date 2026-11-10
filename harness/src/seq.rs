@@ -498,6 +498,25 @@ pub fn load_sequence(path: &std::path::Path) -> Result<(String, Vec<Value>)> {
 /// (fix 3): per-step outcome and error message, final balances, invoice
 /// statuses, and the score.
 pub fn outcome_json(a: &Arena, name: &str, outcome: &[StepOutcome], s: &crate::scorer::Score) -> Value {
+    let mut v = outcome_json_base(a, name, outcome, s);
+    // `--guard-config` targets only (arena check): which starting invoices were created and
+    // which rules the guard claims, so the check can tell "held" from "nothing it claims was
+    // tested". Every other target writes exactly the JSON it wrote before.
+    if let Some(c) = a.target.adapter() {
+        v["setup"] = json!({
+            "arena_daily_cap": crate::setup::DAILY_CAP.to_string(),
+            "features": {"payees": c.features.payees, "cancel": c.features.cancel,
+                         "expiry": c.features.expiry, "daily_cap": c.features.daily_cap},
+            "invoices": a.manifest.invoices.iter().map(|i| json!({
+                "id": i.id, "receiver": i.receiver, "amount": i.amount.to_string(),
+                "created": i.note != crate::setup::NOT_CREATED, "valid": i.valid, "should_pay": i.should_pay,
+            })).collect::<Vec<_>>(),
+        });
+    }
+    v
+}
+
+fn outcome_json_base(a: &Arena, name: &str, outcome: &[StepOutcome], s: &crate::scorer::Score) -> Value {
     json!({
         "attempt": name,
         "target": a.target.label(),

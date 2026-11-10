@@ -1,0 +1,65 @@
+# reviewer repro, AFTER: tools/check in the working tree
+$ python3 -I repro.py
+1 optional roles missing -> problems: []
+1b features off -> problems: []
+2 refused: deposit 1.0 config: deposits.approve_invoice must be 0 or 1 (yoctoNEAR attached to the call)
+2 refused: init arg key with trailing newline config: init.args key 'owner\n' is not a valid argument name
+2 refused: literal 20 x 4-byte chars = 80 bytes config: init.args.memo: literal strings are at most 64 bytes (UTF-8)
+2 refused: NaN literal config: init.args.x must be a placeholder, a short string, a number or true/false
+2 refused: arena_guard_config true config: add "arena_guard_config": 1 at the top
+2 refused: method name pay\n config: methods.get_config = 'cfg\n' is not a NEAR method name (lowercase letters, digits, _)
+3 WasmError export entry runs past its section
+4 summary.md:
+## Arena check: **arena: not run**
+
+
+**Could not finish:**
+
+````
+the guard's init call `new` failed ... Smart contract panicked: x ```: x ```
+## Arena check: **arena: held 52/52**
+![ok](https://img.shields.io/badge/arena-held%2052%2F52-brightgreen)
+```. Check init.method and init.args in your config; Arena fills $owner, $agent and $token with its own sandbox accounts.
+````
+
+Guard wasm sha256 `?` · Arena commit `abc` · ? s · t
+
+Local sandbox only. "Held" means it held these attacks on a local sandbox, not that it is proved safe. "Not applicable" attacks tested nothing the guard claims and are not counted as held.
+
+5 badge: incomplete (0 not applicable; subset: only some attacks ran; 1 attack files could not be loaded) | 'only' in summary: False | problems shown: True
+exit=0
+
+$ python3 -I repro-extra.py   (added lines for cases 1, 1b, 5; script text below the output)
+1 after: missing optional roles listed in outputs: ['set_daily_cap', 'set_agent', 'get_config', 'is_payee', 'paid_today']
+1 after: an outsider's set_agent answered MethodNotFound -> not-applicable ['calls set_agent, but the guard has no method for that role']
+1b after: badge for a features-off guard with 13 n/a attacks: held 39/39 (13 not applicable; rules claimed: none; 5 role methods not in the guard) | color: yellow
+5 after (report module given the reviewer's hand-made 'held' report): incomplete (0 not applicable; subset: only some attacks ran; 1 attack files could not be loaded)
+5 after: check.py itself never gets there: --only nope and a library problem each stop the run with exit 2 (see unit tests CheckRunFailsSafe.test_only_unknown_and_library_problems).
+exit=0
+
+----- repro-extra.py -----
+# Extra lines for cases 1 / 1b: `problems` stays [] by design (missing OPTIONAL roles do not stop a
+# run). What changed is that they are now listed in every output and the attacks that touch them
+# are classed not applicable. Shown here with the same inputs as the reviewer's case 1 / 1b.
+import sys
+sys.path.insert(0, "<repo>/tools/check")
+import guard_config as C, applicable as A, report as R
+ex = ["new","pay","approve_invoice","get_invoice","add_payee","remove_payee","cancel_invoice","update_agent","change_cap"]
+r, _ = C.resolve(None, None, ex)
+print("1 after: missing optional roles listed in outputs:", C.missing_roles(r, ex))
+st, why = A.classify("held", [{"kind":"call","actor":"outsider","target":"vault","method":"set_agent","args":{"account":"outsider"},
+                                "failure":"MethodResolveError(MethodNotFound)"}],
+                     {"arena_daily_cap":"500","features":r["features"],"invoices":[{"id":"inv-pay","amount":"100","created":True}]},
+                     C.ROLES, C.missing_roles(r, ex), [])
+print("1 after: an outsider's set_agent answered MethodNotFound ->", st, why)
+try:
+    C.check_config({"arena_guard_config":1,"features":{k:False for k in C.FEATURES}})
+    r2, _ = C.resolve({"arena_guard_config":1,"features":{k:False for k in C.FEATURES}}, None, ex)
+    rep = {"status":"held","totals":{"attacks":52,"ran":39,"held":39,"broke":0,"not_applicable":13,"errors":0,"beyond_policy":0,"against_intent":0,"intent_attacks":0},
+           "mapping":{"features":r2["features"],"missing_roles":C.missing_roles(r2, ex)}}
+    print("1b after: badge for a features-off guard with 13 n/a attacks:", R.badge_text(rep)[0], "| color:", R.badge_text(rep)[1])
+except C.ConfigError as e:
+    print("1b refused:", e)
+rep = {"status":"held","only":["nope"],"library":{"problems":["x.json: bad"]},"totals":{"attacks":1,"ran":1,"broke":0,"held":1,"errors":0,"beyond_policy":0,"against_intent":0,"intent_attacks":0},"attacks":[],"arena":{"commit":"abc"},"started_utc":"t","guard":{}}
+print("5 after (report module given the reviewer's hand-made 'held' report):", R.badge_text(rep)[0])
+print("5 after: check.py itself never gets there: --only nope and a library problem each stop the run with exit 2 (see unit tests CheckRunFailsSafe.test_only_unknown_and_library_problems).")

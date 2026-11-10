@@ -1,0 +1,49 @@
+{
+  "arena_guard_config": 1,
+  "init": {
+    "method": "setup_vault",
+    "args": {
+      "owner": "$owner",
+      "agent": "$agent",
+      "token": "$token",
+      "daily_cap": "$daily_cap"
+    }
+  },
+  "features": {
+    "payees": true,
+    "cancel": true,
+    "expiry": true,
+    "daily_cap": true
+  },
+  "methods": {
+    "pay": "execute_payment",
+    "approve_invoice": "approve_bill",
+    "add_payee": "allow_payee",
+    "remove_payee": "revoke_payee",
+    "cancel_invoice": "cancel_bill",
+    "set_daily_cap": "update_daily_limit",
+    "set_agent": "change_agent",
+    "get_invoice": "bill_info",
+    "get_config": "vault_config",
+    "is_payee": "payee_allowed",
+    "paid_today": "spent_today"
+  },
+  "shapes": {
+    "invoice_id_field": "id",
+    "receiver_field": "receiver",
+    "payee_field": "account",
+    "expiry_field": "expires_at_ns",
+    "expiry_unit": "ns",
+    "amount_encoding": "u128_string",
+    "daily_cap_field": "daily_cap",
+    "status_field": "status",
+    "paid_value": "Paid"
+  },
+  "deposits": {
+    "approve_invoice": 1,
+    "add_payee": 1,
+    "remove_payee": 0,
+    "cancel_invoice": 0,
+    "set_daily_cap": 1
+  }
+}

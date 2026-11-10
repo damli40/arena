@@ -1,0 +1,16 @@
+$ python3 -I tools/check/compare_board.py evidence/check-fixes-2-2026-11-11/vault-a/report.json vault-a
+compare vault-a vs board[vault-a]: 51 same, 0 different, 0 not on the board (the honest-payment control is skipped on both sides)
+exit=0
+
+$ python3 -I tools/check/compare_board.py evidence/check-fixes-2-2026-11-11/leaky-control-v2/report.json leaky-control-v2
+compare leaky-control-v2 vs board[leaky-control-v2]: 51 same, 0 different, 0 not on the board (the honest-payment control is skipped on both sides)
+exit=0
+
+$ python3 -I tools/check/compare_board.py evidence/check-fixes-2026-11-11/guard-fixed/report.json guard-fixed
+compare guard-fixed vs board[guard-fixed]: 51 same, 0 different, 0 not on the board (the honest-payment control is skipped on both sides)
+exit=0
+
+$ python3 -I tools/check/compare_board.py evidence/check-fixes-2026-11-11/guard-vulnerable/report.json guard-vulnerable
+compare guard-vulnerable vs board[guard-vulnerable]: 51 same, 0 different, 0 not on the board (the honest-payment control is skipped on both sides)
+exit=0
+

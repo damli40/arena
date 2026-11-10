@@ -2,11 +2,16 @@
 # wasm on a LOCAL NEAR sandbox inside the runner, uploads the report, and writes the badge and a
 # summary to the job summary. See docs/CHECK-YOUR-GUARD.md and examples/workflows/arena-check.yml.
 #
+# Use it in a job that has NOT run your pull request's code (the example workflow builds the
+# guard in a separate job and passes only the built files across). Code that ran earlier in the
+# same job could change the machine before Arena runs, and then the result means nothing.
+#
 # Why the repo root: callers can write `uses: <owner>/arena@<sha>`. A file under
 # .github/actions/arena-check/ would need the longer `uses: <owner>/arena/.github/actions/arena-check@<sha>`.
 #
-# STATUS: not yet run on GitHub or on Linux (the repo has not been pushed). Its script steps are
-# tested locally on macOS with tools/check/action-local.sh.
+# STATUS: not yet run on GitHub or on Linux (the repo has not been pushed). Its script step is
+# tested locally on macOS with tools/check/action-local.sh. The pinned commits below were checked
+# against their release tags; the raw output is in evidence/check-fixes-2026-11-11/action-sha-check.txt.
 name: Arena check
 description: Run Arena's attack library against your NEAR payment guard (local sandbox) and report what broke it.
 author: Arena
@@ -27,7 +32,7 @@ inputs:
     required: false
     default: ""
   fail-on:
-    description: "When to fail the job: beyond-policy (any token paid beyond your guard's rules), against-intent (that, or any token paid against the owner's intent), never. A check that cannot finish always fails."
+    description: "When to fail the job: beyond-policy (any token paid beyond your guard's rules), against-intent (that, or any token paid against the owner's intent), never. Both count only attacks that ran (held or broke), never a not-applicable attack or the honest-payment preflight. A check that cannot finish always fails."
     required: false
     default: beyond-policy
   jobs:
@@ -42,13 +47,20 @@ inputs:
     description: Name of the uploaded report artifact.
     required: false
     default: arena-report
+  cache:
+    description: "Optional, off by default. 'true' reuses Arena's Rust build from earlier runs (faster). Off because any code that ran earlier in the same workflow run (your pull request's build job) may be able to write that saved build, and Arena would then run it."
+    required: false
+    default: "false"
 
 outputs:
   status:
-    description: held | broke | incomplete | not-run
+    description: "held | broke | incomplete | not-run. held covers both a green and a yellow badge; use full to tell them apart."
     value: ${{ steps.check.outputs.status }}
+  full:
+    description: "'true' only when the badge is green: held, every attack applied, all 4 rules claimed, nothing missing, unconfirmed or refused. 'false' otherwise (including a yellow held)."
+    value: ${{ steps.check.outputs.full }}
   badge:
-    description: The badge text, e.g. "held 52/52".
+    description: The badge text, e.g. "held 51/51 (0 not applicable; rules claimed: all 4)".
     value: ${{ steps.check.outputs.badge }}
   beyond-policy:
     description: Tokens paid beyond the guard's own rules, summed over attacks.
@@ -56,30 +68,64 @@ outputs:
   against-intent:
     description: Tokens paid against the owner's intent, on the attacks with a written intent.
     value: ${{ steps.check.outputs.against_intent }}
+  exit-code:
+    description: "0 = nothing paid over the fail-on line, 1 = tokens paid over it, 2 = could not finish."
+    value: ${{ steps.check.outputs.exit_code }}
 
+# Rule for every ${{ }} below: values reach shell scripts only through `env:`, never pasted into
+# `run:` text, so a path or value cannot inject shell commands.
 runs:
   using: composite
   steps:
+    # The NEAR sandbox binary exists only for Linux x86_64, Linux arm64 and macOS arm64
+    # (near-sandbox crate v0.4.0). Stop in one second with a plain message, not minutes later.
+    - name: Check the runner can run Arena
+      shell: bash
+      run: |
+        case "$RUNNER_OS/$RUNNER_ARCH" in
+          Linux/X64|Linux/ARM64|macOS/ARM64) echo "runner: $RUNNER_OS $RUNNER_ARCH (supported)" ;;
+          *) echo "::error::Arena cannot run on a $RUNNER_OS $RUNNER_ARCH runner. The NEAR sandbox it uses exists only for Linux x86_64, Linux arm64 and macOS arm64. Use runs-on: ubuntu-latest."
+             exit 1 ;;
+        esac
+
     - name: Set up Python 3.12
       uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
         python-version: "3.12"
 
-    - name: Cache Arena's Rust builds
+    # The cache key is worked out here, in shell, from Arena's own files. hashFiles() cannot do
+    # it: it only sees files inside GITHUB_WORKSPACE (GitHub docs, "Evaluate expressions in
+    # workflows and actions"), and this action's files live outside it, so the key would never
+    # change and an old build would be restored forever. Arena's folder is also passed on as an
+    # output, so later steps do not depend on how `github.action_path` resolves inside a nested
+    # `uses:` step.
+    - name: Find Arena's folder and its build key
+      id: arena
+      if: inputs.cache == 'true'
+      shell: bash
+      run: |
+        cd "$GITHUB_ACTION_PATH"
+        if command -v sha256sum >/dev/null 2>&1; then sum() { sha256sum; }; else sum() { shasum -a 256; }; fi
+        key="$(find harness contracts -type f \( -name '*.rs' -o -name 'Cargo.toml' -o -name 'Cargo.lock' -o -name 'rust-toolchain.toml' \) -not -path '*/target/*' \
+          | LC_ALL=C sort | while IFS= read -r f; do printf '%s ' "$f"; sum < "$f"; done | sum | cut -c1-40)"
+        printf 'home=%s\n' "$GITHUB_ACTION_PATH" >> "$GITHUB_OUTPUT"
+        printf 'key=arena-%s-%s-%s\n' "$RUNNER_OS" "$RUNNER_ARCH" "$key" >> "$GITHUB_OUTPUT"
+        echo "build key: arena-$RUNNER_OS-$RUNNER_ARCH-$key"
+
+    - name: Restore Arena's Rust build
+      if: inputs.cache == 'true'
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: |
           ~/.cargo/registry
           ~/.cargo/git
-          ${{ github.action_path }}/harness/target
-          ${{ github.action_path }}/contracts/target
-        key: arena-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles(format('{0}/harness/Cargo.lock', github.action_path), format('{0}/contracts/Cargo.lock', github.action_path), format('{0}/harness/src/*.rs', github.action_path)) }}
+          ${{ steps.arena.outputs.home }}/harness/target
+          ${{ steps.arena.outputs.home }}/contracts/target
+        key: ${{ steps.arena.outputs.key }}
 
     - name: Run arena check
       id: check
       shell: bash
-      # Inputs reach the script only as environment variables, never pasted into the script
-      # text, so a path or value cannot inject shell commands.
       env:
         ARENA_WASM: ${{ inputs.wasm }}
         ARENA_CONFIG: ${{ inputs.config }}
@@ -87,6 +133,8 @@ runs:
         ARENA_FAIL_ON: ${{ inputs.fail-on }}
         ARENA_JOBS: ${{ inputs.jobs }}
         MUSE_API_KEY: ${{ inputs.muse-api-key }}
+        # GitHub's docs say to read these two through env in a composite action; a known runner
+        # issue (actions/runner#2473) leaves them empty there, and action-steps.sh then falls back.
         ARENA_REPO_URL: ${{ github.action_repository && format('https://github.com/{0}', github.action_repository) || '' }}
         ARENA_REPO_REF: ${{ github.action_ref }}
       run: bash "$GITHUB_ACTION_PATH/tools/check/action-steps.sh"
@@ -106,7 +154,7 @@ runs:
         ARENA_EXIT: ${{ steps.check.outputs.exit_code }}
       run: |
         case "${ARENA_EXIT:-2}" in
-          0) echo "arena check: under the fail-on line" ;;
-          1) echo "::error::arena check: tokens were paid over the fail-on line; see the job summary and the report artifact"; exit 1 ;;
-          *) echo "::error::arena check could not finish; see the job summary and the report artifact"; exit 1 ;;
+          0) echo "arena check: exit code 0, nothing paid over the fail-on line" ;;
+          1) echo "::error::arena check: exit code 1, tokens were paid over the fail-on line; see the job summary and the report artifact"; exit 1 ;;
+          *) echo "::error::arena check: exit code ${ARENA_EXIT:-missing}, the check could not finish; see the job summary and the report artifact"; exit 1 ;;
         esac

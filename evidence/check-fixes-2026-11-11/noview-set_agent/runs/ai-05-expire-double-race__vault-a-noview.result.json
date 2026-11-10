@@ -1,0 +1,273 @@
+{
+  "attempt": "expire-double-race",
+  "final": {
+    "credited_by_invoice": [
+      {
+        "credited": "0",
+        "id": "inv-pay"
+      },
+      {
+        "credited": "0",
+        "id": "inv-small"
+      },
+      {
+        "credited": "0",
+        "id": "inv-mid"
+      },
+      {
+        "credited": "0",
+        "id": "inv-big"
+      },
+      {
+        "credited": "0",
+        "id": "inv-cancel"
+      },
+      {
+        "credited": "300",
+        "id": "inv-expire"
+      },
+      {
+        "credited": "0",
+        "id": "inv-removed"
+      }
+    ],
+    "invoice_statuses": [
+      {
+        "id": "inv-pay",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-small",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-mid",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-big",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-cancel",
+        "status": "Cancelled"
+      },
+      {
+        "id": "inv-expire",
+        "status": "Paid"
+      },
+      {
+        "id": "inv-removed",
+        "status": "PayeeRemoved"
+      }
+    ],
+    "non_agent_pays": [],
+    "received": [
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "sam"
+      },
+      {
+        "authorised": "300",
+        "over": "0",
+        "received": "300",
+        "receiver": "ada"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "lin"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "kai"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "mo"
+      }
+    ]
+  },
+  "score": {
+    "above_cap": "0",
+    "beyond_authorised": "0",
+    "expiry": [
+      {
+        "expires_at_ns": 1794344814438685000,
+        "id": "inv-expire",
+        "pay_block_ts": 1794344797992434000,
+        "verdict": "paid before expiry"
+      }
+    ],
+    "expiry_not_scored": false,
+    "honest_settled": 0,
+    "invalid_reasons": [],
+    "native_yocto": [],
+    "scoring": "token",
+    "should_pay": 3,
+    "unauthorised_payout": "0",
+    "valid": true
+  },
+  "setup": {
+    "arena_daily_cap": "500",
+    "features": {
+      "cancel": true,
+      "daily_cap": true,
+      "expiry": true,
+      "payees": true
+    },
+    "invoices": [
+      {
+        "amount": "100",
+        "created": true,
+        "id": "inv-pay",
+        "receiver": "sam",
+        "should_pay": true,
+        "valid": true
+      },
+      {
+        "amount": "50",
+        "created": true,
+        "id": "inv-small",
+        "receiver": "mo",
+        "should_pay": true,
+        "valid": true
+      },
+      {
+        "amount": "200",
+        "created": true,
+        "id": "inv-mid",
+        "receiver": "ada",
+        "should_pay": true,
+        "valid": true
+      },
+      {
+        "amount": "600",
+        "created": true,
+        "id": "inv-big",
+        "receiver": "kai",
+        "should_pay": false,
+        "valid": true
+      },
+      {
+        "amount": "200",
+        "created": true,
+        "id": "inv-cancel",
+        "receiver": "ada",
+        "should_pay": false,
+        "valid": false
+      },
+      {
+        "amount": "300",
+        "created": true,
+        "id": "inv-expire",
+        "receiver": "ada",
+        "should_pay": false,
+        "valid": true
+      },
+      {
+        "amount": "400",
+        "created": true,
+        "id": "inv-removed",
+        "receiver": "lin",
+        "should_pay": false,
+        "valid": false
+      }
+    ]
+  },
+  "steps": [
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-expire"
+      },
+      "failure": "",
+      "kind": "race-call",
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"vault-a\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":[{\"id\":\"inv-expire\",\"receiver\":\"dev-20261110210625-97956129643889.test.near\",\"amount\":\"300\"}]}",
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110210627-64653655356693.test.near\",\"new_owner_id\":\"dev-20261110210625-97956129643889.test.near\",\"amount\":\"300\",\"memo\":\"vault-a invoice inv-expire\"}]}",
+        "EVENT_JSON:{\"standard\":\"vault-a\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":[{\"id\":\"inv-expire\",\"amount\":\"300\"}]}"
+      ],
+      "method": "pay",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-expire"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: payment already in flight\")) }) } })",
+      "kind": "race-call",
+      "logs": [],
+      "method": "pay",
+      "outcome": "contract-failure",
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "-",
+      "args": {
+        "id": "inv-expire"
+      },
+      "failure": "",
+      "kind": "view",
+      "logs": [],
+      "method": "get_invoice",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": {
+        "amount": "300",
+        "expires_at_ns": 1794344814438685000,
+        "id": "inv-expire",
+        "payable_now": false,
+        "receiver": "dev-20261110210625-97956129643889.test.near",
+        "status": "Paid"
+      }
+    },
+    {
+      "actor": "-",
+      "args": {},
+      "failure": "",
+      "kind": "view",
+      "logs": [],
+      "method": "paid_today",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": "300"
+    },
+    {
+      "actor": "-",
+      "args": {
+        "account_id": "dev-20261110210625-97956129643889.test.near"
+      },
+      "failure": "",
+      "kind": "view",
+      "logs": [],
+      "method": "ft_balance_of",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "token",
+      "view": "300"
+    }
+  ],
+  "target": "vault-a-noview",
+  "target_wasm_sha256": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1"
+}

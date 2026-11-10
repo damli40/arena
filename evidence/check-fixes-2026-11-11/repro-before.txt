@@ -1,0 +1,30 @@
+# reviewer repro, BEFORE: tools/check at commit 525c248
+$ python3 -I repro.py   (sys.path pointed at the 525c248 copy)
+1 optional roles missing -> problems: []
+1b features off -> problems: []
+2 ACCEPTED by python: deposit 1.0 -> {"init": {"method": "new", "args": {"owner": "$owner", "agent": "$agent", "token": "$token", "daily_cap": "$daily_cap"}}, "deposits": {"approve_invoice": 1.0, "
+2 ACCEPTED by python: init arg key with trailing newline -> {"init": {"method": "new", "args": {"owner\n": "$owner"}}, "deposits": {"approve_invoice": 1, "add_payee": 1, "remove_payee": 0, "cancel_invoice": 0, "set_daily
+2 ACCEPTED by python: literal 20 x 4-byte chars = 80 bytes -> {"init": {"method": "new", "args": {"memo": "\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\
+2 ACCEPTED by python: NaN literal -> {"init": {"method": "new", "args": {"x": NaN}}, "deposits": {"approve_invoice": 1, "add_payee": 1, "remove_payee": 0, "cancel_invoice": 0, "set_daily_cap": 1}}
+2 ACCEPTED by python: arena_guard_config true -> {"init": {"method": "new", "args": {"owner": "$owner", "agent": "$agent", "token": "$token", "daily_cap": "$daily_cap"}}, "deposits": {"approve_invoice": 1, "ad
+2 ACCEPTED by python: method name pay\n -> {"init": {"method": "new", "args": {"owner": "$owner", "agent": "$agent", "token": "$token", "daily_cap": "$daily_cap"}}, "deposits": {"approve_invoice": 1, "ad
+3 UNCAUGHT IndexError index out of range
+4 summary.md:
+## Arena check: **arena: not run**
+
+
+**Could not finish:**
+
+```
+the guard's init call `new` failed ... Smart contract panicked: x ```: x ```
+## Arena check: **arena: held 52/52**
+![ok](https://img.shields.io/badge/arena-held%2052%2F52-brightgreen)
+```. Check init.method and init.args in your config; Arena fills $owner, $agent and $token with its own sandbox accounts.
+```
+
+Guard wasm sha256 `?` · Arena commit `abc` · ? s · t
+
+Local sandbox only. "Held" means it held these attacks, not that it is proved safe.
+
+5 badge: held 1/1 | 'only' in summary: False | problems shown: False
+exit=0

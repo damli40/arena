@@ -5,8 +5,9 @@
 #
 # Fakes the variables GitHub sets (GITHUB_ACTION_PATH, GITHUB_WORKSPACE, GITHUB_STEP_SUMMARY,
 # GITHUB_OUTPUT), runs tools/check/action-steps.sh exactly as action.yml does, then applies the
-# same fail-on rule as action.yml's last step. It does NOT run the Action on GitHub, the pinned
-# third-party steps (setup-python, cache, upload-artifact), or Linux.
+# same fail-on rule as action.yml's last step. It does NOT run the Action on GitHub, the
+# runner check step, the cache-key step, the pinned third-party steps (setup-python, cache,
+# upload-artifact, and download-artifact in the example workflow), the two-job split, or Linux.
 set -uo pipefail
 ARENA_HOME="$(cd "$(dirname "$0")/../.." && pwd)"
 WS="$(mktemp -d "${TMPDIR:-/tmp}/arena-action-ws.XXXXXX")"
@@ -20,8 +21,10 @@ bash "$ARENA_HOME/tools/check/action-steps.sh"
 echo "---- step returned $? (must be 0: it never fails on its own)"
 echo "---- \$GITHUB_OUTPUT"; cat "$GITHUB_OUTPUT"
 echo "---- \$GITHUB_STEP_SUMMARY"; cat "$GITHUB_STEP_SUMMARY"
-echo "---- report files"; ls "$WS/arena-report"
+echo "---- report files (in <workspace>/arena-report)"; ls "$WS/arena-report"
 code=$(sed -n 's/^exit_code=//p' "$GITHUB_OUTPUT" | tail -1)
 case "${code:-2}" in 0) verdict="pass";; *) verdict="fail";; esac
-echo "---- fail-on step would: $verdict (exit_code=$code, fail-on=$ARENA_FAIL_ON)"
-echo "workspace: $WS"
+echo "---- fail-on step would: $verdict (exit_code=$code, fail-on=$ARENA_FAIL_ON; 0 = nothing paid over the fail-on line, 1 = tokens paid over it, 2 = could not finish)"
+# The workspace is a temporary folder; its full path is printed only on request, so a saved copy
+# of this output carries no local folder names. Everything above is relative to it.
+if [ "${ARENA_SHOW_WORKSPACE:-}" = "1" ]; then echo "workspace: $WS"; else echo "workspace: <workspace> (a temporary folder; ARENA_SHOW_WORKSPACE=1 prints its full path)"; fi

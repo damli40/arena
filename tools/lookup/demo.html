@@ -3,71 +3,63 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Check Before You Pay</title>
+<title>Look up a guard · Arena</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cstyle%3E.r%7Bstroke%3A%232F3437%7D.d%7Bfill%3A%239F2F2D%7D%40media%20(prefers-color-scheme%3Adark)%7B.r%7Bstroke%3A%23E6E5E1%7D.d%7Bfill%3A%23F0A39C%7D%7D%3C%2Fstyle%3E%3Cpath%20class%3D%22r%22%20d%3D%22M78.72%2045.96A29%2029%200%201%201%2054.04%2021.28%22%20fill%3D%22none%22%20stroke-width%3D%2210%22%20stroke-linecap%3D%22round%22%2F%3E%3Ccircle%20class%3D%22d%22%20cx%3D%2270.51%22%20cy%3D%2229.49%22%20r%3D%228.5%22%2F%3E%3C%2Fsvg%3E">
+<meta name="description" content="Type a guard's account on NEAR testnet and see what Arena tested for the code it runs.">
+<!-- This file is the source of site/lookup.html (built by node site/build-lookup.mjs).
+     The build swaps the theme link below for the inlined theme, and the two arena: comments
+     in the page body for the shared top bar and footer. Opened from here, it uses site/theme.css directly. -->
+<link rel="stylesheet" href="../../site/theme.css" data-arena-theme>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #fafaf9; --card: #ffffff; --ink: #1c1917; --muted: #57534e; --line: #e7e5e4;
-    --held: #166534; --held-bg: #f0fdf4; --broke: #991b1b; --broke-bg: #fef2f2;
-    --unclear: #92400e; --unclear-bg: #fffbeb; --none: #44403c; --none-bg: #f5f5f4;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #0c0a09; --card: #1c1917; --ink: #f5f5f4; --muted: #a8a29e; --line: #292524;
-      --held: #86efac; --held-bg: #052e16; --broke: #fca5a5; --broke-bg: #450a0a;
-      --unclear: #fcd34d; --unclear-bg: #451a03; --none: #d6d3d1; --none-bg: #292524;
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #0c0a09; --card: #1c1917; --ink: #f5f5f4; --muted: #a8a29e; --line: #292524;
-    --held: #86efac; --held-bg: #052e16; --broke: #fca5a5; --broke-bg: #450a0a;
-    --unclear: #fcd34d; --unclear-bg: #451a03; --none: #d6d3d1; --none-bg: #292524;
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  main { max-width: 680px; margin: 0 auto; padding: 32px 16px 64px; }
-  h1 { font-size: 1.5rem; margin: 0 0 4px; }
-  p.lede { color: var(--muted); margin: 0 0 24px; }
+  main.lookup { width: min(720px, 100% - 32px); margin: 0 auto; padding: 56px 0 40px; }
+  h1 { font: 600 clamp(32px, 4.6vw, 44px)/1.08 var(--sans); letter-spacing: -.03em; margin: 14px 0 14px; }
+  p.lede { color: var(--muted); margin: 0 0 28px; max-width: 58ch; }
   form { display: flex; gap: 8px; flex-wrap: wrap; }
-  input { flex: 1 1 260px; min-width: 0; padding: 10px 12px; font: inherit; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); }
-  button { padding: 10px 16px; font: inherit; border: 1px solid var(--ink); border-radius: 8px; background: var(--ink); color: var(--bg); cursor: pointer; }
-  button.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
-  .examples { margin: 8px 0 24px; font-size: .9rem; color: var(--muted); }
-  .examples button.ex { padding: 0; margin-right: 12px; border: 0; background: none; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
-  .badge { display: inline-block; font-size: .8rem; font-weight: 600; padding: 2px 10px; border-radius: 999px; margin-bottom: 10px; }
-  .s-held { color: var(--held); background: var(--held-bg); }
-  .s-broke { color: var(--broke); background: var(--broke-bg); }
-  .s-unclear_setting, .s-error { color: var(--unclear); background: var(--unclear-bg); }
-  .s-no_record, .s-no_contract, .s-no_account, .s-bad_input { color: var(--none); background: var(--none-bg); }
-  .sentence { font-size: 1.1rem; margin: 0 0 6px; }
-  .caveat { color: var(--muted); margin: 0 0 16px; font-size: .9rem; }
-  .offline { font-size: .85rem; color: var(--unclear); margin: 0 0 12px; }
+  input { flex: 1 1 260px; min-width: 0; padding: 11px 14px; font: 14px/1.3 var(--mono); border: 1px solid var(--line); border-radius: var(--radius-btn); background: var(--card); color: var(--ink); }
+  input::placeholder { color: var(--muted); }
+  button.go { font: 500 14px/1 var(--sans); padding: 12px 20px; border: 1px solid var(--ink); border-radius: var(--radius-btn); background: var(--ink); color: var(--bg); cursor: pointer; }
+  button.go:active { transform: scale(.98); }
+  .examples { margin: 12px 0 10px; font-size: 13.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; }
+  .examples button.ex { padding: 0; border: 0; background: none; color: var(--ink); font: inherit; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line); cursor: pointer; }
+  .examples button.ex:hover { text-decoration-color: var(--ink); }
+  .fine { font: 12px/1.6 var(--mono); color: var(--muted); margin: 0 0 32px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-card); padding: 22px 24px; }
+  .card .st { margin-bottom: 12px; }
+  .sentence { font-size: 18px; line-height: 1.45; letter-spacing: -.01em; margin: 0 0 8px; }
+  .caveat { color: var(--muted); margin: 0 0 16px; font-size: 14px; }
+  .offline { font: 12px/1.6 var(--mono); color: var(--muted); margin: 0 0 14px; padding: 8px 12px; border: 1px dashed var(--line); border-radius: var(--radius-btn); }
   ul.receipts { list-style: none; padding: 0; margin: 0; }
-  ul.receipts li { border-top: 1px solid var(--line); padding: 10px 0; font-size: .9rem; overflow-wrap: anywhere; }
+  ul.receipts li { border-top: 1px solid var(--line); padding: 12px 0; font-size: 14px; overflow-wrap: anywhere; }
   ul.receipts li.off { color: var(--muted); }
-  .meta, .notes { font-size: .85rem; color: var(--muted); overflow-wrap: anywhere; }
+  .meta, .notes { font: 12px/1.6 var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+  .notes { border-top: 1px solid var(--line); padding-top: 12px; }
   .notes p { margin: 6px 0 0; }
-  code { font-size: .85em; }
-  a { color: inherit; }
+  @media (max-width: 640px) { main.lookup { padding-top: 36px; } .card { padding: 18px 16px; } }
 </style>
 </head>
 <body>
-<main>
+<!-- arena:topbar -->
+<main class="lookup">
+  <div class="eyebrow">Look up a guard</div>
   <h1>Check before you pay</h1>
   <p class="lede">Type a guard's account on NEAR testnet. This page asks the chain which code the account runs and whether Arena has published a test result for that code in the mode the guard reports.</p>
 
   <form id="f">
     <input id="acct" autocomplete="off" spellcheck="false" placeholder="guard account, e.g. r11cfx4-guard.arena-race-funder-1111.testnet" aria-label="Guard account id">
-    <button type="submit">Check</button>
+    <button type="submit" class="go">Check</button>
   </form>
   <div class="examples">Try:
     <button type="button" class="ex" data-acct="r11cfx4-guard.arena-race-funder-1111.testnet">fixed guard</button>
     <button type="button" class="ex" data-acct="r11bvf3-guard.arena-race-funder-1111.testnet">planted-flaw guard</button>
     <button type="button" class="ex" data-acct="r11cfx4-token.arena-race-funder-1111.testnet">a token (no record)</button>
   </div>
+  <p class="fine">Read-only: it only reads NEAR testnet and never sends a transaction. A record of what Arena tested, not a guarantee.</p>
 
   <section id="out" aria-live="polite"></section>
 </main>
+<!-- arena:footer -->
 
 <!-- Bundled example answers, copied from live lookups, shown when the network or the lookup module is not available. -->
 <script type="application/json" id="bundled-example">
@@ -282,7 +274,9 @@ function render(a, offlineNote) {
   out.replaceChildren();
   const card = el("div", { class: "card" });
   if (offlineNote) card.append(el("p", { class: "offline" }, offlineNote));
-  card.append(el("span", { class: `badge s-${a.status}` }, LABEL[a.status] || a.status));
+  // held is quiet and neutral (held is not "safe"); broke is the one red accent; everything else is muted.
+  const tone = a.status === "broke" ? "st-broke" : a.status === "held" ? "st-held" : "st-none";
+  card.append(el("span", { class: `st ${tone}` }, LABEL[a.status] || a.status));
   card.append(el("p", { class: "sentence" }, a.sentence));
   card.append(el("p", { class: "caveat" }, a.caveat));
   const meta = [`Account ${a.account}`];

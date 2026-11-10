@@ -1,0 +1,58 @@
+{
+ "name": "p210408638-2-reentrancy-callback-window-ret",
+ "steps": [
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "pay",
+    "args": {
+     "id": "inv-mid"
+    }
+   }
+  },
+  {
+   "wait_blocks": 1
+  },
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "pay",
+    "args": {
+     "id": "inv-mid"
+    }
+   }
+  },
+  {
+   "wait_blocks": 5
+  }
+ ],
+ "meta": {
+  "id": "p210408638-2-reentrancy-callback-window-ret",
+  "title": "second pay before async confirmation",
+  "source": "paper",
+  "kind": "sequence",
+  "breaks": "one pay per invoice via reentering before first confirmation commits",
+  "expected_safe_result": "second pay fails as already paid and only one 200 transfer happens",
+  "added": "2026-11-10",
+  "author": "muse-spark-1.3 via tools/hunter",
+  "paper": {
+   "arxiv_id": "2104.08638v2",
+   "title": "SAILFISH: Vetting Smart Contract State-Inconsistency Bugs in Seconds",
+   "url": "https://arxiv.org/abs/2104.08638v2"
+  },
+  "steps_sha256": "f09a42fc66fd45cbe569a9bc15dca1641a4254739519b0a579ce8c825a56386b",
+  "found_in_hunt": "2026-11-10-paper-abc6e6",
+  "broke_guards": [],
+  "held_guards": [
+   "guard-fixed",
+   "guard-vulnerable",
+   "leaky-control-v2",
+   "native-control",
+   "native-fixed",
+   "vault-a"
+  ],
+  "validation": "valid-nothing-broke"
+ }
+}

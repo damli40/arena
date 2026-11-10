@@ -1,0 +1,22 @@
+{
+  "add_payee": {
+    "detail": "the guard does not claim a payee list",
+    "result": "not-claimed"
+  },
+  "cancel_invoice": {
+    "detail": "the guard does not claim cancel",
+    "result": "not-claimed"
+  },
+  "remove_payee": {
+    "detail": "the guard does not claim a payee list",
+    "result": "not-claimed"
+  },
+  "set_agent": {
+    "detail": "the owner's call to it failed: [ExecutionOutcome { transaction_hash: GHXi4Dd7FbZybZarfPshGmpk5cUeDsquBDukKktGFDut, block_hash: Fj1NsjdrRNB19qWGCoiZow1jb6Gu5HyFhjaco5gYYsHt, logs: [], receipt_ids: [4PN1CM7pBQF2RG5uXsSD3HcRyHTPs5F12hWntG5uFadq, 2u7Z465PX1eqap99sxumXLYiASr2hUu1f5yBHyEUwJWR], gas_burnt: NearGas { inner: 888207071644 }, tokens_burnt: NearToken { inner: 88820707164400000000 }, executor_id: AccountId(\"dev-202611102102",
+    "result": "not-confirmed"
+  },
+  "set_daily_cap": {
+    "detail": "the guard does not claim a daily cap",
+    "result": "not-claimed"
+  }
+}

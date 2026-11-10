@@ -10,6 +10,10 @@
 //!                                            run ONE sequence and write the full result JSON
 //!                                            (this is the adaptive AI tester's per-round entry)
 //!
+//!   harness effects --wasm <path> --guard-config <file> --out effects.json
+//!                                            `arena check` only: on a fresh sandbox, after setup, look
+//!                                            at each owner method's own visible effect (effects.rs)
+//!
 //! Target flags: `--target vault|control|native-control|native-fixed`, or
 //! `--wasm <path>` for any guard wasm implementing targets/vault-a/INTERFACE.md
 //! (`--wasm-label` names it in logs; `run` already uses `--label` for the
@@ -23,6 +27,7 @@
 //! (or `--out` for `attempt`), never into the sequence folder.
 
 mod adapter;
+mod effects;
 mod scorer;
 mod scripted;
 mod seq;
@@ -150,6 +155,18 @@ async fn main() -> Result<()> {
             let target = target_of(&args)?;
             let out = flag(&args, "--out").map(PathBuf::from);
             run_files(vec![file], "attempt", 1, target, &metas(&args), out, owner_policy(&args)?).await?;
+        }
+        Some("effects") => {
+            let target = target_of(&args)?;
+            if target.adapter().is_none() {
+                bail!("effects needs --wasm <path> --guard-config <file>");
+            }
+            let out = PathBuf::from(flag(&args, "--out").context("effects needs --out <file.json>")?);
+            println!("EFFECTS target={} ({})", target.label(), target.adapter().map(|c| c.describe()).unwrap_or_default());
+            let a = setup::setup(target).await?;
+            let v = effects::check(&a).await?;
+            println!("{}", serde_json::to_string_pretty(&v)?);
+            std::fs::write(&out, serde_json::to_string_pretty(&v)?)?;
         }
         Some("run") => {
             let mut dir: Option<PathBuf> = None;

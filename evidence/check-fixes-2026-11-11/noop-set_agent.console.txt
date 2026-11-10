@@ -1,0 +1,13 @@
+$ ./arena check targets/vault-a/vault_a.wasm --mapping evidence/check-fixes-2026-11-11/noop-inputs/noop-set_agent.json --no-muse --out evidence/check-fixes-2026-11-11/noop-set_agent
+preflight: one honest payment, and what each owner method does, each on a fresh local sandbox ...
+
+arena: not run
+  rules the guard claims: all 4 (payees, cancel, expiry, daily_cap)
+
+COULD NOT FINISH:
+  Preflight: an owner method had no visible effect:
+    - set_agent: the owner changed the agent, but `get_config` still shows the old agent. Either your mapping points set_agent at a method that does not do that job, or your guard's set_agent does not work. Arena does not score a guard whose owner methods it cannot set up.
+  wall-clock: 15.4 s
+  held means: it held these attacks on a local sandbox; it is not a proof.
+report: evidence/check-fixes-2026-11-11/noop-set_agent/report.html
+exit=2

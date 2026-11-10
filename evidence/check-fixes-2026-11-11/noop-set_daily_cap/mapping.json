@@ -1,0 +1,10 @@
+{
+  "arena_mapping": 1,
+  "_about": "test input: the set_daily_cap role mapped to a harmless view that does nothing (contract_source_metadata)",
+  "methods": {
+    "set_daily_cap": "contract_source_metadata"
+  },
+  "deposits": {
+    "set_daily_cap": 0
+  }
+}

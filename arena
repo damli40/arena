@@ -7,9 +7,28 @@
 # Runs every attack in Arena's library against your guard on a LOCAL NEAR sandbox and writes a
 # report card to ./arena-report (report.html, report.json, badge.svg, shields.json, summary.md).
 # See docs/CHECK-YOUR-GUARD.md.
+#
+# Exit codes: 0 = finished, nothing paid over the fail-on line; 1 = finished, tokens paid over the
+# fail-on line; 2 = could not finish; 64 = wrong command line.
 set -euo pipefail
 ARENA_HOME="$(cd "$(dirname "$0")" && pwd)"
-source "$HOME/.cargo/env" 2>/dev/null || true
+
+# Find cargo without running any shell file from $HOME (the old way was to `source ~/.cargo/env`,
+# which runs whatever that file holds). rustup puts cargo in ${CARGO_HOME:-~/.cargo}/bin; we add
+# only that folder to PATH, and only when cargo is not found already.
+if ! command -v cargo >/dev/null 2>&1 && [ -x "${CARGO_HOME:-$HOME/.cargo}/bin/cargo" ]; then
+  PATH="${CARGO_HOME:-$HOME/.cargo}/bin:$PATH"; export PATH
+fi
+
+# The local NEAR sandbox (from the near-sandbox crate, v0.4.0) exists only for these machines.
+# Stop here with a plain message instead of a confusing error minutes later.
+case "$(uname -s)/$(uname -m)" in
+  Linux/x86_64|Linux/aarch64|Linux/arm64|Darwin/arm64) ;;
+  *) echo "arena: this machine is $(uname -s) $(uname -m). The NEAR sandbox Arena uses runs only on" >&2
+     echo "Linux x86_64, Linux arm64 and macOS on Apple silicon (arm64). Intel Macs and Windows are not supported." >&2
+     exit 2 ;;
+esac
+
 case "${1:-}" in
   check) shift; exec python3 -I "$ARENA_HOME/tools/check/check.py" "$@" ;;
   *) echo "usage: $0 check <guard.wasm> [--config guard.json] [--mapping mapping.json] [--out DIR] [--fail-on beyond-policy|against-intent|never]" >&2; exit 64 ;;

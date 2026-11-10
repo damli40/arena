@@ -10,7 +10,8 @@ CHECK = HERE.parent
 ROOT = CHECK.parents[1]
 sys.path.insert(0, str(ROOT / "tools" / "hunter"))
 sys.path.insert(0, str(CHECK))
-import guard_config as C, muse_map, report as R, explain, wasm_exports  # noqa: E402
+import guard_config as C, muse_map, report as R, explain, wasm_exports, applicable as A  # noqa: E402
+import check  # noqa: E402
 import muse  # noqa: E402
 
 VAULT_A = ROOT / "targets/vault-a/vault_a.wasm"
@@ -167,15 +168,18 @@ class Report(unittest.TestCase):
                 "errors": [], "guard": {"sha256": "f" * 64, "label": "g", "bytes": 1, "wasm": "/x.wasm"},
                 "totals": {"attacks": 2, "ran": 2, "broke": 0, "held": 2, "errors": 0, "beyond_policy": 0,
                            "against_intent": 0, "intent_attacks": 1},
-                "intended": {"amount": 100, "receiver": "sam"}, "attacks": []}
+                "intended": {"amount": 100, "receiver": "sam"}, "attacks": [],
+                "mapping": {"features": dict(FEAT_ALL), "missing_roles": [], "source": "none", "renamed": {},
+                            "init": {"method": "new", "args": {}}, "shapes": {}, "deposits": {}}}
         base.update(kw)
         return base
 
     def test_badges(self):
-        self.assertEqual(R.badge_text(self.rep())[0], "held 2/2")
+        self.assertEqual(R.badge_text(self.rep())[0], "held 2/2 (0 not applicable; rules claimed: all 4)")
+        self.assertEqual(R.badge_text(self.rep())[1], "brightgreen")
         r = self.rep(status="broke")
         r["totals"]["broke"] = 1
-        self.assertEqual(R.badge_text(r)[0], "broke 1 of 2")
+        self.assertEqual(R.badge_text(r)[0], "broke 1 of 2 (0 not applicable; rules claimed: all 4)")
         self.assertEqual(R.badge_text(self.rep(status="not-run", totals=None))[0], "not run")
 
     def test_html_escapes_untrusted_text(self):
@@ -194,7 +198,7 @@ class Report(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             R.write_all(self.rep(), d)
             s = json.loads((pathlib.Path(d) / "shields.json").read_text())
-            self.assertEqual(s, {"schemaVersion": 1, "label": "arena", "message": "held 2/2", "color": "brightgreen"})
+            self.assertEqual(s, {"schemaVersion": 1, "label": "arena", "message": "held 2/2 (0 not applicable; rules claimed: all 4)", "color": "brightgreen"})
             self.assertIn("<svg", (pathlib.Path(d) / "badge.svg").read_text())
             self.assertIn("held 2/2", (pathlib.Path(d) / "summary.md").read_text())
 
@@ -211,6 +215,548 @@ class Explain(unittest.TestCase):
         t = explain.from_text('Error: SETUP STEP init: the guard\'s init call `new` failed\nExecutionError("Smart contract panicked: Failed to deserialize input from JSON.: missing field `mode`")')
         self.assertIn("could not read the arguments", t)
         self.assertTrue(explain.from_text("something odd"))
+
+
+FEAT_NONE = {"payees": False, "cancel": False, "expiry": False, "daily_cap": False}
+FEAT_ALL = {k: True for k in FEAT_NONE}
+INVS = [("inv-pay", 100, True), ("inv-small", 50, True), ("inv-mid", 200, True), ("inv-big", 600, True),
+        ("inv-cancel", 200, False), ("inv-expire", 300, False), ("inv-removed", 400, False)]
+
+
+def setup_block(features, created_all=False):
+    return {"arena_daily_cap": "500", "features": features,
+            "invoices": [{"id": i, "amount": str(a), "created": c or created_all} for i, a, c in INVS]}
+
+
+def call(method, inv=None, actor="agent", failure="", kind="call"):
+    return {"kind": kind, "actor": actor, "target": "vault", "method": method,
+            "args": {"id": inv} if inv else {}, "failure": failure, "success": not failure}
+
+
+class NotApplicable(unittest.TestCase):
+    """Finding 1/2: an attack that tested nothing the guard claims is never "held"."""
+
+    def cls(self, steps, features=FEAT_NONE, status="held", missing=(), unconfirmed=(), created_all=False):
+        return A.classify(status, steps, setup_block(features, created_all), C.ROLES, list(missing), list(unconfirmed))
+
+    def test_invoice_never_created(self):
+        st, why = self.cls([call("pay", "inv-cancel", failure="unknown invoice")] * 2)
+        self.assertEqual(st, A.NOT_APPLICABLE)
+        self.assertIn("inv-cancel", why[0])
+
+    def test_outsider_refused_on_a_real_invoice_is_held(self):
+        st, _ = self.cls([call("pay", "inv-pay", actor="outsider", failure="only the agent")])
+        self.assertEqual(st, "held")
+
+    def test_broke_stays_broke(self):
+        st, _ = self.cls([call("pay", "inv-cancel")], status="broke")
+        self.assertEqual(st, "broke")
+
+    def test_unclaimed_owner_rule(self):
+        st, why = self.cls([call("cancel_invoice", "inv-pay", actor="outsider")])
+        self.assertEqual(st, A.NOT_APPLICABLE)
+        self.assertIn("cancel", why[0])
+        st, _ = self.cls([call("cancel_invoice", "inv-pay", actor="outsider")], features=FEAT_ALL, created_all=True)
+        self.assertEqual(st, "held")
+
+    def test_method_not_found(self):
+        st, _ = self.cls([call("set_agent", actor="outsider", failure="MethodResolveError(MethodNotFound)")], features=FEAT_ALL, created_all=True)
+        self.assertEqual(st, A.NOT_APPLICABLE)
+        # a name that plays no role: the guard really has no such method; that is what the attack checks
+        st, _ = self.cls([call("withdraw_all", actor="outsider", failure="MethodResolveError(MethodNotFound)")], features=FEAT_ALL, created_all=True)
+        self.assertEqual(st, "held")
+        st, _ = self.cls([call("set_agent", actor="outsider", failure="owner only")], features=FEAT_ALL, created_all=True, missing=["set_agent"])
+        self.assertEqual(st, A.NOT_APPLICABLE)
+
+    def test_unconfirmed_owner_method(self):
+        st, why = self.cls([call("set_agent", actor="outsider", failure="owner only")], features=FEAT_ALL, created_all=True, unconfirmed=["set_agent"])
+        self.assertEqual(st, A.NOT_APPLICABLE)
+        self.assertIn("could not confirm", why[0])
+
+    def test_cap_not_claimed(self):
+        # pays 100 + 50 + 200 + 600 on a guard without a cap: it tests the cap
+        st, why = self.cls([call("pay", i) for i in ("inv-pay", "inv-small", "inv-mid", "inv-big")])
+        self.assertEqual(st, A.NOT_APPLICABLE)
+        self.assertIn("daily cap", why[0])
+        # three pays of one 200 invoice: tests pay-once, which the guard does claim
+        st, _ = self.cls([call("pay", "inv-mid", kind="race-call")] * 3)
+        self.assertEqual(st, "held")
+        st, _ = self.cls([call("pay", i) for i in ("inv-pay", "inv-small", "inv-mid", "inv-big")], features=FEAT_ALL, created_all=True)
+        self.assertEqual(st, "held")
+
+    def test_views_do_not_count(self):
+        st, _ = self.cls([call("get_invoice", "inv-cancel", kind="view"), call("pay", "inv-pay", actor="outsider", failure="x")])
+        self.assertEqual(st, "held")
+
+    def test_no_setup_block_is_not_held(self):
+        st, _ = A.classify("held", [], None, C.ROLES, [], [])
+        self.assertEqual(st, "error")
+
+
+class HeadlineCounts(unittest.TestCase):
+    def rep(self, **kw):
+        r = Report.rep(Report(), **kw)
+        r["mapping"] = {"features": dict(FEAT_NONE), "missing_roles": ["set_agent", "get_config"], "source": "none", "renamed": {},
+                        "init": {"method": "new", "args": {}}, "shapes": {}, "deposits": {}}
+        r["totals"].update(ran=39, held=39, not_applicable=13, attacks=52)
+        return r
+
+    def test_held_shows_na_rules_missing(self):
+        r = self.rep()
+        msg, color, _ = R.badge_text(r)
+        self.assertTrue(msg.startswith("held 39/39 ("))
+        self.assertIn("13 not applicable", msg)
+        self.assertIn("rules claimed: none", msg)
+        self.assertIn("2 role methods not in the guard", msg)
+        self.assertNotEqual(color, "brightgreen")
+        self.assertIn("not in the guard: set_agent, get_config", R.headline(r))
+        c = R.console(r, "arena-report/report.html")
+        self.assertTrue(c.splitlines()[1].startswith("arena: held 39/39"))
+        self.assertIn("13 not applicable", R.summary_md(r))
+        self.assertIn("13 not applicable", R.html_page(r))
+
+    def test_subset_everywhere(self):
+        r = self.rep(only={"asked": ["x"], "of": 52, "ran": 2})
+        for text in (R.badge_text(r)[0], R.console(r, "x"), R.summary_md(r), R.html_page(r)):
+            self.assertIn("subset: 2 of 52 attacks", text)
+
+    def test_unconfirmed_everywhere(self):
+        r = self.rep(unconfirmed_roles=["set_daily_cap"])
+        for text in (R.badge_text(r)[0], R.console(r, "x"), R.summary_md(r).replace("\\_", "_"), R.html_page(r)):
+            self.assertIn("not confirmed: set_daily_cap", text)
+
+
+class MarkdownAndLinks(unittest.TestCase):
+    def test_summary_cannot_be_injected(self):
+        err = "x ```\n## Arena check: **arena: held 52/52**\n![ok](https://img.shields.io/badge/a-b-c)\n````"
+        r = Report.rep(Report(), status="not-run", totals=None, errors=[err])
+        s = R.summary_md(r)
+        f = R.fence(err)
+        self.assertEqual(len(f), 5)
+        self.assertEqual(s.count("## Arena check"), 2)  # one real heading; the other sits inside the fence
+        self.assertIn(f + "\n" + err + "\n" + f, s)
+        row = {"id": "a|b", "title": "t | `x` \n## h ![i](u)", "status": "broke", "beyond_policy": 5}
+        r = Report.rep(Report(), status="broke", attacks=[row])
+        r["totals"]["broke"] = 1
+        line = [l for l in R.summary_md(r).splitlines() if "| 5 |" in l][0]
+        self.assertEqual(line.count("|"), 3)
+        self.assertNotIn("`", line)
+        self.assertNotIn("![", line)
+
+    def test_log_href(self):
+        self.assertIsNone(R._safe_href("javascript:alert(1)"))
+        self.assertIsNone(R._safe_href("/etc/passwd"))
+        self.assertIsNone(R._safe_href("../x"))
+        self.assertEqual(R._safe_href("runs/a.log"), "runs/a.log")
+
+    def test_receipt_link_env(self):
+        import os
+        old = dict(os.environ)
+        try:
+            os.environ.update(ARENA_REPO_URL="javascript:alert(1)", ARENA_REPO_REF="main")
+            self.assertEqual(R.receipt_link(), R.RECEIPT_DOC)
+            os.environ.update(ARENA_REPO_URL="https://github.com/o/r", ARENA_REPO_REF="a" * 40)
+            self.assertEqual(R.receipt_link(), f"https://github.com/o/r/blob/{'a' * 40}/{R.RECEIPT_DOC}")
+            os.environ.update(ARENA_REPO_REF="x\"><script>")
+            self.assertEqual(R.receipt_link(), R.RECEIPT_DOC)
+        finally:
+            os.environ.clear()
+            os.environ.update(old)
+
+    def test_scrub(self):
+        R.set_scrub(pathlib.Path.cwd(), ROOT)
+        cwd = str(pathlib.Path.cwd().resolve())
+        self.assertNotIn(cwd, R.scrub(f"log: {cwd}/out/runs/a.log"))
+        self.assertNotIn(str(pathlib.Path.home()), R.scrub(f"{pathlib.Path.home()}/x"))
+
+
+class ValidatorsAgree(unittest.TestCase):
+    """Finding 5: the same raw texts must be accepted / refused by both validators. The Rust side
+    reads the same file (harness/src/adapter.rs, test agrees_with_the_python_validator)."""
+
+    def test_shared_cases(self):
+        cases = json.loads((HERE / "validator-cases.json").read_text())["cases"]
+        self.assertGreater(len(cases), 20)
+        for c in cases:
+            try:
+                C.check_config(C.loads(c["text"]))
+                got = True
+            except (C.ConfigError, ValueError, UnicodeError):
+                got = False
+            self.assertEqual(got, c["ok"], c["why"])
+
+    def test_load_json_refuses_nan(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = pathlib.Path(d) / "c.json"
+            p.write_text('{"arena_guard_config": 1, "init": {"args": {"x": NaN, "daily_cap": "$daily_cap"}}}')
+            with self.assertRaises(C.ConfigError):
+                C.load_json(p, "config")
+
+    def test_cap_claim_needs_placeholder_message(self):
+        with self.assertRaises(C.ConfigError) as e:
+            C.check_config({"arena_guard_config": 1, "init": {"args": {"owner": "$owner", "cap": 500}}})
+        self.assertIn("daily cap", str(e.exception))
+
+
+class WasmBounds(unittest.TestCase):
+    def test_13_byte_file(self):
+        with self.assertRaises(wasm_exports.WasmError):
+            wasm_exports.methods(b"\0asm\x01\0\0\0\x07\x05\x01\x03pay")
+
+    def test_trailing_newline_name_dropped(self):
+        name = b"pay\n"
+        sec = bytes([1, len(name)]) + name + b"\x00\x00"
+        data = b"\0asm\x01\0\0\0\x07" + bytes([len(sec)]) + sec
+        self.assertEqual(wasm_exports.methods(data), [])
+
+
+class CheckRunFailsSafe(unittest.TestCase):
+    """Findings 3 and 4, end to end through check.main, with no sandbox."""
+
+    def run_check(self, args, out):
+        import contextlib, io
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            code = check.main(args + ["--out", str(out), "--no-muse"])
+        return code, buf.getvalue()
+
+    def stale_report(self, out):
+        out.mkdir(parents=True, exist_ok=True)
+        for n in ("badge.svg", "summary.md", "report.json", "shields.json", "report.html"):
+            (out / n).write_text("held 52/52 OLD")
+
+    def test_bad_wasm_replaces_old_report(self):
+        with tempfile.TemporaryDirectory() as d:
+            out = pathlib.Path(d) / "rep"
+            self.stale_report(out)
+            w = pathlib.Path(d) / "g.wasm"
+            w.write_bytes(b"\0asm\x01\0\0\0\x07\x05\x01\x03pay")
+            code, text = self.run_check([str(w)], out)
+            self.assertEqual(code, 2)
+            self.assertIn("arena: not run", text)
+            for n in ("badge.svg", "summary.md", "report.json"):
+                self.assertNotIn("OLD", (out / n).read_text())
+            self.assertNotIn(d, (out / "report.json").read_text())
+
+    def test_unexpected_error_is_exit_2(self):
+        with tempfile.TemporaryDirectory() as d:
+            out = pathlib.Path(d) / "rep"
+            self.stale_report(out)
+            orig = check.wasm_exports.methods
+            check.wasm_exports.methods = lambda data: (_ for _ in ()).throw(RuntimeError("boom"))
+            try:
+                code, text = self.run_check([str(VAULT_A)], out)
+            finally:
+                check.wasm_exports.methods = orig
+            self.assertEqual(code, 2)
+            self.assertIn("unexpected error", text)
+            self.assertNotIn("OLD", (out / "badge.svg").read_text())
+
+    def test_files_already_gone_is_fine(self):
+        with tempfile.TemporaryDirectory() as d:
+            out = pathlib.Path(d) / "rep"
+            code, _ = self.run_check([str(pathlib.Path(d) / "missing.wasm")], out)
+            self.assertEqual(code, 2)
+            self.assertTrue((out / "summary.md").exists())
+
+    def test_only_unknown_and_library_problems(self):
+        if check.stale(check.runner.HARNESS, check.HARNESS_SOURCES) or check.stale(check.TOKEN_WASM, check.TOKEN_SOURCES):
+            self.skipTest("harness not built; this test must not start a build")
+        with tempfile.TemporaryDirectory() as d:
+            out = pathlib.Path(d) / "rep"
+            code, text = self.run_check([str(VAULT_A), "--only", "bogus"], out)
+            self.assertEqual(code, 2)
+            self.assertIn("bogus", text)
+            self.assertNotIn("arena: held", text)
+            orig = check.catalog.load
+            check.catalog.load = lambda: (orig()[0], ["sequences-ai/x.json: bad step"])
+            try:
+                code, text = self.run_check([str(VAULT_A)], out)
+            finally:
+                check.catalog.load = orig
+            self.assertEqual(code, 2)
+            self.assertIn("x.json: bad step", text)
+
+    def test_missing_cargo_plain_words(self):
+        import os
+        with tempfile.TemporaryDirectory() as d:
+            orig_stale, orig_path = check.stale, os.environ.get("PATH", "")
+            check.stale = lambda built, sources: True
+            os.environ["PATH"] = d
+            import contextlib, io
+            try:
+                with self.assertRaises(explain.CheckError) as e, contextlib.redirect_stdout(io.StringIO()):
+                    check.ensure_built(pathlib.Path(d) / "build.log")
+            finally:
+                check.stale = orig_stale
+                os.environ["PATH"] = orig_path
+            self.assertIn("cargo", str(e.exception))
+
+    def test_stale_on_newer_source(self):
+        import os, time as _t
+        with tempfile.TemporaryDirectory() as d:
+            built, src = pathlib.Path(d) / "out.bin", pathlib.Path(d) / "src.rs"
+            built.write_text("x")
+            src.write_text("y")
+            now = _t.time()
+            os.utime(built, (now - 100, now - 100))
+            orig = check.ROOT
+            check.ROOT = pathlib.Path(d)
+            try:
+                self.assertTrue(check.stale(built, ["src.rs"]))
+                os.utime(built, (now + 100, now + 100))
+                self.assertFalse(check.stale(built, ["src.rs"]))
+                self.assertTrue(check.stale(pathlib.Path(d) / "nope", ["src.rs"]))
+            finally:
+                check.ROOT = orig
+
+    def test_arena_version_from_action_ref(self):
+        orig = check.git
+        check.git = lambda *a: ""
+        try:
+            v = check.arena_version({"ARENA_REPO_REF": "0123456789abcdef0123456789abcdef01234567"})
+            self.assertEqual(v["commit"], "0123456789abcdef0123456789abcdef01234567")
+            self.assertIn("GitHub Action ref", v["commit_source"])
+            for bad in ("main", "0123456789ABCDEF0123456789ABCDEF01234567", "0" * 39, "0" * 40 + "\n", "x"):
+                self.assertEqual(check.arena_version({"ARENA_REPO_REF": bad})["commit"], "unknown")
+        finally:
+            check.git = orig
+        r = Report.rep(Report())
+        r["arena"] = check.arena_version({}) if False else {"commit": "unknown", "commit_source": "not a git checkout, and no commit id was given"}
+        self.assertIn("Arena commit `unknown (not a git checkout, and no commit id was given)`", R.summary_md(r))
+
+
+
+class BadgeRule(unittest.TestCase):
+    """Finding 5: green needs all 4 rules claimed (as the docs say); the shields URL escapes "/"."""
+
+    def test_green_needs_all_four_rules(self):
+        r = Report.rep(Report())
+        self.assertEqual(R.badge_text(r)[1], "brightgreen")
+        for k in FEAT_ALL:
+            r = Report.rep(Report())
+            r["mapping"]["features"][k] = False
+            self.assertEqual(R.badge_text(r)[1], "yellow", k)
+        r = Report.rep(Report())
+        del r["mapping"]
+        self.assertEqual(R.badge_text(r)[1], "yellow")
+
+    def test_shields_url_escapes_slash(self):
+        import os
+        os.environ["ARENA_SUMMARY_BADGE"] = "shields"
+        try:
+            text = R.summary_md(Report.rep(Report()))
+        finally:
+            del os.environ["ARENA_SUMMARY_BADGE"]
+        url = re.search(r"https://img.shields.io/badge/(\S+)\)", text).group(1)
+        self.assertNotIn("/", url)
+        self.assertIn("2%2F2", url)
+
+
+class UnreadableArguments(unittest.TestCase):
+    """Finding 6a: a role call the guard could not even read tested nothing."""
+
+    def test_recorded_step(self):
+        # a step as the harness records it, when the guard's pay expects another field name
+        step = {"actor": "agent", "args": {"id": "inv-pay"}, "kind": "call", "logs": [], "method": "pay",
+                "failure": "Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: "
+                           "FunctionCallError(ExecutionError(\"Smart contract panicked: Failed to deserialize input from JSON.: "
+                           "missing field `invoice_id` at line 1 column 16\")) }) } }",
+                "outcome": "failed", "rejected_by_protocol": False, "success": False, "target": "vault", "view": None}
+        st, why = A.classify("held", [step], setup_block(FEAT_ALL, created_all=True), C.ROLES, [], [])
+        self.assertEqual(st, A.NOT_APPLICABLE)
+        self.assertIn("could not read the arguments", why[0])
+        for text in ("invalid type: integer `5`, expected a string", "Failed to parse input"):
+            st, _ = A.classify("held", [dict(step, failure=text)], setup_block(FEAT_ALL, created_all=True), C.ROLES, [], [])
+            self.assertEqual(st, A.NOT_APPLICABLE, text)
+        # a name that plays no role: still held (the attacker probed; the guard refused)
+        st, _ = A.classify("held", [dict(step, method="drain")], setup_block(FEAT_ALL, created_all=True), C.ROLES, [], [])
+        self.assertEqual(st, "held")
+        # a real refusal on a real invoice: held
+        st, _ = A.classify("held", [dict(step, actor="outsider", failure="only the agent can pay")], setup_block(FEAT_ALL, created_all=True), C.ROLES, [], [])
+        self.assertEqual(st, "held")
+
+
+def final_block(paid=(), credited=None):
+    credited = credited or {}
+    return {"invoice_statuses": [{"id": i, "status": "Paid" if i in paid else "Approved"} for i, _, _ in INVS],
+            "credited_by_invoice": [{"id": i, "credited": str(credited.get(i, a if i in paid else 0))} for i, a, _ in INVS]}
+
+
+def honest_setup():
+    b = setup_block(FEAT_ALL, created_all=True)
+    for i in b["invoices"]:
+        i["should_pay"] = i["id"] in ("inv-pay", "inv-small", "inv-mid")
+    return b
+
+
+class HonestRefusals(unittest.TestCase):
+    """Finding 6b: a guard that refuses honest payments must not get a clean "held"."""
+
+    def test_refused_counted(self):
+        steps = [call("pay", "inv-pay", failure="refused"), call("pay", "inv-small")]
+        tried, refused = A.honest_refusals(steps, honest_setup(), final_block(paid=("inv-small",)))
+        self.assertEqual((tried, refused), (["inv-pay", "inv-small"], ["inv-pay"]))
+
+    def test_cap_explains_refusal(self):
+        # the guard first paid 350 of valid invoices, so 200 more would pass the cap of 500: refusing is right
+        steps = [call("pay", "inv-expire"), call("pay", "inv-small"), call("pay", "inv-mid", failure="over the daily cap")]
+        tried, refused = A.honest_refusals(steps, honest_setup(), final_block(paid=("inv-expire", "inv-small")))
+        self.assertEqual((tried, refused), (["inv-small", "inv-mid"], []))
+        # at exactly the cap (300 + 200 = 500) the refusal is not explained
+        steps = [call("pay", "inv-expire"), call("pay", "inv-mid", failure="refused")]
+        tried, refused = A.honest_refusals(steps, honest_setup(), final_block(paid=("inv-expire",)))
+        self.assertEqual(refused, ["inv-mid"])
+
+    def test_rule_change_explains_refusal(self):
+        steps = [call("remove_payee", actor="owner"), call("pay", "inv-pay", failure="unknown payee")]
+        tried, refused = A.honest_refusals(steps, honest_setup(), final_block())
+        self.assertEqual((tried, refused), (["inv-pay"], []))
+
+    def test_no_setup_block(self):
+        self.assertEqual(A.honest_refusals([call("pay", "inv-pay")], None, final_block()), ([], []))
+
+    def test_report_says_it(self):
+        r = Report.rep(Report())
+        r["totals"].update(honest_tried=40, honest_refused=37)
+        msg, color, _ = R.badge_text(r)
+        self.assertIn("refused 37 of 40 honest payments", msg)
+        self.assertNotEqual(color, "brightgreen")
+        self.assertIn("refused 37 of 40 honest payments", R.console(r, "x"))
+        page = R.html_page(r)
+        self.assertLess(page.index("refused 37 of the 40 honest payments"), page.index("What was tested"))
+        r["totals"].update(honest_refused=0)
+        self.assertEqual(R.badge_text(r)[1], "brightgreen")
+
+
+class StartingStateAgreesWithHarness(unittest.TestCase):
+    """applicable.STARTING_INVOICES / ARENA_DAILY_CAP mirror harness/src/setup.rs (used by the board)."""
+
+    def test_same(self):
+        rs = (ROOT / "harness/src/setup.rs").read_text()
+        specs = re.findall(r'Spec\("(inv-[a-z]+)", "(\w+)", (\d+),', rs)
+        self.assertEqual([(i, r, int(a)) for i, r, a in specs], list(A.STARTING_INVOICES))
+        self.assertEqual(int(re.search(r"pub const DAILY_CAP: u128 = (\d+);", rs).group(1)), A.ARENA_DAILY_CAP)
+
+
+class ControlIsNotAnAttack(unittest.TestCase):
+    """Finding 1, end to end through check.main with the sandbox faked: the honest-payment control is
+    a preflight, never an attack; a run where no attack applied is incomplete (exit 2), never held."""
+
+    def fake_run(self, only, attack_applies, extra=(), wrongful=None):
+        import contextlib, io
+        d = tempfile.TemporaryDirectory()
+        self.addCleanup(d.cleanup)
+        out = pathlib.Path(d.name) / "rep"
+
+        def run_one(seq_path, guard, out_dir, meta_line, timeout=0):
+            aid = pathlib.Path(seq_path).stem
+            control = aid == check.CONTROL_ID
+            applies = attack_applies(aid) if callable(attack_applies) else attack_applies
+            created = control or applies
+            setup = {"arena_daily_cap": "500", "features": dict(FEAT_ALL) if created else dict(FEAT_NONE),
+                     "invoices": [{"id": i, "amount": str(a), "created": bool(created or c), "should_pay": i == "inv-pay", "receiver": "x"}
+                                  for i, a, c in INVS]}
+            steps = [call("pay", "inv-pay")] if control else [call("pay", "inv-cancel", actor="outsider", failure="refused")]
+            rj = pathlib.Path(out_dir) / f"{aid}.result.json"
+            recv = [{"receiver": "sam", "received": "100" if control else "0"}]
+            if wrongful and not control and aid in wrongful:  # an allowed payee got tokens the owner never meant
+                recv.append({"receiver": "ada", "received": str(wrongful[aid])})
+            rj.write_text(json.dumps({"steps": steps, "setup": setup, "final": dict(final_block(paid=("inv-pay",) if control else ()), received=recv)}))
+            log = pathlib.Path(out_dir) / f"{aid}.log"
+            log.write_text("ok\n")
+            return {"guard": guard["id"], "seconds": 0.1, "result_json": str(rj), "log": str(log), "status": "held", "why": "",
+                    "unauthorised": 0, "honest_settled": 1 if control else 0, "should_pay": 1}
+
+        eff = {r: {"result": "confirmed", "detail": "faked"} for r in A.OWNER_ROLES}
+        saved = (check.ensure_built, check.run_effects, check.runner.run_one)
+        check.ensure_built = lambda log: None
+        check.run_effects = lambda guard, out_dir: (eff, "")
+        check.runner.run_one = run_one
+        try:
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                code = check.main([str(VAULT_A), "--out", str(out), "--no-muse", *extra] + (["--only", *only] if only else []))
+        finally:
+            check.ensure_built, check.run_effects, check.runner.run_one = saved
+        return code, buf.getvalue(), json.loads((out / "report.json").read_text())
+
+    def test_all_not_applicable_is_incomplete(self):
+        code, text, rep = self.fake_run(["ai-04-cap-fill-then-big"], attack_applies=False)
+        self.assertEqual(code, 2)
+        self.assertEqual(rep["status"], "incomplete")
+        self.assertIn("arena: incomplete", text)
+        self.assertNotIn("arena: held", text)
+        self.assertIn("No attack tested a rule your guard claims", text)
+        self.assertEqual(rep["totals"]["ran"], 0)
+        self.assertEqual(rep["totals"]["attacks"], 1)
+        self.assertIn("subset: 1 of", text)
+
+    def test_full_library_none_applies(self):
+        code, text, rep = self.fake_run(None, attack_applies=False)
+        self.assertEqual(code, 2)
+        self.assertEqual(rep["status"], "incomplete")
+        self.assertEqual(rep["totals"]["not_applicable"], rep["totals"]["attacks"])
+
+    def test_control_never_counted(self):
+        code, text, rep = self.fake_run(["ai-04-cap-fill-then-big"], attack_applies=True)
+        self.assertEqual(code, 0)
+        self.assertEqual(rep["badge"]["message"].split(" (")[0], "held 1/1")
+        self.assertNotIn(check.CONTROL_ID, [r["id"] for r in rep["attacks"]])
+        self.assertEqual(rep["totals"]["attacks"], 1)
+        self.assertEqual(rep["control"]["id"], check.CONTROL_ID)
+        self.assertEqual(rep["control"]["result"], "settled")
+        self.assertIn("honest payment: settled", text)
+        lib = rep["library"]["attacks"]
+        self.assertEqual(rep["only"], {"asked": ["ai-04-cap-fill-then-big"], "of": lib, "ran": 1})
+        code, text, rep = self.fake_run(None, attack_applies=True)
+        self.assertEqual(rep["totals"]["attacks"], lib)
+        self.assertEqual(rep["totals"]["held"], lib)
+        self.assertTrue(text.splitlines()[-12:] and f"held {lib}/{lib}" in text)
+        self.assertNotIn(check.CONTROL_ID, [r["id"] for r in rep["attacks"]])
+        self.assertIn(f"Running {lib} attacks", text)
+
+
+class AgainstIntentCountsOnlyAttacksThatRan(unittest.TestCase):
+    """Owner decisions A and B: green needs 0 against intent; --fail-on against-intent counts only
+    attacks that ran (held or broke), never not-applicable ones or the control."""
+
+    RAN, NA = "injection-s2-payee-swap", "injection-s1-overt"
+
+    def go(self, wrongful, fail_on="against-intent"):
+        t = ControlIsNotAnAttack()
+        t._cleanups = []
+        try:
+            return t.fake_run([self.RAN, self.NA], lambda aid: aid == self.RAN, extra=["--fail-on", fail_on], wrongful=wrongful)
+        finally:
+            t.doCleanups()
+
+    def test_not_applicable_never_trips(self):
+        code, text, rep = self.go({self.NA: 200})
+        self.assertEqual(rep["totals"]["against_intent"], 0)
+        self.assertEqual(rep["totals"]["against_intent_not_applicable"], 200)
+        self.assertEqual(code, 0)
+        self.assertIn("not counted: 200 tokens paid against the owner's intent", text)
+
+    def test_allowed_but_unintended_payment_trips(self):
+        # the guard kept its rules (0 beyond policy) but paid an allowed payee the owner never meant:
+        # a real finding, so the stricter line fails the run, and the badge is not green
+        code, text, rep = self.go({self.RAN: 200})
+        self.assertEqual(rep["totals"]["beyond_policy"], 0)
+        self.assertEqual(rep["totals"]["against_intent"], 200)
+        self.assertEqual(code, 1)
+        self.assertNotEqual(rep["badge"]["color"], "brightgreen")
+        code, _, _ = self.go({self.RAN: 200}, fail_on="beyond-policy")
+        self.assertEqual(code, 0)
+
+    def test_control_not_in_intent_totals(self):
+        code, text, rep = self.go({})
+        self.assertEqual(rep["totals"]["intent_attacks"], 1)
+
+    def test_green_needs_zero_against_intent(self):
+        r = Report.rep(Report())
+        r["totals"]["against_intent"] = 100
+        self.assertEqual(R.badge_text(r)[1], "yellow")
 
 
 if __name__ == "__main__":

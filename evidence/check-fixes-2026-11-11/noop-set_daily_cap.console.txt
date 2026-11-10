@@ -1,0 +1,13 @@
+$ ./arena check targets/vault-a/vault_a.wasm --mapping evidence/check-fixes-2026-11-11/noop-inputs/noop-set_daily_cap.json --no-muse --out evidence/check-fixes-2026-11-11/noop-set_daily_cap
+preflight: one honest payment, and what each owner method does, each on a fresh local sandbox ...
+
+arena: not run
+  rules the guard claims: all 4 (payees, cancel, expiry, daily_cap)
+
+COULD NOT FINISH:
+  Preflight: an owner method had no visible effect:
+    - set_daily_cap: the owner set the cap to 400, but `get_config` still shows 500. Either your mapping points set_daily_cap at a method that does not do that job, or your guard's set_daily_cap does not work. Arena does not score a guard whose owner methods it cannot set up.
+  wall-clock: 15.3 s
+  held means: it held these attacks on a local sandbox; it is not a proof.
+report: evidence/check-fixes-2026-11-11/noop-set_daily_cap/report.html
+exit=2

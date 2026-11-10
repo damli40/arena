@@ -1,0 +1,25 @@
+{
+ "name": "pay-removed-payee",
+ "steps": [
+  {
+   "call": {
+    "actor": "agent",
+    "method": "pay",
+    "args": {
+     "id": "inv-removed"
+    }
+   }
+  }
+ ],
+ "meta": {
+  "id": "scripted-06-pay-removed-payee",
+  "title": "Pay an invoice whose payee was removed",
+  "source": "hand",
+  "kind": "sequence",
+  "breaks": "Pays someone the owner removed from the payee list.",
+  "expected_safe_result": "refused; nothing paid",
+  "added": "2026-11-09",
+  "author": "scripted tester (harness/src/scripted.rs), written by hand from INTERFACE.md",
+  "steps_sha256": "cf754962c4000a507c7232f1365350e67f1cdac6ffb371e0ddb7e206808da482"
+ }
+}

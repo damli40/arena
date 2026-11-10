@@ -1,0 +1,67 @@
+
+================ arena run: tester=attempt target=renamed-guard attempts=1 ================
+TARGET: label=renamed-guard wasm=examples/renamed-guard/target/wasm32-unknown-unknown/release/renamed_guard.wasm sha256=a647713bed1c2498dc35efbdaea2e9e4d1cd79c5c296a73fa946c155121eb9da
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["execute_payment"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+ADAPTER (fixed translation layer, adapter.rs): file=evidence/check-fixes-2026-11-11/renamed-guard/guard-config.resolved.json init=setup_vault features(payees=true, cancel=true, expiry=true, daily_cap=true) renamed=[add_payee->allow_payee, approve_invoice->approve_bill, cancel_invoice->cancel_bill, get_config->vault_config, get_invoice->bill_info, is_payee->payee_allowed, paid_today->spent_today, pay->execute_payment, remove_payee->revoke_payee, set_agent->change_agent, set_daily_cap->update_daily_limit] shapes=[] deposits={"add_payee": 1, "approve_invoice": 1, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1}
+META: arena check a647713bed1c2498 arena=b8d6f5889959 2026-11-10T21:05:51Z
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+
+----- ATTEMPT c261110-2-lowgas-expire-race-cap-breach (evidence/check-fixes-2026-11-11/renamed-guard/runs/attacks/c261110-2-lowgas-expire-race-cap-breach.json) -----
+ADAPTER init: setup_vault({"agent":"dev-20261110210721-84973247282257.test.near","daily_cap":"500","owner":"dev-20261110210721-60065531208404.test.near","token":"dev-20261110210724-20312868615746.test.near"})
+  ADAPTER step 0: pay {"id":"inv-expire"} sent as execute_payment {"id":"inv-expire"}
+  step 0 [call] agent -> 95162250::pay {"id":"inv-expire"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("WebAssembly trap: An `unreachable` opcode was executed.")) }) } })
+  ADAPTER step 1: pay {"id":"inv-expire"} sent as execute_payment {"id":"inv-expire"}
+  ADAPTER step 1: pay {"id":"inv-expire"} sent as execute_payment {"id":"inv-expire"}
+  ADAPTER step 1: pay {"id":"inv-big"} sent as execute_payment {"id":"inv-big"}
+  ADAPTER step 1: pay {"id":"inv-mid"} sent as execute_payment {"id":"inv-mid"}
+  step 1 [race-call] agent -> 95162250::pay {"id":"inv-expire"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-expire","receiver":"dev-20261110210722-50490455982752.test.near","amount":"300"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110210724-58975895162250.test.near","new_owner_id":"dev-20261110210722-50490455982752.test.near","amount":"300","memo":"vault-a invoice inv-expire"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-expire","amount":"300"}]}
+  step 1 [race-call] agent -> 95162250::pay {"id":"inv-expire"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("WebAssembly trap: An `unreachable` opcode was executed.")) }) } })
+  step 1 [race-call] agent -> 95162250::pay {"id":"inv-big"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("WebAssembly trap: An `unreachable` opcode was executed.")) }) } })
+  step 1 [race-call] agent -> 95162250::pay {"id":"inv-mid"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-mid","receiver":"dev-20261110210722-50490455982752.test.near","amount":"200"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110210724-58975895162250.test.near","new_owner_id":"dev-20261110210722-50490455982752.test.near","amount":"200","memo":"vault-a invoice inv-mid"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-mid","amount":"200"}]}
+  step 2 [wait] 5 blocks
+  step 3 [wait] 25s (real time, so block timestamps move)
+  ADAPTER step 4: pay {"id":"inv-expire"} sent as execute_payment {"id":"inv-expire"}
+  step 4 [call] agent -> 95162250::pay {"id":"inv-expire"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("WebAssembly trap: An `unreachable` opcode was executed.")) }) } })
+  ADAPTER step 5: pay {"id":"inv-big"} sent as execute_payment {"id":"inv-big"}
+  step 5 [call] agent -> 95162250::pay {"id":"inv-big"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("WebAssembly trap: An `unreachable` opcode was executed.")) }) } })
+SCORE attempt=c261110-2-lowgas-expire-race-cap-breach scoring=token
+  receiver sam    received=0      authorised=0      over=0
+  receiver ada    received=500    authorised=500    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=200    (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-expire  policy_allows=300    credited=300    (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=1794344855182509000 expires_at_ns=1794344871253415000 -> paid before expiry
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Paid, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Paid, inv-removed:PayeeRemoved
+  calls_ok=2/7 protocol_rejected=0/7 attempts_used=1 target=renamed-guard
+  result json: evidence/check-fixes-2026-11-11/renamed-guard/runs/c261110-2-lowgas-expire-race-cap-breach__renamed-guard.result.json
+
+================ SUMMARY tester=attempt target=renamed-guard ================
+  target wasm sha256=a647713bed1c2498dc35efbdaea2e9e4d1cd79c5c296a73fa946c155121eb9da
+  c261110-2-lowgas-expire-race-cap-breach unauthorised=0      honest_settled=0/3 protocol_rejected=0/7
+  attempts=1 attempts_found_something=0 tester=attempt target=renamed-guard
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).

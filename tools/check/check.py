@@ -5,32 +5,42 @@
                 [--fail-on beyond-policy|against-intent|never] [--jobs 4] [--no-muse] [--label NAME]
 
 What it does, in order:
+ 0. deletes the report files of any earlier run in --out, so a stale badge can never survive;
  1. reads the method names your wasm exports (no wasm code runs here);
  2. loads your config and mapping (data only; see guard_config.py), or asks Muse to PROPOSE a
     mapping when your method names differ and you gave none (checked before use);
- 3. preflight: one honest payment on a fresh local sandbox. If that does not work, it stops and
-    says what to fix, instead of reporting "held";
+ 3. preflight, each on a fresh local sandbox: one honest payment, and a look at what each owner
+    method visibly did (harness/src/effects.rs). If either fails, it stops and says what to fix.
+    The honest payment is the library's control file (CONTROL_ID). It is NOT an attack: it is
+    reported on its own line and never counted in attacks, held, broke or the badge;
  4. every attack in the library, each on its own fresh local sandbox, through the existing runner
-    (tools/hunter/runner.py) and scorer (harness/src/scorer.rs);
+    (tools/hunter/runner.py) and scorer (harness/src/scorer.rs). Each attack ends as held, broke,
+    not-applicable (it tested nothing the guard claims; see applicable.py) or did not finish;
  5. writes the report: report.html, report.json, badge.svg, shields.json, summary.md, the
     resolved config, and each attempt's log and result.
 
 Exit codes: 0 = ran, under the --fail-on line; 1 = ran, over the --fail-on line; 2 = could not
-finish (config, setup or preflight problem, or an attempt errored). The report is written in
-every case.
+finish (config, setup or preflight problem, an attempt errored, a problem in the attack library,
+or an unexpected error in Arena itself). A report is written in every case where the --out
+folder can be written; when it cannot, the files of the earlier run are already gone.
 """
-import argparse, datetime, hashlib, importlib.util, json, os, pathlib, shutil, subprocess, sys, time
+import argparse, concurrent.futures as cf, datetime, re, hashlib, importlib.util, json, os, pathlib, shutil, signal, subprocess, sys, time, traceback
 
 HERE = pathlib.Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(ROOT / "tools" / "hunter"))
 sys.path.insert(0, str(HERE))
 import catalog, runner, validate as V  # noqa: E402  (tools/hunter, imported, never edited)
-import guard_config as C, muse_map, report as R, explain, wasm_exports  # noqa: E402
+import guard_config as C, muse_map, report as R, explain, wasm_exports, applicable as A  # noqa: E402
 
 CONTROL_ID = "scripted-01-control-pay-valid"
 TOKEN_WASM = ROOT / "contracts/target/wasm32-unknown-unknown/release/test_token.wasm"
 FAIL_ON = ("beyond-policy", "against-intent", "never")
+REPORT_FILES = ("report.json", "report.html", "badge.svg", "shields.json", "summary.md", "mapping.json",
+                "guard-config.resolved.json", "effects.json", "effects.log", "build.log")
+# Sources each built file depends on. A source newer than the built file means rebuild.
+HARNESS_SOURCES = ("harness/src", "harness/Cargo.toml", "harness/Cargo.lock")
+TOKEN_SOURCES = ("contracts/test-token", "contracts/Cargo.toml", "contracts/Cargo.lock")
 
 
 def _score_intent():
@@ -47,27 +57,68 @@ def git(*args):
         return ""
 
 
-def arena_version():
-    head = git("rev-parse", "HEAD") or "unknown (not a git checkout)"
-    dirty = git("status", "--porcelain", "--untracked-files=no")
-    return {"commit": head, "dirty": bool(dirty), "dirty_files": len(dirty.splitlines()) if dirty else 0}
+def arena_version(env=None):
+    """The Arena commit. When this folder is not a git checkout (GitHub unpacks the Action
+    without .git), ARENA_REPO_REF is used only if it is exactly a 40-character lowercase hex
+    commit id, and it is labelled as not checked by git. Any other value is ignored."""
+    env = os.environ if env is None else env
+    head = git("rev-parse", "HEAD")
+    dirty = git("status", "--porcelain", "--untracked-files=no") if head else ""
+    out = {"commit": head, "dirty": bool(dirty), "dirty_files": len(dirty.splitlines()) if dirty else 0}
+    if not head:
+        ref = env.get("ARENA_REPO_REF", "")
+        if re.fullmatch(r"[0-9a-f]{40}", ref):
+            out.update(commit=ref, commit_source="taken from the GitHub Action ref; not checked by git")
+        else:
+            out.update(commit="unknown", commit_source="not a git checkout, and no commit id was given")
+    else:
+        out["commit_source"] = "git"
+    return out
+
+
+def disp(p):
+    """A path for any output: relative to the current folder when inside it, else the file name."""
+    if p is None:
+        return None
+    q = pathlib.Path(p)
+    try:
+        q = q.resolve()
+        return str(q.relative_to(pathlib.Path.cwd().resolve()))
+    except (ValueError, OSError):
+        return q.name
+
+
+def _newest(paths):
+    t = 0.0
+    for rel in paths:
+        p = ROOT / rel
+        files = [p] if p.is_file() else [f for f in p.rglob("*") if f.is_file() and "target" not in f.parts] if p.is_dir() else []
+        for f in files:
+            t = max(t, f.stat().st_mtime)
+    return t
+
+
+def stale(built, sources):
+    return not built.exists() or built.stat().st_mtime < _newest(sources)
 
 
 def ensure_built(log):
-    """Build the harness and the test token if missing or older than their source."""
-    src_newest = max(p.stat().st_mtime for p in (ROOT / "harness/src").glob("*.rs"))
-    stale = not runner.HARNESS.exists() or runner.HARNESS.stat().st_mtime < src_newest
+    """Build the harness and the test token if missing or older than any of their sources."""
     steps = []
-    if not TOKEN_WASM.exists():
+    if stale(TOKEN_WASM, TOKEN_SOURCES):
         steps.append(("test token", ["cargo", "build", "--release", "--target", "wasm32-unknown-unknown", "-p", "test-token"], ROOT / "contracts"))
-    if stale:
+    if stale(runner.HARNESS, HARNESS_SOURCES):
         steps.append(("harness", ["cargo", "build", "--release"], ROOT / "harness"))
     for what, cmd, cwd in steps:
-        print(f"building the {what} (first run only; a few minutes) ...", flush=True)
-        with open(log, "a") as f:
-            r = subprocess.run(cmd, cwd=cwd, stdout=f, stderr=subprocess.STDOUT)
+        print(f"building the {what} (its sources changed or it was never built; a few minutes) ...", flush=True)
+        try:
+            with open(log, "a") as f:
+                r = subprocess.run(cmd, cwd=cwd, stdout=f, stderr=subprocess.STDOUT)
+        except FileNotFoundError:
+            raise explain.CheckError(f"Building the {what} needs `cargo` (Rust), and it was not found. Install Rust through "
+                                     "rustup (https://rustup.rs), open a new terminal, and run the check again.")
         if r.returncode != 0:
-            raise explain.CheckError(f"Building the {what} failed. Is Rust installed through rustup? The build log is {log}.")
+            raise explain.CheckError(f"Building the {what} failed. Is Rust installed through rustup? The build log is {disp(log)}.")
 
 
 def library():
@@ -88,7 +139,78 @@ def write_attack_file(a, d):
     return p
 
 
+def clear_old_report(out):
+    """Delete everything an earlier run wrote here, before anything else runs."""
+    for name in REPORT_FILES:
+        try:
+            (out / name).unlink()
+        except FileNotFoundError:
+            pass
+    shutil.rmtree(out / "runs", ignore_errors=True)
+
+
+def run_effects(guard, out, timeout=runner.ATTEMPT_TIMEOUT_S):
+    """`arena-harness effects` on its own fresh sandbox. Returns (effects dict or None, why)."""
+    path, log = out / "effects.json", out / "effects.log"
+    cmd = [str(runner.HARNESS), "effects", *guard["harness_flags"], "--out", str(path)]
+    with open(log, "w") as f:
+        p = subprocess.Popen(cmd, cwd=ROOT, stdout=f, stderr=subprocess.STDOUT, start_new_session=True)
+        try:
+            rc = p.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            rc = None
+        finally:
+            try:
+                os.killpg(p.pid, signal.SIGKILL)
+            except (ProcessLookupError, PermissionError):
+                pass
+            p.wait()
+    if rc is None:
+        return None, f"timeout after {timeout}s"
+    if rc != 0 or not path.exists():
+        return None, explain.attempt_error(f"harness exit {rc}", log)
+    return json.loads(path.read_text()), ""
+
+
+def judge_effects(eff, missing):
+    """(owner_methods report, problems, unconfirmed roles)."""
+    report, problems, unconfirmed = {}, [], []
+    for role in A.OWNER_ROLES:
+        e = eff.get(role, {"result": "not-confirmed", "detail": "the effect check did not report this role"})
+        result, detail = e["result"], e["detail"]
+        if role in missing:
+            result, detail = "missing", "the guard has no method for this role"
+        report[role] = {"result": result, "detail": detail}
+        if result in ("no-effect", "wrong-start"):
+            problems.append(f"{role}: {detail}. Either your mapping points {role} at a method that does not do that job, "
+                            f"or your guard's {role} does not work. Arena does not score a guard whose owner methods it cannot set up.")
+        elif result == "not-confirmed":
+            unconfirmed.append(role)
+    return report, problems, unconfirmed
+
+
+def run_attacks(items, guard, out, meta_line, jobs, classify):
+    """Every attack on its own sandbox (runner.run_one), printing each row as it finishes with
+    the FINAL class (held / broke / not-applicable / error ...) in the third column."""
+    results = {}
+    with cf.ThreadPoolExecutor(max_workers=max(1, jobs)) as ex:
+        futs = {ex.submit(runner.run_one, sp, guard, out / "runs", meta_line): aid for sp, aid in items}
+        for fut in cf.as_completed(futs):
+            aid = futs[fut]
+            cell = fut.result()
+            cell["final_status"], cell["na_reasons"], cell["result"] = classify(cell)
+            results[aid] = cell
+            note = "; ".join(cell["na_reasons"]) if cell["final_status"] == A.NOT_APPLICABLE else cell.get("why", "")
+            print(f"  {aid:<44} {guard['id']:<18} {cell['final_status']:<8} {note[:80]}", flush=True)
+    return results
+
+
+def _command(argv):
+    return " ".join(["./arena", "check", *[disp(x) if os.path.isabs(x) else x for x in argv]])
+
+
 def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
     ap = argparse.ArgumentParser(prog="arena check", description="Run Arena's attack library against your guard on a local NEAR sandbox.")
     ap.add_argument("wasm")
     ap.add_argument("--config")
@@ -104,37 +226,59 @@ def main(argv=None):
     t0 = time.time()
     started = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     out = pathlib.Path(a.out).resolve()
-    if out.exists():
-        shutil.rmtree(out / "runs", ignore_errors=True)
-    (out / "runs").mkdir(parents=True, exist_ok=True)
+    R.set_scrub(pathlib.Path.cwd(), ROOT, out)
     rep = {"tool": "arena check", "started_utc": started, "arena": arena_version(), "fail_on": a.fail_on,
-           "status": "not-run", "errors": [], "command": " ".join(["./arena", "check", *(argv if argv is not None else sys.argv[1:])])}
+           "status": "not-run", "errors": [], "command": _command(argv)}
 
     def finish(code):
         rep["finished_utc"] = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         rep["wall_seconds"] = round(time.time() - t0, 1)
-        R.write_all(rep, out)
-        print(R.console(rep, out))
+        try:
+            R.scrub_files(out)
+            R.write_all(rep, out)
+            where = disp(out / "report.html")
+        except OSError as e:
+            where = f"(not written: {e.strerror})"
+            code = 2
+        print(R.scrub(R.console(rep, where)))
         return code
 
     try:
+        try:
+            out.mkdir(parents=True, exist_ok=True)
+            clear_old_report(out)
+            (out / "runs").mkdir(parents=True, exist_ok=True)
+        except OSError as e:
+            print(f"arena: incomplete\n  could not prepare the report folder {disp(out)}: {e.strerror}", flush=True)
+            return 2
+        return _check(a, out, rep, started, finish)
+    except Exception as e:  # anything not foreseen: plain words, exit 2, never a verdict
+        rep["status"] = "not-run"
+        rep["errors"].append(f"Arena itself hit an unexpected error ({type(e).__name__}: {str(e)[:300]}). This says nothing "
+                             "about your guard. Please report it with the traceback in report.json.")
+        rep["traceback"] = traceback.format_exc()[-4000:]
+        return finish(2)
+
+
+def _check(a, out, rep, started, finish):
+    try:
         wasm = pathlib.Path(a.wasm).resolve()
         if not wasm.is_file():
-            raise explain.CheckError(f"{a.wasm}: file not found. Pass the path to your built guard .wasm.")
+            raise explain.CheckError(f"{disp(a.wasm)}: file not found. Pass the path to your built guard .wasm.")
         data = wasm.read_bytes()
         try:
             methods = wasm_exports.methods(data)
         except wasm_exports.WasmError as e:
-            raise explain.CheckError(f"{a.wasm}: {e}. Pass the .wasm your build produced (e.g. target/wasm32-unknown-unknown/release/<name>.wasm).")
+            raise explain.CheckError(f"{disp(a.wasm)}: {e}. Pass the .wasm your build produced (e.g. target/wasm32-unknown-unknown/release/<name>.wasm).")
         label = (a.label or wasm.stem).lower()
         label = "".join(c if c.isalnum() or c in "-_" else "-" for c in label)[:40] or "guard"
-        rep["guard"] = {"wasm": str(wasm), "label": label, "sha256": hashlib.sha256(data).hexdigest(),
+        rep["guard"] = {"wasm": disp(wasm), "label": label, "sha256": hashlib.sha256(data).hexdigest(),
                         "bytes": len(data), "exported_methods": methods}
 
         config = C.check_config(C.load_json(a.config, "config")) if a.config else None
         mapping, source = None, "none needed (names match the interface)"
         if a.mapping:
-            mapping, source = C.check_mapping(C.load_json(a.mapping, "mapping")), f"--mapping {a.mapping}"
+            mapping, source = C.check_mapping(C.load_json(a.mapping, "mapping")), f"--mapping {disp(a.mapping)}"
         resolved, problems = C.resolve(config, mapping, methods)
         if problems and not a.mapping and not a.no_muse:
             print("your guard's method names differ from the interface; asking Muse to PROPOSE a mapping (checked before use) ...", flush=True)
@@ -145,9 +289,11 @@ def main(argv=None):
                 resolved, problems = C.resolve(config, mapping, methods)
             else:
                 problems.append(f"Muse could not supply a usable mapping ({mlog['result']}). Write one by hand: see docs/CHECK-YOUR-GUARD.md.")
-        rep["config"] = {"file": a.config, "name": (config or {}).get("name"), "policy": (config or {}).get("policy")}
+        missing = C.missing_roles(resolved, methods)
+        rep["config"] = {"file": disp(a.config), "name": (config or {}).get("name"), "policy": (config or {}).get("policy")}
         rep["mapping"] = {"source": source, "renamed": C.renamed_roles(resolved), "shapes": resolved["shapes"],
-                          "deposits": resolved["deposits"], "features": resolved["features"], "init": resolved["init"]}
+                          "deposits": resolved["deposits"], "features": resolved["features"], "init": resolved["init"],
+                          "missing_roles": missing}
         if mapping:
             (out / "mapping.json").write_text(json.dumps(mapping, indent=2) + "\n")
         if problems:
@@ -157,47 +303,90 @@ def main(argv=None):
 
         ensure_built(out / "build.log")
         attacks, lib_problems, dups = library()
-        if a.only:
-            attacks = [x for x in attacks if x["meta"]["id"] in set(a.only) | {CONTROL_ID}]
-            rep["only"] = a.only
-        rep["library"] = {"attacks": len(attacks), "problems": lib_problems,
+        # The control (one honest payment) is a preflight, not an attack: never counted as one.
+        rep["library"] = {"attacks": sum(x["meta"]["id"] != CONTROL_ID for x in attacks), "control": CONTROL_ID, "problems": lib_problems,
                           "duplicates_skipped": [[d["meta"]["id"], o["meta"]["id"]] for d, o in dups]}
+        if lib_problems:
+            raise explain.CheckError("Arena's attack library has files it could not load, so this would not be a full check:\n  - "
+                                     + "\n  - ".join(str(p) for p in lib_problems))
+        if not any(x["meta"]["id"] == CONTROL_ID for x in attacks):
+            raise explain.CheckError(f"Arena's attack library has no control attack ({CONTROL_ID}), so the honest-payment preflight cannot run.")
+        if a.only is not None:
+            known = {x["meta"]["id"] for x in attacks}
+            unknown = [i for i in a.only if i not in known]
+            if not a.only or unknown:
+                raise explain.CheckError("--only names attacks the library does not have: " + (", ".join(unknown) or "(none given)")
+                                         + ". Use the ids listed in report.json.")
+            rep["only"] = {"asked": a.only, "of": rep["library"]["attacks"]}
+            attacks = [x for x in attacks if x["meta"]["id"] in set(a.only) | {CONTROL_ID}]
+            rep["only"]["ran"] = sum(x["meta"]["id"] != CONTROL_ID for x in attacks)
         adir = out / "runs" / "attacks"
         adir.mkdir(parents=True, exist_ok=True)
         guard = {"id": label, "harness_flags": ["--wasm", str(wasm), "--wasm-label", label, "--guard-config", str(cfg_path)]}
         meta_line = f"arena check {rep['guard']['sha256'][:16]} arena={rep['arena']['commit'][:12]} {started}"
 
-        # Preflight: one honest payment. A guard that cannot pay honestly would "hold" every attack.
+        # Preflight, two fresh sandboxes at once: one honest payment (a guard that cannot pay
+        # honestly would "hold" every attack), and what each owner method visibly did (a role
+        # mapped to a do-nothing method would make every attack on its rule "hold").
         control = next(x for x in attacks if x["meta"]["id"] == CONTROL_ID)
-        print("preflight: one honest payment on a fresh local sandbox ...", flush=True)
-        cell = runner.run_one(write_attack_file(control, adir), guard, out / "runs", meta_line)
+        print("preflight: one honest payment, and what each owner method does, each on a fresh local sandbox ...", flush=True)
+        with cf.ThreadPoolExecutor(max_workers=2) as ex:
+            f_cell = ex.submit(runner.run_one, write_attack_file(control, adir), guard, out / "runs", meta_line)
+            f_eff = ex.submit(run_effects, guard, out)
+            cell, (eff, eff_why) = f_cell.result(), f_eff.result()
         why = explain.preflight(cell, out, resolved)
         if why:
             rep["preflight"] = {"ok": False, "cell": cell}
             raise explain.CheckError(why)
+        if eff is None:
+            rep["preflight"] = {"ok": False, "effects": eff_why}
+            raise explain.CheckError("Preflight could not look at your guard's owner methods. " + eff_why)
+        owner_methods, eff_problems, unconfirmed = judge_effects(eff, missing)
+        rep["owner_methods"] = owner_methods
+        if eff_problems:
+            rep["preflight"] = {"ok": False, "owner_methods": owner_methods}
+            raise explain.CheckError("Preflight: an owner method had no visible effect:\n  - " + "\n  - ".join(eff_problems))
         rep["preflight"] = {"ok": True, "seconds": cell["seconds"]}
-        print(f"preflight ok ({cell['seconds']} s). Running {len(attacks)} attacks, {a.jobs} at a time ...", flush=True)
 
-        rest = [(write_attack_file(x, adir), x["meta"]["id"], None) for x in attacks if x["meta"]["id"] != CONTROL_ID]
-        matrix = runner.run_matrix(rest, [guard], out / "runs", meta_line, jobs=a.jobs)
-        matrix[CONTROL_ID] = {label: cell}
+        def classify(c):
+            rj = pathlib.Path(c["result_json"]) if c.get("result_json") else None
+            rj = (rj if rj.is_absolute() else ROOT / rj) if rj else None
+            result = json.loads(rj.read_text()) if rj and rj.exists() and c["status"] not in ("error", "skipped") else None
+            st, reasons = A.classify(c["status"], (result or {}).get("steps", []), (result or {}).get("setup"),
+                                     C.ROLES, missing, unconfirmed)
+            return st, reasons, result
+
+        # The honest payment settled (explain.preflight stops the check otherwise). It is shown on
+        # its own line and kept out of every attack count: counting it would let a run in which no
+        # attack applied say "held 1/1".
+        rep["control"] = {"id": CONTROL_ID, "title": control["meta"]["title"], "result": "settled",
+                          "honest_settled": cell.get("honest_settled"), "seconds": cell.get("seconds"),
+                          "log": _rel(cell.get("log"), out), "result_json": _rel(cell.get("result_json"), out)}
+        rest = [(write_attack_file(x, adir), x["meta"]["id"]) for x in attacks if x["meta"]["id"] != CONTROL_ID]
+        print(f"preflight ok: the honest payment settled ({cell['seconds']} s). Running {len(rest)} {'attack' if len(rest) == 1 else 'attacks'}, {a.jobs} at a time ...", flush=True)
+
+        matrix = run_attacks(rest, guard, out, meta_line, a.jobs, classify)
         score_intent = _score_intent()
         intended = json.loads((ROOT / "tools/injection/scenarios.json").read_text())["intended"]
         rows = []
         for x in attacks:
-            c = matrix[x["meta"]["id"]][label]
+            if x["meta"]["id"] == CONTROL_ID:
+                continue
+            c = matrix[x["meta"]["id"]]
             row = {"id": x["meta"]["id"], "title": x["meta"]["title"], "source": x["meta"]["source"],
                    "kind": x["meta"]["kind"], "breaks": x["meta"]["breaks"], "path": x["path"],
-                   "status": c["status"], "why": c.get("why", ""), "beyond_policy": c.get("unauthorised", 0),
+                   "status": c["final_status"], "runner_status": c["status"], "not_applicable_because": c["na_reasons"],
+                   "why": c.get("why", ""), "beyond_policy": c.get("unauthorised", 0),
                    "honest_settled": c.get("honest_settled"), "should_pay": c.get("should_pay"),
                    "seconds": c.get("seconds"), "log": _rel(c.get("log"), out), "result_json": _rel(c.get("result_json"), out),
-                   "has_intent": x["has_intent"], "against_intent": None}
-            rj = ROOT / c["result_json"] if c.get("result_json") and not pathlib.Path(c["result_json"]).is_absolute() else pathlib.Path(c.get("result_json") or "/nonexistent")
-            if rj.exists():
-                r = json.loads(rj.read_text())
+                      "has_intent": x["has_intent"], "against_intent": None, "honest_tried": [], "honest_refused": []}
+            r = c.get("result")
+            if r:
                 row["steps"] = r.get("steps", [])
-                row["final"] = r.get("final", {})
-                if x["has_intent"] and c["status"] in ("held", "broke"):
+                row["final"] = _final(r.get("final", {}))
+                if row["status"] in ("held", "broke"):
+                    row["honest_tried"], row["honest_refused"] = A.honest_refusals(r.get("steps", []), r.get("setup"), r.get("final", {}))
+                if x["has_intent"] and row["status"] in ("held", "broke", A.NOT_APPLICABLE):
                     received = {e["receiver"]: int(e["received"]) for e in r["final"]["received"]}
                     si = score_intent(received, intended)
                     row["against_intent"] = si["wrongful_total"]
@@ -205,24 +394,40 @@ def main(argv=None):
             rows.append(row)
         rep["attacks"] = rows
         rep["intended"] = intended
-        bad = [r for r in rows if r["status"] not in ("held", "broke")]
+        done = ("held", "broke", A.NOT_APPLICABLE)
+        bad = [r for r in rows if r["status"] not in done]
         rep["totals"] = {
             "attacks": len(rows),
-            "ran": len(rows) - len(bad),
+            # "ran" = attacks that really ran against something the guard claims (held + broke).
+            "ran": sum(r["status"] in ("held", "broke") for r in rows),
             "broke": sum(r["status"] == "broke" for r in rows),
             "held": sum(r["status"] == "held" for r in rows),
+            "not_applicable": sum(r["status"] == A.NOT_APPLICABLE for r in rows),
             "errors": len(bad),
-            "beyond_policy": sum(r["beyond_policy"] or 0 for r in rows if r["status"] in ("held", "broke")),
-            "against_intent": sum(r["against_intent"] or 0 for r in rows),
-            "intent_attacks": sum(r["against_intent"] is not None for r in rows),
+            # Both token totals count only attacks that really ran (held or broke). A not-applicable
+            # attack tested nothing the guard claims, so what it paid is shown on its own
+            # (against_intent_not_applicable) and never trips --fail-on.
+            "beyond_policy": sum(int(r["beyond_policy"] or 0) for r in rows if r["status"] in ("held", "broke")),
+            "against_intent": sum(r["against_intent"] or 0 for r in rows if r["status"] in ("held", "broke")),
+            "intent_attacks": sum(r["against_intent"] is not None for r in rows if r["status"] in ("held", "broke")),
+            "against_intent_not_applicable": sum(r["against_intent"] or 0 for r in rows if r["status"] == A.NOT_APPLICABLE),
+            # honest payments the attacks themselves sent (valid invoices the guard should pay), and
+            # how many of them the guard refused for no reason Arena can see (applicable.honest_refusals)
+            "honest_tried": sum(len(r["honest_tried"]) for r in rows),
+            "honest_refused": sum(len(r["honest_refused"]) for r in rows),
             # by who wrote the attack: "hand" = the 5 scenarios in tools/injection/scenarios.json
             # (the README's 450 on vault-a), "paper"/"news" = written by Muse from a paper or news item.
-            "against_intent_by_source": {src: sum(r["against_intent"] or 0 for r in rows if r["source"] == src and r["against_intent"] is not None)
-                                         for src in sorted({r["source"] for r in rows if r["against_intent"] is not None})},
+            "against_intent_by_source": {src: sum(r["against_intent"] or 0 for r in rows if r["source"] == src and r["against_intent"] is not None
+                                                  and r["status"] in ("held", "broke"))
+                                         for src in sorted({r["source"] for r in rows if r["against_intent"] is not None and r["status"] in ("held", "broke")})},
         }
-        rep["status"] = "incomplete" if bad else ("broke" if rep["totals"]["broke"] else "held")
+        t = rep["totals"]
+        rep["status"] = "incomplete" if bad or t["ran"] == 0 else ("broke" if t["broke"] else "held")
+        rep["unconfirmed_roles"] = unconfirmed
         for r in bad:
             rep["errors"].append(f"{r['id']}: {explain.attempt_error(r['why'], out / 'runs' / pathlib.Path(r['log'] or 'x').name)}")
+        if t["ran"] == 0 and not bad:
+            rep["errors"].append("No attack tested a rule your guard claims, so there is nothing to report as held.")
     except (explain.CheckError, C.ConfigError) as e:
         rep["status"] = "not-run"
         rep["errors"].append(str(e))
@@ -231,10 +436,22 @@ def main(argv=None):
     t = rep["totals"]
     if rep["status"] == "incomplete":
         return finish(2)
+    # against-intent is the stricter line: it trips on tokens beyond the rules too (docs say so).
+    # Both totals count only attacks that ran (held or broke): never a not-applicable attack, and
+    # never the honest-payment control, which is not an attack.
     over = (a.fail_on == "beyond-policy" and t["beyond_policy"] > 0) or \
            (a.fail_on == "against-intent" and (t["beyond_policy"] > 0 or t["against_intent"] > 0))
     rep["fail_on_tripped"] = bool(over)
     return finish(1 if over else 0)
+
+
+def _final(f):
+    """The result's final block, with the adapter's internal "Paid-unmapped" said in words."""
+    f = json.loads(json.dumps(f))
+    for s in f.get("invoice_statuses", []):
+        if s.get("status") == "Paid-unmapped":
+            s["status"] = "Paid (not the paid value you chose, so not credited)"
+    return f
 
 
 def _rel(p, out):
@@ -246,8 +463,14 @@ def _rel(p, out):
     try:
         return str(q.resolve().relative_to(out))
     except ValueError:
-        return str(q)
+        return disp(q)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except SystemExit:
+        raise
+    except BaseException as e:  # e.g. Ctrl-C: never exit 1 (1 means "over the fail-on line")
+        print(f"\narena: incomplete\n  stopped: {type(e).__name__}", flush=True)
+        sys.exit(2)

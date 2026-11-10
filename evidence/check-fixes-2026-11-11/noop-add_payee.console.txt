@@ -1,0 +1,12 @@
+$ ./arena check targets/vault-a/vault_a.wasm --mapping evidence/check-fixes-2026-11-11/noop-inputs/noop-add_payee.json --no-muse --out evidence/check-fixes-2026-11-11/noop-add_payee
+preflight: one honest payment, and what each owner method does, each on a fresh local sandbox ...
+
+arena: not run
+  rules the guard claims: all 4 (payees, cancel, expiry, daily_cap)
+
+COULD NOT FINISH:
+  Preflight (one honest payment) could not run. Setup failed at approve_invoice: the owner's `approve_invoice` call for inv-pay failed (receiver is not a payee). Check that your init args put Arena's owner in the owner role ($owner), and the deposits in your mapping. Full log: evidence/check-fixes-2026-11-11/noop-add_payee/runs/scripted-01-control-pay-valid__vault_a.log
+  wall-clock: 11.2 s
+  held means: it held these attacks on a local sandbox; it is not a proof.
+report: evidence/check-fixes-2026-11-11/noop-add_payee/report.html
+exit=2

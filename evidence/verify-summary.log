@@ -4,3 +4,4 @@
 2026-11-10T09:26:48Z mode=full wall_s=946 verify: 43 passed, 0 failed (mode=full)
 2026-11-10T15:59:23Z mode=full wall_s=943 verify: 43 passed, 0 failed (mode=full)
 2026-11-10T16:54:53Z mode=full wall_s=965 verify: 43 passed, 0 failed (mode=full)
+2026-11-10T21:13:57Z mode=fast wall_s=196 verify: 5 passed, 0 failed (mode=fast)

@@ -1,0 +1,69 @@
+/* Arena theme: the one source of truth for the look of every Arena page.
+   Inlined at build time by site/build.mjs (index.html), site/build-lookup.mjs (lookup.html) and
+   tools/hunter/board.py (board.html), so each page stays one standalone file.
+   A Python script can inline it too: read this file and put its text inside a style tag.
+   Rules for this file: plain CSS only. No closing style tag, no imports, no external files. The fonts
+   (Geist, Geist Mono) come from the Google Fonts <link> each page adds in its <head>.
+   The top bar and footer markup comes from site/nav.json. */
+
+/* ---- tokens (light) */
+:root{
+  --bg:#F7F6F3;--card:#FFFFFF;--ink:#2F3437;--muted:#787774;--line:#EAEAEA;
+  --bad-bg:#FDEBEC;--bad:#9F2F2D;--code:#F1F0EC;
+  --sans:"Geist","SF Pro Display","Helvetica Neue",sans-serif;
+  --mono:"Geist Mono","SF Mono","JetBrains Mono",monospace;
+  --radius-card:12px;--radius-btn:6px;--page:1080px
+}
+/* ---- tokens (dark) */
+@media (prefers-color-scheme:dark){:root{
+  --bg:#191918;--card:#202020;--ink:#E6E5E1;--muted:#9B9A97;--line:rgba(255,255,255,.08);
+  --bad-bg:rgba(190,80,70,.16);--bad:#F0A39C;--code:#2A2A28
+}}
+
+/* ---- base */
+*{box-sizing:border-box}
+html{background:var(--bg);scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+a:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--muted);outline-offset:2px}
+code{font:12px var(--mono);background:var(--code);color:var(--ink);padding:1px 5px;border-radius:4px;overflow-wrap:anywhere}
+.wrap{width:min(var(--page),100% - 32px);margin:0 auto}
+.eyebrow{font:500 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.btn{font:500 14px/1 var(--sans);padding:12px 18px;border-radius:var(--radius-btn);text-decoration:none;white-space:nowrap;transition:transform .2s cubic-bezier(.16,1,.3,1)}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:var(--ink);color:var(--bg)}
+.btn.ghost{color:var(--ink);border:1px solid var(--line);background:var(--card)}
+
+/* ---- status words, shared by the board, the lookup and the sample report.
+   broke = the one red accent. held = quiet and neutral (held is not "safe").
+   none = not run / no result, muted. */
+.st{display:inline-block;font:500 11px/1.5 var(--mono);letter-spacing:.04em;padding:1px 8px;border-radius:999px;border:1px solid var(--line);color:var(--ink);background:var(--card);white-space:nowrap}
+.st-broke{color:var(--bad);background:var(--bad-bg);border-color:transparent}
+.st-held{color:var(--ink);background:var(--code);border-color:transparent}
+.st-none{color:var(--muted);background:transparent;border-style:dashed}
+
+/* ---- top bar */
+.topbar{border-bottom:1px solid var(--line);background:var(--bg)}
+.topbar-in{width:min(var(--page),100% - 32px);margin:0 auto;display:flex;align-items:center;gap:8px 28px;min-height:56px;flex-wrap:wrap}
+.topbar .brand{font:600 17px/1 var(--sans);letter-spacing:-.02em;text-decoration:none;color:var(--ink);padding:6px 0;display:inline-flex;align-items:center;gap:8px}
+.brand-mark{width:20px;height:20px;flex:none;display:block}
+.topbar nav{display:flex;flex-wrap:wrap;gap:4px 2px;margin-left:auto}
+.topbar nav a{font:500 13px/1 var(--sans);color:var(--muted);text-decoration:none;padding:8px 10px;border-radius:var(--radius-btn);white-space:nowrap}
+.topbar nav a:hover{color:var(--ink);background:var(--code)}
+.topbar nav a[aria-current="page"]{color:var(--ink);background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}
+@media (max-width:640px){
+  .topbar-in{padding:10px 0 8px;gap:4px 0}
+  .topbar .brand{flex:1 0 100%}
+  .topbar nav{margin-left:-10px;gap:2px 0}
+  .topbar nav a{padding:8px 10px;font-size:12.5px}
+}
+
+/* ---- footer */
+.site-foot{border-top:1px solid var(--line);color:var(--muted);font-size:13px;margin-top:24px}
+.foot-in{width:min(var(--page),100% - 32px);margin:0 auto;padding:28px 0 64px;display:grid;gap:10px}
+.site-foot nav{display:flex;flex-wrap:wrap;gap:4px 18px}
+.site-foot nav a{color:var(--ink);text-decoration:none;font-weight:500}
+.site-foot nav a:hover{text-decoration:underline}
+.site-foot p{margin:0;max-width:70ch}
+
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}

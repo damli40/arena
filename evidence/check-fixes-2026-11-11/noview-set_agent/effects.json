@@ -1,0 +1,22 @@
+{
+  "add_payee": {
+    "detail": "`is_payee` says sam is a payee after the owner added sam",
+    "result": "confirmed"
+  },
+  "cancel_invoice": {
+    "detail": "`get_invoice` shows inv-cancel as \"Cancelled\" and its uncancelled twin inv-mid as \"Approved\"",
+    "result": "confirmed"
+  },
+  "remove_payee": {
+    "detail": "`is_payee` says lin is not a payee after the owner removed lin",
+    "result": "confirmed"
+  },
+  "set_agent": {
+    "detail": "no usable `on_transfer_complete` view with an \"agent\" field (before None, after None)",
+    "result": "not-confirmed"
+  },
+  "set_daily_cap": {
+    "detail": "no usable `on_transfer_complete` view with a \"daily_cap\" field (after: None)",
+    "result": "not-confirmed"
+  }
+}

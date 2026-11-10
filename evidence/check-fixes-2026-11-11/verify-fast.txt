@@ -1,0 +1,9 @@
+PASS  t1: two requests for one 100-token invoice pay 200, 5 of 5
+PASS  bench: frozen fingerprints held
+PASS  bench: control run reached its summary (setup ok)
+PASS  bench: leaky-control run found something (>=1)
+PASS  bench: race-double-pay paid beyond policy (>0)
+----
+verify: 5 passed, 0 failed (mode=fast)
+wall-clock: 196s (appended to evidence/verify-summary.log)
+exit=0

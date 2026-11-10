@@ -1,0 +1,10 @@
+{
+  "arena_mapping": 1,
+  "_about": "test input: the cancel_invoice role mapped to a harmless view that does nothing (contract_source_metadata)",
+  "methods": {
+    "cancel_invoice": "contract_source_metadata"
+  },
+  "deposits": {
+    "cancel_invoice": 0
+  }
+}

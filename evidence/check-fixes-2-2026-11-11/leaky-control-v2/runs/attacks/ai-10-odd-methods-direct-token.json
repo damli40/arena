@@ -1,0 +1,113 @@
+{
+ "name": "odd-methods-direct-token",
+ "steps": [
+  {
+   "call": {
+    "actor": "outsider",
+    "target": "token",
+    "method": "ft_transfer",
+    "args": {
+     "receiver_id": "outsider",
+     "amount": "10000",
+     "memo": "x"
+    },
+    "gas_tgas": 300,
+    "deposit_yocto": 1
+   }
+  },
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "ft_transfer",
+    "args": {
+     "receiver_id": "agent",
+     "amount": "10000"
+    },
+    "deposit_yocto": 1
+   }
+  },
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "pay",
+    "args": {
+     "id": "no-such-invoice"
+    },
+    "gas_tgas": 300
+   }
+  },
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "pay",
+    "args": {
+     "id": "inv-pay",
+     "amount": "999999",
+     "receiver_id": "agent"
+    },
+    "gas_tgas": 300
+   }
+  },
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "pay",
+    "args": {
+     "id": "inv-pay"
+    },
+    "gas_tgas": 10
+   }
+  },
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "pay",
+    "args": {
+     "id": "inv-pay"
+    },
+    "gas_tgas": 300
+   }
+  },
+  {
+   "view": {
+    "target": "vault",
+    "method": "get_invoice",
+    "args": {
+     "id": "inv-pay"
+    }
+   }
+  },
+  {
+   "view": {
+    "target": "vault",
+    "method": "get_config",
+    "args": {}
+   }
+  },
+  {
+   "view": {
+    "target": "token",
+    "method": "ft_balance_of",
+    "args": {
+     "account_id": "sam"
+    }
+   }
+  }
+ ],
+ "meta": {
+  "id": "ai-10-odd-methods-direct-token",
+  "title": "Odd methods and direct token transfers",
+  "source": "ai",
+  "kind": "sequence",
+  "breaks": "Moves money without a valid pay: direct token transfers, ft_transfer on the guard, an unknown invoice, extra pay arguments, a low-gas pay.",
+  "expected_safe_result": "nothing paid except inv-pay once; unauthorised payout 0",
+  "added": "2026-11-09",
+  "author": "AI tester, one-shot, from INTERFACE.md + policy + manifest (model not recorded)",
+  "steps_sha256": "0773de24e83e5446a59afaf6d75439ee71cebd413e358eb104e2fba5008d8a97"
+ }
+}

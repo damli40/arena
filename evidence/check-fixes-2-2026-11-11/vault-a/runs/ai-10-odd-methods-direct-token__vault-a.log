@@ -1,0 +1,60 @@
+
+================ arena run: tester=attempt target=vault-a attempts=1 ================
+TARGET: label=vault-a wasm=targets/vault-a/vault_a.wasm sha256=52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+ADAPTER (fixed translation layer, adapter.rs): file=evidence/check-fixes-2-2026-11-11/vault-a/guard-config.resolved.json init=new features(payees=true, cancel=true, expiry=true, daily_cap=true) renamed=[] shapes=[] deposits={"add_payee": 1, "approve_invoice": 1, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1}
+META: arena check 52a40f3200e313c1 arena=b8d6f5889959 2026-11-10T22:03:08Z
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+
+----- ATTEMPT odd-methods-direct-token (evidence/check-fixes-2-2026-11-11/vault-a/runs/attacks/ai-10-odd-methods-direct-token.json) -----
+ADAPTER init: new({"agent":"dev-20261110220357-19437899717940.test.near","daily_cap":"500","owner":"dev-20261110220357-58940729737816.test.near","token":"dev-20261110220400-61252714526806.test.near"})
+  FORMAT FIX step 0: logical name "outsider" in arg "receiver_id" resolved to dev-20261110220358-99339749312944.test.near
+  step 0 [call] outsider -> 14526806::ft_transfer {"amount":"10000","memo":"x","receiver_id":"dev-20261110220358-99339749312944.test.near"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: Sender and receiver should be different")) }) } })
+  FORMAT FIX step 1: logical name "agent" in arg "receiver_id" resolved to dev-20261110220357-19437899717940.test.near
+  step 1 [call] agent -> 13144821::ft_transfer {"amount":"10000","receiver_id":"dev-20261110220357-19437899717940.test.near"} ok=false outcome=REJECTED-BY-PROTOCOL (no contract code ran) error: Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(DepositWithFunctionCall) })) } }
+  step 2 [call] agent -> 13144821::pay {"id":"no-such-invoice"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice not found")) }) } })
+  FORMAT FIX step 3: logical name "agent" in arg "receiver_id" resolved to dev-20261110220357-19437899717940.test.near
+  step 3 [call] agent -> 13144821::pay {"amount":"999999","id":"inv-pay","receiver_id":"dev-20261110220357-19437899717940.test.near"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-pay","receiver":"dev-20261110220358-37910792793880.test.near","amount":"100"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110220401-29170313144821.test.near","new_owner_id":"dev-20261110220358-37910792793880.test.near","amount":"100","memo":"vault-a invoice inv-pay"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-pay","amount":"100"}]}
+  step 4 [call] agent -> 13144821::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: not enough gas attached to pay safely")) }) } })
+  step 5 [call] agent -> 13144821::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid")) }) } })
+  step 6 [view] 13144821::get_invoice -> {"amount":"100","expires_at_ns":1796940247580490000,"id":"inv-pay","payable_now":false,"receiver":"dev-20261110220358-37910792793880.test.near","status":"Paid"}
+  step 7 [view] 13144821::get_config -> {"agent":"dev-20261110220357-19437899717940.test.near","daily_cap":"500","owner":"dev-20261110220357-58940729737816.test.near","token":"dev-20261110220400-61252714526806.test.near"}
+  FORMAT FIX step 8: logical name "sam" in arg "account_id" resolved to dev-20261110220358-37910792793880.test.near
+  step 8 [view] 14526806::ft_balance_of -> "100"
+SCORE attempt=odd-methods-direct-token scoring=token
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=100    (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794348267580490000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 1/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=4/9 protocol_rejected=1/6 attempts_used=1 target=vault-a
+  result json: evidence/check-fixes-2-2026-11-11/vault-a/runs/ai-10-odd-methods-direct-token__vault-a.result.json
+
+================ SUMMARY tester=attempt target=vault-a ================
+  target wasm sha256=52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1
+  odd-methods-direct-token     unauthorised=0      honest_settled=1/3 protocol_rejected=1/6
+  attempts=1 attempts_found_something=0 tester=attempt target=vault-a
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).

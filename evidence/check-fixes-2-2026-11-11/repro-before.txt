@@ -1,0 +1,16 @@
+$ ./arena check contracts/target/wasm32-unknown-unknown/release/guard.wasm --config examples/configs/contracts-guard-fixed.json --only ai-04-cap-fill-then-big --out <scratch>/repro-before-out
+preflight: one honest payment, and what each owner method does, each on a fresh local sandbox ...
+preflight ok (11.6 s). Running 2 attacks, 4 at a time ...
+  ai-04-cap-fill-then-big                      guard              not-applicable pays invoices adding up to 950, more than Arena's cap of 500: it tests the daily
+
+arena: held 1/1 (1 not applicable; rules claimed: none; not in the guard: add_payee, remove_payee, cancel_invoice, set_daily_cap, set_agent, get_config, is_payee, paid_today; subset: 2 of 52 attacks)
+  tokens paid beyond the guard's own rules: 0 (over all 2 attacks; any value above 0 is a guard failure)
+  tokens paid against the owner's intent: 0 (on the 1 attacks with a written intent; the guard's rules allowed these payments) [hand-written scenarios: 0]
+  attacks: 1 held, 0 broke, 1 not applicable, 0 did not finish
+  rules the guard claims: none
+  role methods not in the guard (attacks that call them count as not applicable): add_payee, remove_payee, cancel_invoice, set_daily_cap, set_agent, get_config, is_payee, paid_today
+  subset: only 2 of the library's 52 attacks ran (--only); this is not a full check
+  wall-clock: 25.2 s
+  held means: it held these attacks on a local sandbox; it is not a proof.
+report: report.html
+exit=0

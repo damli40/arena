@@ -1,11 +1,15 @@
 // Builds site/index.html: the Arena results page with Fig 1, a live replay of real runs.
 //   node site/build.mjs            (needs the anatomy kit; set ANATOMY_KIT or install the skill)
+// It also rebuilds site/lookup.html (site/build-lookup.mjs). The look comes from site/theme.css and
+// the top bar from site/nav.json, shared with tools/hunter/board.py. Optional: ARENA_REPO_URL.
 // Every number on the page is read from evidence/ at build time. Nothing is typed in by hand
 // except the plain-English labels. The figure is drawn with the anatomy kit (MIT, (c) 2026 Ryan).
-import { readFileSync, writeFileSync, readdirSync } from "node:fs";
+import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { homedir } from "node:os";
+import { themeCss, topbar, footer, FONTS, FAVICON } from "./chrome.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, "..");
@@ -108,13 +112,97 @@ const inj = injection();
 const injWrong = inj.reduce((a, r) => a + r.wrong.reduce((b, [, v]) => b + v, 0), 0);
 const injPolicy = inj.reduce((a, r) => a + r.policy, 0);
 const totalTests = ["A", "B", "C"].reduce((a, g) => a + cov[g].rows.length, 0);
+// The rows are not all the same kind (evidence/coverage-table.md): the "00 control" rows are honest
+// payments (claim "utility"), a row marked "not claimed" is a stress test of a rule the guard never
+// promised, and every other row tests a rule the guard wrote down. Counted apart, never added up.
+const kindOf = (r) => (/^utility$/i.test(r.claim) ? "honest" : /not claimed/i.test(r.test) ? "stress" : "claimed");
+const covCount = (G, kind, held) => cov[G].rows.filter((r) => kindOf(r) === kind && (!held || /\*\*held\*\*/.test(r.result))).length;
+const sumG = (kind, held) => ["A", "B", "C"].reduce((a, G) => a + covCount(G, kind, held), 0);
+const claimedTests = sumG("claimed"), claimedHeld = sumG("claimed", true);
+const stressTests = sumG("stress"), stressHeld = sumG("stress", true);
+const honestPays = sumG("honest");
+const honestSettled = ["A", "B", "C"].reduce((a, G) => a + cov[G].rows.filter((r) => kindOf(r) === "honest" && /settled|paid/.test(r.result)).length, 0);
+const stressGuards = ["A", "B", "C"].filter((G) => covCount(G, "stress") > 0);
 const flawT = scenarios[0];
 // The 500: z3's worst single run under the broad rules, replayed on the local test chain (evidence/proofs-2026-11-10.md).
 const cross = readFileSync(ev("proofs-2026-11-10/crosscheck.sh.out"), "utf8").match(/RESULT crosscheck .*against_intent=(\d+) beyond_policy=(\d+) .*-> MATCH/);
 const worst = cross ? Number(cross[1]) : NaN, worstPolicy = cross ? Number(cross[2]) : NaN;
 const injMaxRun = Math.max(...inj.map((r) => r.wrong.reduce((b, [, v]) => b + v, 0)));
-if (worst !== 500 || worstPolicy !== 0 || injMaxRun !== 200 || injWrong !== 450 || injPolicy !== 0 || totalTests !== 33 || flawT.paid !== 200 || scenarios[1].paid !== 100 || scenarios[0].trials.length !== 5 || scenarios[1].trials.length !== 5 || scenarios[0].trials.some((v) => v !== 200) || scenarios[1].trials.some((v) => v !== 100))
-  throw new Error(`evidence changed: worst=${worst} worstPolicy=${worstPolicy} maxRun=${injMaxRun} wrong=${injWrong} policy=${injPolicy} tests=${totalTests} flaw=${flawT.paid}; update the words on the page`);
+if (worst !== 500 || worstPolicy !== 0 || injMaxRun !== 200 || injWrong !== 450 || injPolicy !== 0 || totalTests !== 33 || claimedTests !== 29 || claimedHeld !== claimedTests || stressTests !== 1 || stressHeld !== 1 || honestPays !== 3 || honestSettled !== 3 || claimedTests + stressTests + honestPays !== totalTests || flawT.paid !== 200 || scenarios[1].paid !== 100 || scenarios[0].trials.length !== 5 || scenarios[1].trials.length !== 5 || scenarios[0].trials.some((v) => v !== 200) || scenarios[1].trials.some((v) => v !== 100))
+  throw new Error(`evidence changed: worst=${worst} worstPolicy=${worstPolicy} maxRun=${injMaxRun} wrong=${injWrong} policy=${injPolicy} tests=${totalTests} claimed=${claimedHeld}/${claimedTests} stress=${stressHeld}/${stressTests} honest=${honestSettled}/${honestPays} flaw=${flawT.paid}; update the words on the page`);
+
+// ---------------------------------------------------------------- "Test your own guard" data
+// The board (site/board-data.json, written by tools/hunter/board.py) gives the counts for the links
+// under the hero. The attack count for `arena check` is the size of the attack library less the honest-payment
+// control (a preflight, not an attack), counted by
+// the same code `arena check` uses (tools/hunter/catalog.py). If Python cannot run here, fall back to
+// the board's attack count and say "on the board" instead of "in the library".
+const boardData = JSON.parse(readFileSync(join(HERE, "board-data.json"), "utf8"));
+const boardGuards = boardData.guards.filter((g) => g.runnable);
+const boardAttacks = boardData.attacks.length;
+let libraryAttacks = null;
+{
+  const r = spawnSync("python3", ["-I", "-c", "import sys; sys.path.insert(0, sys.argv[1]); import catalog; a, p = catalog.load(); u, d = catalog.unique(a); print(sum(x['meta']['id'] != 'scripted-01-control-pay-valid' for x in u) if not p else -1)", join(ROOT, "tools/hunter")], { encoding: "utf8", cwd: ROOT });
+  const n = Number((r.stdout || "").trim());
+  if (r.status === 0 && Number.isInteger(n) && n > 0) libraryAttacks = n;
+}
+const checkCount = libraryAttacks ?? boardAttacks;
+const checkWhere = libraryAttacks != null ? "in Arena's library" : "on the board";
+
+// ARENA_REPO_URL (a plain https URL) turns doc and file names into links into the repo, at
+// ARENA_REPO_REF (default main). Unset, they stay plain code-font paths, never dead links.
+// Same rules as tools/check/report.py receipt_link().
+const REPO = (() => {
+  const base = (process.env.ARENA_REPO_URL || "").replace(/\/+$/, "");
+  const ref = process.env.ARENA_REPO_REF || "main";
+  if (!base) return null;
+  if (!/^https:\/\/[A-Za-z0-9.-]+(\/[A-Za-z0-9._~-]+)*$/.test(base) || !/^([0-9a-f]{7,40}|[A-Za-z0-9][A-Za-z0-9._-]{0,99})$/.test(ref) || ref.includes(".."))
+    throw new Error("ARENA_REPO_URL must be a plain https URL and ARENA_REPO_REF a commit id or simple branch name");
+  return { base, ref };
+})();
+const repoPath = (p) => REPO ? `<a href="${esc(`${REPO.base}/blob/${REPO.ref}/${p}`)}" rel="noopener"><code>${esc(p)}</code></a>` : `<code>${esc(p)}</code>`;
+
+// Demo GIF: shown only if the file exists at build time. Nothing is rendered otherwise.
+const GIF = "img/arena-check.gif";
+const gifHtml = existsSync(join(HERE, GIF))
+  ? `<figure class="check-gif"><img src="${GIF}" alt="A terminal running ./arena check on a guard. Attacks run one by one, then the report card shows how many held and how many broke." loading="lazy"></figure>`
+  : "";
+
+// Sample report: a real report.json from an `arena check` run. Shown only if the file exists.
+// The report format is still changing, so every field is read defensively and anything missing is
+// left out. Fields read: status, totals.ran, totals.held, totals.broke, totals.not_applicable,
+// totals.beyond_policy, guard.label, finished_utc. Nothing here is typed in by hand.
+const SAMPLE_REPORT = "evidence/check-fixes-2-2026-11-11/leaky-control-v2/report.json";
+function sampleReport() {
+  let r;
+  try { r = JSON.parse(readFileSync(join(ROOT, SAMPLE_REPORT), "utf8")); } catch { return ""; }
+  const t = r && typeof r.totals === "object" && r.totals ? r.totals : {};
+  const num = (v) => (typeof v === "number" && Number.isFinite(v) ? v : null);
+  const ran = num(t.ran), held = num(t.held), broke = num(t.broke), na = num(t.not_applicable), beyond = num(t.beyond_policy);
+  if (ran == null && held == null && broke == null) return "";
+  const stats = [
+    ran != null && [ran, "attacks ran", ""],
+    held != null && [held, "held", ""],
+    broke != null && [broke, "broke", broke > 0 ? " bad" : ""],
+    beyond != null && [beyond, "tokens paid beyond policy", beyond > 0 ? " bad" : ""],
+  ].filter(Boolean).map(([n, k, c]) => `<div class="s${c}"><div class="n">${n}</div><div class="k">${esc(k)}</div></div>`).join("");
+  const status = typeof r.status === "string" ? r.status : null;
+  const label = r.guard && typeof r.guard.label === "string" ? r.guard.label : null;
+  const role = label ? (boardData.guards.find((g) => g.id === label) || {}).role : null;
+  const roleWords = { "positive-control": "our guard that is leaky on purpose", "negative-control": "our fixed control guard", subject: "a guard on the board" }[role];
+  const date = typeof r.finished_utc === "string" && /^\d{4}-\d\d-\d\d/.test(r.finished_utc) ? r.finished_utc.slice(0, 10) : null;
+  const about = [
+    label ? `Guard: ${roleWords ? `${esc(roleWords)} (<code>${esc(label)}</code>)` : `<code>${esc(label)}</code>`}.` : "",
+    date ? `Finished ${esc(date)}.` : "",
+    na != null ? `${na} ${na === 1 ? "attack" : "attacks"} did not apply to it.` : "",
+  ].filter(Boolean).join(" ");
+  return `<div class="card sample">
+    <div class="sample-top"><span class="eyebrow">Sample report card</span>${status ? `<span class="st ${status === "broke" ? "st-broke" : status === "held" ? "st-held" : "st-none"}">${esc(status)}</span>` : ""}</div>
+    <div class="sample-nums">${stats}</div>
+    ${about ? `<p class="small">${about} From ${repoPath(SAMPLE_REPORT)}.</p>` : ""}
+  </div>`;
+}
+const sampleHtml = sampleReport();
 
 // ---------------------------------------------------------------- figure geometry
 const W = 760, H = 430;
@@ -447,7 +535,7 @@ const plate = k.plateHtml({
 const guardMeta = { A: "Invoice payer with a payee list and a daily cap", B: "Native-NEAR vault with caps, approvals and a pause switch", C: "Company treasury with a bill pot and a profit pot" };
 const guardRows = ["A", "B", "C"].map((G) => `
   <details class="guard">
-    <summary><span class="g-letter">${G}</span><span class="g-what">${esc(guardMeta[G])}</span><span class="g-n">${cov[G].rows.length}/${cov[G].rows.length}</span></summary>
+    <summary><span class="g-letter">${G}</span><span class="g-what">${esc(guardMeta[G])}</span><span class="g-n">${covCount(G, "claimed", true)}/${covCount(G, "claimed")}</span></summary>
     <div class="card"><table><thead><tr><th>Test</th><th>What we tried</th><th>Result</th><th>Paid (limit)</th></tr></thead><tbody>
     ${cov[G].rows.map((r) => `<tr><td>${md(r.test)}</td><td>${md(r.tried)}</td><td>${md(r.result)}</td><td class="num">${md(r.paid)}</td></tr>`).join("")}
     </tbody></table></div>
@@ -458,17 +546,12 @@ const injRows = inj.map((r) => `<tr><td>${esc(r.scenario)}</td><td class="num${r
 
 const page = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Arena</title>
+${FAVICON}
 <meta name="description" content="Arena tests the guards that stop AI agents overspending on NEAR, and scores them from final token balances.">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+${FONTS}
 <style>${k.ISO_CSS}
-:root{--bg:#F7F6F3;--card:#FFFFFF;--ink:#2F3437;--muted:#787774;--line:#EAEAEA;--bad-bg:#FDEBEC;--bad:#9F2F2D;--code:#F1F0EC;--sans:"Geist","SF Pro Display","Helvetica Neue",sans-serif;--mono:"Geist Mono","SF Mono","JetBrains Mono",monospace}
-@media (prefers-color-scheme:dark){:root{--bg:#191918;--card:#202020;--ink:#E6E5E1;--muted:#9B9A97;--line:rgba(255,255,255,.08);--bad-bg:rgba(190,80,70,.16);--bad:#F0A39C;--code:#2A2A28}}
-*{box-sizing:border-box}html{background:var(--bg);scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+${themeCss()}
 body.iso{--anatomy-page:var(--bg);--anatomy-card:var(--card);--anatomy-text:var(--ink);--anatomy-mono:var(--mono)}
-.wrap{width:min(1080px,100% - 32px);margin:0 auto}
-.eyebrow{font:500 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 h1{font:600 clamp(36px,5.4vw,58px)/1.04 var(--sans);letter-spacing:-.035em;margin:16px 0 18px;max-width:15ch;text-wrap:balance}
 h2{font:600 28px/1.15 var(--sans);letter-spacing:-.025em;margin:0 0 10px}
 .sub{color:var(--muted);max-width:56ch;margin:0 0 28px}
@@ -476,10 +559,6 @@ h2{font:600 28px/1.15 var(--sans);letter-spacing:-.025em;margin:0 0 10px}
 .hero{display:grid;grid-template-columns:1.15fr 1fr;gap:56px;align-items:center;padding:72px 0 64px}
 .lede{font-size:17px;max-width:40ch;margin:0 0 28px}
 .ctas{display:flex;gap:10px;flex-wrap:wrap}
-.btn{font:500 14px/1 var(--sans);padding:12px 18px;border-radius:6px;text-decoration:none;white-space:nowrap;transition:transform .2s cubic-bezier(.16,1,.3,1)}
-.btn:active{transform:scale(.98)}
-.btn.primary{background:var(--ink);color:var(--bg)}
-.btn.ghost{color:var(--ink);border:1px solid var(--line);background:var(--card)}
 .contrast{display:grid;grid-template-rows:auto auto;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card)}
 .contrast > div{padding:28px 30px}
 .contrast .n{font:500 64px/1 var(--sans);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
@@ -515,7 +594,6 @@ th{font:500 10.5px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase
 td{padding:11px 12px;vertical-align:top}
 tbody tr + tr td{border-top:1px solid var(--line)}
 td.num{font-variant-numeric:tabular-nums;white-space:nowrap}td.bad{color:var(--bad);font-weight:500}
-code{font:12px var(--mono);background:var(--code);color:var(--ink);padding:1px 5px;border-radius:4px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 6px;overflow-x:auto}
 .small{font-size:13px;color:var(--muted);margin:12px 0 0}
 details.guard{border-bottom:1px solid var(--line)}
@@ -525,15 +603,38 @@ details.guard summary::after{content:"+";font:400 20px/1 var(--mono);color:var(-
 details.guard[open] summary::after{content:"\\2212"}
 details.guard[open] .card{margin-bottom:20px}
 .g-letter{font:600 28px/1 var(--sans);letter-spacing:-.03em}.g-what{color:var(--muted)}.g-n{font:500 14px var(--mono)}
-.run{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+.run{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}.run.solo{grid-template-columns:1fr}
 pre{font:12.5px/1.8 var(--mono);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px 18px;overflow-x:auto;margin:0}
 ul.limits{padding:0;margin:0;list-style:none}ul.limits li{padding:10px 0}ul.limits li + li{border-top:1px solid var(--line)}
-footer{padding:32px 0 72px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+/* links under the hero: rows, in the same language as the guard list */
+.paths{margin:0;border-top:1px solid var(--line)}
+.paths a:last-child{border-bottom:0}
+.paths a{display:grid;grid-template-columns:220px 1fr 24px;gap:16px;align-items:baseline;padding:18px 4px;border-bottom:1px solid var(--line);text-decoration:none}
+.paths .p-k{font:600 17px/1.3 var(--sans);letter-spacing:-.015em}
+.paths .p-d{color:var(--muted)}
+.paths .p-go{font:400 18px/1 var(--mono);color:var(--muted);text-align:right;transition:transform .2s cubic-bezier(.16,1,.3,1)}
+.paths a:hover .p-go{transform:translateX(3px);color:var(--ink)}
+.paths a:hover .p-k{text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+/* test your own guard */
+.mini{font:500 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:28px 0 10px}
+.check-cmd{font-size:14px;margin:0 0 4px}
+ul.guides{list-style:none;margin:0;padding:0}ul.guides li{padding:8px 0}ul.guides li + li{border-top:1px solid var(--line)}
+ul.guides span{display:block;color:var(--muted);font-size:13.5px}
+.check-gif{margin:0 0 16px}.check-gif img{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:var(--radius-card)}
+.card.sample{padding:20px 22px}
+.sample-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+.sample-nums{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.sample-nums .s{background:var(--card);padding:14px 14px 12px}
+.sample-nums .n{font:500 32px/1 var(--sans);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.sample-nums .k{font:500 10.5px/1.35 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+.sample-nums .s.bad{background:var(--bad-bg)}.sample-nums .s.bad .n,.sample-nums .s.bad .k{color:var(--bad)}
+.site-foot code{font-size:11.5px}
 .reveal{opacity:0;transform:translateY(12px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)}.reveal.on{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal{opacity:1;transform:none;transition:none}ol.log li{animation:none}}
-@media (max-width:768px){.callouts{display:none}.callout-list{display:block;margin:10px 0 0;padding-left:20px;font-size:13px;color:var(--muted)}.callout-list b{color:var(--ink);font-weight:500}.hero,.split,.run{grid-template-columns:1fr;gap:28px}.hero{padding:48px 0 40px}.contrast .n{font-size:48px}.tabs button{flex:1 1 45%}details.guard summary{grid-template-columns:32px 1fr auto 18px;gap:10px}.g-letter{font-size:22px}section{padding:48px 0}}
+@media (max-width:768px){.callouts{display:none}.callout-list{display:block;margin:10px 0 0;padding-left:20px;font-size:13px;color:var(--muted)}.callout-list b{color:var(--ink);font-weight:500}.hero,.split,.run{grid-template-columns:1fr;gap:28px}.hero{padding:48px 0 40px}.contrast .n{font-size:48px}.tabs button{flex:1 1 45%}details.guard summary{grid-template-columns:32px 1fr auto 18px;gap:10px}.g-letter{font-size:22px}section{padding:48px 0}.paths a{grid-template-columns:1fr 18px;gap:4px 12px}.paths .p-d{grid-column:1;grid-row:2;font-size:14px}.paths .p-go{grid-row:1/3;grid-column:2;align-self:center}.sample-nums{grid-template-columns:1fr 1fr}}
 </style></head>
 <body class="iso" data-theme="light">
+${topbar("results")}
 <div class="wrap">
 <header class="hero">
   <div>
@@ -547,9 +648,15 @@ footer{padding:32px 0 72px;border-top:1px solid var(--line);color:var(--muted);f
       <div><div class="n">${worstPolicy}</div><div class="k">tokens paid beyond policy</div><div class="note">Every guard rule held.</div></div>
       <div class="bad"><div class="n">${worst}</div><div class="k">tokens paid against the owner's intent</div><div class="note">In one run: the worst case our proof tool (z3) found, replayed twice on a local test chain.</div></div>
     </div>
-    <div class="held">${totalTests}/${totalTests} tests held across three teams' guards</div>
+    <div class="held">${claimedHeld}/${claimedTests} tests of their own rules held, on three teams' guards</div>
   </div>
 </header>
+
+<nav class="paths" aria-label="More in Arena">
+  <a href="board.html"><span class="p-k">Results board</span><span class="p-d">Every attack against every guard, with the latest result. ${boardAttacks} attacks, ${boardGuards.length} guards.</span><span class="p-go" aria-hidden="true">&rarr;</span></a>
+  <a href="lookup.html"><span class="p-k">Look up a guard</span><span class="p-d">Type a guard's account on NEAR testnet. See what Arena tested.</span><span class="p-go" aria-hidden="true">&rarr;</span></a>
+  <a href="#check"><span class="p-k">Test your own guard</span><span class="p-d">One command runs all ${checkCount} attacks against your guard, on your own machine.</span><span class="p-go" aria-hidden="true">&rarr;</span></a>
+</nav>
 
 <section id="replay" class="reveal">
   <h2>Two keys, one invoice</h2>
@@ -577,9 +684,27 @@ footer{padding:32px 0 72px;border-top:1px solid var(--line);color:var(--muted);f
 </section>
 
 <section class="reveal">
-  <h2>Three teams' guards, ${totalTests} of ${totalTests} held</h2>
-  <p class="sub">Each guard was tested only against its own written claims. Named by letter.</p>
+  <h2>Three teams' guards: ${claimedHeld} of ${claimedTests} held</h2>
+  <p class="sub">We tested each guard against the rules it wrote down: ${claimedTests} tests, ${claimedHeld} held. We also ran ${stressTests} stress test on a rule Guard ${stressGuards.join(", ")} never promised (it held), and ${honestPays} normal payments, one per guard, to check each guard works (all ${honestSettled} went through). Guards are named by letter.</p>
   ${guardRows}
+</section>
+
+<section id="check" class="reveal">
+  <div class="run${gifHtml || sampleHtml ? "" : " solo"}">
+    <div>
+      <h2>Test your own guard</h2>
+      <p class="sub">One command runs all ${checkCount} attacks ${checkWhere} against your guard. It runs on a local NEAR sandbox, a private copy of NEAR on your own machine, and writes a report card.</p>
+<pre class="check-cmd">./arena check my_guard.wasm</pre>
+      <div class="mini">On every pull request</div>
+      <p class="sub" style="margin:0">A GitHub Action runs the same check on every pull request. Start from ${repoPath("examples/workflows/arena-check.yml")}. It has not run on GitHub yet.</p>
+      <div class="mini">Guides</div>
+      <ul class="guides">
+        <li>${repoPath("docs/CHECK-YOUR-GUARD.md")}<span>How to test your guard and read the report card.</span></li>
+        <li>${repoPath("docs/CHECK-BEFORE-YOU-PAY.md")}<span>How to look up a guard before you pay it.</span></li>
+      </ul>
+    </div>
+    ${gifHtml || sampleHtml ? `<div>${gifHtml}${sampleHtml}</div>` : ""}
+  </div>
 </section>
 
 <section id="run" class="reveal">
@@ -602,17 +727,22 @@ python3 -I tools/injection/rescore.py</pre>
   <h2>Limits</h2>
   <ul class="limits">
     <li>Only our planted flaw and its fix ran on testnet, both on the current build (<code>0382023b…</code>, Nov 10). The <code>reconcile</code> fix itself was not tested on testnet, because the race never reaches it. The three teams' guards ran on a local sandbox.</li>
-    <li>${totalTests}/${totalTests} means each guard kept its own claims. It is not a security proof.</li>
+    <li>${claimedHeld}/${claimedTests} means each guard kept the rules it wrote down, in these tests. It is not a security proof.</li>
     <li>The ${injWrong} is five scripted runs added up. The ${worst} is one run: the worst case our proof tool (z3) found, replayed on a local test chain. Neither came from the real model.</li>
     <li>Anyone can look up our results on NEAR testnet. The broken and fixed guards share one code fingerprint, so a lookup must also read the guard's mode.</li>
     <li>Races were tested with both calls in the same block only.</li>
   </ul>
 </section>
 
-<footer>Numbers are read from <code>evidence/</code> at build time. Fig 1 uses the anatomy kit (MIT, © 2026 Ryan).</footer>
 </div>
+${footer("Numbers are read from <code>evidence/</code> at build time. Fig 1 uses the anatomy kit (MIT, © 2026 Ryan).")}
 <script type="module">${(kitScript() + live).replace(/<\/(script)/gi, "<\\/$1")}</script>
 </body></html>`;
 
+if (/\/Users\/|\/home\//.test(page)) throw new Error("site/index.html would contain an absolute local path");
 writeFileSync(join(HERE, "index.html"), page);
-console.log(`wrote site/index.html (${(page.length / 1024).toFixed(0)} KB): ${scenarios.length} runs, ${totalTests} guard tests, ${worst} against intent in one run, ${injWrong} over five runs`);
+// lookup.html shares the theme and top bar; rebuild it too so the pages never drift apart.
+const { buildLookup } = await import("./build-lookup.mjs");
+buildLookup();
+console.log("wrote site/lookup.html and copied the lookup modules");
+console.log(`wrote site/index.html (${(page.length / 1024).toFixed(0)} KB): ${scenarios.length} runs, ${claimedHeld}/${claimedTests} guard tests held (+${stressTests} stress, ${honestPays} honest payments), ${worst} against intent in one run, ${injWrong} over five runs`);

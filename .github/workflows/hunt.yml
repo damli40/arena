@@ -14,13 +14,23 @@
 #
 # Needs one repository secret: MUSE_API_KEY. ELFA_API_KEY is optional: without it the news source is
 # skipped with a log line and the paper hunt still runs. Each news hunt makes at most 2 Elfa calls
-# (about 5 credits each; the free tier fails closed and never bills). All logic is in tools/hunter/ci-steps.sh
+# (about 5 credits each; the free tier fails closed and never bills). The schedule below runs 4 news
+# hunts a day (one with papers, three news-only), so at most 8 Elfa calls, about 40 credits, a day.
+#
+# Schedule, chosen to be quick without wasting runs:
+#   01:17 UTC  papers + news. arXiv releases new papers at 20:00 US Eastern: 01:00 UTC in winter,
+#              00:00 UTC in summer, so this run is the first one after each release.
+#   07:17, 13:17, 19:17 UTC  news only (posts arrive all day; papers do not). A news-only run with
+#              no new news item does not call Muse and does not start the canary's sandboxes. All logic is in tools/hunter/ci-steps.sh
 # (tools/hunter/ci-local.sh runs the same steps locally and fails if this file drifts).
 name: paper-hunt
 
 on:
   schedule:
-    - cron: "17 5 * * *"   # daily, 05:17 UTC
+    - cron: "17 1 * * *"    # papers + news, just after arXiv's daily release
+    - cron: "17 7 * * *"    # news only
+    - cron: "17 13 * * *"   # news only
+    - cron: "17 19 * * *"   # news only
   workflow_dispatch:
     inputs:
       days:
@@ -87,7 +97,8 @@ jobs:
           HUNT_DAYS: ${{ inputs.days || '7' }}
           HUNT_MAX_PAPERS: ${{ inputs.max_papers || '5' }}
           HUNT_PAPER: ${{ inputs.paper || '' }}
-          HUNT_SOURCE: ${{ inputs.source || 'all' }}
+          # A scheduled run picks its source from its cron line; a manual run uses its input.
+          HUNT_SOURCE: ${{ github.event_name == 'schedule' && (github.event.schedule == '17 1 * * *' && 'all' || 'news') || inputs.source || 'all' }}
           HUNT_JOBS: "4"
         run: bash tools/hunter/ci-steps.sh hunt
 

@@ -1,0 +1,10 @@
+{
+ "arena_mapping": 1,
+ "_about": "test input: the add_payee role mapped to a harmless view that does nothing (contract_source_metadata)",
+ "methods": {
+  "add_payee": "contract_source_metadata"
+ },
+ "deposits": {
+  "add_payee": 0
+ }
+}

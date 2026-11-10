@@ -1,0 +1,24 @@
+EFFECTS target=guard-fixed (file=evidence/check-fixes-2026-11-11/guard-fixed/guard-config.resolved.json init=new features(payees=false, cancel=false, expiry=false, daily_cap=false) renamed=[] shapes=[] deposits={"add_payee": 1, "approve_invoice": 0, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1})
+ADAPTER init: new({"agent":"dev-20261110210208-71563887699414.test.near","mode":"fixed","owner":"dev-20261110210208-36867613937025.test.near","token":"dev-20261110210211-87918208858176.test.near"})
+{
+  "add_payee": {
+    "detail": "the guard does not claim a payee list",
+    "result": "not-claimed"
+  },
+  "cancel_invoice": {
+    "detail": "the guard does not claim cancel",
+    "result": "not-claimed"
+  },
+  "remove_payee": {
+    "detail": "the guard does not claim a payee list",
+    "result": "not-claimed"
+  },
+  "set_agent": {
+    "detail": "the owner's call to it failed: [ExecutionOutcome { transaction_hash: 8syxq2QsuwozvSZW13KJPtCGA1rou5aGpRgJFW9RVBfA, block_hash: Hzb6d2JH7KTFnsZ3QzccF9c7VdSSwq5zSVibp6F8trTi, logs: [], receipt_ids: [CydFh3hbDs6vbrfPghF9d4gw3nTkTFHPFBvMyNkTUZSe, EU97ETvLHxjPsrDSznRTrbetjZb3derwiqcLmjFPMjUV], gas_burnt: NearGas { inner: 888207071644 }, tokens_burnt: NearToken { inner: 88820707164400000000 }, executor_id: AccountId(\"dev-202611102102",
+    "result": "not-confirmed"
+  },
+  "set_daily_cap": {
+    "detail": "the guard does not claim a daily cap",
+    "result": "not-claimed"
+  }
+}

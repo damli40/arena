@@ -8,7 +8,7 @@ import re
 
 MAX_WASM_BYTES = 8 * 1024 * 1024
 MAX_EXPORTS = 2000
-NAME_RE = re.compile(r"^[a-z_][a-z0-9_]{0,63}$")
+NAME_RE = re.compile(r"[a-z_][a-z0-9_]{0,63}")  # fullmatch only
 
 
 class WasmError(ValueError):
@@ -56,8 +56,12 @@ def exports(data):
                     raise WasmError("export name runs past its section")
                 name = data[j:j + ln].decode("utf-8", errors="replace")
                 j += ln
+                if j >= end:
+                    raise WasmError("export entry runs past its section")
                 kind = data[j]
                 _, j = _leb(data, j + 1)
+                if j > end:
+                    raise WasmError("export entry runs past its section")
                 if kind == 0:
                     names.append(name)
         i = end
@@ -67,7 +71,7 @@ def exports(data):
 def methods(data):
     """Exported functions that look like NEAR methods (lowercase names; drops wasm internals
     such as `memory` or names a caller could not type)."""
-    return [n for n in exports(data) if NAME_RE.match(n)]
+    return [n for n in exports(data) if NAME_RE.fullmatch(n)]
 
 
 if __name__ == "__main__":

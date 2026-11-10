@@ -1,0 +1,508 @@
+{
+ "fetched_utc": "2026-11-10T21:33:33Z",
+ "source": "arXiv API, the hunter's own query (tools/hunter/arxiv.py search_recent(7))",
+ "returned": 100,
+ "within_7_days": 100,
+ "papers": [
+  {
+   "arxiv_id": "2611.12865v1",
+   "published": "2026-11-09T18:52:20Z",
+   "relevance": 4
+  },
+  {
+   "arxiv_id": "2611.12799v1",
+   "published": "2026-11-09T18:07:42Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.12705v1",
+   "published": "2026-11-09T17:00:16Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.12703v1",
+   "published": "2026-11-09T16:58:25Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.12636v1",
+   "published": "2026-11-09T16:13:20Z",
+   "relevance": 8
+  },
+  {
+   "arxiv_id": "2611.12622v1",
+   "published": "2026-11-09T16:04:21Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.12572v1",
+   "published": "2026-11-09T15:32:40Z",
+   "relevance": 6
+  },
+  {
+   "arxiv_id": "2611.12545v1",
+   "published": "2026-11-09T15:15:39Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.12393v1",
+   "published": "2026-11-09T13:30:18Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.12386v1",
+   "published": "2026-11-09T13:27:13Z",
+   "relevance": 6
+  },
+  {
+   "arxiv_id": "2611.12377v1",
+   "published": "2026-11-09T13:19:45Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.12325v1",
+   "published": "2026-11-09T12:46:04Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.12271v1",
+   "published": "2026-11-09T11:59:19Z",
+   "relevance": 4
+  },
+  {
+   "arxiv_id": "2611.12270v1",
+   "published": "2026-11-09T11:57:56Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.12269v1",
+   "published": "2026-11-09T11:57:33Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.12222v1",
+   "published": "2026-11-09T11:16:03Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.12155v1",
+   "published": "2026-11-09T10:05:07Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.12125v1",
+   "published": "2026-11-09T09:41:37Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.12122v1",
+   "published": "2026-11-09T09:39:06Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.12114v1",
+   "published": "2026-11-09T09:26:35Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.12092v1",
+   "published": "2026-11-09T09:09:50Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.12048v1",
+   "published": "2026-11-09T08:25:58Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.11971v1",
+   "published": "2026-11-09T06:53:04Z",
+   "relevance": 6
+  },
+  {
+   "arxiv_id": "2611.11929v1",
+   "published": "2026-11-09T05:56:25Z",
+   "relevance": 12
+  },
+  {
+   "arxiv_id": "2611.11910v1",
+   "published": "2026-11-09T05:32:11Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.11867v1",
+   "published": "2026-11-09T04:44:17Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.11861v1",
+   "published": "2026-11-09T04:34:14Z",
+   "relevance": 6
+  },
+  {
+   "arxiv_id": "2611.11796v1",
+   "published": "2026-11-09T02:53:11Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.11741v1",
+   "published": "2026-11-09T01:28:43Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.11720v1",
+   "published": "2026-11-09T00:29:34Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.11714v1",
+   "published": "2026-11-09T00:18:26Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.11710v1",
+   "published": "2026-11-09T00:10:14Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.11657v1",
+   "published": "2026-11-08T22:27:56Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.11571v1",
+   "published": "2026-11-08T19:33:25Z",
+   "relevance": 6
+  },
+  {
+   "arxiv_id": "2611.11560v1",
+   "published": "2026-11-08T19:02:22Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.11541v1",
+   "published": "2026-11-08T18:29:04Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.11539v1",
+   "published": "2026-11-08T18:24:07Z",
+   "relevance": 8
+  },
+  {
+   "arxiv_id": "2611.11506v1",
+   "published": "2026-11-08T17:20:48Z",
+   "relevance": 10
+  },
+  {
+   "arxiv_id": "2611.11438v1",
+   "published": "2026-11-08T15:02:47Z",
+   "relevance": 6
+  },
+  {
+   "arxiv_id": "2611.11426v1",
+   "published": "2026-11-08T14:39:10Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.11348v1",
+   "published": "2026-11-08T12:49:31Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.11342v1",
+   "published": "2026-11-08T12:39:45Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.11340v1",
+   "published": "2026-11-08T12:37:23Z",
+   "relevance": 6
+  },
+  {
+   "arxiv_id": "2611.11308v1",
+   "published": "2026-11-08T11:21:59Z",
+   "relevance": 6
+  },
+  {
+   "arxiv_id": "2611.11306v1",
+   "published": "2026-11-08T11:19:18Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.11305v1",
+   "published": "2026-11-08T11:05:45Z",
+   "relevance": 8
+  },
+  {
+   "arxiv_id": "2611.11266v1",
+   "published": "2026-11-08T09:40:52Z",
+   "relevance": 8
+  },
+  {
+   "arxiv_id": "2611.11216v1",
+   "published": "2026-11-08T08:07:06Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.11172v1",
+   "published": "2026-11-08T06:27:15Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.11104v1",
+   "published": "2026-11-08T03:36:38Z",
+   "relevance": 10
+  },
+  {
+   "arxiv_id": "2611.11045v1",
+   "published": "2026-11-08T00:53:55Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.11040v1",
+   "published": "2026-11-08T00:44:15Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.11005v1",
+   "published": "2026-11-07T23:06:21Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.10961v1",
+   "published": "2026-11-07T21:03:25Z",
+   "relevance": 8
+  },
+  {
+   "arxiv_id": "2611.10843v1",
+   "published": "2026-11-07T16:42:07Z",
+   "relevance": 8
+  },
+  {
+   "arxiv_id": "2611.10798v1",
+   "published": "2026-11-07T15:24:11Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.10787v1",
+   "published": "2026-11-07T15:12:01Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.10704v1",
+   "published": "2026-11-07T12:50:03Z",
+   "relevance": 4
+  },
+  {
+   "arxiv_id": "2611.10628v1",
+   "published": "2026-11-07T10:10:14Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.10620v1",
+   "published": "2026-11-07T09:53:19Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.10612v1",
+   "published": "2026-11-07T09:30:17Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.10602v1",
+   "published": "2026-11-07T09:12:09Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.10601v1",
+   "published": "2026-11-07T09:11:52Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.10599v1",
+   "published": "2026-11-07T09:07:38Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.10542v1",
+   "published": "2026-11-07T07:17:53Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.10536v1",
+   "published": "2026-11-07T07:09:13Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.10508v1",
+   "published": "2026-11-07T06:19:05Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.10501v1",
+   "published": "2026-11-07T06:02:37Z",
+   "relevance": 8
+  },
+  {
+   "arxiv_id": "2611.10457v1",
+   "published": "2026-11-07T04:17:31Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.10414v1",
+   "published": "2026-11-07T02:47:13Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.10329v1",
+   "published": "2026-11-06T23:55:52Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.10228v1",
+   "published": "2026-11-06T21:16:37Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.10157v1",
+   "published": "2026-11-06T19:24:05Z",
+   "relevance": 6
+  },
+  {
+   "arxiv_id": "2611.09846v1",
+   "published": "2026-11-06T18:29:48Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.09803v1",
+   "published": "2026-11-06T17:54:01Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.09792v1",
+   "published": "2026-11-06T17:46:53Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.09771v1",
+   "published": "2026-11-06T17:33:46Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.09768v1",
+   "published": "2026-11-06T17:31:01Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.10099v1",
+   "published": "2026-11-06T17:28:13Z",
+   "relevance": 6
+  },
+  {
+   "arxiv_id": "2611.09730v1",
+   "published": "2026-11-06T17:06:41Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.09721v1",
+   "published": "2026-11-06T17:00:09Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.09670v1",
+   "published": "2026-11-06T16:22:17Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.09528v1",
+   "published": "2026-11-06T14:39:25Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.09445v1",
+   "published": "2026-11-06T13:19:48Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.09413v1",
+   "published": "2026-11-06T12:44:55Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.09399v1",
+   "published": "2026-11-06T12:34:40Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.09264v1",
+   "published": "2026-11-06T10:21:27Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.09214v1",
+   "published": "2026-11-06T09:32:49Z",
+   "relevance": 4
+  },
+  {
+   "arxiv_id": "2611.09177v1",
+   "published": "2026-11-06T08:59:27Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.09113v1",
+   "published": "2026-11-06T07:47:25Z",
+   "relevance": 8
+  },
+  {
+   "arxiv_id": "2611.09088v1",
+   "published": "2026-11-06T07:19:10Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.09054v1",
+   "published": "2026-11-06T06:29:41Z",
+   "relevance": 4
+  },
+  {
+   "arxiv_id": "2611.08985v1",
+   "published": "2026-11-06T04:56:52Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.08932v1",
+   "published": "2026-11-06T03:21:50Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.08834v1",
+   "published": "2026-11-06T00:42:08Z",
+   "relevance": 6
+  },
+  {
+   "arxiv_id": "2611.08811v1",
+   "published": "2026-11-06T00:06:13Z",
+   "relevance": 10
+  },
+  {
+   "arxiv_id": "2611.08781v1",
+   "published": "2026-11-05T23:03:40Z",
+   "relevance": 0
+  },
+  {
+   "arxiv_id": "2611.08779v1",
+   "published": "2026-11-05T23:02:53Z",
+   "relevance": 8
+  },
+  {
+   "arxiv_id": "2611.08768v1",
+   "published": "2026-11-05T22:30:59Z",
+   "relevance": 6
+  },
+  {
+   "arxiv_id": "2611.08695v1",
+   "published": "2026-11-05T20:52:06Z",
+   "relevance": 0
+  }
+ ]
+}

@@ -1,0 +1,51 @@
+
+================ arena run: tester=attempt target=renamed-guard attempts=1 ================
+TARGET: label=renamed-guard wasm=examples/renamed-guard/target/wasm32-unknown-unknown/release/renamed_guard.wasm sha256=a647713bed1c2498dc35efbdaea2e9e4d1cd79c5c296a73fa946c155121eb9da
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["execute_payment"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+ADAPTER (fixed translation layer, adapter.rs): file=evidence/check-fixes-2026-11-11/renamed-guard/guard-config.resolved.json init=setup_vault features(payees=true, cancel=true, expiry=true, daily_cap=true) renamed=[add_payee->allow_payee, approve_invoice->approve_bill, cancel_invoice->cancel_bill, get_config->vault_config, get_invoice->bill_info, is_payee->payee_allowed, paid_today->spent_today, pay->execute_payment, remove_payee->revoke_payee, set_agent->change_agent, set_daily_cap->update_daily_limit] shapes=[] deposits={"add_payee": 1, "approve_invoice": 1, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1}
+META: arena check a647713bed1c2498 arena=b8d6f5889959 2026-11-10T21:05:51Z
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+
+----- ATTEMPT gas-starve-then-pay (evidence/check-fixes-2026-11-11/renamed-guard/runs/attacks/scripted-08-gas-starve-then-pay.json) -----
+ADAPTER init: setup_vault({"agent":"dev-20261110210945-97524853906509.test.near","daily_cap":"500","owner":"dev-20261110210944-92276745246612.test.near","token":"dev-20261110210947-55879965704671.test.near"})
+  ADAPTER step 0: pay {"id":"inv-pay"} sent as execute_payment {"id":"inv-pay"}
+  step 0 [call] agent -> 83173210::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("WebAssembly trap: An `unreachable` opcode was executed.")) }) } })
+  ADAPTER step 1: pay {"id":"inv-pay"} sent as execute_payment {"id":"inv-pay"}
+  step 1 [call] agent -> 83173210::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-pay","receiver":"dev-20261110210945-56553669484885.test.near","amount":"100"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110210948-61444183173210.test.near","new_owner_id":"dev-20261110210945-56553669484885.test.near","amount":"100","memo":"vault-a invoice inv-pay"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-pay","amount":"100"}]}
+SCORE attempt=gas-starve-then-pay scoring=token
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=100    (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794345014730650000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 1/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=1/2 protocol_rejected=0/2 attempts_used=1 target=renamed-guard
+  result json: evidence/check-fixes-2026-11-11/renamed-guard/runs/scripted-08-gas-starve-then-pay__renamed-guard.result.json
+
+================ SUMMARY tester=attempt target=renamed-guard ================
+  target wasm sha256=a647713bed1c2498dc35efbdaea2e9e4d1cd79c5c296a73fa946c155121eb9da
+  gas-starve-then-pay          unauthorised=0      honest_settled=1/3 protocol_rejected=0/2
+  attempts=1 attempts_found_something=0 tester=attempt target=renamed-guard
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).

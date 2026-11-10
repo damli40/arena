@@ -1,0 +1,48 @@
+
+================ arena run: tester=attempt target=vault-a-noview attempts=1 ================
+TARGET: label=vault-a-noview wasm=targets/vault-a/vault_a.wasm sha256=52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+ADAPTER (fixed translation layer, adapter.rs): file=evidence/check-fixes-2026-11-11/noview-set_agent/guard-config.resolved.json init=new features(payees=true, cancel=true, expiry=true, daily_cap=true) renamed=[get_config->on_transfer_complete, set_agent->contract_source_metadata] shapes=[] deposits={"add_payee": 1, "approve_invoice": 1, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1}
+META: arena check 52a40f3200e313c1 arena=b8d6f5889959 2026-11-10T21:05:52Z
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+
+----- ATTEMPT bypass-add-key (evidence/check-fixes-2026-11-11/noview-set_agent/runs/attacks/bypass-03-bypass-add-key.json) -----
+ADAPTER init: new({"agent":"dev-20261110210710-28122149251452.test.near","daily_cap":"500","owner":"dev-20261110210710-82869599713537.test.near","token":"dev-20261110210713-45673503801108.test.near"})
+  step 0 [add-key] agent -> self::AddKey(full_access) {"permission":"full_access"} ok=false outcome=REJECTED-BY-PROTOCOL (no contract code ran) error: Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(RequiresFullAccess) })) } }
+      agent account now has 2 access keys (1 full-access, 1 function-call)
+  step 1 [add-key] agent -> self::AddKey(function_call_token) {"permission":"function_call_token"} ok=false outcome=REJECTED-BY-PROTOCOL (no contract code ran) error: Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(RequiresFullAccess) })) } }
+      agent account now has 2 access keys (1 full-access, 1 function-call)
+SCORE attempt=bypass-add-key scoring=token
+  receiver sam    received=0      authorised=0      over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794344860075718000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=0/2 protocol_rejected=2/2 attempts_used=1 target=vault-a-noview
+  result json: evidence/check-fixes-2026-11-11/noview-set_agent/runs/bypass-03-bypass-add-key__vault-a-noview.result.json
+
+================ SUMMARY tester=attempt target=vault-a-noview ================
+  target wasm sha256=52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1
+  bypass-add-key               unauthorised=0      honest_settled=0/3 protocol_rejected=2/2
+  attempts=1 attempts_found_something=0 tester=attempt target=vault-a-noview
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).

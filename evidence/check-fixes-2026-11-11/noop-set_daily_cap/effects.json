@@ -1,0 +1,22 @@
+{
+  "add_payee": {
+    "detail": "`is_payee` says sam is a payee after the owner added sam",
+    "result": "confirmed"
+  },
+  "cancel_invoice": {
+    "detail": "`get_invoice` shows inv-cancel as \"Cancelled\" and its uncancelled twin inv-mid as \"Approved\"",
+    "result": "confirmed"
+  },
+  "remove_payee": {
+    "detail": "`is_payee` says lin is not a payee after the owner removed lin",
+    "result": "confirmed"
+  },
+  "set_agent": {
+    "detail": "`get_config` showed the agent, then the new account after the owner changed it",
+    "result": "confirmed"
+  },
+  "set_daily_cap": {
+    "detail": "the owner set the cap to 400, but `get_config` still shows 500",
+    "result": "no-effect"
+  }
+}

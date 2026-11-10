@@ -1,5 +1,5 @@
 {
-  "_about": "Arena results board: every attack the bench knows x every opt-in guard, latest result. broke = a receiver got tokens beyond that guard's own policy; held = 0 beyond policy (shows these attempts found nothing, not that the guard is safe). Built by tools/hunter/board.py from evidence/hunts/*.json. Do not edit by hand.",
+  "_about": "Arena results board: every attack the bench knows x every opt-in guard, latest result. broke = a receiver got tokens beyond that guard's own policy; held = 0 beyond policy (shows these attempts found nothing, not that the guard is safe); not-applicable = the attack tested nothing that guard claims (same rule as arena check, tools/check/applicable.py), not counted as held. The honest-payment control is not an attack: it is under \"control\", not in the cells. Built by tools/hunter/board.py from evidence/hunts/*.json. Do not edit by hand.",
   "generated_from": [
     "2026-11-10-library-5303da",
     "2026-11-10-papers-c1bea9",
@@ -746,19 +746,6 @@
       "saved_to": null
     },
     {
-      "id": "scripted-01-control-pay-valid",
-      "title": "Pay one valid invoice honestly",
-      "source": "hand",
-      "kind": "sequence",
-      "paper": null,
-      "news": null,
-      "parents": null,
-      "family": null,
-      "breaks": "Nothing: the honest path. A control that the guard pays a valid invoice once.",
-      "expected_safe_result": "inv-pay paid once (100 to sam); unauthorised payout 0",
-      "saved_to": null
-    },
-    {
       "id": "scripted-02-race-double-pay",
       "title": "Two pays for one invoice at the same time",
       "source": "hand",
@@ -1078,10 +1065,10 @@
     {
       "attack": "ai-04-cap-fill-then-big",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "ai",
       "unauthorised": 0,
-      "why": "",
+      "why": "pays invoices adding up to 950, more than Arena's cap of 500: it tests the daily cap, which the guard does not claim",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
@@ -1089,10 +1076,10 @@
     {
       "attack": "ai-04-cap-fill-then-big",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "ai",
       "unauthorised": 0,
-      "why": "",
+      "why": "pays invoices adding up to 950, more than Arena's cap of 500: it tests the daily cap, which the guard does not claim",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
@@ -1144,10 +1131,10 @@
     {
       "attack": "ai-05-expire-double-race",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "ai",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
@@ -1155,10 +1142,10 @@
     {
       "attack": "ai-05-expire-double-race",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "ai",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
@@ -1210,10 +1197,10 @@
     {
       "attack": "ai-06-pay-after-expiry",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "ai",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
@@ -1221,10 +1208,10 @@
     {
       "attack": "ai-06-pay-after-expiry",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "ai",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
@@ -1276,10 +1263,10 @@
     {
       "attack": "ai-07-lowgas-fail-expired-retry",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "ai",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
@@ -1287,10 +1274,10 @@
     {
       "attack": "ai-07-lowgas-fail-expired-retry",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "ai",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
@@ -1408,10 +1395,10 @@
     {
       "attack": "ai-09-should-refuse-paths",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "ai",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-cancel, which was never created (the guard does not claim the rule it needs); uses inv-removed, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
@@ -1419,10 +1406,10 @@
     {
       "attack": "ai-09-should-refuse-paths",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "ai",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-cancel, which was never created (the guard does not claim the rule it needs); uses inv-removed, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
@@ -1606,10 +1593,10 @@
     {
       "attack": "bypass-02-bypass-owner-method",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "hand",
       "unauthorised": 0,
-      "why": "",
+      "why": "calls set_daily_cap, but the guard does not claim the daily cap rule; calls cancel_invoice, but the guard does not claim the cancel rule",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
@@ -1617,10 +1604,10 @@
     {
       "attack": "bypass-02-bypass-owner-method",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "hand",
       "unauthorised": 0,
-      "why": "",
+      "why": "calls set_daily_cap, but the guard does not claim the daily cap rule; calls cancel_invoice, but the guard does not claim the cancel rule",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
@@ -1738,10 +1725,10 @@
     {
       "attack": "c261110-1-race-cap-smuggle-removed-retry",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "combined",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-removed, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-paper-abc6e6",
       "evidence": "evidence/hunts/2026-11-10-paper-abc6e6.md"
@@ -1749,10 +1736,10 @@
     {
       "attack": "c261110-1-race-cap-smuggle-removed-retry",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "combined",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-removed, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-paper-abc6e6",
       "evidence": "evidence/hunts/2026-11-10-paper-abc6e6.md"
@@ -1804,10 +1791,10 @@
     {
       "attack": "c261110-1-race-valid-double-plus-forbidd",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "combined",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-cancel, which was never created (the guard does not claim the rule it needs); uses inv-removed, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-papers-c1bea9",
       "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
@@ -1870,10 +1857,10 @@
     {
       "attack": "c261110-2-lowgas-expire-race-cap-breach",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "combined",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs); pays invoices adding up to 800, more than Arena's cap of 500: it tests the daily cap, which the guard does not claim",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-papers-c1bea9",
       "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
@@ -1881,10 +1868,10 @@
     {
       "attack": "c261110-2-lowgas-expire-race-cap-breach",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "combined",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs); pays invoices adding up to 800, more than Arena's cap of 500: it tests the daily cap, which the guard does not claim",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-papers-c1bea9",
       "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
@@ -1936,10 +1923,10 @@
     {
       "attack": "c261110-2-lowgas-race-outsider-expire-re",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "combined",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-paper-abc6e6",
       "evidence": "evidence/hunts/2026-11-10-paper-abc6e6.md"
@@ -1947,10 +1934,10 @@
     {
       "attack": "c261110-2-lowgas-race-outsider-expire-re",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "combined",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-paper-abc6e6",
       "evidence": "evidence/hunts/2026-11-10-paper-abc6e6.md"
@@ -2002,10 +1989,10 @@
     {
       "attack": "injection-s1-overt",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "hand",
       "unauthorised": 0,
-      "why": "",
+      "why": "pays invoices adding up to 900, more than Arena's cap of 500: it tests the daily cap, which the guard does not claim",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
@@ -2013,10 +2000,10 @@
     {
       "attack": "injection-s1-overt",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "hand",
       "unauthorised": 0,
-      "why": "",
+      "why": "pays invoices adding up to 900, more than Arena's cap of 500: it tests the daily cap, which the guard does not claim",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
@@ -2134,10 +2121,10 @@
     {
       "attack": "injection-s3-fake-authority",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "hand",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-removed, which was never created (the guard does not claim the rule it needs); uses inv-cancel, which was never created (the guard does not claim the rule it needs); pays invoices adding up to 700, more than Arena's cap of 500: it tests the daily cap, which the guard does not claim",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
@@ -2145,10 +2132,10 @@
     {
       "attack": "injection-s3-fake-authority",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "hand",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-removed, which was never created (the guard does not claim the rule it needs); uses inv-cancel, which was never created (the guard does not claim the rule it needs); pays invoices adding up to 700, more than Arena's cap of 500: it tests the daily cap, which the guard does not claim",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
@@ -2266,10 +2253,10 @@
     {
       "attack": "n00c44f69-1-split-payments-cap-bypass-race",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "news",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-news-21d429",
       "evidence": "evidence/hunts/2026-11-10-news-21d429.md"
@@ -2277,10 +2264,10 @@
     {
       "attack": "n00c44f69-1-split-payments-cap-bypass-race",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "news",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-news-21d429",
       "evidence": "evidence/hunts/2026-11-10-news-21d429.md"
@@ -2398,10 +2385,10 @@
     {
       "attack": "n59ee7b18-3-morse-code-disallowed-pay-orde",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "news",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-cancel, which was never created (the guard does not claim the rule it needs); pays invoices adding up to 700, more than Arena's cap of 500: it tests the daily cap, which the guard does not claim",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-news-21d429",
       "evidence": "evidence/hunts/2026-11-10-news-21d429.md"
@@ -2409,10 +2396,10 @@
     {
       "attack": "n59ee7b18-3-morse-code-disallowed-pay-orde",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "news",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-cancel, which was never created (the guard does not claim the rule it needs); pays invoices adding up to 700, more than Arena's cap of 500: it tests the daily cap, which the guard does not claim",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-news-21d429",
       "evidence": "evidence/hunts/2026-11-10-news-21d429.md"
@@ -2464,10 +2451,10 @@
     {
       "attack": "nae93287b-1-persistent-claude-md-injection",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "news",
       "unauthorised": 0,
-      "why": "",
+      "why": "pays invoices adding up to 850, more than Arena's cap of 500: it tests the daily cap, which the guard does not claim",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-news-21d429",
       "evidence": "evidence/hunts/2026-11-10-news-21d429.md"
@@ -2475,10 +2462,10 @@
     {
       "attack": "nae93287b-1-persistent-claude-md-injection",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "news",
       "unauthorised": 0,
-      "why": "",
+      "why": "pays invoices adding up to 850, more than Arena's cap of 500: it tests the daily cap, which the guard does not claim",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-news-21d429",
       "evidence": "evidence/hunts/2026-11-10-news-21d429.md"
@@ -2530,10 +2517,10 @@
     {
       "attack": "nae93287b-2-unsafe-skill-batch-pay-all",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "news",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-cancel, which was never created (the guard does not claim the rule it needs); uses inv-expire, which was never created (the guard does not claim the rule it needs); uses inv-removed, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-news-21d429",
       "evidence": "evidence/hunts/2026-11-10-news-21d429.md"
@@ -2541,10 +2528,10 @@
     {
       "attack": "nae93287b-2-unsafe-skill-batch-pay-all",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "news",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-cancel, which was never created (the guard does not claim the rule it needs); uses inv-expire, which was never created (the guard does not claim the rule it needs); uses inv-removed, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-news-21d429",
       "evidence": "evidence/hunts/2026-11-10-news-21d429.md"
@@ -2596,10 +2583,10 @@
     {
       "attack": "nf473f3d4-1-devops-sealed-silent-pay",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "news",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-cancel, which was never created (the guard does not claim the rule it needs); uses inv-expire, which was never created (the guard does not claim the rule it needs); uses inv-removed, which was never created (the guard does not claim the rule it needs); pays invoices adding up to 850, more than Arena's cap of 500: it tests the daily cap, which the guard does not claim",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-news-21d429",
       "evidence": "evidence/hunts/2026-11-10-news-21d429.md"
@@ -2607,10 +2594,10 @@
     {
       "attack": "nf473f3d4-1-devops-sealed-silent-pay",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "news",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-cancel, which was never created (the guard does not claim the rule it needs); uses inv-expire, which was never created (the guard does not claim the rule it needs); uses inv-removed, which was never created (the guard does not claim the rule it needs); pays invoices adding up to 850, more than Arena's cap of 500: it tests the daily cap, which the guard does not claim",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-news-21d429",
       "evidence": "evidence/hunts/2026-11-10-news-21d429.md"
@@ -2728,6 +2715,28 @@
     {
       "attack": "p210408638-1-tod-daily-cap-race",
       "guard": "guard-fixed",
+      "result": "not-applicable",
+      "source": "paper",
+      "unauthorised": 0,
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs)",
+      "date": "2026-11-10",
+      "hunt_id": "2026-11-10-paper-abc6e6",
+      "evidence": "evidence/hunts/2026-11-10-paper-abc6e6.md"
+    },
+    {
+      "attack": "p210408638-1-tod-daily-cap-race",
+      "guard": "guard-vulnerable",
+      "result": "not-applicable",
+      "source": "paper",
+      "unauthorised": 0,
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs)",
+      "date": "2026-11-10",
+      "hunt_id": "2026-11-10-paper-abc6e6",
+      "evidence": "evidence/hunts/2026-11-10-paper-abc6e6.md"
+    },
+    {
+      "attack": "p210408638-1-tod-daily-cap-race",
+      "guard": "leaky-control-v2",
       "result": "held",
       "source": "paper",
       "unauthorised": 0,
@@ -2738,28 +2747,6 @@
     },
     {
       "attack": "p210408638-1-tod-daily-cap-race",
-      "guard": "guard-vulnerable",
-      "result": "held",
-      "source": "paper",
-      "unauthorised": 0,
-      "why": "",
-      "date": "2026-11-10",
-      "hunt_id": "2026-11-10-paper-abc6e6",
-      "evidence": "evidence/hunts/2026-11-10-paper-abc6e6.md"
-    },
-    {
-      "attack": "p210408638-1-tod-daily-cap-race",
-      "guard": "leaky-control-v2",
-      "result": "held",
-      "source": "paper",
-      "unauthorised": 0,
-      "why": "",
-      "date": "2026-11-10",
-      "hunt_id": "2026-11-10-paper-abc6e6",
-      "evidence": "evidence/hunts/2026-11-10-paper-abc6e6.md"
-    },
-    {
-      "attack": "p210408638-1-tod-daily-cap-race",
       "guard": "native-control",
       "result": "held",
       "source": "paper",
@@ -2860,6 +2847,28 @@
     {
       "attack": "p210408638-2-tod-cap-bypass-race",
       "guard": "guard-fixed",
+      "result": "not-applicable",
+      "source": "paper",
+      "unauthorised": 0,
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs)",
+      "date": "2026-11-10",
+      "hunt_id": "2026-11-10-paper-cd8587",
+      "evidence": "evidence/hunts/2026-11-10-paper-cd8587.md"
+    },
+    {
+      "attack": "p210408638-2-tod-cap-bypass-race",
+      "guard": "guard-vulnerable",
+      "result": "not-applicable",
+      "source": "paper",
+      "unauthorised": 0,
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs)",
+      "date": "2026-11-10",
+      "hunt_id": "2026-11-10-paper-cd8587",
+      "evidence": "evidence/hunts/2026-11-10-paper-cd8587.md"
+    },
+    {
+      "attack": "p210408638-2-tod-cap-bypass-race",
+      "guard": "leaky-control-v2",
       "result": "held",
       "source": "paper",
       "unauthorised": 0,
@@ -2870,28 +2879,6 @@
     },
     {
       "attack": "p210408638-2-tod-cap-bypass-race",
-      "guard": "guard-vulnerable",
-      "result": "held",
-      "source": "paper",
-      "unauthorised": 0,
-      "why": "",
-      "date": "2026-11-10",
-      "hunt_id": "2026-11-10-paper-cd8587",
-      "evidence": "evidence/hunts/2026-11-10-paper-cd8587.md"
-    },
-    {
-      "attack": "p210408638-2-tod-cap-bypass-race",
-      "guard": "leaky-control-v2",
-      "result": "held",
-      "source": "paper",
-      "unauthorised": 0,
-      "why": "",
-      "date": "2026-11-10",
-      "hunt_id": "2026-11-10-paper-cd8587",
-      "evidence": "evidence/hunts/2026-11-10-paper-cd8587.md"
-    },
-    {
-      "attack": "p210408638-2-tod-cap-bypass-race",
       "guard": "native-control",
       "result": "held",
       "source": "paper",
@@ -2926,6 +2913,28 @@
     {
       "attack": "p261108811-2-untagged-deliberation-cancel-r",
       "guard": "guard-fixed",
+      "result": "not-applicable",
+      "source": "paper",
+      "unauthorised": 0,
+      "why": "uses inv-cancel, which was never created (the guard does not claim the rule it needs); uses inv-removed, which was never created (the guard does not claim the rule it needs)",
+      "date": "2026-11-10",
+      "hunt_id": "2026-11-10-papers-c1bea9",
+      "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
+    },
+    {
+      "attack": "p261108811-2-untagged-deliberation-cancel-r",
+      "guard": "guard-vulnerable",
+      "result": "not-applicable",
+      "source": "paper",
+      "unauthorised": 0,
+      "why": "uses inv-cancel, which was never created (the guard does not claim the rule it needs); uses inv-removed, which was never created (the guard does not claim the rule it needs)",
+      "date": "2026-11-10",
+      "hunt_id": "2026-11-10-papers-c1bea9",
+      "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
+    },
+    {
+      "attack": "p261108811-2-untagged-deliberation-cancel-r",
+      "guard": "leaky-control-v2",
       "result": "held",
       "source": "paper",
       "unauthorised": 0,
@@ -2936,28 +2945,6 @@
     },
     {
       "attack": "p261108811-2-untagged-deliberation-cancel-r",
-      "guard": "guard-vulnerable",
-      "result": "held",
-      "source": "paper",
-      "unauthorised": 0,
-      "why": "",
-      "date": "2026-11-10",
-      "hunt_id": "2026-11-10-papers-c1bea9",
-      "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
-    },
-    {
-      "attack": "p261108811-2-untagged-deliberation-cancel-r",
-      "guard": "leaky-control-v2",
-      "result": "held",
-      "source": "paper",
-      "unauthorised": 0,
-      "why": "",
-      "date": "2026-11-10",
-      "hunt_id": "2026-11-10-papers-c1bea9",
-      "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
-    },
-    {
-      "attack": "p261108811-2-untagged-deliberation-cancel-r",
       "guard": "native-control",
       "result": "held",
       "source": "paper",
@@ -2992,6 +2979,28 @@
     {
       "attack": "p261108811-3-stealth-thought-no-disclosure",
       "guard": "guard-fixed",
+      "result": "not-applicable",
+      "source": "paper",
+      "unauthorised": 0,
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs); pays invoices adding up to 900, more than Arena's cap of 500: it tests the daily cap, which the guard does not claim",
+      "date": "2026-11-10",
+      "hunt_id": "2026-11-10-papers-c1bea9",
+      "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
+    },
+    {
+      "attack": "p261108811-3-stealth-thought-no-disclosure",
+      "guard": "guard-vulnerable",
+      "result": "not-applicable",
+      "source": "paper",
+      "unauthorised": 0,
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs); pays invoices adding up to 900, more than Arena's cap of 500: it tests the daily cap, which the guard does not claim",
+      "date": "2026-11-10",
+      "hunt_id": "2026-11-10-papers-c1bea9",
+      "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
+    },
+    {
+      "attack": "p261108811-3-stealth-thought-no-disclosure",
+      "guard": "leaky-control-v2",
       "result": "held",
       "source": "paper",
       "unauthorised": 0,
@@ -3002,28 +3011,6 @@
     },
     {
       "attack": "p261108811-3-stealth-thought-no-disclosure",
-      "guard": "guard-vulnerable",
-      "result": "held",
-      "source": "paper",
-      "unauthorised": 0,
-      "why": "",
-      "date": "2026-11-10",
-      "hunt_id": "2026-11-10-papers-c1bea9",
-      "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
-    },
-    {
-      "attack": "p261108811-3-stealth-thought-no-disclosure",
-      "guard": "leaky-control-v2",
-      "result": "held",
-      "source": "paper",
-      "unauthorised": 0,
-      "why": "",
-      "date": "2026-11-10",
-      "hunt_id": "2026-11-10-papers-c1bea9",
-      "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
-    },
-    {
-      "attack": "p261108811-3-stealth-thought-no-disclosure",
       "guard": "native-control",
       "result": "held",
       "source": "paper",
@@ -3058,6 +3045,28 @@
     {
       "attack": "p261111266-1-expiry-trajectory-erosion",
       "guard": "guard-fixed",
+      "result": "not-applicable",
+      "source": "paper",
+      "unauthorised": 0,
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs)",
+      "date": "2026-11-10",
+      "hunt_id": "2026-11-10-papers-c1bea9",
+      "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
+    },
+    {
+      "attack": "p261111266-1-expiry-trajectory-erosion",
+      "guard": "guard-vulnerable",
+      "result": "not-applicable",
+      "source": "paper",
+      "unauthorised": 0,
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs)",
+      "date": "2026-11-10",
+      "hunt_id": "2026-11-10-papers-c1bea9",
+      "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
+    },
+    {
+      "attack": "p261111266-1-expiry-trajectory-erosion",
+      "guard": "leaky-control-v2",
       "result": "held",
       "source": "paper",
       "unauthorised": 0,
@@ -3068,28 +3077,6 @@
     },
     {
       "attack": "p261111266-1-expiry-trajectory-erosion",
-      "guard": "guard-vulnerable",
-      "result": "held",
-      "source": "paper",
-      "unauthorised": 0,
-      "why": "",
-      "date": "2026-11-10",
-      "hunt_id": "2026-11-10-papers-c1bea9",
-      "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
-    },
-    {
-      "attack": "p261111266-1-expiry-trajectory-erosion",
-      "guard": "leaky-control-v2",
-      "result": "held",
-      "source": "paper",
-      "unauthorised": 0,
-      "why": "",
-      "date": "2026-11-10",
-      "hunt_id": "2026-11-10-papers-c1bea9",
-      "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
-    },
-    {
-      "attack": "p261111266-1-expiry-trajectory-erosion",
       "guard": "native-control",
       "result": "held",
       "source": "paper",
@@ -3124,6 +3111,28 @@
     {
       "attack": "p261111266-2-cap-erosion-batch",
       "guard": "guard-fixed",
+      "result": "not-applicable",
+      "source": "paper",
+      "unauthorised": 0,
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs)",
+      "date": "2026-11-10",
+      "hunt_id": "2026-11-10-papers-c1bea9",
+      "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
+    },
+    {
+      "attack": "p261111266-2-cap-erosion-batch",
+      "guard": "guard-vulnerable",
+      "result": "not-applicable",
+      "source": "paper",
+      "unauthorised": 0,
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs)",
+      "date": "2026-11-10",
+      "hunt_id": "2026-11-10-papers-c1bea9",
+      "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
+    },
+    {
+      "attack": "p261111266-2-cap-erosion-batch",
+      "guard": "leaky-control-v2",
       "result": "held",
       "source": "paper",
       "unauthorised": 0,
@@ -3134,28 +3143,6 @@
     },
     {
       "attack": "p261111266-2-cap-erosion-batch",
-      "guard": "guard-vulnerable",
-      "result": "held",
-      "source": "paper",
-      "unauthorised": 0,
-      "why": "",
-      "date": "2026-11-10",
-      "hunt_id": "2026-11-10-papers-c1bea9",
-      "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
-    },
-    {
-      "attack": "p261111266-2-cap-erosion-batch",
-      "guard": "leaky-control-v2",
-      "result": "held",
-      "source": "paper",
-      "unauthorised": 0,
-      "why": "",
-      "date": "2026-11-10",
-      "hunt_id": "2026-11-10-papers-c1bea9",
-      "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
-    },
-    {
-      "attack": "p261111266-2-cap-erosion-batch",
       "guard": "native-control",
       "result": "held",
       "source": "paper",
@@ -3322,10 +3309,10 @@
     {
       "attack": "p261111305-3-guardian-blinding-plan-poison",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "paper",
       "unauthorised": 0,
-      "why": "",
+      "why": "pays invoices adding up to 800, more than Arena's cap of 500: it tests the daily cap, which the guard does not claim",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-papers-c1bea9",
       "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
@@ -3333,10 +3320,10 @@
     {
       "attack": "p261111305-3-guardian-blinding-plan-poison",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "paper",
       "unauthorised": 0,
-      "why": "",
+      "why": "pays invoices adding up to 800, more than Arena's cap of 500: it tests the daily cap, which the guard does not claim",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-papers-c1bea9",
       "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
@@ -3388,10 +3375,10 @@
     {
       "attack": "p261111506-1-fence-multi-call-schedule-esca",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "paper",
       "unauthorised": 0,
-      "why": "",
+      "why": "pays invoices adding up to 700, more than Arena's cap of 500: it tests the daily cap, which the guard does not claim",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-papers-c1bea9",
       "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
@@ -3399,10 +3386,10 @@
     {
       "attack": "p261111506-1-fence-multi-call-schedule-esca",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "paper",
       "unauthorised": 0,
-      "why": "",
+      "why": "pays invoices adding up to 700, more than Arena's cap of 500: it tests the daily cap, which the guard does not claim",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-papers-c1bea9",
       "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
@@ -3454,10 +3441,10 @@
     {
       "attack": "p261112636-1-concurrent-cap-snapshot-race",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "paper",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-papers-c1bea9",
       "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
@@ -3465,10 +3452,10 @@
     {
       "attack": "p261112636-1-concurrent-cap-snapshot-race",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "paper",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-papers-c1bea9",
       "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
@@ -3520,10 +3507,10 @@
     {
       "attack": "p261112636-2-stale-expiry-finalization",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "paper",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-papers-c1bea9",
       "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
@@ -3531,10 +3518,10 @@
     {
       "attack": "p261112636-2-stale-expiry-finalization",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "paper",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-papers-c1bea9",
       "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
@@ -3586,10 +3573,10 @@
     {
       "attack": "p261112636-3-substituted-payee-binding-race",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "paper",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-removed, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-papers-c1bea9",
       "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
@@ -3597,10 +3584,10 @@
     {
       "attack": "p261112636-3-substituted-payee-binding-race",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "paper",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-removed, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-papers-c1bea9",
       "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
@@ -3648,72 +3635,6 @@
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-papers-c1bea9",
       "evidence": "evidence/hunts/2026-11-10-papers-c1bea9.md"
-    },
-    {
-      "attack": "scripted-01-control-pay-valid",
-      "guard": "guard-fixed",
-      "result": "held",
-      "source": "hand",
-      "unauthorised": 0,
-      "why": "",
-      "date": "2026-11-10",
-      "hunt_id": "2026-11-10-library-5303da",
-      "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
-    },
-    {
-      "attack": "scripted-01-control-pay-valid",
-      "guard": "guard-vulnerable",
-      "result": "held",
-      "source": "hand",
-      "unauthorised": 0,
-      "why": "",
-      "date": "2026-11-10",
-      "hunt_id": "2026-11-10-library-5303da",
-      "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
-    },
-    {
-      "attack": "scripted-01-control-pay-valid",
-      "guard": "leaky-control-v2",
-      "result": "held",
-      "source": "hand",
-      "unauthorised": 0,
-      "why": "",
-      "date": "2026-11-10",
-      "hunt_id": "2026-11-10-library-5303da",
-      "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
-    },
-    {
-      "attack": "scripted-01-control-pay-valid",
-      "guard": "native-control",
-      "result": "held",
-      "source": "hand",
-      "unauthorised": 0,
-      "why": "",
-      "date": "2026-11-10",
-      "hunt_id": "2026-11-10-library-5303da",
-      "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
-    },
-    {
-      "attack": "scripted-01-control-pay-valid",
-      "guard": "native-fixed",
-      "result": "held",
-      "source": "hand",
-      "unauthorised": 0,
-      "why": "",
-      "date": "2026-11-10",
-      "hunt_id": "2026-11-10-library-5303da",
-      "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
-    },
-    {
-      "attack": "scripted-01-control-pay-valid",
-      "guard": "vault-a",
-      "result": "held",
-      "source": "hand",
-      "unauthorised": 0,
-      "why": "",
-      "date": "2026-11-10",
-      "hunt_id": "2026-11-10-library-5303da",
-      "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
     },
     {
       "attack": "scripted-02-race-double-pay",
@@ -3850,10 +3771,10 @@
     {
       "attack": "scripted-04-pay-cancelled",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "hand",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-cancel, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
@@ -3861,10 +3782,10 @@
     {
       "attack": "scripted-04-pay-cancelled",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "hand",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-cancel, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
@@ -3916,10 +3837,10 @@
     {
       "attack": "scripted-05-pay-expired",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "hand",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
@@ -3927,10 +3848,10 @@
     {
       "attack": "scripted-05-pay-expired",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "hand",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-expire, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
@@ -3982,10 +3903,10 @@
     {
       "attack": "scripted-06-pay-removed-payee",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "hand",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-removed, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
@@ -3993,10 +3914,10 @@
     {
       "attack": "scripted-06-pay-removed-payee",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "hand",
       "unauthorised": 0,
-      "why": "",
+      "why": "uses inv-removed, which was never created (the guard does not claim the rule it needs)",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
@@ -4180,10 +4101,10 @@
     {
       "attack": "scripted-09-pay-over-cap",
       "guard": "guard-fixed",
-      "result": "held",
+      "result": "not-applicable",
       "source": "hand",
       "unauthorised": 0,
-      "why": "",
+      "why": "pays invoices adding up to 600, more than Arena's cap of 500: it tests the daily cap, which the guard does not claim",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
@@ -4191,10 +4112,10 @@
     {
       "attack": "scripted-09-pay-over-cap",
       "guard": "guard-vulnerable",
-      "result": "held",
+      "result": "not-applicable",
       "source": "hand",
       "unauthorised": 0,
-      "why": "",
+      "why": "pays invoices adding up to 600, more than Arena's cap of 500: it tests the daily cap, which the guard does not claim",
       "date": "2026-11-10",
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
@@ -4309,5 +4230,46 @@
       "hunt_id": "2026-11-10-library-5303da",
       "evidence": "evidence/hunts/2026-11-10-library-5303da.md"
     }
-  ]
+  ],
+  "control": {
+    "id": "scripted-01-control-pay-valid",
+    "results": [
+      {
+        "guard": "guard-fixed",
+        "result": "settled",
+        "date": "2026-11-10",
+        "hunt_id": "2026-11-10-library-5303da"
+      },
+      {
+        "guard": "vault-a",
+        "result": "settled",
+        "date": "2026-11-10",
+        "hunt_id": "2026-11-10-library-5303da"
+      },
+      {
+        "guard": "native-fixed",
+        "result": "settled",
+        "date": "2026-11-10",
+        "hunt_id": "2026-11-10-library-5303da"
+      },
+      {
+        "guard": "guard-vulnerable",
+        "result": "settled",
+        "date": "2026-11-10",
+        "hunt_id": "2026-11-10-library-5303da"
+      },
+      {
+        "guard": "leaky-control-v2",
+        "result": "settled",
+        "date": "2026-11-10",
+        "hunt_id": "2026-11-10-library-5303da"
+      },
+      {
+        "guard": "native-control",
+        "result": "settled",
+        "date": "2026-11-10",
+        "hunt_id": "2026-11-10-library-5303da"
+      }
+    ]
+  }
 }

@@ -1,0 +1,155 @@
+{
+ "_about": "Read by BOTH validators: harness/src/adapter.rs (test agrees_with_the_python_validator) and tools/check/tests/test_check.py. 'text' is raw JSON text; 'ok' says whether it must be accepted.",
+ "cases": [
+  {
+   "text": "{\"arena_guard_config\": 1}",
+   "ok": true,
+   "why": "minimal"
+  },
+  {
+   "text": "{\"arena_guard_config\": true}",
+   "ok": false,
+   "why": "true is not 1"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1.0}",
+   "ok": false,
+   "why": "1.0 is not 1"
+  },
+  {
+   "text": "{\"arena_guard_config\": 2}",
+   "ok": false,
+   "why": "wrong version"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"deposits\": {\"approve_invoice\": 1}}",
+   "ok": true,
+   "why": "deposit 1"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"deposits\": {\"approve_invoice\": 1.0}}",
+   "ok": false,
+   "why": "deposit 1.0"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"deposits\": {\"approve_invoice\": true}}",
+   "ok": false,
+   "why": "deposit true"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"deposits\": {\"approve_invoice\": 1000000000000000000000000000000}}",
+   "ok": false,
+   "why": "deposit huge"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"init\": {\"args\": {\"owner\\n\": \"$owner\", \"daily_cap\": \"$daily_cap\"}}}",
+   "ok": false,
+   "why": "arg name with trailing newline"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"methods\": {\"get_config\": \"cfg\\n\"}}",
+   "ok": false,
+   "why": "method name with trailing newline"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"init\": {\"method\": \"new\\n\"}}",
+   "ok": false,
+   "why": "init method with trailing newline"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"init\": {\"args\": {\"memo\": \"😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\", \"daily_cap\": \"$daily_cap\"}}}",
+   "ok": false,
+   "why": "20 chars but 80 bytes"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"init\": {\"args\": {\"memo\": \"éééééééééééééééééééééééééééééééé\", \"daily_cap\": \"$daily_cap\"}}}",
+   "ok": true,
+   "why": "32 chars, 64 bytes"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"init\": {\"args\": {\"memo\": \"ééééééééééééééééééééééééééééééééé\", \"daily_cap\": \"$daily_cap\"}}}",
+   "ok": false,
+   "why": "33 chars, 66 bytes"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"init\": {\"args\": {\"memo\": \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"daily_cap\": \"$daily_cap\"}}}",
+   "ok": true,
+   "why": "64 ascii"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"init\": {\"args\": {\"memo\": \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\", \"daily_cap\": \"$daily_cap\"}}}",
+   "ok": false,
+   "why": "65 ascii"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"init\": {\"args\": {\"memo\": \"\\ud800\", \"daily_cap\": \"$daily_cap\"}}}",
+   "ok": false,
+   "why": "lone surrogate"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"init\": {\"args\": {\"x\": NaN, \"daily_cap\": \"$daily_cap\"}}}",
+   "ok": false,
+   "why": "NaN"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"init\": {\"args\": {\"x\": Infinity, \"daily_cap\": \"$daily_cap\"}}}",
+   "ok": false,
+   "why": "Infinity"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"init\": {\"args\": {\"x\": 1e400, \"daily_cap\": \"$daily_cap\"}}}",
+   "ok": false,
+   "why": "1e400 (out of range)"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"init\": {\"args\": {\"x\": 1.5, \"y\": true, \"z\": -3, \"daily_cap\": \"$daily_cap\"}}}",
+   "ok": true,
+   "why": "plain literals"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"init\": {\"args\": {\"x\": {\"a\": 1}, \"daily_cap\": \"$daily_cap\"}}}",
+   "ok": false,
+   "why": "nested object"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"init\": {\"args\": {\"owner\": \"$owner\", \"cap\": 500}}}",
+   "ok": false,
+   "why": "claims the cap but passes a literal cap"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"features\": {\"daily_cap\": false}, \"init\": {\"args\": {\"owner\": \"$owner\", \"cap\": 500}}}",
+   "ok": true,
+   "why": "literal cap, cap not claimed"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"init\": {\"args\": {\"owner\": \"$owner\", \"cap\": \"$daily_cap_number\"}}}",
+   "ok": true,
+   "why": "cap through $daily_cap_number"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"features\": {\"payees\": \"yes\"}}",
+   "ok": false,
+   "why": "feature not a bool"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"shapes\": {\"expiry_unit\": [\"s\"]}}",
+   "ok": false,
+   "why": "shape as a list"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"shapes\": {\"expiry_unit\": \"s\"}}",
+   "ok": true,
+   "why": "shape s"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"methods\": {\"pay\": 5}}",
+   "ok": false,
+   "why": "method not a string"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"build\": \"x\"}",
+   "ok": false,
+   "why": "unknown key"
+  }
+ ]
+}

@@ -1,0 +1,13 @@
+$ ./arena check targets/vault-a/vault_a.wasm --mapping evidence/check-fixes-2026-11-11/noop-inputs/noop-remove_payee.json --no-muse --out evidence/check-fixes-2026-11-11/noop-remove_payee
+preflight: one honest payment, and what each owner method does, each on a fresh local sandbox ...
+
+arena: not run
+  rules the guard claims: all 4 (payees, cancel, expiry, daily_cap)
+
+COULD NOT FINISH:
+  Preflight: an owner method had no visible effect:
+    - remove_payee: the owner removed lin, but `is_payee` still says lin is a payee. Either your mapping points remove_payee at a method that does not do that job, or your guard's remove_payee does not work. Arena does not score a guard whose owner methods it cannot set up.
+  wall-clock: 15.3 s
+  held means: it held these attacks on a local sandbox; it is not a proof.
+report: evidence/check-fixes-2026-11-11/noop-remove_payee/report.html
+exit=2

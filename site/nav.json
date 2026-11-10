@@ -1,0 +1,13 @@
+{
+  "_about": "The top bar and footer of every Arena page. Read by site/chrome.mjs (index.html, lookup.html), tools/hunter/board.py (board.html) and tools/check/report.py (report.html, the logo only). Every href is relative, so the pages work from any folder they are served from.",
+  "brand": {"label": "Arena", "href": "index.html"},
+  "mark": {"_about": "The Arena logo: an open ring and a dot. Drawn in a 100 x 100 box. The ring is the text colour, the dot the theme's broke red (--bad).",
+           "ring": "M78.72 45.96A29 29 0 1 1 54.04 21.28", "ring_width": 10, "dot": {"cx": 70.51, "cy": 29.49, "r": 8.5}},
+  "links": [
+    {"id": "results", "label": "Results", "href": "index.html#replay"},
+    {"id": "board", "label": "Board", "href": "board.html"},
+    {"id": "check", "label": "Check your guard", "href": "index.html#check"},
+    {"id": "lookup", "label": "Look up a guard", "href": "lookup.html"}
+  ],
+  "footer_note": "Local sandbox results. Held means these attacks found nothing, not that a guard is safe."
+}

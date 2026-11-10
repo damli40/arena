@@ -9,9 +9,19 @@ Every value is either a method name that must exist in the guard's wasm, or one 
 closed list below. Nothing in either file is compiled or run. The harness checks the merged file
 again on its own side (harness/src/adapter.rs); `test_check.py` checks the two lists agree.
 """
-import json, pathlib, re
+import json, math, pathlib, re
 
-NAME_RE = re.compile(r"^[a-z_][a-z0-9_]{0,63}$")
+# Used with fullmatch only (re.match + "$" would let a trailing newline through).
+NAME_RE = re.compile(r"[a-z_][a-z0-9_]{0,63}")
+
+
+def name_ok(v):
+    return isinstance(v, str) and NAME_RE.fullmatch(v) is not None
+
+
+def _is_int(v, *allowed):
+    """An exact JSON integer (not true/false, not 1.0), optionally one of `allowed`."""
+    return type(v) is int and (not allowed or v in allowed)
 
 # Mirrors harness/src/adapter.rs (ROLES, DEPOSIT_ROLES, CHOICES, PLACEHOLDERS).
 ROLES = ["pay", "approve_invoice", "add_payee", "remove_payee", "cancel_invoice", "set_daily_cap", "set_agent",
@@ -78,20 +88,50 @@ def _check_mapping_part(d, where):
         _need(isinstance(m, dict), f"{where}: \"methods\" must be an object like {{\"pay\": \"your_pay_method\"}}")
         for role, name in m.items():
             _need(role in ROLES, f"{where}: \"methods\" has an unknown role {role!r}. Roles are: {', '.join(ROLES)}")
-            _need(isinstance(name, str) and NAME_RE.match(name),
+            _need(name_ok(name),
                   f"{where}: methods.{role} = {name!r} is not a NEAR method name (lowercase letters, digits, _)")
     if "shapes" in d:
         s = d["shapes"]
         _need(isinstance(s, dict), f"{where}: \"shapes\" must be an object")
         for k, v in s.items():
             _need(k in CHOICES, f"{where}: unknown shape {k!r}. Shapes are: {', '.join(CHOICES)}")
-            _need(v in CHOICES[k], f"{where}: shapes.{k} = {v!r} is not allowed; pick one of {CHOICES[k]}")
+            _need(isinstance(v, str) and v in CHOICES[k], f"{where}: shapes.{k} = {v!r} is not allowed; pick one of {CHOICES[k]}")
     if "deposits" in d:
         dep = d["deposits"]
         _need(isinstance(dep, dict), f"{where}: \"deposits\" must be an object")
         for k, v in dep.items():
             _need(k in DEPOSIT_ROLES, f"{where}: deposits.{k}: only these owner methods take a deposit choice: {', '.join(DEPOSIT_ROLES)}")
-            _need(v in (0, 1) and not isinstance(v, bool), f"{where}: deposits.{k} must be 0 or 1 (yoctoNEAR attached to the call)")
+            _need(_is_int(v, 0, 1), f"{where}: deposits.{k} must be 0 or 1 (yoctoNEAR attached to the call)")
+
+
+def _no_constant(name):
+    raise ValueError(f"{name} is not a JSON number")
+
+
+def _finite_float(text):
+    f = float(text)
+    if not math.isfinite(f):
+        raise ValueError(f"{text} is too large for a JSON number")
+    return f
+
+
+def loads(text):
+    """Strict JSON, as the harness (serde_json) reads it: no NaN / Infinity, no number too
+    large to be a float, no lone UTF-16 surrogate in a string."""
+    v = json.loads(text, parse_constant=_no_constant, parse_float=_finite_float)
+
+    def walk(x):
+        if isinstance(x, str):
+            x.encode("utf-8")  # a lone surrogate (e.g. "\\ud800") raises here
+        elif isinstance(x, dict):
+            for k, y in x.items():
+                walk(k)
+                walk(y)
+        elif isinstance(x, list):
+            for y in x:
+                walk(y)
+    walk(v)
+    return v
 
 
 def load_json(path, what):
@@ -99,8 +139,8 @@ def load_json(path, what):
     _need(p.is_file(), f"{what} file {path} not found")
     _need(p.stat().st_size <= 64 * 1024, f"{what} file {path} is larger than 64 KiB")
     try:
-        return json.loads(p.read_text())
-    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        return loads(p.read_text())
+    except (ValueError, UnicodeError) as e:
         raise ConfigError(f"{what} file {path} is not valid JSON: {e}")
 
 
@@ -108,7 +148,7 @@ def check_config(d, where="config"):
     _need(isinstance(d, dict), f"{where}: must be a JSON object")
     extra = set(d) - CONFIG_KEYS
     _need(not extra, f"{where}: unknown keys {sorted(extra)}; allowed: {sorted(CONFIG_KEYS)}")
-    _need(d.get("arena_guard_config") == 1, f"{where}: add \"arena_guard_config\": 1 at the top")
+    _need(_is_int(d.get("arena_guard_config"), 1), f"{where}: add \"arena_guard_config\": 1 at the top")
     for k in ("name", "policy", "_about"):
         if k in d:
             _need(isinstance(d[k], str) and len(d[k]) <= 400, f"{where}: {k} must be a string of at most 400 characters")
@@ -116,24 +156,37 @@ def check_config(d, where="config"):
         i = d["init"]
         _need(isinstance(i, dict) and not (set(i) - {"method", "args"}), f"{where}: init must be {{\"method\": ..., \"args\": {{...}}}}")
         if "method" in i:
-            _need(isinstance(i["method"], str) and NAME_RE.match(i["method"]), f"{where}: init.method {i['method']!r} is not a NEAR method name")
+            _need(name_ok(i["method"]), f"{where}: init.method {i['method']!r} is not a NEAR method name")
         if "args" in i:
             a = i["args"]
             _need(isinstance(a, dict) and len(a) <= 16, f"{where}: init.args must be an object with at most 16 arguments")
             for k, v in a.items():
-                _need(NAME_RE.match(k), f"{where}: init.args key {k!r} is not a valid argument name")
+                _need(name_ok(k), f"{where}: init.args key {k!r} is not a valid argument name")
                 if isinstance(v, str) and v.startswith("$"):
                     _need(v in PLACEHOLDERS, f"{where}: init.args.{k} = {v!r}: unknown placeholder. Arena fills in only {PLACEHOLDERS}")
                 elif isinstance(v, str):
-                    _need(len(v) <= 64, f"{where}: init.args.{k}: literal strings are at most 64 characters")
+                    try:
+                        size = len(v.encode("utf-8"))
+                    except UnicodeError:
+                        size = None
+                    _need(size is not None and size <= 64, f"{where}: init.args.{k}: literal strings are at most 64 bytes (UTF-8)")
                 else:
-                    _need(isinstance(v, (bool, int, float)), f"{where}: init.args.{k} must be a placeholder, a short string, a number or true/false")
+                    _need(isinstance(v, (bool, int)) or (isinstance(v, float) and math.isfinite(v)),
+                          f"{where}: init.args.{k} must be a placeholder, a short string, a number or true/false")
     if "features" in d:
         f = d["features"]
         _need(isinstance(f, dict), f"{where}: features must be an object")
         for k, v in f.items():
             _need(k in FEATURES, f"{where}: unknown feature {k!r}; features are {FEATURES}")
             _need(isinstance(v, bool), f"{where}: features.{k} must be true or false")
+    # A guard that claims the daily cap is scored against Arena's cap (500), so its init must
+    # take that cap from Arena. A literal cap would be enforced by the guard but not scored.
+    claims_cap = d.get("features", {}).get("daily_cap", True)
+    args = d.get("init", {}).get("args", DEFAULT_INIT["args"])
+    _need(not claims_cap or any(v in ("$daily_cap", "$daily_cap_number") for v in args.values() if isinstance(v, str)),
+          f"{where}: your config says the guard has a daily cap, but init.args does not pass Arena's cap. Arena scores "
+          "the cap as 500 tokens, so pass it in with \"$daily_cap\" (a string, \"500\") or \"$daily_cap_number\" (the number 500). "
+          "If your guard has no daily cap, set \"features\": {\"daily_cap\": false}.")
     _check_mapping_part(d, where)
     return d
 
@@ -142,7 +195,7 @@ def check_mapping(d, where="mapping"):
     _need(isinstance(d, dict), f"{where}: must be a JSON object")
     extra = set(d) - MAPPING_KEYS
     _need(not extra, f"{where}: unknown keys {sorted(extra)}; allowed: {sorted(MAPPING_KEYS)}")
-    _need(d.get("arena_mapping") == 1, f"{where}: add \"arena_mapping\": 1 at the top")
+    _need(_is_int(d.get("arena_mapping"), 1), f"{where}: add \"arena_mapping\": 1 at the top")
     _check_mapping_part(d, where)
     return d
 
@@ -193,3 +246,11 @@ def resolve(config, mapping, wasm_methods):
 
 def renamed_roles(resolved):
     return {r: n for r, n in resolved["methods"].items() if r != n}
+
+
+def missing_roles(resolved, wasm_methods):
+    """Optional roles whose method the guard does not export. Arena still sends calls by the
+    default name (an attack may try them); a call answered "no such method" tests nothing, so
+    such attacks are counted as not applicable and the list is shown in every output."""
+    exported = set(wasm_methods)
+    return [r for r in ROLES if resolved["methods"][r] not in exported]

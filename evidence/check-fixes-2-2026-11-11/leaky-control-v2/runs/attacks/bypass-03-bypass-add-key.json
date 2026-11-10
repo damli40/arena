@@ -1,0 +1,28 @@
+{
+ "name": "bypass-add-key",
+ "steps": [
+  {
+   "add_key": {
+    "actor": "agent",
+    "permission": "full_access"
+   }
+  },
+  {
+   "add_key": {
+    "actor": "agent",
+    "permission": "function_call_token"
+   }
+  }
+ ],
+ "meta": {
+  "id": "bypass-03-bypass-add-key",
+  "title": "Agent adds itself a full-access key",
+  "source": "hand",
+  "kind": "sequence",
+  "breaks": "Escapes the function-call key by adding a full-access key to the agent account.",
+  "expected_safe_result": "refused by NEAR (adding a key needs full access); no key added",
+  "added": "2026-11-09",
+  "author": "written by hand for the W3 bypass check (sequences-bypass/)",
+  "steps_sha256": "f5adf99b70dbf099f46b704bdff438d0dcd867a0c08babce16c40f4690810ddd"
+ }
+}

@@ -330,7 +330,89 @@ class AutoRedTeamerParts(unittest.TestCase):
 AutoRedTeamerParts.run_hunt = HuntOffline.run_hunt
 
 
+class ResponseTime(unittest.TestCase):
+    """tools/hunter/response_time.py: the schedule it reads, and result times it must not invent."""
+
+    def setUp(self):
+        import response_time
+        self.rt = response_time
+
+    def test_reads_current_schedule(self):
+        paper, every = self.rt.read_schedule((HERE.parents[2] / ".github/workflows/hunt.yml").read_text())
+        self.assertEqual(paper, [(1, 17)])
+        self.assertEqual(every, [(1, 17), (7, 17), (13, 17), (19, 17)])
+        self.rt.self_checks()
+
+    def fake_run(self, d, cell_extra=None, mtime=None):
+        import os
+        f = d / "r.result.json"
+        f.write_text("{}")
+        if mtime is not None:
+            os.utime(f, (mtime, mtime))
+        h = {"mode": "papers", "started_utc": "2026-11-10T16:00:00Z", "finished_utc": "2026-11-10T16:10:00Z", "wall_seconds": 600,
+             "attacks": [{"source": "paper", "paper": {"arxiv_id": "2611.00001"},
+                          "results": {"g": dict({"result_json": "r.result.json"}, **(cell_extra or {}))}}]}
+        (d / "h.json").write_text(json.dumps(h))
+        return self.rt.load_run("h.json", root=d)
+
+    def test_file_time_outside_the_run_is_not_used(self):
+        d = pathlib.Path(tempfile.mkdtemp())
+        r = self.fake_run(d)  # a fresh file: its modified time is now, not inside the run
+        self.assertEqual(r["first_result"], {})
+        self.assertEqual(r["time_source"]["file_time_outside_run"], 1)
+        with self.assertRaises(SystemExit):
+            self.rt.require_loaded(r)
+
+    def test_recorded_time_is_preferred(self):
+        d = pathlib.Path(tempfile.mkdtemp())
+        r = self.fake_run(d, {"finished_utc": "2026-11-10T16:05:00Z"})
+        self.assertEqual(self.rt.iso(r["first_result"]["2611.00001"]), "2026-11-10T16:05:00Z")
+        self.assertEqual(r["time_source"]["recorded"], 1)
+
+    def test_file_time_inside_the_run_is_used_and_labelled(self):
+        d = pathlib.Path(tempfile.mkdtemp())
+        t = self.rt.utc("2026-11-10T16:03:00Z").timestamp()
+        r = self.fake_run(d, mtime=t)
+        self.assertEqual(self.rt.iso(r["first_result"]["2611.00001"]), "2026-11-10T16:03:00Z")
+        self.assertEqual(r["time_source"]["file_time"], 1)
+        self.rt.require_loaded(r)
+
+
 class Board(unittest.TestCase):
+    def test_same_rule_as_check(self):
+        """A board "held" that tested nothing the guard claims is "not applicable"; the honest-payment
+        control is not an attack (not a row, not a cell); a missing result is "unchecked", never held."""
+        d = pathlib.Path(tempfile.mkdtemp())
+        st = lambda created: [{"id": i, "status": "Approved" if i in created else "null"}
+                              for i in ("inv-pay", "inv-small", "inv-mid", "inv-big", "inv-cancel", "inv-expire", "inv-removed")]
+        four = ("inv-pay", "inv-small", "inv-mid", "inv-big")
+
+        def res(name, steps):
+            f = d / f"{name}.result.json"
+            f.write_text(json.dumps({"steps": steps, "final": {"invoice_statuses": st(four)}}))
+            return str(f)
+        pay = lambda inv, actor="agent": {"kind": "call", "actor": actor, "target": "vault", "method": "pay", "args": {"id": inv},
+                                          "success": False, "failure": "refused"}
+        g = {"id": "guard-fixed", "name": "g", "role": "subject", "policy": "p", "runnable": True, "fingerprint_before": {"wasm_sha256": "x"}}
+        mk = lambda aid, rj, status="held", **kw: {"id": aid, "title": aid, "source": "hand", "kind": "sequence", "breaks": "b",
+                                                    "expected_safe_result": "e", "results": {"guard-fixed": dict({"status": status, "result_json": rj, "unauthorised": 0}, **kw)}}
+        h = {"hunt_id": "h1", "trusted": True, "finished_utc": "2026-11-10T00:00:00Z", "guards": [g], "attacks": [
+            mk("a-na", res("a-na", [pay("inv-cancel")])),                       # inv-cancel never created on this guard
+            mk("a-held", res("a-held", [pay("inv-pay", actor="outsider")])),    # a real refusal on a real invoice
+            mk("a-gone", str(d / "missing.result.json")),
+            mk(board.CONTROL_ID, res("ctl", []), honest_settled=1)]}
+        (d / "h1.json").write_text(json.dumps(h))
+        b = board.build(d)
+        cells = {c["attack"]: c["result"] for c in b["cells"]}
+        self.assertEqual(cells, {"a-na": "not-applicable", "a-held": "held", "a-gone": "unchecked"})
+        self.assertNotIn(board.CONTROL_ID, [a["id"] for a in b["attacks"]])
+        self.assertEqual([(r["guard"], r["result"]) for r in b["control"]["results"]], [("guard-fixed", "settled")])
+        board.write(b, d)
+        page = (d / "board.html").read_text()
+        self.assertIn("not applicable", page)
+        self.assertIn('rel="icon"', page)
+        self.assertIn('class="brand-mark"', page)
+
     def test_html_escapes_inlined_data(self):
         d = pathlib.Path(tempfile.mkdtemp())
         b = {"_about": "", "generated_from": [], "latest_hunt_utc": None, "guards": [],
@@ -338,6 +420,18 @@ class Board(unittest.TestCase):
         board.write(b, d)
         page = (d / "board.html").read_text()
         self.assertNotIn("</script><script>alert", page)
+
+    def test_page_is_standalone_with_shared_chrome(self):
+        d = pathlib.Path(tempfile.mkdtemp())
+        b = {"_about": "", "generated_from": [], "latest_hunt_utc": None, "guards": [], "attacks": [], "cells": []}
+        board.write(b, d)
+        page = (d / "board.html").read_text()
+        self.assertIn("--bad:#9F2F2D", page)               # site/theme.css inlined, not linked
+        self.assertNotIn('rel="stylesheet" href="theme.css"', page)
+        self.assertIn('href="board.html" aria-current="page"', page)
+        self.assertIn('href="lookup.html"', page)
+        for ph in ("__THEME__", "__TOPBAR__", "__FOOTER__", "__DATA__"):
+            self.assertNotIn(ph, page)
 
 
 if __name__ == "__main__":

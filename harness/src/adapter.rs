@@ -193,6 +193,14 @@ impl GuardConfig {
                 daily_cap: get("daily_cap", true)?,
             };
         }
+        // A guard that claims the daily cap is scored against Arena's cap (500). Its init must
+        // take that cap from Arena (`$daily_cap` / `$daily_cap_number`); a literal cap in the
+        // config would be scored against 500 while the guard enforces something else.
+        if c.features.daily_cap
+            && !c.init_args.values().any(|v| matches!(v.as_str(), Some("$daily_cap") | Some("$daily_cap_number")))
+        {
+            bail!("init.args: the guard claims the daily cap, so its init must take Arena's cap through \"$daily_cap\" or \"$daily_cap_number\"");
+        }
         if let Some(m) = top.get("methods") {
             let m = obj(m, "methods")?;
             no_unknown(m, &ROLES, "methods")?;
@@ -269,6 +277,17 @@ impl GuardConfig {
             "ms" => json!(ns / 1_000_000),
             "s" => json!(ns / 1_000_000_000),
             _ => json!(ns),
+        }
+    }
+
+    /// The expiry instant (ns) the guard is actually told, after its unit drops the finer digits
+    /// (ms or s). Setup approves the invoice with this value and scores against the same value,
+    /// so the guard and the scorer never disagree about when an invoice expires.
+    pub fn expiry_ns_exact(&self, ns: u64) -> u64 {
+        match self.shape("expiry_unit") {
+            "ms" => ns / 1_000_000 * 1_000_000,
+            "s" => ns / 1_000_000_000 * 1_000_000_000,
+            _ => ns,
         }
     }
 
@@ -431,6 +450,43 @@ mod tests {
     }
 
     #[test]
+    fn literal_cap_ok_only_when_cap_not_claimed() {
+        let ok = cfg(json!({"arena_guard_config": 1, "features": {"daily_cap": false},
+            "init": {"args": {"owner": "$owner", "cap": 500}}}));
+        assert!(ok.is_ok());
+        assert!(cfg(json!({"arena_guard_config": 1, "init": {"args": {"cap": "$daily_cap_number"}}})).is_ok());
+    }
+
+    #[test]
+    fn expiry_in_seconds_is_exact_on_both_sides() {
+        // 20.7 s after a whole second: a guard told "s" sees 20 s; the scorer must use 20 s too.
+        let c = cfg(json!({"arena_guard_config": 1, "shapes": {"expiry_unit": "s"}})).unwrap();
+        let ns: u64 = 1_700_000_020_700_000_000;
+        let exact = c.expiry_ns_exact(ns);
+        assert_eq!(exact, 1_700_000_020_000_000_000);
+        assert_eq!(c.expiry_value(exact), json!(1_700_000_020u64));
+        assert_eq!(c.expiry_value(exact).as_u64().unwrap() * 1_000_000_000, exact);
+        let ms = cfg(json!({"arena_guard_config": 1, "shapes": {"expiry_unit": "ms"}})).unwrap();
+        assert_eq!(ms.expiry_ns_exact(ns), 1_700_000_020_700_000_000);
+        assert_eq!(ms.expiry_ns_exact(ns + 123), 1_700_000_020_700_000_000);
+        let n = cfg(json!({"arena_guard_config": 1})).unwrap();
+        assert_eq!(n.expiry_ns_exact(ns + 123), ns + 123);
+    }
+
+    /// tools/check/tests/validator-cases.json is read by BOTH validators (this test and
+    /// tools/check/tests/test_check.py). Each case is raw JSON text and whether it is accepted.
+    #[test]
+    fn agrees_with_the_python_validator() {
+        let cases: Value = serde_json::from_str(include_str!("../../tools/check/tests/validator-cases.json")).unwrap();
+        for case in cases["cases"].as_array().unwrap() {
+            let text = case["text"].as_str().unwrap();
+            let want = case["ok"].as_bool().unwrap();
+            let got = serde_json::from_str::<Value>(text).map_err(anyhow::Error::from).and_then(|v| cfg(v)).is_ok();
+            assert_eq!(got, want, "case {:?}: {text}", case["why"]);
+        }
+    }
+
+    #[test]
     fn refuses_what_is_not_on_the_closed_lists() {
         let bad = [
             json!({}),                                                                  // no version
@@ -449,6 +505,10 @@ mod tests {
             json!({"arena_guard_config": 1, "init": {"args": {"x": {"nested": 1}}}}),
             json!({"arena_guard_config": 1, "init": {"args": {"x": "y".repeat(65)}}}),
             json!({"arena_guard_config": 1, "features": {"payees": "yes"}}),
+            json!({"arena_guard_config": 1, "init": {"args": {"owner": "$owner", "cap": 500}}}), // cap claimed, literal
+            json!({"arena_guard_config": true}),
+            json!({"arena_guard_config": 1.0}),
+            json!({"arena_guard_config": 1, "deposits": {"approve_invoice": 1.0}}),
         ];
         for b in bad {
             assert!(cfg(b.clone()).is_err(), "should refuse {b}");

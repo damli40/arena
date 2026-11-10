@@ -1,0 +1,48 @@
+Pinned-SHA check for action.yml and examples/workflows/arena-check.yml
+run at: 2026-11-10T20:40:54Z by: gh api (read-only, public repos)
+
+################ actions/checkout @ 3d3c42e5aac5ba805825da76410c181273ba90b1 (v7.0.1) used in: examples/workflows/arena-check.yml(build job)
+--- gh api repos/actions/checkout/commits/3d3c42e5aac5ba805825da76410c181273ba90b1 --jq '{sha, date: .commit.committer.date, message: .commit.message}'
+{"date":"2026-07-17T18:45:11Z","message":"prep v7.0.1 release (#2531)","sha":"3d3c42e5aac5ba805825da76410c181273ba90b1"}
+--- gh api repos/actions/checkout/git/ref/tags/v7.0.1
+{"ref":"refs/tags/v7.0.1","sha":"3d3c42e5aac5ba805825da76410c181273ba90b1","type":"commit"}
+--- gh api repos/actions/checkout/releases/tags/v7.0.1
+{"draft":false,"prerelease":false,"published_at":"2026-07-20T15:10:05Z","tag_name":"v7.0.1"}
+RESULT: tag v7.0.1 points at the pinned commit: MATCH
+
+################ actions/upload-artifact @ cf430e030ddbb5b0abf93d22962f4752f3646cd9 (v7.0.2) used in: examples/workflows/arena-check.yml(build job)+action.yml
+--- gh api repos/actions/upload-artifact/commits/cf430e030ddbb5b0abf93d22962f4752f3646cd9 --jq '{sha, date: .commit.committer.date, message: .commit.message}'
+{"date":"2026-10-07T10:00:52Z","message":"Merge pull request #822 from actions/tunc-d-prepare-upload-v7-0-2","sha":"cf430e030ddbb5b0abf93d22962f4752f3646cd9"}
+--- gh api repos/actions/upload-artifact/git/ref/tags/v7.0.2
+{"ref":"refs/tags/v7.0.2","sha":"cf430e030ddbb5b0abf93d22962f4752f3646cd9","type":"commit"}
+--- gh api repos/actions/upload-artifact/releases/tags/v7.0.2
+{"draft":false,"prerelease":false,"published_at":"2026-10-07T10:08:14Z","tag_name":"v7.0.2"}
+RESULT: tag v7.0.2 points at the pinned commit: MATCH
+
+################ actions/download-artifact @ 9000827ccba6bdab643e8b6fd33ac0654aef8333 (v8.0.2) used in: examples/workflows/arena-check.yml(check job)
+--- gh api repos/actions/download-artifact/commits/9000827ccba6bdab643e8b6fd33ac0654aef8333 --jq '{sha, date: .commit.committer.date, message: .commit.message}'
+{"date":"2026-10-07T10:00:57Z","message":"Merge pull request #493 from actions/tunc-d-prepare-download-v8-0-2","sha":"9000827ccba6bdab643e8b6fd33ac0654aef8333"}
+--- gh api repos/actions/download-artifact/git/ref/tags/v8.0.2
+{"ref":"refs/tags/v8.0.2","sha":"9000827ccba6bdab643e8b6fd33ac0654aef8333","type":"commit"}
+--- gh api repos/actions/download-artifact/releases/tags/v8.0.2
+{"draft":false,"prerelease":false,"published_at":"2026-10-07T10:09:51Z","tag_name":"v8.0.2"}
+RESULT: tag v8.0.2 points at the pinned commit: MATCH
+
+################ actions/setup-python @ 6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 (v7.1.0) used in: action.yml
+--- gh api repos/actions/setup-python/commits/6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 --jq '{sha, date: .commit.committer.date, message: .commit.message}'
+{"date":"2026-10-22T02:33:06Z","message":"Cache upgrade to 6.3.0 (#1370)","sha":"6d4fd22b20465ccc0f7354476588e8df7c9ca0e0"}
+--- gh api repos/actions/setup-python/git/ref/tags/v7.1.0
+{"ref":"refs/tags/v7.1.0","sha":"6d4fd22b20465ccc0f7354476588e8df7c9ca0e0","type":"commit"}
+--- gh api repos/actions/setup-python/releases/tags/v7.1.0
+{"draft":false,"prerelease":false,"published_at":"2026-10-22T02:56:04Z","tag_name":"v7.1.0"}
+RESULT: tag v7.1.0 points at the pinned commit: MATCH
+
+################ actions/cache @ 55cc8345863c7cc4c66a329aec7e433d2d1c52a9 (v6.1.0) used in: action.yml(only when cache: true)
+--- gh api repos/actions/cache/commits/55cc8345863c7cc4c66a329aec7e433d2d1c52a9 --jq '{sha, date: .commit.committer.date, message: .commit.message}'
+{"date":"2026-06-23T20:30:28Z","message":"Merge pull request #1768 from jasongin/readonly-cache","sha":"55cc8345863c7cc4c66a329aec7e433d2d1c52a9"}
+--- gh api repos/actions/cache/git/ref/tags/v6.1.0
+{"ref":"refs/tags/v6.1.0","sha":"55cc8345863c7cc4c66a329aec7e433d2d1c52a9","type":"commit"}
+--- gh api repos/actions/cache/releases/tags/v6.1.0
+{"draft":false,"prerelease":false,"published_at":"2026-06-26T19:17:06Z","tag_name":"v6.1.0"}
+RESULT: tag v6.1.0 points at the pinned commit: MATCH
+
