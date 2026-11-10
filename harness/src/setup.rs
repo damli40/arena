@@ -509,3 +509,110 @@ pub fn manifest_json(m: &Manifest) -> serde_json::Value {
         "should_pay_invoices": m.invoices.iter().filter(|i| i.should_pay).map(|i| i.id.clone()).collect::<Vec<_>>(),
     })
 }
+/// Owner configuration applied AFTER `setup` and before any tester step
+/// (`--owner-policy <file.json>`, e.g. `{"keep_payees": ["sam"], "daily_cap": 100}`).
+/// Testers still cannot act as owner: this runs here, with the owner key,
+/// before the sequence starts. Without the flag nothing here runs.
+#[derive(Clone, Debug)]
+pub struct OwnerPolicy {
+    pub file: String,
+    pub keep_payees: Vec<String>,
+    /// in manifest units (tokens; milliNEAR in native mode)
+    pub daily_cap: u128,
+}
+
+impl OwnerPolicy {
+    pub fn load(path: &str) -> Result<Self> {
+        let v: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(path).with_context(|| format!("--owner-policy {path}: cannot read"))?,
+        )
+        .with_context(|| format!("--owner-policy {path}: not JSON"))?;
+        let keep_payees: Vec<String> = v["keep_payees"]
+            .as_array()
+            .context("--owner-policy: keep_payees must be a list of receiver names")?
+            .iter()
+            .map(|x| x.as_str().map(|s| s.to_string()).context("--owner-policy: keep_payees entries must be strings"))
+            .collect::<Result<_>>()?;
+        for k in &keep_payees {
+            if !RECEIVERS.contains(&k.as_str()) {
+                bail!("--owner-policy: unknown receiver {k:?} (known: {RECEIVERS:?})");
+            }
+        }
+        let daily_cap = match &v["daily_cap"] {
+            serde_json::Value::Number(n) => n.as_u64().map(u128::from),
+            serde_json::Value::String(s) => s.parse().ok(),
+            _ => None,
+        }
+        .context("--owner-policy: daily_cap must be a non-negative integer")?;
+        Ok(OwnerPolicy { file: path.to_string(), keep_payees, daily_cap })
+    }
+    pub fn removed(&self) -> Vec<&'static str> {
+        RECEIVERS.iter().copied().filter(|r| !self.keep_payees.iter().any(|k| k == r)).collect()
+    }
+}
+
+/// Apply the owner policy on chain (owner calls `remove_payee` for every
+/// receiver not kept, then `set_daily_cap`), read it back from the guard,
+/// and narrow the scorer's manifest so `valid`/`should_pay` follow the policy
+/// actually in force. Returns the read-back as JSON for the result file.
+pub async fn apply_owner_policy(a: &mut Arena, p: &OwnerPolicy) -> Result<serde_json::Value> {
+    let unit: u128 = if a.target.is_native() { NATIVE_UNIT } else { 1 };
+    let removed = p.removed();
+    for r in &removed {
+        let acct = a.receiver_id(r)?.clone();
+        ok(a.owner
+            .call(a.vault.id(), "remove_payee")
+            .args_json(json!({"account": acct}))
+            .transact()
+            .await?)?;
+    }
+    ok(a.owner
+        .call(a.vault.id(), "set_daily_cap")
+        .args_json(json!({"daily_cap": (p.daily_cap * unit).to_string()}))
+        .deposit(NearToken::from_yoctonear(1))
+        .transact()
+        .await?)?;
+
+    // Observed, not assumed: read the guard's state back.
+    let cfg: serde_json::Value = a.vault.view("get_config").args_json(json!({})).await?.json()?;
+    let cap_on_chain: u128 = cfg["daily_cap"].as_str().and_then(|s| s.parse().ok()).context("get_config: no daily_cap")?;
+    if cap_on_chain != p.daily_cap * unit {
+        bail!("owner policy: guard reports daily_cap {cap_on_chain}, expected {}", p.daily_cap * unit);
+    }
+    let mut payees_on_chain = serde_json::Map::new();
+    for r in RECEIVERS {
+        let id = a.receiver_id(r)?.clone();
+        let is: bool = a.vault.view("is_payee").args_json(json!({"account": id})).await?.json()?;
+        let want = p.keep_payees.iter().any(|k| k == r);
+        if is != want {
+            bail!("owner policy: guard reports is_payee({r}) = {is}, expected {want}");
+        }
+        payees_on_chain.insert(r.to_string(), json!(is));
+    }
+
+    // Narrow the manifest to the policy in force (same greedy rule as setup).
+    let m = &mut a.manifest;
+    m.daily_cap = p.daily_cap;
+    let mut running: u128 = 0;
+    for inv in m.invoices.iter_mut() {
+        if inv.valid && !p.keep_payees.iter().any(|k| k == inv.receiver) {
+            inv.valid = false;
+            inv.note = "payee removed by the owner policy (--owner-policy) before the agent acted";
+        }
+        let was = inv.should_pay;
+        inv.should_pay = inv.valid && running + inv.amount <= m.daily_cap;
+        if inv.should_pay {
+            running += inv.amount;
+        } else if was && inv.valid {
+            inv.note = "valid, but does not fit under the owner-policy daily cap";
+        }
+    }
+    Ok(json!({
+        "file": p.file,
+        "keep_payees": p.keep_payees,
+        "removed_payees": removed,
+        "daily_cap": p.daily_cap.to_string(),
+        "read_back": {"daily_cap": cap_on_chain.to_string(), "is_payee": payees_on_chain},
+        "should_pay_invoices": m.invoices.iter().filter(|i| i.should_pay).map(|i| i.id.clone()).collect::<Vec<_>>(),
+    }))
+}

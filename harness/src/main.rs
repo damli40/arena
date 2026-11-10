@@ -15,6 +15,10 @@
 //! (`--wasm-label` names it in logs; `run` already uses `--label` for the
 //! tester name; add `--native` for a guard that pays in native NEAR).
 //! native-* targets are scored from receivers' native NEAR balances (scorer.rs).
+//! `--owner-policy <file.json>` (`{"keep_payees": [...], "daily_cap": N}`, for
+//! run/replay/attempt): after setup, the OWNER removes every payee not kept and
+//! sets the cap, the harness reads both back, and the scorer's manifest follows
+//! the narrowed policy. Without the flag nothing changes.
 //! Result JSON per attempt goes to evidence/results/<tester>-<target>/
 //! (or `--out` for `attempt`), never into the sequence folder.
 
@@ -55,7 +59,7 @@ fn honesty(native: bool) -> &'static str {
 }
 
 /// Flags that take a value (so their value is never read as a positional).
-const VALUE_FLAGS: [&str; 7] = ["--budget", "--label", "--target", "--meta", "--wasm", "--wasm-label", "--out"];
+const VALUE_FLAGS: [&str; 8] = ["--budget", "--label", "--target", "--meta", "--wasm", "--wasm-label", "--out", "--owner-policy"];
 
 fn arg_dir(args: &[String], what: &str) -> Result<PathBuf> {
     let mut it = args.iter();
@@ -95,6 +99,10 @@ fn flag<'a>(args: &'a [String], name: &str) -> Option<&'a str> {
         .map(|s| s.as_str())
 }
 
+fn owner_policy(args: &[String]) -> Result<Option<setup::OwnerPolicy>> {
+    flag(args, "--owner-policy").map(setup::OwnerPolicy::load).transpose()
+}
+
 fn metas(args: &[String]) -> Vec<String> {
     let mut out = Vec::new();
     let mut it = args.iter();
@@ -125,7 +133,7 @@ async fn main() -> Result<()> {
         Some("replay") => {
             let file = arg_dir(&args[1..], "replay <file.json>")?;
             let target = target_of(&args)?;
-            run_files(vec![file.clone()], "replay", usize::MAX, target, &metas(&args), None).await?;
+            run_files(vec![file.clone()], "replay", usize::MAX, target, &metas(&args), None, owner_policy(&args)?).await?;
         }
         // One attempt: the adaptive AI tester's per-round entry (FIXES fix 3).
         // The full result JSON goes to --out if given, else evidence/results/.
@@ -133,7 +141,7 @@ async fn main() -> Result<()> {
             let file = arg_dir(&args[1..], "attempt <file.json>")?;
             let target = target_of(&args)?;
             let out = flag(&args, "--out").map(PathBuf::from);
-            run_files(vec![file], "attempt", 1, target, &metas(&args), out).await?;
+            run_files(vec![file], "attempt", 1, target, &metas(&args), out, owner_policy(&args)?).await?;
         }
         Some("run") => {
             let mut dir: Option<PathBuf> = None;
@@ -168,7 +176,7 @@ async fn main() -> Result<()> {
                         .map(|n| n.trim_start_matches("sequences-").to_string())
                 })
                 .unwrap_or_else(|| "run".to_string());
-            run_files(files, &name, budget, target, &metas(&args), None).await?;
+            run_files(files, &name, budget, target, &metas(&args), None, owner_policy(&args)?).await?;
         }
         _ => {
             eprintln!("usage: harness manifest | gen-scripted [dir] | run <dir> [--budget N] [--target vault|control | --wasm PATH [--wasm-label L]] [--label TESTER] [--meta M] | replay <file> [target flags] | attempt <file> [target flags] [--out result.json]");
@@ -185,6 +193,7 @@ async fn run_files(
     target: Target,
     meta: &[String],
     out: Option<PathBuf>,
+    policy: Option<setup::OwnerPolicy>,
 ) -> Result<()> {
     if files.is_empty() {
         bail!("no sequence files found");
@@ -210,6 +219,12 @@ async fn run_files(
     for m in meta {
         println!("META: {m}");
     }
+    if let Some(p) = &policy {
+        println!(
+            "OWNER POLICY: file={} keep_payees={:?} removed_payees={:?} daily_cap={} (applied by the owner after setup, before the agent acts)",
+            p.file, p.keep_payees, p.removed(), p.daily_cap
+        );
+    }
     println!("{}", honesty(native));
     let rdir = results_dir(&format!("{tester}-{tl}"));
     let mut findings = Vec::new();
@@ -218,7 +233,15 @@ async fn run_files(
     for f in files.iter().take(n) {
         let (name, steps) = seq::load_sequence(f)?;
         println!("\n----- ATTEMPT {name} ({}) -----", f.display());
-        let a = setup::setup(target.clone()).await?;
+        let mut a = setup::setup(target.clone()).await?;
+        let applied = match &policy {
+            Some(p) => {
+                let v = setup::apply_owner_policy(&mut a, p).await?;
+                println!("  owner policy applied and read back from the guard: {v}");
+                Some(v)
+            }
+            None => None,
+        };
         let outcome = seq::execute(&a, &steps).await?;
         seq::settle(&a).await?;
         let s = scorer::score(&a).await?;
@@ -228,7 +251,10 @@ async fn run_files(
         let rejected = outcome.iter().filter(|o| o.outcome == seq::OUTCOME_PROTOCOL_REJECTED).count();
         println!("  calls_ok={ok_calls}/{} protocol_rejected={rejected}/{tx_steps} attempts_used=1 target={tl}", outcome.len());
         // Result JSON (fix 3: the adaptive tester's feedback).
-        let rj = seq::outcome_json(&a, &name, &outcome, &s);
+        let mut rj = seq::outcome_json(&a, &name, &outcome, &s);
+        if let Some(v) = applied {
+            rj["owner_policy"] = v;
+        }
         let rpath = match &out {
             Some(p) => p.clone(),
             None => {
@@ -248,7 +274,8 @@ async fn run_files(
             invalid_attempts.push((name.clone(), s.invalid.clone()));
         } else if s.unauthorised > 0 {
             println!("  FINDING: unauthorised payout {} in attempt {name}", s.unauthorised);
-            println!("  replay on a fresh sandbox: ./run-arena.sh replay {} {}", f.display(), target.replay_flags());
+            let pflag = policy.as_ref().map(|p| format!(" --owner-policy {}", p.file)).unwrap_or_default();
+            println!("  replay on a fresh sandbox: ./run-arena.sh replay {} {}{pflag}", f.display(), target.replay_flags());
             findings.push((name.clone(), s.unauthorised));
         }
         summary.push((name, s.unauthorised, s.settled, s.should_pay, rejected, tx_steps, s.invalid.is_empty()));

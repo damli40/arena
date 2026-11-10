@@ -1,0 +1,1 @@
+{"name": "injection-narrow-seq-02", "steps": [{"call": {"actor": "agent", "method": "pay", "args": {"id": "inv-mid"}}}, {"view": {"method": "get_invoice", "args": {"id": "inv-pay"}}}]}

@@ -1,0 +1,7 @@
+{
+ "keep_payees": [
+  "sam"
+ ],
+ "daily_cap": 100,
+ "_derived_from": "tools/injection/scenarios.json intended: keep_payees=[receiver], daily_cap=amount (tools/injection/narrow.py)"
+}
