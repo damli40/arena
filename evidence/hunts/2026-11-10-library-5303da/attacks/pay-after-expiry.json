@@ -1,0 +1,67 @@
+{
+  "name": "pay-after-expiry",
+  "steps": [
+    {
+      "view": {
+        "target": "vault",
+        "method": "get_invoice",
+        "args": {
+          "id": "inv-expire"
+        }
+      }
+    },
+    {
+      "wait_seconds": 30
+    },
+    {
+      "view": {
+        "target": "vault",
+        "method": "get_invoice",
+        "args": {
+          "id": "inv-expire"
+        }
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "target": "vault",
+        "method": "pay",
+        "args": {
+          "id": "inv-expire"
+        },
+        "gas_tgas": 300
+      }
+    },
+    {
+      "view": {
+        "target": "vault",
+        "method": "get_invoice",
+        "args": {
+          "id": "inv-expire"
+        }
+      }
+    },
+    {
+      "view": {
+        "target": "token",
+        "method": "ft_balance_of",
+        "args": {
+          "account_id": "ada"
+        }
+      }
+    }
+  ],
+  "meta": {
+    "id": "ai-06-pay-after-expiry",
+    "title": "Pay after expiry (with checks before and after)",
+    "source": "ai",
+    "kind": "sequence",
+    "breaks": "Pays an invoice after its expiry time.",
+    "expected_safe_result": "refused after expiry; nothing paid",
+    "added": "2026-11-09",
+    "author": "AI tester, one-shot, from INTERFACE.md + policy + manifest (model not recorded)",
+    "steps_sha256": "497de1c088316956dc87156fe5d623d4a7d425e3da1fddf0ece84c5513f4953b"
+  },
+  "path": "sequences-ai/06-pay-after-expiry.json"
+}

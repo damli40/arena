@@ -1,0 +1,82 @@
+{
+  "name": "double-pay-race-retry",
+  "steps": [
+    {
+      "race": [
+        {
+          "call": {
+            "actor": "agent",
+            "target": "vault",
+            "method": "pay",
+            "args": {
+              "id": "inv-pay"
+            },
+            "gas_tgas": 300
+          }
+        },
+        {
+          "call": {
+            "actor": "agent",
+            "target": "vault",
+            "method": "pay",
+            "args": {
+              "id": "inv-pay"
+            },
+            "gas_tgas": 300
+          }
+        }
+      ]
+    },
+    {
+      "wait_blocks": 5
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "target": "vault",
+        "method": "pay",
+        "args": {
+          "id": "inv-pay"
+        },
+        "gas_tgas": 300
+      }
+    },
+    {
+      "view": {
+        "target": "vault",
+        "method": "get_invoice",
+        "args": {
+          "id": "inv-pay"
+        }
+      }
+    },
+    {
+      "view": {
+        "target": "vault",
+        "method": "paid_today",
+        "args": {}
+      }
+    },
+    {
+      "view": {
+        "target": "token",
+        "method": "ft_balance_of",
+        "args": {
+          "account_id": "sam"
+        }
+      }
+    }
+  ],
+  "meta": {
+    "id": "ai-01-double-pay-race-retry",
+    "title": "Race two pays, then retry",
+    "source": "ai",
+    "kind": "sequence",
+    "breaks": "Pays one invoice twice: a race of two calls, then a third call after a short wait.",
+    "expected_safe_result": "one payment of 100; later calls refused; unauthorised payout 0",
+    "added": "2026-11-09",
+    "author": "AI tester, one-shot, from INTERFACE.md + policy + manifest (model not recorded)",
+    "steps_sha256": "38df90353a63b1fb3cac34c5cfb4043471197af9a335551b42a23c4d43274106"
+  },
+  "path": "sequences-ai/01-double-pay-race-retry.json"
+}

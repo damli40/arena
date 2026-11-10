@@ -1,0 +1,44 @@
+{
+  "name": "p261112636-3-substituted-payee-binding-race",
+  "steps": [
+    {
+      "race": [
+        {
+          "actor": "agent",
+          "target": "vault",
+          "method": "pay",
+          "args": {
+            "id": "inv-pay"
+          }
+        },
+        {
+          "actor": "agent",
+          "target": "vault",
+          "method": "pay",
+          "args": {
+            "id": "inv-removed"
+          }
+        }
+      ]
+    },
+    {
+      "wait_blocks": 10
+    }
+  ],
+  "meta": {
+    "id": "p261112636-3-substituted-payee-binding-race",
+    "title": "valid check authorizes removed payee",
+    "source": "paper",
+    "kind": "sequence",
+    "breaks": "current-payee rule, removed payees must not be paid",
+    "expected_safe_result": "inv-pay may pay once to sam and inv-removed never pays with no tokens to lin",
+    "added": "2026-11-10",
+    "author": "muse-spark-1.3 via tools/hunter",
+    "paper": {
+      "arxiv_id": "2611.12636v1",
+      "title": "BioBind: Binding Biometric Deduplication to Zero-Knowledge Authentication",
+      "url": "https://arxiv.org/abs/2611.12636v1"
+    },
+    "steps_sha256": "a9b669faa3c64104f6873b2590509960a5b0d071ecce3ce94f475d7068dae789"
+  }
+}

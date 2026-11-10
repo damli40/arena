@@ -45,6 +45,12 @@ pub enum Target {
     NativeControl,
     NativeFixed,
     Custom { wasm: std::path::PathBuf, label: String, native: bool },
+    /// contracts/guard (2026-11-11, paper hunter): NOT the vault-a interface. `new(mode, owner,
+    /// agent, token)`, `approve_invoice(id, receiver, amount)`, no payees, no expiry, no daily cap.
+    /// Setup approves only the invoices it can express (inv-pay, inv-small, inv-mid, inv-big);
+    /// the others are never created and authorise nothing. The cap is not scored (the guard
+    /// claims none). `fixed` picks mode `fixed`, else `vulnerable_fixture` (a labelled test case).
+    Guard { fixed: bool },
 }
 
 impl Target {
@@ -56,7 +62,12 @@ impl Target {
             Target::NativeControl => resolve("../targets/native-control/native_control.wasm"),
             Target::NativeFixed => resolve("../targets/native-fixed/native_fixed.wasm"),
             Target::Custom { wasm, .. } => wasm.clone(),
+            Target::Guard { .. } => resolve("../contracts/target/wasm32-unknown-unknown/release/guard.wasm"),
         }
+    }
+    /// contracts/guard speaks its own interface (see `Target::Guard`).
+    pub fn is_contracts_guard(&self) -> bool {
+        matches!(self, Target::Guard { .. })
     }
     pub fn label(&self) -> String {
         match self {
@@ -65,6 +76,8 @@ impl Target {
             Target::NativeControl => "native-control".to_string(),
             Target::NativeFixed => "native-fixed".to_string(),
             Target::Custom { label, .. } => label.clone(),
+            Target::Guard { fixed: true } => "guard-fixed".to_string(),
+            Target::Guard { fixed: false } => "guard-vulnerable".to_string(),
         }
     }
     /// Native-NEAR scoring: invoices and the cap are in native NEAR
@@ -83,7 +96,9 @@ impl Target {
             "control" | "leaky-control" | "leaky-control-v2" => Ok(Target::LeakyControl),
             "native-control" => Ok(Target::NativeControl),
             "native-fixed" => Ok(Target::NativeFixed),
-            _ => bail!("unknown target {s:?} (vault | control | native-control | native-fixed, or use --wasm <path> [--native])"),
+            "guard-fixed" => Ok(Target::Guard { fixed: true }),
+            "guard-vulnerable" => Ok(Target::Guard { fixed: false }),
+            _ => bail!("unknown target {s:?} (vault | control | native-control | native-fixed | guard-fixed | guard-vulnerable, or use --wasm <path> [--native])"),
         }
     }
     /// A custom target from `--wasm <path>` (and optional label).
@@ -102,6 +117,8 @@ impl Target {
             Target::LeakyControl => "--target control".to_string(),
             Target::NativeControl => "--target native-control".to_string(),
             Target::NativeFixed => "--target native-fixed".to_string(),
+            Target::Guard { fixed: true } => "--target guard-fixed".to_string(),
+            Target::Guard { fixed: false } => "--target guard-vulnerable".to_string(),
             Target::Custom { wasm, label, native } => format!(
                 "--wasm {} --wasm-label {label}{}",
                 wasm.display(),
@@ -330,16 +347,24 @@ pub async fn setup(target: Target) -> Result<Arena> {
 
     // Vault: `new` may only be called by the vault account itself
     // (INTERFACE.md: "the vault account itself only (deploy + init)").
-    ok(vault
-        .call("new")
-        .args_json(json!({
+    let is_guard = target.is_contracts_guard();
+    let init_args = match &target {
+        Target::Guard { fixed } => json!({
+            "mode": if *fixed { "fixed" } else { "vulnerable_fixture" },
+            "owner": owner.id(),
+            "agent": agent_full_access.id(),
+            "token": token.id(),
+        }),
+        _ => json!({
             "owner": owner.id(),
             "agent": agent_full_access.id(),
             "token": token.id(),
             "daily_cap": (DAILY_CAP * unit).to_string(),
-        }))
-        .transact()
-        .await?)?;
+        }),
+    };
+    ok(vault.call("new").args_json(init_args).transact().await?)?;
+    // contracts/guard claims no daily cap: score none (the cap term can never fire).
+    let cap: u128 = if is_guard { u128::MAX } else { DAILY_CAP };
 
     if native {
         // Native mode: no token registration or token funding (the guard never
@@ -373,9 +398,9 @@ pub async fn setup(target: Target) -> Result<Arena> {
             .await?)?;
     }
 
-    // Payees.
-    for r in RECEIVERS {
-        let acct = by_name.iter().find(|(n, _)| *n == r).unwrap().1.id().clone();
+    // Payees (contracts/guard has no payee list).
+    for r in RECEIVERS.iter().filter(|_| !is_guard) {
+        let acct = by_name.iter().find(|(n, _)| n == r).unwrap().1.id().clone();
         ok(owner
             .call(vault.id(), "add_payee")
             .args_json(json!({"account": acct}))
@@ -406,6 +431,37 @@ pub async fn setup(target: Target) -> Result<Arena> {
     let mut running_cap: u128 = 0;
     for Spec(id, recv, amount, exp, cancelled, remove) in specs {
         let acct = by_name.iter().find(|(n, _)| n == &recv).unwrap().1.id().clone();
+        let expiring = exp == soon;
+        if is_guard {
+            // contracts/guard: only invoices it can express are created (no cancel, expiry, payees).
+            let expressible = !cancelled && !remove && !expiring;
+            if expressible {
+                ok(owner
+                    .call(vault.id(), "approve_invoice")
+                    .args_json(json!({"id": id, "receiver": acct, "amount": (amount * unit).to_string()}))
+                    .transact()
+                    .await?)?;
+            }
+            let should_pay = expressible && running_cap + amount <= cap;
+            if should_pay {
+                running_cap += amount;
+            }
+            invoices.push(InvSpec {
+                id: id.to_string(),
+                receiver: recv,
+                amount,
+                valid: expressible,
+                should_pay,
+                expires_at_ns: exp,
+                expiring: false,
+                note: if expressible {
+                    "valid on contracts/guard (one pay per invoice; this guard has no daily cap)"
+                } else {
+                    "not created on contracts/guard: it has no cancel, expiry or payee rules"
+                },
+            });
+            continue;
+        }
         ok(owner
             .call(vault.id(), "approve_invoice")
             .args_json(json!({"id": id, "receiver": acct, "amount": (amount * unit).to_string(), "expires_at_ns": exp}))
@@ -415,11 +471,10 @@ pub async fn setup(target: Target) -> Result<Arena> {
         let valid = !cancelled && !remove;
         // Greedy in manifest order: a valid invoice "should pay" while it fits
         // under the daily cap together with the should-pay ones before it.
-        let should_pay = valid && running_cap + amount <= DAILY_CAP;
+        let should_pay = valid && running_cap + amount <= cap;
         if should_pay {
             running_cap += amount;
         }
-        let expiring = exp == soon;
         let note = if cancelled {
             "cancelled by the owner right after approval"
         } else if remove {
@@ -481,7 +536,7 @@ pub async fn setup(target: Target) -> Result<Arena> {
     }
 
     let manifest = Manifest {
-        daily_cap: DAILY_CAP,
+        daily_cap: cap,
         vault_funding: VAULT_FUNDING,
         invoices,
         expiry_offset_s: EXPIRY_OFFSET_S,
@@ -571,6 +626,9 @@ impl OwnerPolicy {
 /// and narrow the scorer's manifest so `valid`/`should_pay` follow the policy
 /// actually in force. Returns the read-back as JSON for the result file.
 pub async fn apply_owner_policy(a: &mut Arena, p: &OwnerPolicy) -> Result<serde_json::Value> {
+    if a.target.is_contracts_guard() {
+        bail!("--owner-policy needs the vault-a interface (payees, daily cap); contracts/guard has neither");
+    }
     let unit: u128 = if a.target.is_native() { NATIVE_UNIT } else { 1 };
     let removed = p.removed();
     for r in &removed {

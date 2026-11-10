@@ -1,0 +1,32 @@
+{
+  "2104.08638": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-paper-cd8587",
+    "title": "SAILFISH: Vetting Smart Contract State-Inconsistency Bugs in Seconds"
+  },
+  "2611.08811": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-papers-c1bea9",
+    "title": "I Think, Therefore I Attack: Evaluating Thought Injection Attacks on Reasoning Agents"
+  },
+  "2611.11266": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-papers-c1bea9",
+    "title": "ErosionBench: Probing Alignment Decay in Enterprise Multi-Agent Systems"
+  },
+  "2611.11305": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-papers-c1bea9",
+    "title": "Least-Privilege Auditing of Agent Tool Calls with Intent Graphs and Reasoning-Guided Escalation"
+  },
+  "2611.11506": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-papers-c1bea9",
+    "title": "On the Relative Security of Prompt Injection: Mechanised Definitions, Defences and Verdicts for LLM Agents"
+  },
+  "2611.12636": {
+    "date": "2026-11-10",
+    "hunt_id": "2026-11-10-papers-c1bea9",
+    "title": "BioBind: Binding Biometric Deduplication to Zero-Knowledge Authentication"
+  }
+}

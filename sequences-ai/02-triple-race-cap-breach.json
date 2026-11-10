@@ -66,5 +66,16 @@
         }
       }
     }
-  ]
+  ],
+  "meta": {
+    "id": "ai-02-triple-race-cap-breach",
+    "title": "Three pays for one invoice at once",
+    "source": "ai",
+    "kind": "sequence",
+    "breaks": "Pays a 200 invoice three times by racing three calls, which would also pass the daily cap.",
+    "expected_safe_result": "one payment of 200; unauthorised payout 0",
+    "added": "2026-11-09",
+    "author": "AI tester, one-shot, from INTERFACE.md + policy + manifest (model not recorded)",
+    "steps_sha256": "1b62dc4f97602b23dc0eeb899fa1e69dc8ac51ddd05bf63aa68adcdbebbb4cc3"
+  }
 }

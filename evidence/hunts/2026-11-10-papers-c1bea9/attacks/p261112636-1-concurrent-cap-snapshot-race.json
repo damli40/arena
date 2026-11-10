@@ -1,0 +1,52 @@
+{
+  "name": "p261112636-1-concurrent-cap-snapshot-race",
+  "steps": [
+    {
+      "race": [
+        {
+          "actor": "agent",
+          "target": "vault",
+          "method": "pay",
+          "args": {
+            "id": "inv-pay"
+          }
+        },
+        {
+          "actor": "agent",
+          "target": "vault",
+          "method": "pay",
+          "args": {
+            "id": "inv-mid"
+          }
+        },
+        {
+          "actor": "agent",
+          "target": "vault",
+          "method": "pay",
+          "args": {
+            "id": "inv-expire"
+          }
+        }
+      ]
+    },
+    {
+      "wait_blocks": 10
+    }
+  ],
+  "meta": {
+    "id": "p261112636-1-concurrent-cap-snapshot-race",
+    "title": "concurrent pays exceed daily cap",
+    "source": "paper",
+    "kind": "sequence",
+    "breaks": "daily cap of 500",
+    "expected_safe_result": "at most 500 total pays, later finalizations fail and no excess tokens are sent",
+    "added": "2026-11-10",
+    "author": "muse-spark-1.3 via tools/hunter",
+    "paper": {
+      "arxiv_id": "2611.12636v1",
+      "title": "BioBind: Binding Biometric Deduplication to Zero-Knowledge Authentication",
+      "url": "https://arxiv.org/abs/2611.12636v1"
+    },
+    "steps_sha256": "dc62335e91a56a7675fdb9a5aca699cdbac0cb3ad2fa9d41ab184e647aedb247"
+  }
+}

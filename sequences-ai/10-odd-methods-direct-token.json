@@ -98,5 +98,16 @@
         }
       }
     }
-  ]
+  ],
+  "meta": {
+    "id": "ai-10-odd-methods-direct-token",
+    "title": "Odd methods and direct token transfers",
+    "source": "ai",
+    "kind": "sequence",
+    "breaks": "Moves money without a valid pay: direct token transfers, ft_transfer on the guard, an unknown invoice, extra pay arguments, a low-gas pay.",
+    "expected_safe_result": "nothing paid except inv-pay once; unauthorised payout 0",
+    "added": "2026-11-09",
+    "author": "AI tester, one-shot, from INTERFACE.md + policy + manifest (model not recorded)",
+    "steps_sha256": "0773de24e83e5446a59afaf6d75439ee71cebd413e358eb104e2fba5008d8a97"
+  }
 }

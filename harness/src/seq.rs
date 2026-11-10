@@ -164,6 +164,8 @@ pub const OUTCOME_OK: &str = "ok";
 pub const OUTCOME_CONTRACT_FAILURE: &str = "contract-failure";
 pub const OUTCOME_PROTOCOL_REJECTED: &str = "protocol-rejected";
 pub const OUTCOME_NOT_INCLUDED: &str = "not-included";
+/// A view call failed (e.g. the method does not exist on this target). No state changed.
+pub const OUTCOME_VIEW_FAILED: &str = "view-failed";
 
 /// Wait this long for a raced transaction before calling it not-included.
 const RACE_INCLUSION_TIMEOUT_S: u64 = 60;
@@ -299,11 +301,33 @@ async fn do_view(a: &Arena, i: usize, v: &Value) -> Result<StepOutcome> {
     let args = args_of(a, v, i);
     let m = v["method"].as_str().context("view needs a method")?;
     let res = if tgt == a.vault.id() {
-        a.vault.view(m).args_json(args.clone()).await?
+        a.vault.view(m).args_json(args.clone()).await
     } else {
-        a.token.view(m).args_json(args.clone()).await?
+        a.token.view(m).args_json(args.clone()).await
     };
-    let j: Value = res.json()?;
+    // 2026-11-11 (paper hunter): a view the target does not have (e.g. get_config on
+    // contracts/guard) used to abort the whole attempt as a harness error. Views change no
+    // state, so a failed view is now recorded as a step outcome and the attempt carries on.
+    // No frozen run had a failing view (they all reached their summary), so no number moves.
+    let j: Value = match res.map_err(anyhow::Error::from).and_then(|r| r.json::<Value>().map_err(anyhow::Error::from)) {
+        Ok(j) => j,
+        Err(e) => {
+            let failure = format!("{e:#}").chars().take(300).collect::<String>();
+            println!("  step {i} [view] {}::{} -> VIEW FAILED (recorded, attempt continues): {failure}", short(tgt), m);
+            return Ok(StepOutcome {
+                kind: "view",
+                actor: "-".to_string(),
+                target: tgt_name.to_string(),
+                method: m.to_string(),
+                args,
+                success: false,
+                outcome: OUTCOME_VIEW_FAILED,
+                failure,
+                logs: vec![],
+                view_json: None,
+            });
+        }
+    };
     println!("  step {i} [view] {}::{} -> {}", short(tgt), m, serde_json::to_string(&j)?);
     Ok(StepOutcome {
         kind: "view",

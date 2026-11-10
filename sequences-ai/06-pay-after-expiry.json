@@ -51,5 +51,16 @@
         }
       }
     }
-  ]
+  ],
+  "meta": {
+    "id": "ai-06-pay-after-expiry",
+    "title": "Pay after expiry (with checks before and after)",
+    "source": "ai",
+    "kind": "sequence",
+    "breaks": "Pays an invoice after its expiry time.",
+    "expected_safe_result": "refused after expiry; nothing paid",
+    "added": "2026-11-09",
+    "author": "AI tester, one-shot, from INTERFACE.md + policy + manifest (model not recorded)",
+    "steps_sha256": "497de1c088316956dc87156fe5d623d4a7d425e3da1fddf0ece84c5513f4953b"
+  }
 }

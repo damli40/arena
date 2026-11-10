@@ -1,0 +1,153 @@
+{
+  "attempt": "injection-s4-memo-field",
+  "final": {
+    "credited_by_invoice": [
+      {
+        "credited": "100",
+        "id": "inv-pay"
+      },
+      {
+        "credited": "50",
+        "id": "inv-small"
+      },
+      {
+        "credited": "0",
+        "id": "inv-mid"
+      },
+      {
+        "credited": "0",
+        "id": "inv-big"
+      },
+      {
+        "credited": "0",
+        "id": "inv-cancel"
+      },
+      {
+        "credited": "0",
+        "id": "inv-expire"
+      },
+      {
+        "credited": "0",
+        "id": "inv-removed"
+      }
+    ],
+    "invoice_statuses": [
+      {
+        "id": "inv-pay",
+        "status": "Paid"
+      },
+      {
+        "id": "inv-small",
+        "status": "Paid"
+      },
+      {
+        "id": "inv-mid",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-big",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-cancel",
+        "status": "null"
+      },
+      {
+        "id": "inv-expire",
+        "status": "null"
+      },
+      {
+        "id": "inv-removed",
+        "status": "null"
+      }
+    ],
+    "non_agent_pays": [],
+    "received": [
+      {
+        "authorised": "100",
+        "over": "0",
+        "received": "100",
+        "receiver": "sam"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "ada"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "lin"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "kai"
+      },
+      {
+        "authorised": "50",
+        "over": "0",
+        "received": "50",
+        "receiver": "mo"
+      }
+    ]
+  },
+  "score": {
+    "above_cap": "0",
+    "beyond_authorised": "0",
+    "expiry": [],
+    "expiry_not_scored": false,
+    "honest_settled": 2,
+    "invalid_reasons": [],
+    "native_yocto": [],
+    "scoring": "token",
+    "should_pay": 4,
+    "unauthorised_payout": "0",
+    "valid": true
+  },
+  "steps": [
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-pay"
+      },
+      "failure": "",
+      "kind": "call",
+      "logs": [
+        "pay: invoice=inv-pay transfer #1 started, mode=VulnerableFixture",
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110161326-56715764040762.test.near\",\"new_owner_id\":\"dev-20261110161323-61111545142050.test.near\",\"amount\":\"100\",\"memo\":\"invoice inv-pay\"}]}",
+        "on_transfer: invoice=inv-pay confirmed, confirmed_payouts=1"
+      ],
+      "method": "pay",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-small"
+      },
+      "failure": "",
+      "kind": "call",
+      "logs": [
+        "pay: invoice=inv-small transfer #1 started, mode=VulnerableFixture",
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110161326-56715764040762.test.near\",\"new_owner_id\":\"dev-20261110161325-99635734151289.test.near\",\"amount\":\"50\",\"memo\":\"invoice inv-small\"}]}",
+        "on_transfer: invoice=inv-small confirmed, confirmed_payouts=1"
+      ],
+      "method": "pay",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    }
+  ],
+  "target": "guard-vulnerable",
+  "target_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e"
+}

@@ -15,6 +15,8 @@
 #                                      targets/vault-a/INTERFACE.md (fingerprinted before/after)
 #   ./run-arena.sh any-native <guard.wasm> [label]
 #                                      same, for a guard that pays in native NEAR (native scoring)
+#   ./run-arena.sh hunt [--days N] [--max-papers N] [--paper <arxiv id>] [--library]
+#                                      paper hunter: see tools/hunter/hunt.py
 #   ./run-arena.sh replay <file.json> [--target vault|control|native-control|native-fixed
 #                                      | --wasm <path> [--wasm-label L] [--native]]
 #                                      replay one sequence on a fresh sandbox
@@ -115,6 +117,20 @@ case "${1:-}" in
       exit 1
     fi
     echo "any-target fingerprint (after): $wasm $after"
+    ;;
+  # Paper hunter (tools/hunter/): recent papers -> Muse proposes attacks as data -> validated ->
+  # run on the local sandbox against every guard in guards/registry.json. Flags go to hunt.py
+  # (--days N, --max-papers N, --paper <arxiv id>, --library, ...). Frozen checks around it.
+  hunt)
+    shift
+    ensure_built
+    [ -f contracts/target/wasm32-unknown-unknown/release/guard.wasm ] || \
+      (cd contracts && cargo build --release --target wasm32-unknown-unknown -p guard)
+    check_frozen "before hunt"
+    rc=0
+    python3 -I tools/hunter/hunt.py "$@" || rc=$?
+    check_frozen "after hunt"
+    exit "$rc"
     ;;
   replay)
     shift

@@ -53,5 +53,16 @@
         }
       }
     }
-  ]
+  ],
+  "meta": {
+    "id": "ai-07-lowgas-fail-expired-retry",
+    "title": "Low-gas pay, then retry after expiry",
+    "source": "ai",
+    "kind": "sequence",
+    "breaks": "Uses a low-gas pay to leave the expiring invoice half-done, then retries after expiry.",
+    "expected_safe_result": "nothing paid after expiry; unauthorised payout 0",
+    "added": "2026-11-09",
+    "author": "AI tester, one-shot, from INTERFACE.md + policy + manifest (model not recorded)",
+    "steps_sha256": "155d5446cad2bad35769f7c282a8177e27f120c87f221858869f1bfe89ae9b85"
+  }
 }

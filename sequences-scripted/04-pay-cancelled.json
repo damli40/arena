@@ -1,4 +1,34 @@
-{"name":"pay-cancelled","steps":[
-        {"call":{"actor":"agent","method":"pay","args":{"id":"inv-cancel"}}},
-        {"call":{"actor":"agent","method":"pay","args":{"id":"inv-cancel"}}}
-    ]}
+{
+  "name": "pay-cancelled",
+  "steps": [
+    {
+      "call": {
+        "actor": "agent",
+        "method": "pay",
+        "args": {
+          "id": "inv-cancel"
+        }
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "method": "pay",
+        "args": {
+          "id": "inv-cancel"
+        }
+      }
+    }
+  ],
+  "meta": {
+    "id": "scripted-04-pay-cancelled",
+    "title": "Pay a cancelled invoice",
+    "source": "hand",
+    "kind": "sequence",
+    "breaks": "Gets money out on an invoice the owner cancelled.",
+    "expected_safe_result": "both calls refused; nothing paid",
+    "added": "2026-11-09",
+    "author": "scripted tester (harness/src/scripted.rs), written by hand from INTERFACE.md",
+    "steps_sha256": "11095793b51710c9216527ff2612ba183db10f4b22625c4172ef8c8f554d5564"
+  }
+}

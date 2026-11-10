@@ -1,0 +1,98 @@
+# Daily paper hunt: Muse reads recent security papers, proposes attacks as data, and the bench runs
+# them on a LOCAL sandbox (inside this runner) against every opt-in guard in guards/registry.json.
+#
+# Results leave as a workflow ARTIFACT only. This job never pushes. Why not commit to a
+# hunt-results branch: that needs `contents: write`, and this job feeds untrusted text (paper
+# abstracts, model output) through a pipeline. Nothing in it is executed, but a write token in the
+# same job is the one thing that would turn a future slip into a repo change. With read-only
+# permissions, the worst a slip can do is spoil one artifact. To publish results, download the
+# artifact and commit it by hand (or add a separate job that only reads the artifact).
+#
+# The used-paper list survives between runs through actions/cache, so a paper is not re-attacked
+# every day even though nothing is committed.
+#
+# Needs one repository secret: MUSE_API_KEY. All logic is in tools/hunter/ci-steps.sh
+# (tools/hunter/ci-local.sh runs the same steps locally and fails if this file drifts).
+name: paper-hunt
+
+on:
+  schedule:
+    - cron: "17 5 * * *"   # daily, 05:17 UTC
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "Papers from the last N days (1-365)"
+        default: "7"
+      max_papers:
+        description: "At most N papers (1-5)"
+        default: "5"
+      paper:
+        description: "Optional: attack this one arXiv id (e.g. 2104.08638)"
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: paper-hunt
+  cancel-in-progress: false
+
+jobs:
+  hunt:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+
+      - name: Cache Rust builds
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            contracts/target
+            harness/target
+          key: rust-${{ runner.os }}-${{ hashFiles('contracts/Cargo.lock', 'harness/Cargo.lock', 'contracts/guard/src/**', 'contracts/test-token/src/**', 'harness/src/**') }}
+
+      - name: Restore the used-paper list
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: evidence/hunts/used-papers.json
+          key: used-papers-${{ github.run_id }}
+          restore-keys: used-papers-
+
+      - name: Build
+        run: bash tools/hunter/ci-steps.sh build
+
+      - name: Self-checks
+        run: bash tools/hunter/ci-steps.sh test
+
+      - name: Hunt
+        env:
+          MUSE_API_KEY: ${{ secrets.MUSE_API_KEY }}
+          # Inputs go through env, never pasted into the script; ci-steps.sh validates each.
+          HUNT_DAYS: ${{ inputs.days || '7' }}
+          HUNT_MAX_PAPERS: ${{ inputs.max_papers || '5' }}
+          HUNT_PAPER: ${{ inputs.paper || '' }}
+          HUNT_JOBS: "4"
+        run: bash tools/hunter/ci-steps.sh hunt
+
+      - name: Collect
+        if: always()
+        env:
+          HUNT_ARTIFACT_DIR: hunt-artifact
+        run: bash tools/hunter/ci-steps.sh collect
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: hunt-${{ github.run_id }}
+          path: hunt-artifact/
+          retention-days: 30
+          if-no-files-found: warn

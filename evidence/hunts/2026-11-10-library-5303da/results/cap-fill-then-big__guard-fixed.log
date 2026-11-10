@@ -1,0 +1,61 @@
+
+================ arena run: tester=attempt target=guard-fixed attempts=1 ================
+TARGET: label=guard-fixed wasm=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/harness/../contracts/target/wasm32-unknown-unknown/release/guard.wasm sha256=0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+META: hunt=2026-11-10-library-5303da mode=library
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+
+----- ATTEMPT cap-fill-then-big (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/hunts/2026-11-10-library-5303da/attacks/cap-fill-then-big.json) -----
+  step 0 [call] agent -> 79044167::pay {"id":"inv-pay"} ok=true
+      log: pay: invoice=inv-pay transfer #1 started, mode=Fixed
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110160814-65503679044167.test.near","new_owner_id":"dev-20261110160811-19514733789351.test.near","amount":"100","memo":"invoice inv-pay"}]}
+      log: on_transfer: invoice=inv-pay confirmed=true
+  step 1 [call] agent -> 79044167::pay {"id":"inv-small"} ok=true
+      log: pay: invoice=inv-small transfer #1 started, mode=Fixed
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110160814-65503679044167.test.near","new_owner_id":"dev-20261110160813-39475878388025.test.near","amount":"50","memo":"invoice inv-small"}]}
+      log: on_transfer: invoice=inv-small confirmed=true
+  step 2 [call] agent -> 79044167::pay {"id":"inv-mid"} ok=true
+      log: pay: invoice=inv-mid transfer #1 started, mode=Fixed
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110160814-65503679044167.test.near","new_owner_id":"dev-20261110160812-71253138603494.test.near","amount":"200","memo":"invoice inv-mid"}]}
+      log: on_transfer: invoice=inv-mid confirmed=true
+  step 3 [call] agent -> 79044167::pay {"id":"inv-big"} ok=true
+      log: pay: invoice=inv-big transfer #1 started, mode=Fixed
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110160814-65503679044167.test.near","new_owner_id":"dev-20261110160812-18687019204348.test.near","amount":"600","memo":"invoice inv-big"}]}
+      log: on_transfer: invoice=inv-big confirmed=true
+  step 4 [view] 79044167::paid_today -> VIEW FAILED (recorded, attempt continues): unable to fulfill the query request: handler error: [Function call returned an error: "wasm execution failed with error: MethodResolveError(MethodNotFound)"]
+  step 5 [view] 79044167::get_invoice -> {"amount":"600","confirmed_payouts":1,"pending_since_block":97,"receiver":"dev-20261110160812-18687019204348.test.near","status":"Paid","transfers_started":1}
+  FORMAT FIX step 6: logical name "kai" in arg "account_id" resolved to dev-20261110160812-18687019204348.test.near
+  step 6 [view] 90011472::ft_balance_of -> "600"
+SCORE attempt=cap-fill-then-big scoring=token
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=200    authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=600    authorised=600    over=0
+  receiver mo     received=50     authorised=50     over=0
+  invoice inv-pay     policy_allows=100    credited=100    (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=50     (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=200    (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=600    (credited only if paid, started by the agent, status Paid)
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 4/4   statuses=inv-pay:Paid, inv-small:Paid, inv-mid:Paid, inv-big:Paid, inv-cancel:null, inv-expire:null, inv-removed:null
+  calls_ok=6/7 protocol_rejected=0/4 attempts_used=1 target=guard-fixed
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/hunts/2026-11-10-library-5303da/results/cap-fill-then-big__guard-fixed.result.json
+
+================ SUMMARY tester=attempt target=guard-fixed ================
+  target wasm sha256=0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e
+  cap-fill-then-big            unauthorised=0      honest_settled=4/4 protocol_rejected=0/4
+  attempts=1 attempts_found_something=0 tester=attempt target=guard-fixed
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).

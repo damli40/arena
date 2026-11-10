@@ -1,0 +1,244 @@
+{
+  "attempt": "c261110-1-race-valid-double-plus-forbidd",
+  "final": {
+    "credited_by_invoice": [
+      {
+        "credited": "100",
+        "id": "inv-pay"
+      },
+      {
+        "credited": "0",
+        "id": "inv-small"
+      },
+      {
+        "credited": "0",
+        "id": "inv-mid"
+      },
+      {
+        "credited": "0",
+        "id": "inv-big"
+      },
+      {
+        "credited": "0",
+        "id": "inv-cancel"
+      },
+      {
+        "credited": "0",
+        "id": "inv-expire"
+      },
+      {
+        "credited": "0",
+        "id": "inv-removed"
+      }
+    ],
+    "invoice_statuses": [
+      {
+        "id": "inv-pay",
+        "status": "Paid"
+      },
+      {
+        "id": "inv-small",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-mid",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-big",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-cancel",
+        "status": "null"
+      },
+      {
+        "id": "inv-expire",
+        "status": "null"
+      },
+      {
+        "id": "inv-removed",
+        "status": "null"
+      }
+    ],
+    "non_agent_pays": [],
+    "received": [
+      {
+        "authorised": "100",
+        "over": "100",
+        "received": "200",
+        "receiver": "sam"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "ada"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "lin"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "kai"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "mo"
+      }
+    ]
+  },
+  "score": {
+    "above_cap": "0",
+    "beyond_authorised": "100",
+    "expiry": [],
+    "expiry_not_scored": false,
+    "honest_settled": 0,
+    "invalid_reasons": [],
+    "native_yocto": [],
+    "scoring": "token",
+    "should_pay": 4,
+    "unauthorised_payout": "100",
+    "valid": true
+  },
+  "steps": [
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-pay"
+      },
+      "failure": "",
+      "kind": "race-call",
+      "logs": [
+        "pay: invoice=inv-pay transfer #1 started, mode=VulnerableFixture",
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110162528-17468452471758.test.near\",\"new_owner_id\":\"dev-20261110162526-43412387662143.test.near\",\"amount\":\"100\",\"memo\":\"invoice inv-pay\"}]}",
+        "on_transfer: invoice=inv-pay confirmed, confirmed_payouts=1"
+      ],
+      "method": "pay",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-pay"
+      },
+      "failure": "",
+      "kind": "race-call",
+      "logs": [
+        "pay: invoice=inv-pay transfer #2 started, mode=VulnerableFixture",
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110162528-17468452471758.test.near\",\"new_owner_id\":\"dev-20261110162526-43412387662143.test.near\",\"amount\":\"100\",\"memo\":\"invoice inv-pay\"}]}",
+        "DOUBLE PAYOUT: invoice=inv-pay was already Paid when another transfer confirmed",
+        "on_transfer: invoice=inv-pay confirmed, confirmed_payouts=2"
+      ],
+      "method": "pay",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-cancel"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: panicked at guard/src/lib.rs:180:46:\\nunknown invoice\")) }) } })",
+      "kind": "race-call",
+      "logs": [],
+      "method": "pay",
+      "outcome": "contract-failure",
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-removed"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: panicked at guard/src/lib.rs:180:46:\\nunknown invoice\")) }) } })",
+      "kind": "race-call",
+      "logs": [],
+      "method": "pay",
+      "outcome": "contract-failure",
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "outsider",
+      "args": {
+        "id": "inv-pay"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: agent only\")) }) } })",
+      "kind": "call",
+      "logs": [],
+      "method": "pay",
+      "outcome": "contract-failure",
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-pay"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: invoice already paid\")) }) } })",
+      "kind": "call",
+      "logs": [],
+      "method": "pay",
+      "outcome": "contract-failure",
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-cancel"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: panicked at guard/src/lib.rs:180:46:\\nunknown invoice\")) }) } })",
+      "kind": "call",
+      "logs": [],
+      "method": "pay",
+      "outcome": "contract-failure",
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-removed"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: panicked at guard/src/lib.rs:180:46:\\nunknown invoice\")) }) } })",
+      "kind": "call",
+      "logs": [],
+      "method": "pay",
+      "outcome": "contract-failure",
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    }
+  ],
+  "target": "guard-vulnerable",
+  "target_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e"
+}

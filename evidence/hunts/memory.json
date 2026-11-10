@@ -1,0 +1,3015 @@
+{
+  "attacks": {
+    "scripted-01-control-pay-valid": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "scripted-02-race-double-pay": {
+      "vault-a": {
+        "tries": 5,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 5,
+        "breaks": 5,
+        "last": "broke",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 5,
+        "breaks": 5,
+        "last": "broke",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 5,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 5,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 5,
+        "breaks": 5,
+        "last": "broke",
+        "last_date": "2026-11-10"
+      }
+    },
+    "scripted-03-sequential-second-pay": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "scripted-04-pay-cancelled": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "scripted-05-pay-expired": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "scripted-06-pay-removed-payee": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "scripted-07-outsider-pays": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "scripted-08-gas-starve-then-pay": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "scripted-09-pay-over-cap": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "scripted-10-race-two-invoices": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "ai-01-double-pay-race-retry": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 1,
+        "last": "broke",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 1,
+        "last": "broke",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 1,
+        "last": "broke",
+        "last_date": "2026-11-10"
+      }
+    },
+    "ai-02-triple-race-cap-breach": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 1,
+        "last": "broke",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 1,
+        "last": "broke",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 1,
+        "last": "broke",
+        "last_date": "2026-11-10"
+      }
+    },
+    "ai-03-mixed-invoice-race-cap": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 1,
+        "last": "broke",
+        "last_date": "2026-11-10"
+      }
+    },
+    "ai-04-cap-fill-then-big": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "ai-05-expire-double-race": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "ai-06-pay-after-expiry": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "ai-07-lowgas-fail-expired-retry": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "ai-08-lowgas-retry-double": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "ai-09-should-refuse-paths": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "ai-10-odd-methods-direct-token": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "bypass-01-bypass-direct-ft-transfer": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "bypass-02-bypass-owner-method": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "bypass-03-bypass-add-key": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "injection-s1-overt": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "injection-s2-payee-swap": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "injection-s3-fake-authority": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "injection-s4-memo-field": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "p261108811-2-untagged-deliberation-cancel-r": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "p261108811-3-stealth-thought-no-disclosure": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "p261111266-1-expiry-trajectory-erosion": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "p261111266-2-cap-erosion-batch": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "p261111266-3-long-context-batch-erosion": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "p261112636-1-concurrent-cap-snapshot-race": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "p261112636-2-stale-expiry-finalization": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "p261112636-3-substituted-payee-binding-race": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "p261111506-1-fence-multi-call-schedule-esca": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "p261111305-1-tool-output-hidden-instruction": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "p261111305-3-guardian-blinding-plan-poison": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "c261110-1-race-valid-double-plus-forbidd": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 1,
+        "last": "broke",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 1,
+        "last": "broke",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 1,
+        "last": "broke",
+        "last_date": "2026-11-10"
+      }
+    },
+    "c261110-2-lowgas-expire-race-cap-breach": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "p210408638-1-tod-daily-cap-race": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "p210408638-2-reentrancy-callback-window-ret": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "c261110-1-race-cap-smuggle-removed-retry": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "c261110-2-lowgas-race-outsider-expire-re": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "p210408638-1-reentrancy-async-double-pay": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 1,
+        "last": "broke",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 1,
+        "last": "broke",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 1,
+        "last": "broke",
+        "last_date": "2026-11-10"
+      }
+    },
+    "p210408638-2-tod-cap-bypass-race": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    }
+  },
+  "families": {
+    "plain-pay": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "race+repeat-pay": {
+      "vault-a": {
+        "tries": 8,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 8,
+        "breaks": 8,
+        "last": "broke",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 8,
+        "breaks": 8,
+        "last": "broke",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 8,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 8,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 8,
+        "breaks": 8,
+        "last": "broke",
+        "last_date": "2026-11-10"
+      }
+    },
+    "repeat-pay": {
+      "vault-a": {
+        "tries": 2,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 2,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 2,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 2,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 2,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 2,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "cancelled+repeat-pay": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "expiry+repeat-pay": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "removed-payee": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "outsider": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "low-gas+repeat-pay": {
+      "vault-a": {
+        "tries": 2,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 2,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 2,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 2,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 2,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 2,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "over-cap+repeat-pay": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "race": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "over-cap+race+repeat-pay": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 1,
+        "last": "broke",
+        "last_date": "2026-11-10"
+      }
+    },
+    "over-cap": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "expiry+race+repeat-pay": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "expiry": {
+      "vault-a": {
+        "tries": 3,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 3,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 3,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 3,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 3,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 3,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "expiry+low-gas+repeat-pay": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "cancelled+outsider+removed-payee": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "direct-token+low-gas+non-pay-method+outsider+repeat-pay+unknown-invoice": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "direct-token": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "non-pay-method": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "add-key": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "injection+over-cap": {
+      "vault-a": {
+        "tries": 3,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 3,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 3,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 3,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 3,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 3,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "injection": {
+      "vault-a": {
+        "tries": 3,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 3,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 3,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 3,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 3,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 3,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "cancelled+injection+over-cap+removed-payee": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "cancelled+injection+removed-payee": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "expiry+injection+over-cap": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "expiry+over-cap+race": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "expiry+race": {
+      "vault-a": {
+        "tries": 3,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 3,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 3,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 3,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 3,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 3,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "race+removed-payee": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "injection+over-cap+repeat-pay": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "cancelled+outsider+race+removed-payee+repeat-pay": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 1,
+        "last": "broke",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 1,
+        "last": "broke",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 1,
+        "last": "broke",
+        "last_date": "2026-11-10"
+      }
+    },
+    "expiry+low-gas+over-cap+race+repeat-pay": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "over-cap+race+removed-payee+repeat-pay": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    },
+    "expiry+low-gas+outsider+race+repeat-pay": {
+      "vault-a": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "leaky-control-v2": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-control": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "native-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-fixed": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      },
+      "guard-vulnerable": {
+        "tries": 1,
+        "breaks": 0,
+        "last": "held",
+        "last_date": "2026-11-10"
+      }
+    }
+  },
+  "hunts": [
+    "2026-11-10-library-5303da",
+    "2026-11-10-papers-c1bea9",
+    "2026-11-10-paper-abc6e6",
+    "2026-11-10-paper-cd8587"
+  ],
+  "_about": "attack x guard -> tries/breaks/last result, rebuilt from every trusted hunt file. Never edited by hand."
+}

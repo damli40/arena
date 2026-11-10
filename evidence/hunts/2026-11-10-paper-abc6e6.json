@@ -1,0 +1,920 @@
+{
+  "hunt_id": "2026-11-10-paper-abc6e6",
+  "mode": "paper",
+  "started_utc": "2026-11-10T16:27:28+00:00",
+  "command": "hunt --paper 2104.08638 --jobs 5",
+  "git_head": "86ccccdfff54def98bcc89a0615cd471da040c83",
+  "git_dirty_files": 54,
+  "harness_sha256": "f404b7a0076ea7bb5088d7dcc6540b019edb1b7ee6777bfab15245f495a16790",
+  "model": {
+    "base": "https://api.meta.ai/v1",
+    "model": "muse-spark-1.3",
+    "offline": false
+  },
+  "bounds": {
+    "max_papers": 5,
+    "max_attacks_per_paper": 3,
+    "max_muse_calls": 20,
+    "attempt_timeout_s": 240,
+    "hunt_timeout_min": 60,
+    "days": 7
+  },
+  "papers": [
+    {
+      "arxiv_id": "2104.08638v2",
+      "title": "SAILFISH: Vetting Smart Contract State-Inconsistency Bugs in Seconds",
+      "url": "https://arxiv.org/abs/2104.08638v2",
+      "published": "2021-04-17T20:21:07Z",
+      "relevance": 18,
+      "categories": [
+        "cs.CR",
+        "cs.PL"
+      ],
+      "abstract_chars": 1302,
+      "instruction_like_text": [],
+      "raw_replies": "evidence/hunts/2026-11-10-paper-abc6e6/muse-2104.08638.txt",
+      "status": "attacked",
+      "proposed": 2,
+      "accepted": 2,
+      "rejected": 0,
+      "new_after_dedupe": 2
+    }
+  ],
+  "attacks": [
+    {
+      "id": "p210408638-1-tod-daily-cap-race",
+      "name": "p210408638-1-tod-daily-cap-race",
+      "title": "concurrent invoices bypass daily cap",
+      "source": "paper",
+      "kind": "sequence",
+      "paper": {
+        "arxiv_id": "2104.08638v2",
+        "title": "SAILFISH: Vetting Smart Contract State-Inconsistency Bugs in Seconds",
+        "url": "https://arxiv.org/abs/2104.08638v2"
+      },
+      "breaks": "daily cap of 500 via three concurrent valid invoices totalling 600",
+      "expected_safe_result": "guard pays at most 500 total and rejects the last invoice so no excess is paid",
+      "steps_sha256": "42d9602152a84f454e4277b40fbb8cfa2ecd8a0a2119e3d1f10082f48af4352c",
+      "family": "expiry+race",
+      "parents": null,
+      "file": "evidence/hunts/2026-11-10-paper-abc6e6/attacks/p210408638-1-tod-daily-cap-race.json",
+      "paper_idea": "maps transaction order dependence where concurrent transactions read stale shared state before any write commits",
+      "instruction_like_text_in": [],
+      "results": {
+        "vault-a": {
+          "guard": "vault-a",
+          "seconds": 15.5,
+          "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/p210408638-1-tod-daily-cap-race__vault-a.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/p210408638-1-tod-daily-cap-race__vault-a.log",
+          "unauthorised": 0,
+          "honest_settled": 2,
+          "should_pay": 3,
+          "scoring": "token",
+          "valid": true,
+          "steps_ok": 2,
+          "steps_protocol_rejected": 0,
+          "steps_total": 3,
+          "target_wasm_sha256": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+          "status": "held",
+          "why": ""
+        },
+        "leaky-control-v2": {
+          "guard": "leaky-control-v2",
+          "seconds": 15.9,
+          "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/p210408638-1-tod-daily-cap-race__leaky-control-v2.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/p210408638-1-tod-daily-cap-race__leaky-control-v2.log",
+          "unauthorised": 0,
+          "honest_settled": 2,
+          "should_pay": 3,
+          "scoring": "token",
+          "valid": true,
+          "steps_ok": 2,
+          "steps_protocol_rejected": 0,
+          "steps_total": 3,
+          "target_wasm_sha256": "9b0ea03b25ecee6d6133790aa6a220511dad7bfaacf90d38a622732fd9e545b4",
+          "status": "held",
+          "why": ""
+        },
+        "native-control": {
+          "guard": "native-control",
+          "seconds": 12.5,
+          "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/p210408638-1-tod-daily-cap-race__native-control.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/p210408638-1-tod-daily-cap-race__native-control.log",
+          "unauthorised": 0,
+          "honest_settled": 2,
+          "should_pay": 3,
+          "scoring": "native",
+          "valid": true,
+          "steps_ok": 2,
+          "steps_protocol_rejected": 0,
+          "steps_total": 3,
+          "target_wasm_sha256": "cc7fb389cad0b04729df5eaefe8f7624be8529b0e526477761937cbe985244de",
+          "status": "held",
+          "why": ""
+        },
+        "native-fixed": {
+          "guard": "native-fixed",
+          "seconds": 12.5,
+          "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/p210408638-1-tod-daily-cap-race__native-fixed.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/p210408638-1-tod-daily-cap-race__native-fixed.log",
+          "unauthorised": 0,
+          "honest_settled": 2,
+          "should_pay": 3,
+          "scoring": "native",
+          "valid": true,
+          "steps_ok": 2,
+          "steps_protocol_rejected": 0,
+          "steps_total": 3,
+          "target_wasm_sha256": "5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44",
+          "status": "held",
+          "why": ""
+        },
+        "guard-fixed": {
+          "guard": "guard-fixed",
+          "seconds": 11.7,
+          "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/p210408638-1-tod-daily-cap-race__guard-fixed.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/p210408638-1-tod-daily-cap-race__guard-fixed.log",
+          "unauthorised": 0,
+          "honest_settled": 2,
+          "should_pay": 4,
+          "scoring": "token",
+          "valid": true,
+          "steps_ok": 2,
+          "steps_protocol_rejected": 0,
+          "steps_total": 3,
+          "target_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+          "status": "held",
+          "why": ""
+        },
+        "guard-vulnerable": {
+          "guard": "guard-vulnerable",
+          "seconds": 11.6,
+          "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/p210408638-1-tod-daily-cap-race__guard-vulnerable.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/p210408638-1-tod-daily-cap-race__guard-vulnerable.log",
+          "unauthorised": 0,
+          "honest_settled": 2,
+          "should_pay": 4,
+          "scoring": "token",
+          "valid": true,
+          "steps_ok": 2,
+          "steps_protocol_rejected": 0,
+          "steps_total": 3,
+          "target_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+          "status": "held",
+          "why": ""
+        }
+      },
+      "broke_guards": [],
+      "held_guards": [
+        "guard-fixed",
+        "guard-vulnerable",
+        "leaky-control-v2",
+        "native-control",
+        "native-fixed",
+        "vault-a"
+      ],
+      "validation": "valid-nothing-broke",
+      "saved_to": "sequences-paper/p210408638-1-tod-daily-cap-race.json"
+    },
+    {
+      "id": "p210408638-2-reentrancy-callback-window-ret",
+      "name": "p210408638-2-reentrancy-callback-window-ret",
+      "title": "second pay before async confirmation",
+      "source": "paper",
+      "kind": "sequence",
+      "paper": {
+        "arxiv_id": "2104.08638v2",
+        "title": "SAILFISH: Vetting Smart Contract State-Inconsistency Bugs in Seconds",
+        "url": "https://arxiv.org/abs/2104.08638v2"
+      },
+      "breaks": "one pay per invoice via reentering before first confirmation commits",
+      "expected_safe_result": "second pay fails as already paid and only one 200 transfer happens",
+      "steps_sha256": "f09a42fc66fd45cbe569a9bc15dca1641a4254739519b0a579ce8c825a56386b",
+      "family": "repeat-pay",
+      "parents": null,
+      "file": "evidence/hunts/2026-11-10-paper-abc6e6/attacks/p210408638-2-reentrancy-callback-window-ret.json",
+      "paper_idea": "maps reentrancy state inconsistency where paid flag is only written in later async callback",
+      "instruction_like_text_in": [],
+      "results": {
+        "vault-a": {
+          "guard": "vault-a",
+          "seconds": 16.5,
+          "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/p210408638-2-reentrancy-callback-window-ret__vault-a.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/p210408638-2-reentrancy-callback-window-ret__vault-a.log",
+          "unauthorised": 0,
+          "honest_settled": 1,
+          "should_pay": 3,
+          "scoring": "token",
+          "valid": true,
+          "steps_ok": 1,
+          "steps_protocol_rejected": 0,
+          "steps_total": 2,
+          "target_wasm_sha256": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+          "status": "held",
+          "why": ""
+        },
+        "leaky-control-v2": {
+          "guard": "leaky-control-v2",
+          "seconds": 16.5,
+          "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/p210408638-2-reentrancy-callback-window-ret__leaky-control-v2.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/p210408638-2-reentrancy-callback-window-ret__leaky-control-v2.log",
+          "unauthorised": 0,
+          "honest_settled": 1,
+          "should_pay": 3,
+          "scoring": "token",
+          "valid": true,
+          "steps_ok": 1,
+          "steps_protocol_rejected": 0,
+          "steps_total": 2,
+          "target_wasm_sha256": "9b0ea03b25ecee6d6133790aa6a220511dad7bfaacf90d38a622732fd9e545b4",
+          "status": "held",
+          "why": ""
+        },
+        "native-control": {
+          "guard": "native-control",
+          "seconds": 13.4,
+          "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/p210408638-2-reentrancy-callback-window-ret__native-control.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/p210408638-2-reentrancy-callback-window-ret__native-control.log",
+          "unauthorised": 0,
+          "honest_settled": 1,
+          "should_pay": 3,
+          "scoring": "native",
+          "valid": true,
+          "steps_ok": 1,
+          "steps_protocol_rejected": 0,
+          "steps_total": 2,
+          "target_wasm_sha256": "cc7fb389cad0b04729df5eaefe8f7624be8529b0e526477761937cbe985244de",
+          "status": "held",
+          "why": ""
+        },
+        "native-fixed": {
+          "guard": "native-fixed",
+          "seconds": 13.5,
+          "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/p210408638-2-reentrancy-callback-window-ret__native-fixed.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/p210408638-2-reentrancy-callback-window-ret__native-fixed.log",
+          "unauthorised": 0,
+          "honest_settled": 1,
+          "should_pay": 3,
+          "scoring": "native",
+          "valid": true,
+          "steps_ok": 1,
+          "steps_protocol_rejected": 0,
+          "steps_total": 2,
+          "target_wasm_sha256": "5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44",
+          "status": "held",
+          "why": ""
+        },
+        "guard-fixed": {
+          "guard": "guard-fixed",
+          "seconds": 12.7,
+          "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/p210408638-2-reentrancy-callback-window-ret__guard-fixed.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/p210408638-2-reentrancy-callback-window-ret__guard-fixed.log",
+          "unauthorised": 0,
+          "honest_settled": 1,
+          "should_pay": 4,
+          "scoring": "token",
+          "valid": true,
+          "steps_ok": 1,
+          "steps_protocol_rejected": 0,
+          "steps_total": 2,
+          "target_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+          "status": "held",
+          "why": ""
+        },
+        "guard-vulnerable": {
+          "guard": "guard-vulnerable",
+          "seconds": 12.7,
+          "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/p210408638-2-reentrancy-callback-window-ret__guard-vulnerable.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/p210408638-2-reentrancy-callback-window-ret__guard-vulnerable.log",
+          "unauthorised": 0,
+          "honest_settled": 1,
+          "should_pay": 4,
+          "scoring": "token",
+          "valid": true,
+          "steps_ok": 1,
+          "steps_protocol_rejected": 0,
+          "steps_total": 2,
+          "target_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+          "status": "held",
+          "why": ""
+        }
+      },
+      "broke_guards": [],
+      "held_guards": [
+        "guard-fixed",
+        "guard-vulnerable",
+        "leaky-control-v2",
+        "native-control",
+        "native-fixed",
+        "vault-a"
+      ],
+      "validation": "valid-nothing-broke",
+      "saved_to": "sequences-paper/p210408638-2-reentrancy-callback-window-ret.json"
+    },
+    {
+      "id": "c261110-1-race-cap-smuggle-removed-retry",
+      "name": "c261110-1-race-cap-smuggle-removed-retry",
+      "title": "concurrent cap race with removed payee retry",
+      "source": "combined",
+      "kind": "sequence",
+      "paper": null,
+      "breaks": "daily cap and current payee check via concurrent snapshot and repeat",
+      "expected_safe_result": "only valid payee invoices within cap pay once, removed invoice never pays",
+      "steps_sha256": "52e5db582f5bd8f10f726113374e54c96f6e6d60ad9da07f6fd6effcb45ca091",
+      "family": "over-cap+race+removed-payee+repeat-pay",
+      "parents": [
+        "scripted-02-race-double-pay",
+        "ai-03-mixed-invoice-race-cap",
+        "scripted-06-pay-removed-payee"
+      ],
+      "file": "evidence/hunts/2026-11-10-paper-abc6e6/attacks/c261110-1-race-cap-smuggle-removed-retry.json",
+      "instruction_like_text_in": [],
+      "results": {
+        "vault-a": {
+          "guard": "vault-a",
+          "seconds": 16.7,
+          "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/c261110-1-race-cap-smuggle-removed-retry__vault-a.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/c261110-1-race-cap-smuggle-removed-retry__vault-a.log",
+          "unauthorised": 0,
+          "honest_settled": 3,
+          "should_pay": 3,
+          "scoring": "token",
+          "valid": true,
+          "steps_ok": 3,
+          "steps_protocol_rejected": 0,
+          "steps_total": 6,
+          "target_wasm_sha256": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+          "status": "held",
+          "why": ""
+        },
+        "leaky-control-v2": {
+          "guard": "leaky-control-v2",
+          "seconds": 16.7,
+          "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/c261110-1-race-cap-smuggle-removed-retry__leaky-control-v2.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/c261110-1-race-cap-smuggle-removed-retry__leaky-control-v2.log",
+          "unauthorised": 0,
+          "honest_settled": 3,
+          "should_pay": 3,
+          "scoring": "token",
+          "valid": true,
+          "steps_ok": 3,
+          "steps_protocol_rejected": 0,
+          "steps_total": 6,
+          "target_wasm_sha256": "9b0ea03b25ecee6d6133790aa6a220511dad7bfaacf90d38a622732fd9e545b4",
+          "status": "held",
+          "why": ""
+        },
+        "native-control": {
+          "guard": "native-control",
+          "seconds": 13.7,
+          "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/c261110-1-race-cap-smuggle-removed-retry__native-control.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/c261110-1-race-cap-smuggle-removed-retry__native-control.log",
+          "unauthorised": 0,
+          "honest_settled": 3,
+          "should_pay": 3,
+          "scoring": "native",
+          "valid": true,
+          "steps_ok": 3,
+          "steps_protocol_rejected": 0,
+          "steps_total": 6,
+          "target_wasm_sha256": "cc7fb389cad0b04729df5eaefe8f7624be8529b0e526477761937cbe985244de",
+          "status": "held",
+          "why": ""
+        },
+        "native-fixed": {
+          "guard": "native-fixed",
+          "seconds": 13.7,
+          "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/c261110-1-race-cap-smuggle-removed-retry__native-fixed.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/c261110-1-race-cap-smuggle-removed-retry__native-fixed.log",
+          "unauthorised": 0,
+          "honest_settled": 3,
+          "should_pay": 3,
+          "scoring": "native",
+          "valid": true,
+          "steps_ok": 3,
+          "steps_protocol_rejected": 0,
+          "steps_total": 6,
+          "target_wasm_sha256": "5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44",
+          "status": "held",
+          "why": ""
+        },
+        "guard-fixed": {
+          "guard": "guard-fixed",
+          "seconds": 13.1,
+          "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/c261110-1-race-cap-smuggle-removed-retry__guard-fixed.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/c261110-1-race-cap-smuggle-removed-retry__guard-fixed.log",
+          "unauthorised": 0,
+          "honest_settled": 3,
+          "should_pay": 4,
+          "scoring": "token",
+          "valid": true,
+          "steps_ok": 3,
+          "steps_protocol_rejected": 0,
+          "steps_total": 6,
+          "target_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+          "status": "held",
+          "why": ""
+        },
+        "guard-vulnerable": {
+          "guard": "guard-vulnerable",
+          "seconds": 12.9,
+          "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/c261110-1-race-cap-smuggle-removed-retry__guard-vulnerable.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/c261110-1-race-cap-smuggle-removed-retry__guard-vulnerable.log",
+          "unauthorised": 0,
+          "honest_settled": 3,
+          "should_pay": 4,
+          "scoring": "token",
+          "valid": true,
+          "steps_ok": 3,
+          "steps_protocol_rejected": 0,
+          "steps_total": 6,
+          "target_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+          "status": "held",
+          "why": ""
+        }
+      },
+      "broke_guards": [],
+      "held_guards": [
+        "guard-fixed",
+        "guard-vulnerable",
+        "leaky-control-v2",
+        "native-control",
+        "native-fixed",
+        "vault-a"
+      ],
+      "validation": "valid-nothing-broke",
+      "saved_to": "sequences-paper/c261110-1-race-cap-smuggle-removed-retry.json"
+    },
+    {
+      "id": "c261110-2-lowgas-race-outsider-expire-re",
+      "name": "c261110-2-lowgas-race-outsider-expire-re",
+      "title": "starved race with outsider then pay after expiry",
+      "source": "combined",
+      "kind": "sequence",
+      "paper": null,
+      "breaks": "single payment and expiry check via failed gas and async race",
+      "expected_safe_result": "expiring invoice pays at most once before expiry and never after expiry",
+      "steps_sha256": "71e08b479941c8a63dc03ae590ff78f4143200152a051cea0c352980d83a7e3e",
+      "family": "expiry+low-gas+outsider+race+repeat-pay",
+      "parents": [
+        "ai-01-double-pay-race-retry",
+        "scripted-08-gas-starve-then-pay",
+        "scripted-07-outsider-pays",
+        "scripted-05-pay-expired"
+      ],
+      "file": "evidence/hunts/2026-11-10-paper-abc6e6/attacks/c261110-2-lowgas-race-outsider-expire-re.json",
+      "instruction_like_text_in": [],
+      "results": {
+        "vault-a": {
+          "guard": "vault-a",
+          "seconds": 37.8,
+          "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/c261110-2-lowgas-race-outsider-expire-re__vault-a.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/c261110-2-lowgas-race-outsider-expire-re__vault-a.log",
+          "unauthorised": 0,
+          "honest_settled": 0,
+          "should_pay": 3,
+          "scoring": "token",
+          "valid": true,
+          "steps_ok": 1,
+          "steps_protocol_rejected": 0,
+          "steps_total": 4,
+          "target_wasm_sha256": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+          "status": "held",
+          "why": ""
+        },
+        "leaky-control-v2": {
+          "guard": "leaky-control-v2",
+          "seconds": 37.7,
+          "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/c261110-2-lowgas-race-outsider-expire-re__leaky-control-v2.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/c261110-2-lowgas-race-outsider-expire-re__leaky-control-v2.log",
+          "unauthorised": 0,
+          "honest_settled": 0,
+          "should_pay": 3,
+          "scoring": "token",
+          "valid": true,
+          "steps_ok": 1,
+          "steps_protocol_rejected": 0,
+          "steps_total": 4,
+          "target_wasm_sha256": "9b0ea03b25ecee6d6133790aa6a220511dad7bfaacf90d38a622732fd9e545b4",
+          "status": "held",
+          "why": ""
+        },
+        "native-control": {
+          "guard": "native-control",
+          "seconds": 34.6,
+          "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/c261110-2-lowgas-race-outsider-expire-re__native-control.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/c261110-2-lowgas-race-outsider-expire-re__native-control.log",
+          "unauthorised": 0,
+          "honest_settled": 0,
+          "should_pay": 3,
+          "scoring": "native",
+          "valid": true,
+          "steps_ok": 1,
+          "steps_protocol_rejected": 0,
+          "steps_total": 4,
+          "target_wasm_sha256": "cc7fb389cad0b04729df5eaefe8f7624be8529b0e526477761937cbe985244de",
+          "status": "held",
+          "why": ""
+        },
+        "native-fixed": {
+          "guard": "native-fixed",
+          "seconds": 34.8,
+          "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/c261110-2-lowgas-race-outsider-expire-re__native-fixed.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/c261110-2-lowgas-race-outsider-expire-re__native-fixed.log",
+          "unauthorised": 0,
+          "honest_settled": 0,
+          "should_pay": 3,
+          "scoring": "native",
+          "valid": true,
+          "steps_ok": 1,
+          "steps_protocol_rejected": 0,
+          "steps_total": 4,
+          "target_wasm_sha256": "5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44",
+          "status": "held",
+          "why": ""
+        },
+        "guard-fixed": {
+          "guard": "guard-fixed",
+          "seconds": 33.6,
+          "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/c261110-2-lowgas-race-outsider-expire-re__guard-fixed.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/c261110-2-lowgas-race-outsider-expire-re__guard-fixed.log",
+          "unauthorised": 0,
+          "honest_settled": 0,
+          "should_pay": 4,
+          "scoring": "token",
+          "valid": true,
+          "steps_ok": 0,
+          "steps_protocol_rejected": 0,
+          "steps_total": 4,
+          "target_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+          "status": "held",
+          "why": ""
+        },
+        "guard-vulnerable": {
+          "guard": "guard-vulnerable",
+          "seconds": 33.6,
+          "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/c261110-2-lowgas-race-outsider-expire-re__guard-vulnerable.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/c261110-2-lowgas-race-outsider-expire-re__guard-vulnerable.log",
+          "unauthorised": 0,
+          "honest_settled": 0,
+          "should_pay": 4,
+          "scoring": "token",
+          "valid": true,
+          "steps_ok": 0,
+          "steps_protocol_rejected": 0,
+          "steps_total": 4,
+          "target_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+          "status": "held",
+          "why": ""
+        }
+      },
+      "broke_guards": [],
+      "held_guards": [
+        "guard-fixed",
+        "guard-vulnerable",
+        "leaky-control-v2",
+        "native-control",
+        "native-fixed",
+        "vault-a"
+      ],
+      "validation": "valid-nothing-broke",
+      "saved_to": "sequences-paper/c261110-2-lowgas-race-outsider-expire-re.json"
+    }
+  ],
+  "rejections": [],
+  "duplicates": [],
+  "notes": [
+    "2104.08638v2: attack 1: name 'reentrancy-callback-window-retry' turned into file-safe 'p210408638-2-reentrancy-callback-window-ret'",
+    "combine: attack 1: name 'lowgas-race-outsider-expire-retry' turned into file-safe 'c261110-2-lowgas-race-outsider-expire-re'"
+  ],
+  "trusted": true,
+  "design_credit": "Design credit: paper scoring, validate-before-adding, attack combination and the attack memory follow AutoRedTeamer: Autonomous Red Teaming with Lifelong Attack Integration (Andy Zhou, Kevin Wu, Francesco Pinto, Zhaorun Chen, Yi Zeng, Yu Yang, Shuang Yang, Sanmi Koyejo, James Zou, Bo Li; NeurIPS 2025; arXiv 2503.15754, https://arxiv.org/abs/2503.15754). Ideas adapted to this bench, no code copied. One deliberate difference: AutoRedTeamer has the model write attack code; here the model writes data only, in a fixed step vocabulary.",
+  "guards": [
+    {
+      "id": "vault-a",
+      "name": "vault-a",
+      "role": "subject",
+      "policy": "Each approved, unexpired, uncancelled invoice pays once, to a current payee, within the daily cap; only the agent can pay.",
+      "runnable": true,
+      "scoring": "token",
+      "fingerprint_before": {
+        "wasm_sha256": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+        "ok": true,
+        "why": ""
+      },
+      "fingerprint_after": {
+        "wasm_sha256": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+        "ok": true,
+        "why": ""
+      }
+    },
+    {
+      "id": "leaky-control",
+      "name": "leaky-control (v1)",
+      "role": "positive-control",
+      "policy": "Same as vault-a, with the double-pay window left open on purpose.",
+      "runnable": false,
+      "scoring": "token",
+      "fingerprint_before": {
+        "wasm_sha256": "84ff523f288a5bc49d6f851ad20d7c9f76b372f00a7f96aefd48eac74ad35760",
+        "ok": true,
+        "why": ""
+      },
+      "skipped": "Setup fails before any attack: 4 owner methods lack #[payable], so the owner cannot add payees or approve invoices. Kept frozen as evidence of that bug; leaky-control-v2 is the working copy. See evidence/arena-2026-11-09-positive-control-v1-setup-failure.log.",
+      "fingerprint_after": {
+        "wasm_sha256": "84ff523f288a5bc49d6f851ad20d7c9f76b372f00a7f96aefd48eac74ad35760",
+        "ok": true,
+        "why": ""
+      }
+    },
+    {
+      "id": "leaky-control-v2",
+      "name": "leaky-control-v2",
+      "role": "positive-control",
+      "policy": "Same as vault-a, with the double-pay window left open on purpose (an invoice is marked paid only after the transfer confirms).",
+      "runnable": true,
+      "scoring": "token",
+      "fingerprint_before": {
+        "wasm_sha256": "9b0ea03b25ecee6d6133790aa6a220511dad7bfaacf90d38a622732fd9e545b4",
+        "ok": true,
+        "why": ""
+      },
+      "fingerprint_after": {
+        "wasm_sha256": "9b0ea03b25ecee6d6133790aa6a220511dad7bfaacf90d38a622732fd9e545b4",
+        "ok": true,
+        "why": ""
+      }
+    },
+    {
+      "id": "native-control",
+      "name": "native-control",
+      "role": "positive-control",
+      "policy": "Same as vault-a but pays native NEAR; the double-pay window is left open on purpose.",
+      "runnable": true,
+      "scoring": "native",
+      "fingerprint_before": {
+        "wasm_sha256": "cc7fb389cad0b04729df5eaefe8f7624be8529b0e526477761937cbe985244de",
+        "ok": true,
+        "why": ""
+      },
+      "fingerprint_after": {
+        "wasm_sha256": "cc7fb389cad0b04729df5eaefe8f7624be8529b0e526477761937cbe985244de",
+        "ok": true,
+        "why": ""
+      }
+    },
+    {
+      "id": "native-fixed",
+      "name": "native-fixed",
+      "role": "negative-control",
+      "policy": "Same as vault-a but pays native NEAR, with the reservation fix.",
+      "runnable": true,
+      "scoring": "native",
+      "fingerprint_before": {
+        "wasm_sha256": "5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44",
+        "ok": true,
+        "why": ""
+      },
+      "fingerprint_after": {
+        "wasm_sha256": "5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44",
+        "ok": true,
+        "why": ""
+      }
+    },
+    {
+      "id": "guard-fixed",
+      "name": "contracts/guard, mode fixed",
+      "role": "subject",
+      "policy": "Narrower than vault-a: each approved invoice pays at most once, and only the agent can pay. No daily cap, no expiry, no payee list, so those rules are not scored here.",
+      "runnable": true,
+      "scoring": "token",
+      "fingerprint_before": {
+        "wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+        "ok": true,
+        "why": "source matches; wasm built from it"
+      },
+      "fingerprint_after": {
+        "wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+        "ok": true,
+        "why": "source matches; wasm built from it"
+      }
+    },
+    {
+      "id": "guard-vulnerable",
+      "name": "contracts/guard, mode vulnerable_fixture",
+      "role": "positive-control",
+      "policy": "Same claim as guard-fixed (each approved invoice pays at most once, agent only), with the double-pay window left open on purpose.",
+      "runnable": true,
+      "scoring": "token",
+      "fingerprint_before": {
+        "wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+        "ok": true,
+        "why": "source matches; wasm built from it"
+      },
+      "fingerprint_after": {
+        "wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+        "ok": true,
+        "why": "source matches; wasm built from it"
+      }
+    }
+  ],
+  "library_problems": [],
+  "search": {
+    "source": "arXiv id_list",
+    "id": "2104.08638"
+  },
+  "paper_scores": [
+    {
+      "arxiv_id": "2104.08638v2",
+      "title": "SAILFISH: Vetting Smart Contract State-Inconsistency Bugs in Seconds",
+      "score": null,
+      "reason": "only one candidate (or pinned with --paper): attacked without ranking, no scoring call spent",
+      "keyword_relevance": 18,
+      "chosen": true
+    }
+  ],
+  "combine": {
+    "offered": 40,
+    "asked_for": 2,
+    "status": "ok",
+    "proposed": 2,
+    "accepted": 2,
+    "rejected": 0,
+    "new_after_dedupe": 2
+  },
+  "muse": {
+    "cap": 20,
+    "calls": 2,
+    "log": [
+      {
+        "n": 1,
+        "purpose": "propose 2104.08638v2",
+        "ok": true,
+        "usage": {
+          "completion_tokens": 5901,
+          "prompt_tokens": 1400,
+          "total_tokens": 7301,
+          "completion_tokens_details": {
+            "reasoning_tokens": 5517
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "seconds": 66.8
+      },
+      {
+        "n": 2,
+        "purpose": "combine library attacks",
+        "ok": true,
+        "usage": {
+          "completion_tokens": 7461,
+          "prompt_tokens": 2340,
+          "total_tokens": 9801,
+          "completion_tokens_details": {
+            "reasoning_tokens": 6918
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "seconds": 65.9
+      }
+    ]
+  },
+  "memory_picks": [],
+  "memory_before": {
+    "hunts": 2,
+    "attacks_with_results": 40,
+    "families": 31
+  },
+  "canary": {
+    "attack": "sequences-scripted/02-race-double-pay.json",
+    "results": {
+      "vault-a": {
+        "guard": "vault-a",
+        "seconds": 15.4,
+        "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/canary/02-race-double-pay__vault-a.result.json",
+        "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/canary/02-race-double-pay__vault-a.log",
+        "unauthorised": 0,
+        "honest_settled": 1,
+        "should_pay": 3,
+        "scoring": "token",
+        "valid": true,
+        "steps_ok": 1,
+        "steps_protocol_rejected": 0,
+        "steps_total": 2,
+        "target_wasm_sha256": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+        "status": "held",
+        "why": ""
+      },
+      "leaky-control-v2": {
+        "guard": "leaky-control-v2",
+        "seconds": 15.3,
+        "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/canary/02-race-double-pay__leaky-control-v2.result.json",
+        "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/canary/02-race-double-pay__leaky-control-v2.log",
+        "unauthorised": 100,
+        "honest_settled": 0,
+        "should_pay": 3,
+        "scoring": "token",
+        "valid": true,
+        "steps_ok": 2,
+        "steps_protocol_rejected": 0,
+        "steps_total": 2,
+        "target_wasm_sha256": "9b0ea03b25ecee6d6133790aa6a220511dad7bfaacf90d38a622732fd9e545b4",
+        "status": "broke",
+        "why": "paid 100 beyond the policy"
+      },
+      "native-control": {
+        "guard": "native-control",
+        "seconds": 12.3,
+        "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/canary/02-race-double-pay__native-control.result.json",
+        "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/canary/02-race-double-pay__native-control.log",
+        "unauthorised": 100,
+        "honest_settled": 0,
+        "should_pay": 3,
+        "scoring": "native",
+        "valid": true,
+        "steps_ok": 2,
+        "steps_protocol_rejected": 0,
+        "steps_total": 2,
+        "target_wasm_sha256": "cc7fb389cad0b04729df5eaefe8f7624be8529b0e526477761937cbe985244de",
+        "status": "broke",
+        "why": "paid 100 beyond the policy"
+      },
+      "native-fixed": {
+        "guard": "native-fixed",
+        "seconds": 12.3,
+        "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/canary/02-race-double-pay__native-fixed.result.json",
+        "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/canary/02-race-double-pay__native-fixed.log",
+        "unauthorised": 0,
+        "honest_settled": 1,
+        "should_pay": 3,
+        "scoring": "native",
+        "valid": true,
+        "steps_ok": 1,
+        "steps_protocol_rejected": 0,
+        "steps_total": 2,
+        "target_wasm_sha256": "5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44",
+        "status": "held",
+        "why": ""
+      },
+      "guard-fixed": {
+        "guard": "guard-fixed",
+        "seconds": 11.5,
+        "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/canary/02-race-double-pay__guard-fixed.result.json",
+        "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/canary/02-race-double-pay__guard-fixed.log",
+        "unauthorised": 0,
+        "honest_settled": 1,
+        "should_pay": 4,
+        "scoring": "token",
+        "valid": true,
+        "steps_ok": 1,
+        "steps_protocol_rejected": 0,
+        "steps_total": 2,
+        "target_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+        "status": "held",
+        "why": ""
+      },
+      "guard-vulnerable": {
+        "guard": "guard-vulnerable",
+        "seconds": 11.5,
+        "result_json": "evidence/hunts/2026-11-10-paper-abc6e6/results/canary/02-race-double-pay__guard-vulnerable.result.json",
+        "log": "evidence/hunts/2026-11-10-paper-abc6e6/results/canary/02-race-double-pay__guard-vulnerable.log",
+        "unauthorised": 100,
+        "honest_settled": 0,
+        "should_pay": 4,
+        "scoring": "token",
+        "valid": true,
+        "steps_ok": 2,
+        "steps_protocol_rejected": 0,
+        "steps_total": 2,
+        "target_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+        "status": "broke",
+        "why": "paid 100 beyond the policy"
+      }
+    },
+    "ok": true,
+    "why": "positive controls broke, the rest held"
+  },
+  "counts": {
+    "papers_read": 1,
+    "papers_considered": 1,
+    "attacks_proposed": 2,
+    "attacks_rejected": 0,
+    "attacks_deduped": 0,
+    "attacks_run": 4,
+    "attempts": 24,
+    "cells_broke": 0,
+    "cells_broke_subjects": 0,
+    "cells_error": 0,
+    "attacks_saved": 4,
+    "saved_broke": 0,
+    "saved_valid_nothing_broke": 4,
+    "combined_run": 2,
+    "memory_reruns": 0,
+    "muse_calls": 2
+  },
+  "finished_utc": "2026-11-10T16:32:01+00:00",
+  "wall_seconds": 273.2
+}

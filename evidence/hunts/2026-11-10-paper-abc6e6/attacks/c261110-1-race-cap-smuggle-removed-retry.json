@@ -1,0 +1,77 @@
+{
+  "name": "c261110-1-race-cap-smuggle-removed-retry",
+  "steps": [
+    {
+      "race": [
+        {
+          "actor": "agent",
+          "method": "pay",
+          "args": {
+            "id": "inv-pay"
+          }
+        },
+        {
+          "actor": "agent",
+          "method": "pay",
+          "args": {
+            "id": "inv-mid"
+          }
+        },
+        {
+          "actor": "agent",
+          "method": "pay",
+          "args": {
+            "id": "inv-small"
+          }
+        },
+        {
+          "actor": "agent",
+          "method": "pay",
+          "args": {
+            "id": "inv-removed"
+          }
+        }
+      ]
+    },
+    {
+      "wait_blocks": 3
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "method": "pay",
+        "args": {
+          "id": "inv-pay"
+        }
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "method": "pay",
+        "args": {
+          "id": "inv-removed"
+        }
+      }
+    },
+    {
+      "wait_blocks": 2
+    }
+  ],
+  "meta": {
+    "id": "c261110-1-race-cap-smuggle-removed-retry",
+    "title": "concurrent cap race with removed payee retry",
+    "source": "combined",
+    "kind": "sequence",
+    "breaks": "daily cap and current payee check via concurrent snapshot and repeat",
+    "expected_safe_result": "only valid payee invoices within cap pay once, removed invoice never pays",
+    "added": "2026-11-10",
+    "author": "muse-spark-1.3 via tools/hunter",
+    "parents": [
+      "scripted-02-race-double-pay",
+      "ai-03-mixed-invoice-race-cap",
+      "scripted-06-pay-removed-payee"
+    ],
+    "steps_sha256": "52e5db582f5bd8f10f726113374e54c96f6e6d60ad9da07f6fd6effcb45ca091"
+  }
+}

@@ -1,0 +1,267 @@
+{
+  "attempt": "mixed-invoice-race-cap",
+  "final": {
+    "credited_by_invoice": [
+      {
+        "credited": "100",
+        "id": "inv-pay"
+      },
+      {
+        "credited": "50",
+        "id": "inv-small"
+      },
+      {
+        "credited": "200",
+        "id": "inv-mid"
+      },
+      {
+        "credited": "0",
+        "id": "inv-big"
+      },
+      {
+        "credited": "0",
+        "id": "inv-cancel"
+      },
+      {
+        "credited": "0",
+        "id": "inv-expire"
+      },
+      {
+        "credited": "0",
+        "id": "inv-removed"
+      }
+    ],
+    "invoice_statuses": [
+      {
+        "id": "inv-pay",
+        "status": "Paid"
+      },
+      {
+        "id": "inv-small",
+        "status": "Paid"
+      },
+      {
+        "id": "inv-mid",
+        "status": "Paid"
+      },
+      {
+        "id": "inv-big",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-cancel",
+        "status": "null"
+      },
+      {
+        "id": "inv-expire",
+        "status": "null"
+      },
+      {
+        "id": "inv-removed",
+        "status": "null"
+      }
+    ],
+    "non_agent_pays": [],
+    "received": [
+      {
+        "authorised": "100",
+        "over": "0",
+        "received": "100",
+        "receiver": "sam"
+      },
+      {
+        "authorised": "200",
+        "over": "0",
+        "received": "200",
+        "receiver": "ada"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "lin"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "kai"
+      },
+      {
+        "authorised": "50",
+        "over": "0",
+        "received": "50",
+        "receiver": "mo"
+      }
+    ]
+  },
+  "score": {
+    "above_cap": "0",
+    "beyond_authorised": "0",
+    "expiry": [],
+    "expiry_not_scored": false,
+    "honest_settled": 3,
+    "invalid_reasons": [],
+    "native_yocto": [],
+    "scoring": "token",
+    "should_pay": 4,
+    "unauthorised_payout": "0",
+    "valid": true
+  },
+  "steps": [
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-pay"
+      },
+      "failure": "",
+      "kind": "race-call",
+      "logs": [
+        "pay: invoice=inv-pay transfer #1 started, mode=Fixed",
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110160759-13677785402206.test.near\",\"new_owner_id\":\"dev-20261110160757-70456265126870.test.near\",\"amount\":\"100\",\"memo\":\"invoice inv-pay\"}]}",
+        "on_transfer: invoice=inv-pay confirmed=true"
+      ],
+      "method": "pay",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-small"
+      },
+      "failure": "",
+      "kind": "race-call",
+      "logs": [
+        "pay: invoice=inv-small transfer #1 started, mode=Fixed",
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110160759-13677785402206.test.near\",\"new_owner_id\":\"dev-20261110160758-80228910952839.test.near\",\"amount\":\"50\",\"memo\":\"invoice inv-small\"}]}",
+        "on_transfer: invoice=inv-small confirmed=true"
+      ],
+      "method": "pay",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-mid"
+      },
+      "failure": "",
+      "kind": "race-call",
+      "logs": [
+        "pay: invoice=inv-mid transfer #1 started, mode=Fixed",
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110160759-13677785402206.test.near\",\"new_owner_id\":\"dev-20261110160757-39362667632058.test.near\",\"amount\":\"200\",\"memo\":\"invoice inv-mid\"}]}",
+        "on_transfer: invoice=inv-mid confirmed=true"
+      ],
+      "method": "pay",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-mid"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: payment already in flight\")) }) } })",
+      "kind": "race-call",
+      "logs": [],
+      "method": "pay",
+      "outcome": "contract-failure",
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "-",
+      "args": {},
+      "failure": "unable to fulfill the query request: handler error: [Function call returned an error: \"wasm execution failed with error: MethodResolveError(MethodNotFound)\"]",
+      "kind": "view",
+      "logs": [],
+      "method": "paid_today",
+      "outcome": "view-failed",
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "-",
+      "args": {
+        "id": "inv-mid"
+      },
+      "failure": "",
+      "kind": "view",
+      "logs": [],
+      "method": "get_invoice",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": {
+        "amount": "200",
+        "confirmed_payouts": 1,
+        "pending_since_block": 82,
+        "receiver": "dev-20261110160757-39362667632058.test.near",
+        "status": "Paid",
+        "transfers_started": 1
+      }
+    },
+    {
+      "actor": "-",
+      "args": {
+        "account_id": "dev-20261110160757-39362667632058.test.near"
+      },
+      "failure": "",
+      "kind": "view",
+      "logs": [],
+      "method": "ft_balance_of",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "token",
+      "view": "200"
+    },
+    {
+      "actor": "-",
+      "args": {
+        "account_id": "dev-20261110160757-70456265126870.test.near"
+      },
+      "failure": "",
+      "kind": "view",
+      "logs": [],
+      "method": "ft_balance_of",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "token",
+      "view": "100"
+    },
+    {
+      "actor": "-",
+      "args": {
+        "account_id": "dev-20261110160758-80228910952839.test.near"
+      },
+      "failure": "",
+      "kind": "view",
+      "logs": [],
+      "method": "ft_balance_of",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "token",
+      "view": "50"
+    }
+  ],
+  "target": "guard-fixed",
+  "target_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e"
+}

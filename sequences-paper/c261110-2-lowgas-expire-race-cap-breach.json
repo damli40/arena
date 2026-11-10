@@ -1,0 +1,105 @@
+{
+  "name": "c261110-2-lowgas-expire-race-cap-breach",
+  "steps": [
+    {
+      "call": {
+        "actor": "agent",
+        "target": "vault",
+        "method": "pay",
+        "args": {
+          "id": "inv-expire"
+        },
+        "gas_tgas": 20
+      }
+    },
+    {
+      "race": [
+        {
+          "actor": "agent",
+          "target": "vault",
+          "method": "pay",
+          "args": {
+            "id": "inv-expire"
+          }
+        },
+        {
+          "actor": "agent",
+          "target": "vault",
+          "method": "pay",
+          "args": {
+            "id": "inv-expire"
+          }
+        },
+        {
+          "actor": "agent",
+          "target": "vault",
+          "method": "pay",
+          "args": {
+            "id": "inv-big"
+          }
+        },
+        {
+          "actor": "agent",
+          "target": "vault",
+          "method": "pay",
+          "args": {
+            "id": "inv-mid"
+          }
+        }
+      ]
+    },
+    {
+      "wait_blocks": 5
+    },
+    {
+      "wait_seconds": 25
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "target": "vault",
+        "method": "pay",
+        "args": {
+          "id": "inv-expire"
+        }
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "target": "vault",
+        "method": "pay",
+        "args": {
+          "id": "inv-big"
+        }
+      }
+    }
+  ],
+  "meta": {
+    "id": "c261110-2-lowgas-expire-race-cap-breach",
+    "title": "low gas expiry race with cap breach",
+    "source": "combined",
+    "kind": "sequence",
+    "breaks": "single pay plus expiry plus daily cap via low-gas and race",
+    "expected_safe_result": "at most one 300 pre-expiry pay plus other pays within 500 total, no double, no post-expiry pay, no 600 over-cap pay",
+    "added": "2026-11-10",
+    "author": "muse-spark-1.3 via tools/hunter",
+    "parents": [
+      "ai-02-triple-race-cap-breach",
+      "ai-07-lowgas-fail-expired-retry",
+      "scripted-09-pay-over-cap"
+    ],
+    "steps_sha256": "95fa9823a1d8339753e10ec6ca9e3b32c463423f10d9abab0b2a51f54004f2f8",
+    "found_in_hunt": "2026-11-10-papers-c1bea9",
+    "broke_guards": [],
+    "held_guards": [
+      "guard-fixed",
+      "guard-vulnerable",
+      "leaky-control-v2",
+      "native-control",
+      "native-fixed",
+      "vault-a"
+    ],
+    "validation": "valid-nothing-broke"
+  }
+}

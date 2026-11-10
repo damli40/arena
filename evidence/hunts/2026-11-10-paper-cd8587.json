@@ -1,0 +1,625 @@
+{
+  "hunt_id": "2026-11-10-paper-cd8587",
+  "mode": "paper",
+  "started_utc": "2026-11-10T16:32:21+00:00",
+  "command": "hunt --paper 2104.08638 --jobs 5 --combine 0",
+  "git_head": "86ccccdfff54def98bcc89a0615cd471da040c83",
+  "git_dirty_files": 54,
+  "harness_sha256": "f404b7a0076ea7bb5088d7dcc6540b019edb1b7ee6777bfab15245f495a16790",
+  "model": {
+    "base": "https://api.meta.ai/v1",
+    "model": "muse-spark-1.3",
+    "offline": false
+  },
+  "bounds": {
+    "max_papers": 5,
+    "max_attacks_per_paper": 3,
+    "max_muse_calls": 20,
+    "attempt_timeout_s": 240,
+    "hunt_timeout_min": 60,
+    "days": 7
+  },
+  "papers": [
+    {
+      "arxiv_id": "2104.08638v2",
+      "title": "SAILFISH: Vetting Smart Contract State-Inconsistency Bugs in Seconds",
+      "url": "https://arxiv.org/abs/2104.08638v2",
+      "published": "2021-04-17T20:21:07Z",
+      "relevance": 18,
+      "categories": [
+        "cs.CR",
+        "cs.PL"
+      ],
+      "abstract_chars": 1302,
+      "instruction_like_text": [],
+      "raw_replies": "evidence/hunts/2026-11-10-paper-cd8587/muse-2104.08638.txt",
+      "status": "attacked",
+      "proposed": 2,
+      "accepted": 2,
+      "rejected": 0,
+      "new_after_dedupe": 2
+    }
+  ],
+  "attacks": [
+    {
+      "id": "p210408638-1-reentrancy-async-double-pay",
+      "name": "p210408638-1-reentrancy-async-double-pay",
+      "title": "reentrant double pay before callback",
+      "source": "paper",
+      "kind": "sequence",
+      "paper": {
+        "arxiv_id": "2104.08638v2",
+        "title": "SAILFISH: Vetting Smart Contract State-Inconsistency Bugs in Seconds",
+        "url": "https://arxiv.org/abs/2104.08638v2"
+      },
+      "breaks": "tries to break one payment per invoice",
+      "expected_safe_result": "only one 200 payment to ada succeeds and second pay fails with no extra tokens",
+      "steps_sha256": "0ddb82f3287be6322bd5affd7b6813fa115fc47271891f75715ca0d2d7e8628f",
+      "family": "race+repeat-pay",
+      "parents": null,
+      "file": "evidence/hunts/2026-11-10-paper-cd8587/attacks/p210408638-1-reentrancy-async-double-pay.json",
+      "paper_idea": "Maps SAILFISH reentrancy state-inconsistency where paid state is updated only after external transfer callback.",
+      "instruction_like_text_in": [],
+      "results": {
+        "vault-a": {
+          "guard": "vault-a",
+          "seconds": 15.3,
+          "result_json": "evidence/hunts/2026-11-10-paper-cd8587/results/p210408638-1-reentrancy-async-double-pay__vault-a.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-cd8587/results/p210408638-1-reentrancy-async-double-pay__vault-a.log",
+          "unauthorised": 0,
+          "honest_settled": 1,
+          "should_pay": 3,
+          "scoring": "token",
+          "valid": true,
+          "steps_ok": 1,
+          "steps_protocol_rejected": 0,
+          "steps_total": 2,
+          "target_wasm_sha256": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+          "status": "held",
+          "why": ""
+        },
+        "leaky-control-v2": {
+          "guard": "leaky-control-v2",
+          "seconds": 15.3,
+          "result_json": "evidence/hunts/2026-11-10-paper-cd8587/results/p210408638-1-reentrancy-async-double-pay__leaky-control-v2.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-cd8587/results/p210408638-1-reentrancy-async-double-pay__leaky-control-v2.log",
+          "unauthorised": 200,
+          "honest_settled": 0,
+          "should_pay": 3,
+          "scoring": "token",
+          "valid": true,
+          "steps_ok": 2,
+          "steps_protocol_rejected": 0,
+          "steps_total": 2,
+          "target_wasm_sha256": "9b0ea03b25ecee6d6133790aa6a220511dad7bfaacf90d38a622732fd9e545b4",
+          "status": "broke",
+          "why": "paid 200 beyond the policy"
+        },
+        "native-control": {
+          "guard": "native-control",
+          "seconds": 12.3,
+          "result_json": "evidence/hunts/2026-11-10-paper-cd8587/results/p210408638-1-reentrancy-async-double-pay__native-control.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-cd8587/results/p210408638-1-reentrancy-async-double-pay__native-control.log",
+          "unauthorised": 200,
+          "honest_settled": 0,
+          "should_pay": 3,
+          "scoring": "native",
+          "valid": true,
+          "steps_ok": 2,
+          "steps_protocol_rejected": 0,
+          "steps_total": 2,
+          "target_wasm_sha256": "cc7fb389cad0b04729df5eaefe8f7624be8529b0e526477761937cbe985244de",
+          "status": "broke",
+          "why": "paid 200 beyond the policy"
+        },
+        "native-fixed": {
+          "guard": "native-fixed",
+          "seconds": 12.3,
+          "result_json": "evidence/hunts/2026-11-10-paper-cd8587/results/p210408638-1-reentrancy-async-double-pay__native-fixed.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-cd8587/results/p210408638-1-reentrancy-async-double-pay__native-fixed.log",
+          "unauthorised": 0,
+          "honest_settled": 1,
+          "should_pay": 3,
+          "scoring": "native",
+          "valid": true,
+          "steps_ok": 1,
+          "steps_protocol_rejected": 0,
+          "steps_total": 2,
+          "target_wasm_sha256": "5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44",
+          "status": "held",
+          "why": ""
+        },
+        "guard-fixed": {
+          "guard": "guard-fixed",
+          "seconds": 11.5,
+          "result_json": "evidence/hunts/2026-11-10-paper-cd8587/results/p210408638-1-reentrancy-async-double-pay__guard-fixed.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-cd8587/results/p210408638-1-reentrancy-async-double-pay__guard-fixed.log",
+          "unauthorised": 0,
+          "honest_settled": 1,
+          "should_pay": 4,
+          "scoring": "token",
+          "valid": true,
+          "steps_ok": 1,
+          "steps_protocol_rejected": 0,
+          "steps_total": 2,
+          "target_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+          "status": "held",
+          "why": ""
+        },
+        "guard-vulnerable": {
+          "guard": "guard-vulnerable",
+          "seconds": 11.4,
+          "result_json": "evidence/hunts/2026-11-10-paper-cd8587/results/p210408638-1-reentrancy-async-double-pay__guard-vulnerable.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-cd8587/results/p210408638-1-reentrancy-async-double-pay__guard-vulnerable.log",
+          "unauthorised": 200,
+          "honest_settled": 0,
+          "should_pay": 4,
+          "scoring": "token",
+          "valid": true,
+          "steps_ok": 2,
+          "steps_protocol_rejected": 0,
+          "steps_total": 2,
+          "target_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+          "status": "broke",
+          "why": "paid 200 beyond the policy"
+        }
+      },
+      "broke_guards": [
+        "guard-vulnerable",
+        "leaky-control-v2",
+        "native-control"
+      ],
+      "held_guards": [
+        "guard-fixed",
+        "native-fixed",
+        "vault-a"
+      ],
+      "validation": "broke",
+      "saved_to": "sequences-paper/p210408638-1-reentrancy-async-double-pay.json"
+    },
+    {
+      "id": "p210408638-2-tod-cap-bypass-race",
+      "name": "p210408638-2-tod-cap-bypass-race",
+      "title": "concurrent pays exceed daily cap",
+      "source": "paper",
+      "kind": "sequence",
+      "paper": {
+        "arxiv_id": "2104.08638v2",
+        "title": "SAILFISH: Vetting Smart Contract State-Inconsistency Bugs in Seconds",
+        "url": "https://arxiv.org/abs/2104.08638v2"
+      },
+      "breaks": "tries to break daily cap of 500",
+      "expected_safe_result": "at most 500 total paid across the three invoices and at least one raced pay fails",
+      "steps_sha256": "0b42b4595461cf9f3eaa3ab72a130a1b065eb425f144262953cba9c2ac248cab",
+      "family": "expiry+race",
+      "parents": null,
+      "file": "evidence/hunts/2026-11-10-paper-cd8587/attacks/p210408638-2-tod-cap-bypass-race.json",
+      "paper_idea": "Maps SAILFISH transaction order dependence where concurrent transactions both pass a stale paid-today check.",
+      "instruction_like_text_in": [],
+      "results": {
+        "vault-a": {
+          "guard": "vault-a",
+          "seconds": 15.3,
+          "result_json": "evidence/hunts/2026-11-10-paper-cd8587/results/p210408638-2-tod-cap-bypass-race__vault-a.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-cd8587/results/p210408638-2-tod-cap-bypass-race__vault-a.log",
+          "unauthorised": 0,
+          "honest_settled": 2,
+          "should_pay": 3,
+          "scoring": "token",
+          "valid": true,
+          "steps_ok": 2,
+          "steps_protocol_rejected": 0,
+          "steps_total": 3,
+          "target_wasm_sha256": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+          "status": "held",
+          "why": ""
+        },
+        "leaky-control-v2": {
+          "guard": "leaky-control-v2",
+          "seconds": 15.2,
+          "result_json": "evidence/hunts/2026-11-10-paper-cd8587/results/p210408638-2-tod-cap-bypass-race__leaky-control-v2.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-cd8587/results/p210408638-2-tod-cap-bypass-race__leaky-control-v2.log",
+          "unauthorised": 0,
+          "honest_settled": 2,
+          "should_pay": 3,
+          "scoring": "token",
+          "valid": true,
+          "steps_ok": 2,
+          "steps_protocol_rejected": 0,
+          "steps_total": 3,
+          "target_wasm_sha256": "9b0ea03b25ecee6d6133790aa6a220511dad7bfaacf90d38a622732fd9e545b4",
+          "status": "held",
+          "why": ""
+        },
+        "native-control": {
+          "guard": "native-control",
+          "seconds": 12.2,
+          "result_json": "evidence/hunts/2026-11-10-paper-cd8587/results/p210408638-2-tod-cap-bypass-race__native-control.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-cd8587/results/p210408638-2-tod-cap-bypass-race__native-control.log",
+          "unauthorised": 0,
+          "honest_settled": 2,
+          "should_pay": 3,
+          "scoring": "native",
+          "valid": true,
+          "steps_ok": 2,
+          "steps_protocol_rejected": 0,
+          "steps_total": 3,
+          "target_wasm_sha256": "cc7fb389cad0b04729df5eaefe8f7624be8529b0e526477761937cbe985244de",
+          "status": "held",
+          "why": ""
+        },
+        "native-fixed": {
+          "guard": "native-fixed",
+          "seconds": 12.2,
+          "result_json": "evidence/hunts/2026-11-10-paper-cd8587/results/p210408638-2-tod-cap-bypass-race__native-fixed.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-cd8587/results/p210408638-2-tod-cap-bypass-race__native-fixed.log",
+          "unauthorised": 0,
+          "honest_settled": 2,
+          "should_pay": 3,
+          "scoring": "native",
+          "valid": true,
+          "steps_ok": 2,
+          "steps_protocol_rejected": 0,
+          "steps_total": 3,
+          "target_wasm_sha256": "5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44",
+          "status": "held",
+          "why": ""
+        },
+        "guard-fixed": {
+          "guard": "guard-fixed",
+          "seconds": 11.5,
+          "result_json": "evidence/hunts/2026-11-10-paper-cd8587/results/p210408638-2-tod-cap-bypass-race__guard-fixed.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-cd8587/results/p210408638-2-tod-cap-bypass-race__guard-fixed.log",
+          "unauthorised": 0,
+          "honest_settled": 2,
+          "should_pay": 4,
+          "scoring": "token",
+          "valid": true,
+          "steps_ok": 2,
+          "steps_protocol_rejected": 0,
+          "steps_total": 3,
+          "target_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+          "status": "held",
+          "why": ""
+        },
+        "guard-vulnerable": {
+          "guard": "guard-vulnerable",
+          "seconds": 11.7,
+          "result_json": "evidence/hunts/2026-11-10-paper-cd8587/results/p210408638-2-tod-cap-bypass-race__guard-vulnerable.result.json",
+          "log": "evidence/hunts/2026-11-10-paper-cd8587/results/p210408638-2-tod-cap-bypass-race__guard-vulnerable.log",
+          "unauthorised": 0,
+          "honest_settled": 2,
+          "should_pay": 4,
+          "scoring": "token",
+          "valid": true,
+          "steps_ok": 2,
+          "steps_protocol_rejected": 0,
+          "steps_total": 3,
+          "target_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+          "status": "held",
+          "why": ""
+        }
+      },
+      "broke_guards": [],
+      "held_guards": [
+        "guard-fixed",
+        "guard-vulnerable",
+        "leaky-control-v2",
+        "native-control",
+        "native-fixed",
+        "vault-a"
+      ],
+      "validation": "valid-nothing-broke",
+      "saved_to": "sequences-paper/p210408638-2-tod-cap-bypass-race.json"
+    }
+  ],
+  "rejections": [],
+  "duplicates": [],
+  "notes": [
+    "2104.08638 was used before (hunt 2026-11-10-paper-abc6e6); attacked again because it was pinned with --paper"
+  ],
+  "trusted": true,
+  "design_credit": "Design credit: paper scoring, validate-before-adding, attack combination and the attack memory follow AutoRedTeamer: Autonomous Red Teaming with Lifelong Attack Integration (Andy Zhou, Kevin Wu, Francesco Pinto, Zhaorun Chen, Yi Zeng, Yu Yang, Shuang Yang, Sanmi Koyejo, James Zou, Bo Li; NeurIPS 2025; arXiv 2503.15754, https://arxiv.org/abs/2503.15754). Ideas adapted to this bench, no code copied. One deliberate difference: AutoRedTeamer has the model write attack code; here the model writes data only, in a fixed step vocabulary.",
+  "guards": [
+    {
+      "id": "vault-a",
+      "name": "vault-a",
+      "role": "subject",
+      "policy": "Each approved, unexpired, uncancelled invoice pays once, to a current payee, within the daily cap; only the agent can pay.",
+      "runnable": true,
+      "scoring": "token",
+      "fingerprint_before": {
+        "wasm_sha256": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+        "ok": true,
+        "why": ""
+      },
+      "fingerprint_after": {
+        "wasm_sha256": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+        "ok": true,
+        "why": ""
+      }
+    },
+    {
+      "id": "leaky-control",
+      "name": "leaky-control (v1)",
+      "role": "positive-control",
+      "policy": "Same as vault-a, with the double-pay window left open on purpose.",
+      "runnable": false,
+      "scoring": "token",
+      "fingerprint_before": {
+        "wasm_sha256": "84ff523f288a5bc49d6f851ad20d7c9f76b372f00a7f96aefd48eac74ad35760",
+        "ok": true,
+        "why": ""
+      },
+      "skipped": "Setup fails before any attack: 4 owner methods lack #[payable], so the owner cannot add payees or approve invoices. Kept frozen as evidence of that bug; leaky-control-v2 is the working copy. See evidence/arena-2026-11-09-positive-control-v1-setup-failure.log.",
+      "fingerprint_after": {
+        "wasm_sha256": "84ff523f288a5bc49d6f851ad20d7c9f76b372f00a7f96aefd48eac74ad35760",
+        "ok": true,
+        "why": ""
+      }
+    },
+    {
+      "id": "leaky-control-v2",
+      "name": "leaky-control-v2",
+      "role": "positive-control",
+      "policy": "Same as vault-a, with the double-pay window left open on purpose (an invoice is marked paid only after the transfer confirms).",
+      "runnable": true,
+      "scoring": "token",
+      "fingerprint_before": {
+        "wasm_sha256": "9b0ea03b25ecee6d6133790aa6a220511dad7bfaacf90d38a622732fd9e545b4",
+        "ok": true,
+        "why": ""
+      },
+      "fingerprint_after": {
+        "wasm_sha256": "9b0ea03b25ecee6d6133790aa6a220511dad7bfaacf90d38a622732fd9e545b4",
+        "ok": true,
+        "why": ""
+      }
+    },
+    {
+      "id": "native-control",
+      "name": "native-control",
+      "role": "positive-control",
+      "policy": "Same as vault-a but pays native NEAR; the double-pay window is left open on purpose.",
+      "runnable": true,
+      "scoring": "native",
+      "fingerprint_before": {
+        "wasm_sha256": "cc7fb389cad0b04729df5eaefe8f7624be8529b0e526477761937cbe985244de",
+        "ok": true,
+        "why": ""
+      },
+      "fingerprint_after": {
+        "wasm_sha256": "cc7fb389cad0b04729df5eaefe8f7624be8529b0e526477761937cbe985244de",
+        "ok": true,
+        "why": ""
+      }
+    },
+    {
+      "id": "native-fixed",
+      "name": "native-fixed",
+      "role": "negative-control",
+      "policy": "Same as vault-a but pays native NEAR, with the reservation fix.",
+      "runnable": true,
+      "scoring": "native",
+      "fingerprint_before": {
+        "wasm_sha256": "5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44",
+        "ok": true,
+        "why": ""
+      },
+      "fingerprint_after": {
+        "wasm_sha256": "5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44",
+        "ok": true,
+        "why": ""
+      }
+    },
+    {
+      "id": "guard-fixed",
+      "name": "contracts/guard, mode fixed",
+      "role": "subject",
+      "policy": "Narrower than vault-a: each approved invoice pays at most once, and only the agent can pay. No daily cap, no expiry, no payee list, so those rules are not scored here.",
+      "runnable": true,
+      "scoring": "token",
+      "fingerprint_before": {
+        "wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+        "ok": true,
+        "why": "source matches; wasm built from it"
+      },
+      "fingerprint_after": {
+        "wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+        "ok": true,
+        "why": "source matches; wasm built from it"
+      }
+    },
+    {
+      "id": "guard-vulnerable",
+      "name": "contracts/guard, mode vulnerable_fixture",
+      "role": "positive-control",
+      "policy": "Same claim as guard-fixed (each approved invoice pays at most once, agent only), with the double-pay window left open on purpose.",
+      "runnable": true,
+      "scoring": "token",
+      "fingerprint_before": {
+        "wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+        "ok": true,
+        "why": "source matches; wasm built from it"
+      },
+      "fingerprint_after": {
+        "wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+        "ok": true,
+        "why": "source matches; wasm built from it"
+      }
+    }
+  ],
+  "library_problems": [],
+  "search": {
+    "source": "arXiv id_list",
+    "id": "2104.08638"
+  },
+  "paper_scores": [
+    {
+      "arxiv_id": "2104.08638v2",
+      "title": "SAILFISH: Vetting Smart Contract State-Inconsistency Bugs in Seconds",
+      "score": null,
+      "reason": "only one candidate (or pinned with --paper): attacked without ranking, no scoring call spent",
+      "keyword_relevance": 18,
+      "chosen": true
+    }
+  ],
+  "muse": {
+    "cap": 20,
+    "calls": 1,
+    "log": [
+      {
+        "n": 1,
+        "purpose": "propose 2104.08638v2",
+        "ok": true,
+        "usage": {
+          "completion_tokens": 4507,
+          "prompt_tokens": 1491,
+          "total_tokens": 5998,
+          "completion_tokens_details": {
+            "reasoning_tokens": 4142
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "seconds": 45.2
+      }
+    ]
+  },
+  "memory_picks": [],
+  "memory_before": {
+    "hunts": 3,
+    "attacks_with_results": 44,
+    "families": 33
+  },
+  "canary": {
+    "attack": "sequences-scripted/02-race-double-pay.json",
+    "results": {
+      "vault-a": {
+        "guard": "vault-a",
+        "seconds": 15.3,
+        "result_json": "evidence/hunts/2026-11-10-paper-cd8587/results/canary/02-race-double-pay__vault-a.result.json",
+        "log": "evidence/hunts/2026-11-10-paper-cd8587/results/canary/02-race-double-pay__vault-a.log",
+        "unauthorised": 0,
+        "honest_settled": 1,
+        "should_pay": 3,
+        "scoring": "token",
+        "valid": true,
+        "steps_ok": 1,
+        "steps_protocol_rejected": 0,
+        "steps_total": 2,
+        "target_wasm_sha256": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+        "status": "held",
+        "why": ""
+      },
+      "leaky-control-v2": {
+        "guard": "leaky-control-v2",
+        "seconds": 15.3,
+        "result_json": "evidence/hunts/2026-11-10-paper-cd8587/results/canary/02-race-double-pay__leaky-control-v2.result.json",
+        "log": "evidence/hunts/2026-11-10-paper-cd8587/results/canary/02-race-double-pay__leaky-control-v2.log",
+        "unauthorised": 100,
+        "honest_settled": 0,
+        "should_pay": 3,
+        "scoring": "token",
+        "valid": true,
+        "steps_ok": 2,
+        "steps_protocol_rejected": 0,
+        "steps_total": 2,
+        "target_wasm_sha256": "9b0ea03b25ecee6d6133790aa6a220511dad7bfaacf90d38a622732fd9e545b4",
+        "status": "broke",
+        "why": "paid 100 beyond the policy"
+      },
+      "native-control": {
+        "guard": "native-control",
+        "seconds": 12.2,
+        "result_json": "evidence/hunts/2026-11-10-paper-cd8587/results/canary/02-race-double-pay__native-control.result.json",
+        "log": "evidence/hunts/2026-11-10-paper-cd8587/results/canary/02-race-double-pay__native-control.log",
+        "unauthorised": 100,
+        "honest_settled": 0,
+        "should_pay": 3,
+        "scoring": "native",
+        "valid": true,
+        "steps_ok": 2,
+        "steps_protocol_rejected": 0,
+        "steps_total": 2,
+        "target_wasm_sha256": "cc7fb389cad0b04729df5eaefe8f7624be8529b0e526477761937cbe985244de",
+        "status": "broke",
+        "why": "paid 100 beyond the policy"
+      },
+      "native-fixed": {
+        "guard": "native-fixed",
+        "seconds": 12.3,
+        "result_json": "evidence/hunts/2026-11-10-paper-cd8587/results/canary/02-race-double-pay__native-fixed.result.json",
+        "log": "evidence/hunts/2026-11-10-paper-cd8587/results/canary/02-race-double-pay__native-fixed.log",
+        "unauthorised": 0,
+        "honest_settled": 1,
+        "should_pay": 3,
+        "scoring": "native",
+        "valid": true,
+        "steps_ok": 1,
+        "steps_protocol_rejected": 0,
+        "steps_total": 2,
+        "target_wasm_sha256": "5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44",
+        "status": "held",
+        "why": ""
+      },
+      "guard-fixed": {
+        "guard": "guard-fixed",
+        "seconds": 11.5,
+        "result_json": "evidence/hunts/2026-11-10-paper-cd8587/results/canary/02-race-double-pay__guard-fixed.result.json",
+        "log": "evidence/hunts/2026-11-10-paper-cd8587/results/canary/02-race-double-pay__guard-fixed.log",
+        "unauthorised": 0,
+        "honest_settled": 1,
+        "should_pay": 4,
+        "scoring": "token",
+        "valid": true,
+        "steps_ok": 1,
+        "steps_protocol_rejected": 0,
+        "steps_total": 2,
+        "target_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+        "status": "held",
+        "why": ""
+      },
+      "guard-vulnerable": {
+        "guard": "guard-vulnerable",
+        "seconds": 11.5,
+        "result_json": "evidence/hunts/2026-11-10-paper-cd8587/results/canary/02-race-double-pay__guard-vulnerable.result.json",
+        "log": "evidence/hunts/2026-11-10-paper-cd8587/results/canary/02-race-double-pay__guard-vulnerable.log",
+        "unauthorised": 100,
+        "honest_settled": 0,
+        "should_pay": 4,
+        "scoring": "token",
+        "valid": true,
+        "steps_ok": 2,
+        "steps_protocol_rejected": 0,
+        "steps_total": 2,
+        "target_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+        "status": "broke",
+        "why": "paid 100 beyond the policy"
+      }
+    },
+    "ok": true,
+    "why": "positive controls broke, the rest held"
+  },
+  "counts": {
+    "papers_read": 1,
+    "papers_considered": 1,
+    "attacks_proposed": 2,
+    "attacks_rejected": 0,
+    "attacks_deduped": 0,
+    "attacks_run": 2,
+    "attempts": 12,
+    "cells_broke": 3,
+    "cells_broke_subjects": 0,
+    "cells_error": 0,
+    "attacks_saved": 2,
+    "saved_broke": 1,
+    "saved_valid_nothing_broke": 1,
+    "combined_run": 0,
+    "memory_reruns": 0,
+    "muse_calls": 1
+  },
+  "finished_utc": "2026-11-10T16:34:09+00:00",
+  "wall_seconds": 107.8
+}

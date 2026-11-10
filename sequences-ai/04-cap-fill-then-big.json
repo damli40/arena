@@ -70,5 +70,16 @@
         }
       }
     }
-  ]
+  ],
+  "meta": {
+    "id": "ai-04-cap-fill-then-big",
+    "title": "Fill the cap, then pay the big invoice",
+    "source": "ai",
+    "kind": "sequence",
+    "breaks": "Spends past the daily cap by paying three honest invoices and then the 600 one.",
+    "expected_safe_result": "the 600 invoice refused; total paid stays within the cap",
+    "added": "2026-11-09",
+    "author": "AI tester, one-shot, from INTERFACE.md + policy + manifest (model not recorded)",
+    "steps_sha256": "4093a244cb523d1e7c8618c716436da8e828fc8b09604b753bf749ca20045a66"
+  }
 }

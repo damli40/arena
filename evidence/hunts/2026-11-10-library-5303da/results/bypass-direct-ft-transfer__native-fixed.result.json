@@ -1,0 +1,195 @@
+{
+  "attempt": "bypass-direct-ft-transfer",
+  "final": {
+    "credited_by_invoice": [
+      {
+        "credited": "0",
+        "id": "inv-pay"
+      },
+      {
+        "credited": "0",
+        "id": "inv-small"
+      },
+      {
+        "credited": "0",
+        "id": "inv-mid"
+      },
+      {
+        "credited": "0",
+        "id": "inv-big"
+      },
+      {
+        "credited": "0",
+        "id": "inv-cancel"
+      },
+      {
+        "credited": "0",
+        "id": "inv-expire"
+      },
+      {
+        "credited": "0",
+        "id": "inv-removed"
+      }
+    ],
+    "invoice_statuses": [
+      {
+        "id": "inv-pay",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-small",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-mid",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-big",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-cancel",
+        "status": "Cancelled"
+      },
+      {
+        "id": "inv-expire",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-removed",
+        "status": "PayeeRemoved"
+      }
+    ],
+    "non_agent_pays": [],
+    "received": [
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "sam"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "ada"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "lin"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "kai"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "mo"
+      }
+    ]
+  },
+  "score": {
+    "above_cap": "0",
+    "beyond_authorised": "0",
+    "expiry": [
+      {
+        "expires_at_ns": 1794327104893440000,
+        "id": "inv-expire",
+        "pay_block_ts": 0,
+        "verdict": "no pay recorded"
+      }
+    ],
+    "expiry_not_scored": false,
+    "honest_settled": 0,
+    "invalid_reasons": [],
+    "native_yocto": [
+      {
+        "after": "100000000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "sam"
+      },
+      {
+        "after": "100000000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "ada"
+      },
+      {
+        "after": "100000000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "lin"
+      },
+      {
+        "after": "100000000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "kai"
+      },
+      {
+        "after": "100000000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "mo"
+      }
+    ],
+    "scoring": "native",
+    "should_pay": 3,
+    "unauthorised_payout": "0",
+    "valid": true
+  },
+  "steps": [
+    {
+      "actor": "agent",
+      "args": {
+        "amount": "10000",
+        "receiver_id": "dev-20261110161118-77955696401502.test.near"
+      },
+      "failure": "Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(DepositWithFunctionCall) })) } }",
+      "kind": "call",
+      "logs": [],
+      "method": "ft_transfer",
+      "outcome": "protocol-rejected",
+      "rejected_by_protocol": true,
+      "success": false,
+      "target": "token",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "amount": "10000",
+        "receiver_id": "dev-20261110161118-77955696401502.test.near"
+      },
+      "failure": "Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(ReceiverMismatch { tx_receiver: AccountId(\"dev-20261110161120-37328927379614.test.near\"), ak_receiver: \"dev-20261110161121-67752631485605.test.near\" }) })) } }",
+      "kind": "call",
+      "logs": [],
+      "method": "ft_transfer",
+      "outcome": "protocol-rejected",
+      "rejected_by_protocol": true,
+      "success": false,
+      "target": "token",
+      "view": null
+    },
+    {
+      "actor": "-",
+      "args": {
+        "account_id": "dev-20261110161118-77955696401502.test.near"
+      },
+      "failure": "",
+      "kind": "view",
+      "logs": [],
+      "method": "ft_balance_of",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "token",
+      "view": "0"
+    }
+  ],
+  "target": "native-fixed",
+  "target_wasm_sha256": "5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44"
+}

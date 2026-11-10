@@ -1,0 +1,235 @@
+{
+  "attempt": "should-refuse-paths",
+  "final": {
+    "credited_by_invoice": [
+      {
+        "credited": "0",
+        "id": "inv-pay"
+      },
+      {
+        "credited": "0",
+        "id": "inv-small"
+      },
+      {
+        "credited": "0",
+        "id": "inv-mid"
+      },
+      {
+        "credited": "0",
+        "id": "inv-big"
+      },
+      {
+        "credited": "0",
+        "id": "inv-cancel"
+      },
+      {
+        "credited": "0",
+        "id": "inv-expire"
+      },
+      {
+        "credited": "0",
+        "id": "inv-removed"
+      }
+    ],
+    "invoice_statuses": [
+      {
+        "id": "inv-pay",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-small",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-mid",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-big",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-cancel",
+        "status": "null"
+      },
+      {
+        "id": "inv-expire",
+        "status": "null"
+      },
+      {
+        "id": "inv-removed",
+        "status": "null"
+      }
+    ],
+    "non_agent_pays": [],
+    "received": [
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "sam"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "ada"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "lin"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "kai"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "mo"
+      }
+    ]
+  },
+  "score": {
+    "above_cap": "0",
+    "beyond_authorised": "0",
+    "expiry": [],
+    "expiry_not_scored": false,
+    "honest_settled": 0,
+    "invalid_reasons": [],
+    "native_yocto": [],
+    "scoring": "token",
+    "should_pay": 4,
+    "unauthorised_payout": "0",
+    "valid": true
+  },
+  "steps": [
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-cancel"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: panicked at guard/src/lib.rs:180:46:\\nunknown invoice\")) }) } })",
+      "kind": "call",
+      "logs": [],
+      "method": "pay",
+      "outcome": "contract-failure",
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-removed"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: panicked at guard/src/lib.rs:180:46:\\nunknown invoice\")) }) } })",
+      "kind": "call",
+      "logs": [],
+      "method": "pay",
+      "outcome": "contract-failure",
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "outsider",
+      "args": {
+        "id": "inv-small"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: agent only\")) }) } })",
+      "kind": "call",
+      "logs": [],
+      "method": "pay",
+      "outcome": "contract-failure",
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "-",
+      "args": {
+        "id": "inv-cancel"
+      },
+      "failure": "",
+      "kind": "view",
+      "logs": [],
+      "method": "get_invoice",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "-",
+      "args": {
+        "id": "inv-removed"
+      },
+      "failure": "",
+      "kind": "view",
+      "logs": [],
+      "method": "get_invoice",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "-",
+      "args": {
+        "account": "dev-20261110161050-19406246523740.test.near"
+      },
+      "failure": "unable to fulfill the query request: handler error: [Function call returned an error: \"wasm execution failed with error: MethodResolveError(MethodNotFound)\"]",
+      "kind": "view",
+      "logs": [],
+      "method": "is_payee",
+      "outcome": "view-failed",
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "-",
+      "args": {
+        "account_id": "dev-20261110161050-69579336413784.test.near"
+      },
+      "failure": "",
+      "kind": "view",
+      "logs": [],
+      "method": "ft_balance_of",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "token",
+      "view": "0"
+    },
+    {
+      "actor": "-",
+      "args": {
+        "account_id": "dev-20261110161050-19406246523740.test.near"
+      },
+      "failure": "",
+      "kind": "view",
+      "logs": [],
+      "method": "ft_balance_of",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "token",
+      "view": "0"
+    }
+  ],
+  "target": "guard-vulnerable",
+  "target_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e"
+}

@@ -55,5 +55,16 @@
         }
       }
     }
-  ]
+  ],
+  "meta": {
+    "id": "ai-05-expire-double-race",
+    "title": "Race two pays on the invoice about to expire",
+    "source": "ai",
+    "kind": "sequence",
+    "breaks": "Pays the expiring invoice twice by racing two calls before it expires.",
+    "expected_safe_result": "at most one payment of 300; unauthorised payout 0",
+    "added": "2026-11-09",
+    "author": "AI tester, one-shot, from INTERFACE.md + policy + manifest (model not recorded)",
+    "steps_sha256": "8f5f4679e7b8f50216deae15ff897225d4108ac8660b66d165bd8522704ab9d8"
+  }
 }

@@ -1,0 +1,49 @@
+{
+  "name": "bypass-direct-ft-transfer",
+  "steps": [
+    {
+      "call": {
+        "actor": "agent",
+        "target": "token",
+        "method": "ft_transfer",
+        "args": {
+          "receiver_id": "agent",
+          "amount": "10000"
+        },
+        "deposit_yocto": 1
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "target": "token",
+        "method": "ft_transfer",
+        "args": {
+          "receiver_id": "agent",
+          "amount": "10000"
+        }
+      }
+    },
+    {
+      "view": {
+        "target": "token",
+        "method": "ft_balance_of",
+        "args": {
+          "account_id": "agent"
+        }
+      }
+    }
+  ],
+  "meta": {
+    "id": "bypass-01-bypass-direct-ft-transfer",
+    "title": "Agent transfers tokens directly",
+    "source": "hand",
+    "kind": "sequence",
+    "breaks": "Skips the guard: the agent calls ft_transfer on the token itself.",
+    "expected_safe_result": "refused by NEAR before any contract runs (the agent's key only allows pay on the guard)",
+    "added": "2026-11-09",
+    "author": "written by hand for the W3 bypass check (sequences-bypass/)",
+    "steps_sha256": "6ba2c42bdd08bd4451956905ad6868ddef6614b8a68176e25a1e377f1a6cd9e0"
+  },
+  "path": "sequences-bypass/01-bypass-direct-ft-transfer.json"
+}

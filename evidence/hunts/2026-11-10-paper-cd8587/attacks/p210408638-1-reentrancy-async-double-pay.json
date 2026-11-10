@@ -1,0 +1,41 @@
+{
+  "name": "p210408638-1-reentrancy-async-double-pay",
+  "steps": [
+    {
+      "race": [
+        {
+          "actor": "agent",
+          "target": "vault",
+          "method": "pay",
+          "args": {
+            "id": "inv-mid"
+          }
+        },
+        {
+          "actor": "agent",
+          "target": "vault",
+          "method": "pay",
+          "args": {
+            "id": "inv-mid"
+          }
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "id": "p210408638-1-reentrancy-async-double-pay",
+    "title": "reentrant double pay before callback",
+    "source": "paper",
+    "kind": "sequence",
+    "breaks": "tries to break one payment per invoice",
+    "expected_safe_result": "only one 200 payment to ada succeeds and second pay fails with no extra tokens",
+    "added": "2026-11-10",
+    "author": "muse-spark-1.3 via tools/hunter",
+    "paper": {
+      "arxiv_id": "2104.08638v2",
+      "title": "SAILFISH: Vetting Smart Contract State-Inconsistency Bugs in Seconds",
+      "url": "https://arxiv.org/abs/2104.08638v2"
+    },
+    "steps_sha256": "0ddb82f3287be6322bd5affd7b6813fa115fc47271891f75715ca0d2d7e8628f"
+  }
+}

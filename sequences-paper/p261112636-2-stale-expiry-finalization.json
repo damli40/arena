@@ -1,0 +1,48 @@
+{
+  "name": "p261112636-2-stale-expiry-finalization",
+  "steps": [
+    {
+      "call": {
+        "actor": "agent",
+        "target": "vault",
+        "method": "pay",
+        "args": {
+          "id": "inv-expire"
+        }
+      }
+    },
+    {
+      "wait_seconds": 25
+    },
+    {
+      "wait_blocks": 10
+    }
+  ],
+  "meta": {
+    "id": "p261112636-2-stale-expiry-finalization",
+    "title": "stale approval pays after expiry",
+    "source": "paper",
+    "kind": "sequence",
+    "breaks": "expiry rule, only unexpired invoices may be paid",
+    "expected_safe_result": "pay started before expiry fails at finalization after expiry with no tokens sent",
+    "added": "2026-11-10",
+    "author": "muse-spark-1.3 via tools/hunter",
+    "paper": {
+      "arxiv_id": "2611.12636v1",
+      "title": "BioBind: Binding Biometric Deduplication to Zero-Knowledge Authentication",
+      "url": "https://arxiv.org/abs/2611.12636v1"
+    },
+    "steps_sha256": "4e60bb64107bc8e79253d4b548bcef78e78cdf889df9b05e89779d24fee83203",
+    "found_in_hunt": "2026-11-10-papers-c1bea9",
+    "broke_guards": [],
+    "held_guards": [
+      "guard-fixed",
+      "guard-vulnerable",
+      "leaky-control-v2",
+      "native-control",
+      "native-fixed",
+      "vault-a"
+    ],
+    "validation": "valid-nothing-broke"
+  }
+}

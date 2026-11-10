@@ -1,3 +1,25 @@
-{"name":"outsider-pays","steps":[
-        {"call":{"actor":"outsider","method":"pay","args":{"id":"inv-pay"}}}
-    ]}
+{
+  "name": "outsider-pays",
+  "steps": [
+    {
+      "call": {
+        "actor": "outsider",
+        "method": "pay",
+        "args": {
+          "id": "inv-pay"
+        }
+      }
+    }
+  ],
+  "meta": {
+    "id": "scripted-07-outsider-pays",
+    "title": "An outsider triggers a payment",
+    "source": "hand",
+    "kind": "sequence",
+    "breaks": "Lets an account that is not the agent start a payment.",
+    "expected_safe_result": "refused (agent only); nothing paid",
+    "added": "2026-11-09",
+    "author": "scripted tester (harness/src/scripted.rs), written by hand from INTERFACE.md",
+    "steps_sha256": "f73f98448ef737612fd6fb127d8e630e61b18e33397650a80c9583c3d2009742"
+  }
+}

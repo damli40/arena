@@ -1,0 +1,244 @@
+{
+  "attempt": "pay-after-expiry",
+  "final": {
+    "credited_by_invoice": [
+      {
+        "credited": "0",
+        "id": "inv-pay"
+      },
+      {
+        "credited": "0",
+        "id": "inv-small"
+      },
+      {
+        "credited": "0",
+        "id": "inv-mid"
+      },
+      {
+        "credited": "0",
+        "id": "inv-big"
+      },
+      {
+        "credited": "0",
+        "id": "inv-cancel"
+      },
+      {
+        "credited": "0",
+        "id": "inv-expire"
+      },
+      {
+        "credited": "0",
+        "id": "inv-removed"
+      }
+    ],
+    "invoice_statuses": [
+      {
+        "id": "inv-pay",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-small",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-mid",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-big",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-cancel",
+        "status": "Cancelled"
+      },
+      {
+        "id": "inv-expire",
+        "status": "Expired"
+      },
+      {
+        "id": "inv-removed",
+        "status": "PayeeRemoved"
+      }
+    ],
+    "non_agent_pays": [],
+    "received": [
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "sam"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "ada"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "lin"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "kai"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "mo"
+      }
+    ]
+  },
+  "score": {
+    "above_cap": "0",
+    "beyond_authorised": "0",
+    "expiry": [
+      {
+        "expires_at_ns": 1794326948670108000,
+        "id": "inv-expire",
+        "pay_block_ts": 0,
+        "verdict": "no pay recorded"
+      }
+    ],
+    "expiry_not_scored": false,
+    "honest_settled": 0,
+    "invalid_reasons": [],
+    "native_yocto": [
+      {
+        "after": "100000000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "sam"
+      },
+      {
+        "after": "100000000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "ada"
+      },
+      {
+        "after": "100000000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "lin"
+      },
+      {
+        "after": "100000000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "kai"
+      },
+      {
+        "after": "100000000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "mo"
+      }
+    ],
+    "scoring": "native",
+    "should_pay": 3,
+    "unauthorised_payout": "0",
+    "valid": true
+  },
+  "steps": [
+    {
+      "actor": "-",
+      "args": {
+        "id": "inv-expire"
+      },
+      "failure": "",
+      "kind": "view",
+      "logs": [],
+      "method": "get_invoice",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": {
+        "amount": "300000000000000000000000",
+        "expires_at_ns": 1794326948670108000,
+        "id": "inv-expire",
+        "payable_now": true,
+        "receiver": "dev-20261110160843-61196035462254.test.near",
+        "status": "Approved"
+      }
+    },
+    {
+      "actor": "-",
+      "args": {
+        "id": "inv-expire"
+      },
+      "failure": "",
+      "kind": "view",
+      "logs": [],
+      "method": "get_invoice",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": {
+        "amount": "300000000000000000000000",
+        "expires_at_ns": 1794326948670108000,
+        "id": "inv-expire",
+        "payable_now": false,
+        "receiver": "dev-20261110160843-61196035462254.test.near",
+        "status": "Expired"
+      }
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-expire"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: invoice expired\")) }) } })",
+      "kind": "call",
+      "logs": [],
+      "method": "pay",
+      "outcome": "contract-failure",
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "-",
+      "args": {
+        "id": "inv-expire"
+      },
+      "failure": "",
+      "kind": "view",
+      "logs": [],
+      "method": "get_invoice",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": {
+        "amount": "300000000000000000000000",
+        "expires_at_ns": 1794326948670108000,
+        "id": "inv-expire",
+        "payable_now": false,
+        "receiver": "dev-20261110160843-61196035462254.test.near",
+        "status": "Expired"
+      }
+    },
+    {
+      "actor": "-",
+      "args": {
+        "account_id": "dev-20261110160843-61196035462254.test.near"
+      },
+      "failure": "",
+      "kind": "view",
+      "logs": [],
+      "method": "ft_balance_of",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "token",
+      "view": "0"
+    }
+  ],
+  "target": "native-fixed",
+  "target_wasm_sha256": "5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44"
+}

@@ -1,7 +1,62 @@
-{"name":"bypass-owner-method","steps":[
-  {"call":{"actor":"agent","method":"approve_invoice","args":{"id":"inv-bypass","receiver":"sam","amount":"5000","expires_at_ns":4102444800000000000},"deposit_yocto":1}},
-  {"call":{"actor":"agent","method":"set_daily_cap","args":{"daily_cap":"1000000"},"deposit_yocto":1}},
-  {"call":{"actor":"agent","method":"cancel_invoice","args":{"id":"inv-pay"}}},
-  {"view":{"method":"get_config","args":{}}},
-  {"view":{"method":"get_invoice","args":{"id":"inv-bypass"}}}
-]}
+{
+  "name": "bypass-owner-method",
+  "steps": [
+    {
+      "call": {
+        "actor": "agent",
+        "method": "approve_invoice",
+        "args": {
+          "id": "inv-bypass",
+          "receiver": "sam",
+          "amount": "5000",
+          "expires_at_ns": 4102444800000000000
+        },
+        "deposit_yocto": 1
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "method": "set_daily_cap",
+        "args": {
+          "daily_cap": "1000000"
+        },
+        "deposit_yocto": 1
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "method": "cancel_invoice",
+        "args": {
+          "id": "inv-pay"
+        }
+      }
+    },
+    {
+      "view": {
+        "method": "get_config",
+        "args": {}
+      }
+    },
+    {
+      "view": {
+        "method": "get_invoice",
+        "args": {
+          "id": "inv-bypass"
+        }
+      }
+    }
+  ],
+  "meta": {
+    "id": "bypass-02-bypass-owner-method",
+    "title": "Agent calls owner methods",
+    "source": "hand",
+    "kind": "sequence",
+    "breaks": "Skips the rules: the agent approves its own invoice, raises the cap and cancels an invoice.",
+    "expected_safe_result": "refused by NEAR before any contract runs (method not allowed by the agent's key)",
+    "added": "2026-11-09",
+    "author": "written by hand for the W3 bypass check (sequences-bypass/)",
+    "steps_sha256": "7ca857d818837590b27432e4cd7e06d5410de3be245304ba46a0b6c28d83d053"
+  }
+}

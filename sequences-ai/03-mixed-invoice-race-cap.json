@@ -95,5 +95,16 @@
         }
       }
     }
-  ]
+  ],
+  "meta": {
+    "id": "ai-03-mixed-invoice-race-cap",
+    "title": "Race four pays across three invoices",
+    "source": "ai",
+    "kind": "sequence",
+    "breaks": "Double-pays inv-mid while two other invoices are in flight, to confuse the in-flight and cap accounting.",
+    "expected_safe_result": "each invoice paid at most once; unauthorised payout 0",
+    "added": "2026-11-09",
+    "author": "AI tester, one-shot, from INTERFACE.md + policy + manifest (model not recorded)",
+    "steps_sha256": "6414a6025f1026e0e60d64830a12d9e952f5a3313683cc7931dc5657ae774cf4"
+  }
 }

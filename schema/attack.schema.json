@@ -1,0 +1,372 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arena.local/schema/attack.schema.json",
+  "title": "Arena attack file",
+  "description": "One attack against a payment guard: a replayable list of steps from the harness's fixed vocabulary (harness/src/seq.rs), plus a meta block. Nothing in this file is executed except through those fixed step actions. tools/hunter/validate.py enforces these rules (and a few cross-field ones the schema cannot say: steps_sha256 must match the steps, an injection attack's steps must be exactly its injected pays, wait_seconds add up to at most 60, at least one step must change state). `validate.py --self-test` checks the two agree.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "steps",
+    "meta"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 12,
+      "items": {
+        "$ref": "#/$defs/step"
+      }
+    },
+    "meta": {
+      "$ref": "#/$defs/meta"
+    }
+  },
+  "$defs": {
+    "args": {
+      "type": "object",
+      "description": "Call arguments. Names match ^[a-z_][a-z0-9_]{0,63}$; values are strings (<=128 chars), whole numbers 0..2^63-1, booleans, null, or lists/objects nested at most 2 deep; at most 1024 bytes as JSON. Logical account names (agent, outsider, sam, ada, lin, kai, mo) are translated by the harness.",
+      "propertyNames": {
+        "pattern": "^[a-z_][a-z0-9_]{0,63}$"
+      }
+    },
+    "call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "actor",
+        "method"
+      ],
+      "properties": {
+        "actor": {
+          "enum": [
+            "agent",
+            "outsider"
+          ],
+          "description": "Who signs. The owner key never reaches an attacker. The agent signs with a function-call key: vault only, `pay` only, no deposit."
+        },
+        "target": {
+          "enum": [
+            "vault",
+            "token"
+          ],
+          "default": "vault"
+        },
+        "method": {
+          "type": "string",
+          "pattern": "^[a-z_][a-z0-9_]{0,63}$"
+        },
+        "args": {
+          "$ref": "#/$defs/args"
+        },
+        "gas_tgas": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 300,
+          "description": "Default 300 (max gas)."
+        },
+        "deposit_yocto": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000000000000
+        }
+      }
+    },
+    "step": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "call"
+          ],
+          "properties": {
+            "call": {
+              "$ref": "#/$defs/call"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "view"
+          ],
+          "properties": {
+            "view": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "method"
+              ],
+              "properties": {
+                "target": {
+                  "enum": [
+                    "vault",
+                    "token"
+                  ]
+                },
+                "method": {
+                  "type": "string",
+                  "pattern": "^[a-z_][a-z0-9_]{0,63}$"
+                },
+                "args": {
+                  "$ref": "#/$defs/args"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "race"
+          ],
+          "properties": {
+            "race": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 4,
+              "description": "Calls sent without waiting for each other. Elements are calls, or {\"call\": call}.",
+              "items": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/call"
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "call"
+                    ],
+                    "properties": {
+                      "call": {
+                        "$ref": "#/$defs/call"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "wait_blocks"
+          ],
+          "properties": {
+            "wait_blocks": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "wait_seconds"
+          ],
+          "properties": {
+            "wait_seconds": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "add_key"
+          ],
+          "properties": {
+            "add_key": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "actor"
+              ],
+              "properties": {
+                "actor": {
+                  "enum": [
+                    "agent",
+                    "outsider"
+                  ]
+                },
+                "permission": {
+                  "enum": [
+                    "full_access",
+                    "function_call_token"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "paper": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "arxiv_id",
+        "title",
+        "url"
+      ],
+      "properties": {
+        "arxiv_id": {
+          "type": "string",
+          "pattern": "^\\d{4}\\.\\d{4,5}(v\\d+)?$"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^https://arxiv\\.org/abs/"
+        }
+      }
+    },
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "source",
+        "kind",
+        "breaks",
+        "expected_safe_result",
+        "added",
+        "author",
+        "steps_sha256"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{0,95}$",
+          "description": "Unique across the whole library, e.g. scripted-02-race-double-pay."
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Short plain-words name."
+        },
+        "source": {
+          "enum": [
+            "hand",
+            "ai",
+            "paper",
+            "combined"
+          ],
+          "description": "combined = joins the core idea of 2-4 library attacks (meta.parents), after AutoRedTeamer (arXiv 2503.15754)."
+        },
+        "kind": {
+          "enum": [
+            "sequence",
+            "injection"
+          ],
+          "description": "injection = the steps are the pays a fully fooled agent makes; the email is in meta.injection."
+        },
+        "paper": {
+          "$ref": "#/$defs/paper",
+          "description": "Required when source is paper. Comes from the arXiv API, never from the model."
+        },
+        "breaks": {
+          "type": "string",
+          "maxLength": 400,
+          "description": "What it tries to break, in plain words."
+        },
+        "expected_safe_result": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "What a guard that keeps its policy does."
+        },
+        "added": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "author": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Who wrote the steps (a person, a script, or a model id)."
+        },
+        "steps_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "sha256 of the canonical steps (views dropped, defaults filled). Two attacks with the same hash are the same attack."
+        },
+        "injection": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "email",
+            "injected_pays"
+          ],
+          "properties": {
+            "email": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "injected_pays": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 6,
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+              }
+            },
+            "scenario_id": {
+              "type": "string"
+            }
+          }
+        },
+        "found_in_hunt": {
+          "type": "string"
+        },
+        "broke_guards": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "held_guards": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "parents": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "description": "Required when source is combined: the library attack ids it joins."
+        },
+        "validation": {
+          "enum": [
+            "broke",
+            "valid-nothing-broke"
+          ],
+          "description": "Set when the hunter adds an attack to sequences-paper/: it ran cleanly on every guard, and either broke at least one or broke none."
+        }
+      }
+    }
+  }
+}

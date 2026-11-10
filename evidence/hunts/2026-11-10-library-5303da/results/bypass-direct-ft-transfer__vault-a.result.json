@@ -1,0 +1,169 @@
+{
+  "attempt": "bypass-direct-ft-transfer",
+  "final": {
+    "credited_by_invoice": [
+      {
+        "credited": "0",
+        "id": "inv-pay"
+      },
+      {
+        "credited": "0",
+        "id": "inv-small"
+      },
+      {
+        "credited": "0",
+        "id": "inv-mid"
+      },
+      {
+        "credited": "0",
+        "id": "inv-big"
+      },
+      {
+        "credited": "0",
+        "id": "inv-cancel"
+      },
+      {
+        "credited": "0",
+        "id": "inv-expire"
+      },
+      {
+        "credited": "0",
+        "id": "inv-removed"
+      }
+    ],
+    "invoice_statuses": [
+      {
+        "id": "inv-pay",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-small",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-mid",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-big",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-cancel",
+        "status": "Cancelled"
+      },
+      {
+        "id": "inv-expire",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-removed",
+        "status": "PayeeRemoved"
+      }
+    ],
+    "non_agent_pays": [],
+    "received": [
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "sam"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "ada"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "lin"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "kai"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "mo"
+      }
+    ]
+  },
+  "score": {
+    "above_cap": "0",
+    "beyond_authorised": "0",
+    "expiry": [
+      {
+        "expires_at_ns": 1794327101333627000,
+        "id": "inv-expire",
+        "pay_block_ts": 0,
+        "verdict": "no pay recorded"
+      }
+    ],
+    "expiry_not_scored": false,
+    "honest_settled": 0,
+    "invalid_reasons": [],
+    "native_yocto": [],
+    "scoring": "token",
+    "should_pay": 3,
+    "unauthorised_payout": "0",
+    "valid": true
+  },
+  "steps": [
+    {
+      "actor": "agent",
+      "args": {
+        "amount": "10000",
+        "receiver_id": "dev-20261110161111-11528237182909.test.near"
+      },
+      "failure": "Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(DepositWithFunctionCall) })) } }",
+      "kind": "call",
+      "logs": [],
+      "method": "ft_transfer",
+      "outcome": "protocol-rejected",
+      "rejected_by_protocol": true,
+      "success": false,
+      "target": "token",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "amount": "10000",
+        "receiver_id": "dev-20261110161111-11528237182909.test.near"
+      },
+      "failure": "Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(ReceiverMismatch { tx_receiver: AccountId(\"dev-20261110161114-69152899989914.test.near\"), ak_receiver: \"dev-20261110161114-33686760026733.test.near\" }) })) } }",
+      "kind": "call",
+      "logs": [],
+      "method": "ft_transfer",
+      "outcome": "protocol-rejected",
+      "rejected_by_protocol": true,
+      "success": false,
+      "target": "token",
+      "view": null
+    },
+    {
+      "actor": "-",
+      "args": {
+        "account_id": "dev-20261110161111-11528237182909.test.near"
+      },
+      "failure": "",
+      "kind": "view",
+      "logs": [],
+      "method": "ft_balance_of",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "token",
+      "view": "0"
+    }
+  ],
+  "target": "vault-a",
+  "target_wasm_sha256": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1"
+}

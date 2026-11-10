@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arena.local/schema/guard-registry.schema.json",
+  "title": "Arena guard registry (guards/registry.json)",
+  "description": "Guards the bench attacks. Enforced by tools/hunter/registry.py, which also refuses any wasm under targets/entrant-*, any harness flag outside the allowed forms, and any guard whose fingerprint does not match.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "guards"],
+  "properties": {
+    "version": {"const": 1},
+    "_about": {"type": "string"},
+    "guards": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "role", "owner", "opt_in", "policy", "interface", "scoring", "wasm", "fingerprint", "harness_flags", "methods", "runnable"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,47}$"},
+          "name": {"type": "string", "maxLength": 80},
+          "role": {"enum": ["subject", "positive-control", "negative-control"], "description": "positive-control = leaky on purpose: if it does NOT break on its known attack, the bench is blind."},
+          "owner": {"type": "string", "maxLength": 120},
+          "opt_in": {"type": "string", "maxLength": 400, "description": "The owner's own line agreeing to be attacked and listed, with a date."},
+          "policy": {"type": "string", "maxLength": 400, "description": "What the guard claims, in plain words. The board shows it next to the guard's results."},
+          "interface": {"enum": ["vault-a", "contracts-guard"], "description": "vault-a = targets/vault-a/INTERFACE.md (outside guards use this one)."},
+          "scoring": {"enum": ["token", "native"]},
+          "wasm": {"type": "string", "description": "Path inside the repo."},
+          "fingerprint": {
+            "oneOf": [
+              {"type": "object", "additionalProperties": false, "required": ["kind", "wasm_sha256"],
+               "properties": {"kind": {"const": "frozen-wasm"}, "wasm_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}},
+              {"type": "object", "additionalProperties": false, "required": ["kind", "build", "source_sha256"],
+               "properties": {"kind": {"const": "built-from-source"}, "build": {"type": "string"},
+                              "source_sha256": {"type": "object", "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}}}
+            ]
+          },
+          "harness_flags": {"type": "array", "items": {"type": "string"}, "description": "[\"--target\", <built-in>] or [\"--wasm\", <path>, \"--wasm-label\", <id>] plus optional \"--native\"."},
+          "methods": {"type": "object", "description": "INTERFACE.md role -> this guard's method name. Only the identity mapping runs today.", "additionalProperties": {"type": "string"}},
+          "runnable": {"type": "boolean"},
+          "not_runnable_reason": {"type": "string"}
+        }
+      }
+    }
+  }
+}

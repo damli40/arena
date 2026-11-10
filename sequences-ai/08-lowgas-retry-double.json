@@ -60,5 +60,16 @@
         }
       }
     }
-  ]
+  ],
+  "meta": {
+    "id": "ai-08-lowgas-retry-double",
+    "title": "Low-gas pay, then retry",
+    "source": "ai",
+    "kind": "sequence",
+    "breaks": "Gets two payouts from one invoice: a low-gas pay that may leave a transfer in flight, then a full retry.",
+    "expected_safe_result": "at most one payment of 100; unauthorised payout 0",
+    "added": "2026-11-09",
+    "author": "AI tester, one-shot, from INTERFACE.md + policy + manifest (model not recorded)",
+    "steps_sha256": "840f5fcd03c23e2d43e0d1fb031478121e3f6b72035fd43818dcea37f1a5ce76"
+  }
 }

@@ -1,0 +1,111 @@
+{
+  "name": "mixed-invoice-race-cap",
+  "steps": [
+    {
+      "race": [
+        {
+          "call": {
+            "actor": "agent",
+            "target": "vault",
+            "method": "pay",
+            "args": {
+              "id": "inv-pay"
+            },
+            "gas_tgas": 300
+          }
+        },
+        {
+          "call": {
+            "actor": "agent",
+            "target": "vault",
+            "method": "pay",
+            "args": {
+              "id": "inv-small"
+            },
+            "gas_tgas": 300
+          }
+        },
+        {
+          "call": {
+            "actor": "agent",
+            "target": "vault",
+            "method": "pay",
+            "args": {
+              "id": "inv-mid"
+            },
+            "gas_tgas": 300
+          }
+        },
+        {
+          "call": {
+            "actor": "agent",
+            "target": "vault",
+            "method": "pay",
+            "args": {
+              "id": "inv-mid"
+            },
+            "gas_tgas": 300
+          }
+        }
+      ]
+    },
+    {
+      "wait_blocks": 5
+    },
+    {
+      "view": {
+        "target": "vault",
+        "method": "paid_today",
+        "args": {}
+      }
+    },
+    {
+      "view": {
+        "target": "vault",
+        "method": "get_invoice",
+        "args": {
+          "id": "inv-mid"
+        }
+      }
+    },
+    {
+      "view": {
+        "target": "token",
+        "method": "ft_balance_of",
+        "args": {
+          "account_id": "ada"
+        }
+      }
+    },
+    {
+      "view": {
+        "target": "token",
+        "method": "ft_balance_of",
+        "args": {
+          "account_id": "sam"
+        }
+      }
+    },
+    {
+      "view": {
+        "target": "token",
+        "method": "ft_balance_of",
+        "args": {
+          "account_id": "mo"
+        }
+      }
+    }
+  ],
+  "meta": {
+    "id": "ai-03-mixed-invoice-race-cap",
+    "title": "Race four pays across three invoices",
+    "source": "ai",
+    "kind": "sequence",
+    "breaks": "Double-pays inv-mid while two other invoices are in flight, to confuse the in-flight and cap accounting.",
+    "expected_safe_result": "each invoice paid at most once; unauthorised payout 0",
+    "added": "2026-11-09",
+    "author": "AI tester, one-shot, from INTERFACE.md + policy + manifest (model not recorded)",
+    "steps_sha256": "6414a6025f1026e0e60d64830a12d9e952f5a3313683cc7931dc5657ae774cf4"
+  },
+  "path": "sequences-ai/03-mixed-invoice-race-cap.json"
+}

@@ -1,0 +1,35 @@
+{
+  "name": "race-double-pay",
+  "steps": [
+    {
+      "race": [
+        {
+          "actor": "agent",
+          "method": "pay",
+          "args": {
+            "id": "inv-pay"
+          }
+        },
+        {
+          "actor": "agent",
+          "method": "pay",
+          "args": {
+            "id": "inv-pay"
+          }
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "id": "scripted-02-race-double-pay",
+    "title": "Two pays for one invoice at the same time",
+    "source": "hand",
+    "kind": "sequence",
+    "breaks": "Pays one invoice twice by sending two pay calls together, before the first one is recorded.",
+    "expected_safe_result": "exactly one payment of 100; the second call refused; unauthorised payout 0",
+    "added": "2026-11-09",
+    "author": "scripted tester (harness/src/scripted.rs), written by hand from INTERFACE.md",
+    "steps_sha256": "f8eda0fc36884d21c867e8af650254c215e400ff030515f96f1fcbe2d97cb627"
+  },
+  "path": "sequences-scripted/02-race-double-pay.json"
+}

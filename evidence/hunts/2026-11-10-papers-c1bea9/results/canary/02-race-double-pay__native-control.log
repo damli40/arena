@@ -1,0 +1,64 @@
+
+================ arena run: tester=attempt target=native-control attempts=1 ================
+TARGET: label=native-control wasm=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/harness/../targets/native-control/native_control.wasm sha256=cc7fb389cad0b04729df5eaefe8f7624be8529b0e526477761937cbe985244de
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+SCORING: native (receivers' native NEAR balance change, 1 unit = 1 milliNEAR)
+META: hunt=2026-11-10-papers-c1bea9 mode=papers
+HONESTY (native-NEAR scoring):
+- native-control and native-fixed are test fixtures we wrote (native-control has the
+  leaky-control-v2 flaw on purpose; native-fixed adds the reservation fix). Neither is
+  a third-party guard: a clean result shows N attempts of this kind found nothing.
+- The scripted tester uses no model.
+- Scored from receivers' NATIVE NEAR balances: received = balance after the attempt
+  minus balance at the end of setup, in units of 1 milliNEAR (10^21 yocto).
+  Receivers sign nothing in these sequences, so gas never touches them; this is
+  checked per attempt (receiver key nonces unchanged, balance never down, whole
+  units). Any violation marks the attempt INVALID and the run fails.
+- Token balances are not read in this mode.
+
+----- ATTEMPT race-double-pay (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/sequences-scripted/02-race-double-pay.json) -----
+  step 0 [race-call] agent -> 31083614::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"native-control","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261110162049-29113623777813.test.near","amount":"100000000000000000000000"}}
+      log: EVENT_JSON:{"standard":"native-control","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-pay","amount":"100000000000000000000000"}}
+  step 0 [race-call] agent -> 31083614::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"native-control","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261110162049-29113623777813.test.near","amount":"100000000000000000000000"}}
+      log: EVENT_JSON:{"standard":"native-control","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-pay","amount":"100000000000000000000000"}}
+SCORE attempt=race-double-pay scoring=native
+  native sam    before=100000000000000000000000000 after=100200000000000000000000000 delta_yocto=200000000000000000000000
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  receiver sam    received=200    authorised=100    over=100
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=100    (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794327674969604000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 100   (beyond-authorised 100 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=2/2 protocol_rejected=0/2 attempts_used=1 target=native-control
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/hunts/2026-11-10-papers-c1bea9/results/canary/02-race-double-pay__native-control.result.json
+  FINDING: unauthorised payout 100 in attempt race-double-pay
+  replay on a fresh sandbox: ./run-arena.sh replay /Users/Admin/Documents/Knowledge base/hackathons/near/arena/sequences-scripted/02-race-double-pay.json --target native-control
+
+================ SUMMARY tester=attempt target=native-control ================
+  target wasm sha256=cc7fb389cad0b04729df5eaefe8f7624be8529b0e526477761937cbe985244de
+  scoring=native unit=1 milliNEAR (10^21 yoctoNEAR)
+  race-double-pay              unauthorised=100    honest_settled=0/3 protocol_rejected=0/2 valid=yes
+  attempts=1 attempts_found_something=1 tester=attempt target=native-control invalid_attempts=0 scoring=native
+  FINDING race-double-pay: unauthorised payout 100
+HONESTY (native-NEAR scoring):
+- native-control and native-fixed are test fixtures we wrote (native-control has the
+  leaky-control-v2 flaw on purpose; native-fixed adds the reservation fix). Neither is
+  a third-party guard: a clean result shows N attempts of this kind found nothing.
+- The scripted tester uses no model.
+- Scored from receivers' NATIVE NEAR balances: received = balance after the attempt
+  minus balance at the end of setup, in units of 1 milliNEAR (10^21 yocto).
+  Receivers sign nothing in these sequences, so gas never touches them; this is
+  checked per attempt (receiver key nonces unchanged, balance never down, whole
+  units). Any violation marks the attempt INVALID and the run fails.
+- Token balances are not read in this mode.
