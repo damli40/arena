@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Runs both proofs and exits 0 only if every outcome matches evidence/proofs-plan.md.
 #
-#   proofs/run.sh            # everything (257 s measured on an M-series Mac, after first build)
+#   proofs/run.sh            # everything (257 s on Nov 10; 1,504 s on Nov 11 with the full world + inductive proofs)
 #   proofs/run.sh proof1     # Kani on the model + exhaustive run of the real contract
 #   proofs/run.sh proof2     # z3 on vault-a's policy
 #
@@ -23,22 +23,36 @@ bad() { echo "FAIL  $1"; FAIL=$((FAIL + 1)); }
 t_start=$(date +%s)
 
 if [ "$WHAT" = all ] || [ "$WHAT" = proof1 ]; then
-  echo "== Proof 1: one invoice is never paid twice"
+  # Scoped wording (2026-11-11): this proves the pay/callback race and, in the "full" world,
+  # dead callbacks + reconcile + resolve_stuck + one outside transfer, within the stated bounds.
+  # It is not a proof that no invoice can ever be paid twice under every possible world.
+  echo "== Proof 1: the pay/callback race, plus the full world (dead callback, reconcile, resolve_stuck, outside transfer), bounded"
 
-  # 0. The mutant really is the guard minus line 186, nothing else.
+  # 0. The mutants really are the guard with one change each, nothing else.
   d="$(diff "$ROOT/contracts/guard/src/lib.rs" "$HERE/guard-real-mutant/src/lib.rs")"
-  if [ "$d" = "$(printf '186d185\n<                 inv.status = Status::Pending;')" ]; then
-    ok "mutant = contracts/guard minus line 186 only"
+  if [ "$d" = "$(printf '194d193\n<                 inv.status = Status::Pending;')" ]; then
+    ok "mutant = contracts/guard minus line 194 only"
   else
-    bad "mutant diff is not exactly line 186"; echo "$d"
+    bad "mutant diff is not exactly line 194"; echo "$d"
+  fi
+  d="$(diff "$ROOT/contracts/guard/src/lib.rs" "$HERE/guard-real-mutant-reopen/src/lib.rs")"
+  want_reopen="$(printf '303,306c303,304\n<             env::log_str(&format!(\n<                 "reconcile: invoice={id} ledger={expected} token_balance={actual} -> unchanged balance proves nothing; stays Pending, owner must call resolve_stuck"\n<             ));\n<             return Status::Pending;\n---\n>             inv.status = Status::Approved;\n>             Status::Approved')"
+  if [ "$d" = "$want_reopen" ]; then
+    ok "reopen mutant = contracts/guard with the pre-2026-11-11 Approved arm put back, nothing else"
+  else
+    bad "reopen mutant diff is not exactly the reconcile arm"; echo "$d"
   fi
 
   # 1. Kani on the model (proofs/guard-model). Layer A (verdict) and B (must-fail,
   #    covers, unwinding assertions).
   cd "$HERE/guard-model"
-  for h in vulnerable_fixture_n3 fixed_n3 fixed_mutant_no_pending_write_n3 fixed_n3_bound_too_small fixed_n4 vulnerable_fixture_n4; do
+  for h in vulnerable_fixture_n3 fixed_n3 fixed_mutant_no_pending_write_n3 fixed_n3_bound_too_small fixed_n4 vulnerable_fixture_n4 \
+           fixed_full_n2 old_reconcile_full_n2 vulnerable_fixture_full_n2 \
+           inductive_step_fixed_k2 inductive_step_fixed_k3 inductive_step_old_reconcile_k2 inductive_step_vulnerable_k2 \
+           inductive_init_k2 inductive_init_k3 invariant_implies_no_overpay_k2; do
     t0=$(date +%s)
-    cargo kani --exact --harness "proofs::$h" > "$OUT/kani-$h.log" 2>&1
+    case "$h" in inductive_*|invariant_*) q="inductive::harnesses::$h" ;; *) q="proofs::$h" ;; esac
+    cargo kani --exact --harness "$q" > "$OUT/kani-$h.log" 2>&1
     echo "  (wall $(( $(date +%s) - t0 )) s)" >> "$OUT/kani-$h.log"
     if python3 -I "$HERE/check_kani.py" "$OUT/kani-$h.log" "$h"; then ok "kani $h"; else bad "kani $h"; fi
   done
@@ -62,16 +76,21 @@ if [ "$WHAT" = all ] || [ "$WHAT" = proof1 ]; then
   cd "$HERE/guard-real"
   cargo +stable build --release --bin exhaustive > "$OUT/build-exhaustive.log" 2>&1 || bad "build exhaustive"
   CARGO_TARGET_DIR=target-mutant cargo +stable build --release --features mutant --bin exhaustive > "$OUT/build-exhaustive-mutant.log" 2>&1 || bad "build exhaustive mutant"
-  run_ex() { # name, binary, mode, n, expected RESULT fragment, [env]
+  CARGO_TARGET_DIR=target-mutant-reopen cargo +stable build --release --features mutant-reopen --bin exhaustive > "$OUT/build-exhaustive-mutant-reopen.log" 2>&1 || bad "build exhaustive mutant-reopen"
+  run_ex() { # name, binary, mode, n, expected RESULT fragment, [env], [world]
     local name="$1" bin="$2" mode="$3" n="$4" want="$5"
-    env ${6:-} "$bin" "$mode" "$n" > "$OUT/exhaustive-$name.log" 2>&1
+    env ${6:-} "$bin" "$mode" "$n" ${7:-} > "$OUT/exhaustive-$name.log" 2>&1
     if grep -q "RESULT .*$want" "$OUT/exhaustive-$name.log"; then ok "exhaustive $name: $(grep RESULT "$OUT/exhaustive-$name.log")"; else bad "exhaustive $name: $(grep RESULT "$OUT/exhaustive-$name.log")"; fi
   }
-  run_ex real-vulnerable_fixture-n3 ./target/release/exhaustive vulnerable_fixture 3 "build=real mode=vulnerable_fixture n=3 p1=FAILS p2=HOLDS filter=AGREES model=AGREES"
-  run_ex real-fixed-n3 ./target/release/exhaustive fixed 3 "build=real mode=fixed n=3 p1=HOLDS p2=HOLDS filter=AGREES model=AGREES"
-  run_ex real-vulnerable_fixture-n4 ./target/release/exhaustive vulnerable_fixture 4 "build=real mode=vulnerable_fixture n=4 p1=FAILS p2=HOLDS filter=AGREES model=AGREES"
-  run_ex real-fixed-n4 ./target/release/exhaustive fixed 4 "build=real mode=fixed n=4 p1=HOLDS p2=HOLDS filter=AGREES model=AGREES"
-  run_ex mutant-fixed-n3 ./target-mutant/release/exhaustive fixed 3 "build=mutant mode=fixed n=3 p1=FAILS p2=HOLDS filter=AGREES model=AGREES"
+  run_ex real-vulnerable_fixture-n3 ./target/release/exhaustive vulnerable_fixture 3 "build=real mode=vulnerable_fixture n=3 world=base p1=FAILS p2=HOLDS filter=AGREES model=AGREES"
+  run_ex real-fixed-n3 ./target/release/exhaustive fixed 3 "build=real mode=fixed n=3 world=base p1=HOLDS p2=HOLDS filter=AGREES model=AGREES"
+  run_ex real-vulnerable_fixture-n4 ./target/release/exhaustive vulnerable_fixture 4 "build=real mode=vulnerable_fixture n=4 world=base p1=FAILS p2=HOLDS filter=AGREES model=AGREES"
+  run_ex real-fixed-n4 ./target/release/exhaustive fixed 4 "build=real mode=fixed n=4 world=base p1=HOLDS p2=HOLDS filter=AGREES model=AGREES"
+  run_ex mutant-fixed-n3 ./target-mutant/release/exhaustive fixed 3 "build=mutant mode=fixed n=3 world=base p1=FAILS p2=HOLDS filter=AGREES model=AGREES"
+  # Full world (2026-11-11): one dead callback, reconcile, resolve_stuck, one outside transfer.
+  run_ex real-fixed-n2-full ./target/release/exhaustive fixed 2 "build=real mode=fixed n=2 world=full p1=HOLDS p2=HOLDS filter=AGREES model=AGREES" "" full
+  run_ex real-vulnerable_fixture-n2-full ./target/release/exhaustive vulnerable_fixture 2 "build=real mode=vulnerable_fixture n=2 world=full p1=FAILS .*model=AGREES" "" full
+  run_ex mutant-reopen-fixed-n2-full ./target-mutant-reopen/release/exhaustive fixed 2 "build=mutant-reopen mode=fixed n=2 world=full p1=FAILS .*model=AGREES" "" full
   # Lockstep self-test: model given the wrong mutant flag must DISAGREE.
   run_ex lockstep-selftest ./target/release/exhaustive fixed 3 "model=DISAGREES" "LOCKSTEP_SELFTEST=1"
 fi

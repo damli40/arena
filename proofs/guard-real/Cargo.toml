@@ -12,6 +12,8 @@ publish = false
 guard-model = { path = "../guard-model" }
 # The must-fail mutant (one line deleted), used only with --features mutant.
 guard-mutant = { path = "../guard-real-mutant" }
+# The pre-2026-11-11 reconcile arm put back (must-fail), used only with --features mutant-reopen.
+guard-mutant-reopen = { path = "../guard-real-mutant-reopen" }
 # The REAL guard source, compiled unchanged from contracts/guard.
 guard = { path = "../../contracts/guard" }
 # Same near-sdk the guard's wasm was built with (contracts/Cargo.lock: 5.27.0),
@@ -22,6 +24,7 @@ near-parameters = "=0.35.1"
 
 [features]
 mutant = []
+mutant-reopen = []
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ["cfg(kani)"] }

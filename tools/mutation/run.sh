@@ -6,6 +6,16 @@
 #   tools/mutation/run.sh M4 M7           baseline + only these mutants
 #   SKIP_BASELINE=1 tools/mutation/run.sh M4    mutants only (table needs a baseline from the same date)
 #
+# Options (environment, added 2026-11-11):
+#   HARNESS_SRC=HEAD      (default) pin the harness from the last commit: git archive HEAD harness
+#   HARNESS_SRC=worktree  pin it from the working tree instead (Cargo.toml, Cargo.lock,
+#                         rust-toolchain.toml, src/), e.g. to measure an uncommitted scorer fix.
+#                         HARNESS.txt then records the sha256 of every pinned source file and of
+#                         `git diff HEAD -- harness`, so the exact source is still on record.
+#   MUT_DATE=YYYY-MM-DD   date tag of the output folder (default: today), so a second run on the
+#                         same calendar day cannot overwrite an earlier table's evidence.
+#   MUT_PLAN=<path>       the pre-registered plan each MUTATION.md points to (default evidence/mutation-plan.md).
+#
 # What it does, from scratch each time:
 #  1. pins the COMMITTED harness (git archive HEAD harness) into mutants/target/harness-pinned/,
 #     with a private copy of test_token.wasm, builds it, and copies the binary to
@@ -23,7 +33,9 @@ set -euo pipefail
 cd "$(dirname "$0")/../.."
 source "$HOME/.cargo/env" 2>/dev/null || true
 ROOT=$PWD
-DATE=$(date +%Y-%m-%d)
+DATE="${MUT_DATE:-$(date +%Y-%m-%d)}"
+HARNESS_SRC="${HARNESS_SRC:-HEAD}"
+MUT_PLAN="${MUT_PLAN:-evidence/mutation-plan.md}"
 OUT="$ROOT/evidence/mutation-$DATE"
 PIN="$ROOT/mutants/target/harness-pinned"
 BIN="$ROOT/mutants/target/bin/arena-harness"
@@ -43,16 +55,28 @@ frozen_check() { # vault-a and leaky-control-v2 must match their FROZEN.txt
   echo "frozen ok ($1): vault-a, leaky-control-v2"
 }
 
-# 1. Pinned harness from the committed tree.
-echo "== pinning harness from git HEAD $(git rev-parse HEAD)"
+# 1. Pinned harness: from the committed tree (default) or the working tree (HARNESS_SRC=worktree).
 mkdir -p "$PIN/evidence" "$PIN/contracts/target/wasm32-unknown-unknown/release"
-git archive HEAD harness | tar -x -C "$PIN"
+if [ "$HARNESS_SRC" = worktree ]; then
+  echo "== pinning harness from the WORKING TREE (git HEAD $(git rev-parse HEAD) + uncommitted changes)"
+  mkdir -p "$PIN/harness/src"
+  cp harness/Cargo.toml harness/Cargo.lock harness/rust-toolchain.toml "$PIN/harness/"
+  cp harness/src/*.rs "$PIN/harness/src/"
+  PIN_DESC="harness pinned from the WORKING TREE: git HEAD $(git rev-parse HEAD) plus uncommitted changes; git diff HEAD -- harness sha256 $(git diff HEAD -- harness | shasum -a 256 | cut -d' ' -f1)"
+else
+  echo "== pinning harness from git HEAD $(git rev-parse HEAD)"
+  git archive HEAD harness | tar -x -C "$PIN"
+  PIN_DESC="harness pinned from git HEAD $(git rev-parse HEAD) via git archive"
+fi
 cp contracts/target/wasm32-unknown-unknown/release/test_token.wasm "$PIN/contracts/target/wasm32-unknown-unknown/release/"
 [ -e "$PIN/targets" ] || ln -s ../../../targets "$PIN/targets"
 (cd "$PIN/harness" && cargo build --release) > "$OUT/harness-build.log" 2>&1 || { tail -20 "$OUT/harness-build.log"; exit 1; }
 cp "$PIN/harness/target/release/arena-harness" "$BIN"
 {
-  echo "harness pinned from git HEAD $(git rev-parse HEAD) via git archive"
+  echo "$PIN_DESC"
+  if [ "$HARNESS_SRC" = worktree ]; then
+    (cd "$PIN/harness" && for f in Cargo.toml Cargo.lock rust-toolchain.toml src/*.rs; do echo "sha256 source harness/$f $(shasum -a 256 "$f" | cut -d' ' -f1)"; done)
+  fi
   echo "sha256 arena-harness  $(shasum -a 256 "$BIN" | cut -d' ' -f1)"
   echo "sha256 test_token.wasm $(shasum -a 256 "$PIN/contracts/target/wasm32-unknown-unknown/release/test_token.wasm" | cut -d' ' -f1)"
 } | tee "$OUT/HARNESS.txt"
@@ -108,7 +132,7 @@ for id in "${ids[@]}"; do
     echo "# $id"
     echo
     if [ "$id" = M0 ]; then echo "No change: an unmodified copy, to check the build reproduces the frozen vault-a wasm."
-    else echo "One planted flaw in a copy of targets/vault-a. Plan and expected result: evidence/mutation-plan.md."; fi
+    else echo "One planted flaw in a copy of targets/vault-a. Plan and expected result: $MUT_PLAN."; fi
     echo "Built with: cargo build --release --target wasm32-unknown-unknown (toolchain 1.86.0 from rust-toolchain.toml, rustflags --cfg near from .cargo/config.toml), as vault-a."
     echo
     echo '```diff'

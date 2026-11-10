@@ -17,9 +17,13 @@
 //!   If the callback itself never completes (it panics, or runs out of gas), the
 //!   invoice stays `Pending`. The owner can then call `reconcile(id)`. It reads the
 //!   guard's real token balance from the token contract and compares it with the
-//!   guard's own ledger of what it should hold. It settles the invoice only if the
-//!   balance matches exactly one of the two possible stories ("the money left" or
-//!   "the money did not leave"). Otherwise it refuses. It never retries the transfer.
+//!   guard's own ledger of what it should hold. If the balance dropped by exactly the
+//!   invoice amount, the money left: `Paid`. Any other reading changes nothing.
+//!   In particular "balance unchanged" does NOT reopen the invoice: it could also mean
+//!   "the money left, and someone sent the same amount back in" (fixed 2026-11-11,
+//!   evidence/proofs-adversarial-review-2026-11-11.md, H1). The owner then closes the
+//!   invoice with `resolve_stuck(id, sent)`: `Paid`, or the terminal `Failed`, which
+//!   `pay` refuses. Nothing here ever reopens an invoice or retries a transfer.
 //!
 //! Fault injection: with the cargo feature `fault-injection` (test builds only),
 //! `on_transfer` panics for invoice ids starting with `crash-`. The normal build
@@ -68,6 +72,9 @@ pub enum Status {
     Pending,
     /// A transfer confirmed.
     Paid,
+    /// Closed by the owner with `resolve_stuck(id, sent = false)` (fixed mode only).
+    /// Terminal: `pay` refuses it. To pay the bill, the owner approves a new invoice id.
+    Failed,
 }
 
 #[near(serializers = [borsh, json])]
@@ -182,6 +189,7 @@ impl Guard {
             }
             Mode::Fixed => {
                 require!(inv.status != Status::Pending, "payment already in flight");
+                require!(inv.status != Status::Failed, "invoice closed as failed by the owner; approve a new invoice id to pay it");
                 // Reserve the invoice in the same atomic step as the check.
                 inv.pending_since_block = env::block_height();
             }
@@ -224,8 +232,8 @@ impl Guard {
         }
     }
 
-    /// Owner-only, fixed mode only. Resolves an invoice stuck in `Pending` from evidence:
-    /// the guard's real token balance versus its own ledger. Never re-sends the transfer.
+    /// Owner-only, fixed mode only. Settles an invoice stuck in `Pending` as `Paid` if the
+    /// guard's real token balance shows the money left. Never reopens it, never re-sends.
     pub fn reconcile(&mut self, id: String) -> Promise {
         require!(env::predecessor_account_id() == self.owner, "owner only");
         require!(self.mode == Mode::Fixed, "reconcile exists only in fixed mode");
@@ -287,9 +295,14 @@ impl Guard {
             self.expected_balance = if_sent;
             Status::Paid
         } else if actual == expected {
-            // The money is still here: the transfer did not happen.
-            inv.status = Status::Approved;
-            Status::Approved
+            // The balance did not move. That fits "the transfer never happened", but also
+            // "it happened, and the same amount was then sent to the guard" (review H1).
+            // One balance cannot tell these apart, so nothing changes: the invoice stays
+            // Pending until the owner calls resolve_stuck.
+            env::log_str(&format!(
+                "reconcile: invoice={id} ledger={expected} token_balance={actual} -> unchanged balance proves nothing; stays Pending, owner must call resolve_stuck"
+            ));
+            return Status::Pending;
         } else {
             env::panic_str(&format!(
                 "balance matches neither story: ledger says {expected} if not sent, {} if sent, token says {actual}. Refusing to guess.",
@@ -301,6 +314,40 @@ impl Guard {
         env::log_str(&format!(
             "reconcile: invoice={id} ledger={expected} token_balance={actual} -> {outcome:?}"
         ));
+        outcome
+    }
+
+    /// Owner-only, fixed mode only. Closes an invoice stuck in `Pending` with the outcome the
+    /// owner states after checking the chain (for example the transfer receipt on an explorer).
+    /// `sent = true` -> `Paid`, and the ledger drops by the amount, as a confirmed transfer would.
+    /// `sent = false` -> `Failed`, terminal: `pay` refuses it; the owner approves a new id to pay.
+    /// Same waiting rule as `reconcile`. Never sends tokens, never reopens the invoice.
+    pub fn resolve_stuck(&mut self, id: String, sent: bool) -> Status {
+        require!(env::predecessor_account_id() == self.owner, "owner only");
+        require!(self.mode == Mode::Fixed, "resolve_stuck exists only in fixed mode");
+        let inv = self.invoices.get_mut(&id).expect("unknown invoice");
+        require!(inv.status == Status::Pending, "invoice is not Pending, nothing to resolve");
+        let ready_at = inv.pending_since_block + RECONCILE_MIN_BLOCKS;
+        require!(
+            env::block_height() >= ready_at,
+            format!(
+                "too early: wait until block {ready_at} (now {}) so an in-flight transfer cannot be mistaken for a failed one",
+                env::block_height()
+            )
+        );
+        let outcome = if sent {
+            inv.confirmed_payouts = inv.confirmed_payouts.saturating_add(1);
+            if let Some(b) = self.expected_balance {
+                self.expected_balance = Some(b.saturating_sub(inv.amount.0));
+            }
+            Status::Paid
+        } else {
+            Status::Failed
+        };
+        inv.status = outcome;
+        self.pending_count = self.pending_count.saturating_sub(1);
+        self.epoch += 1;
+        env::log_str(&format!("resolve_stuck: invoice={id} owner says sent={sent} -> {outcome:?}"));
         outcome
     }
 
@@ -392,8 +439,8 @@ impl Guard {
         let was_pending = inv.status == Status::Pending;
         if confirmed {
             if !was_pending {
-                // Only possible if reconcile already settled this invoice (its waiting
-                // rule was not long enough). Record the truth anyway.
+                // Only possible if reconcile or resolve_stuck already closed this invoice
+                // (the waiting rule was not long enough). Record the truth anyway.
                 env::log_str(&format!(
                     "on_transfer: LATE confirm for invoice={id}, status was {:?}",
                     inv.status

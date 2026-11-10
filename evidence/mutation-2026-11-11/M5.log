@@ -1,0 +1,238 @@
+
+================ arena run: tester=mutation target=M5 attempts=10 ================
+TARGET: label=M5 wasm=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/mutants/M5/vault_a.wasm sha256=e92c54bb2744391ca9169c40827a2f71d3a55343a5df19dc28ee86168d3e5513
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+
+----- ATTEMPT control-pay-valid (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-11/sequences/01-control-pay-valid.json) -----
+  step 0 [call] agent -> 27960318::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-pay","receiver":"dev-20261110094906-21085481809908.test.near","amount":"100"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110094908-30249827960318.test.near","new_owner_id":"dev-20261110094906-21085481809908.test.near","amount":"100","memo":"vault-a invoice inv-pay"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-pay","amount":"100"}]}
+  step 1 [view] 27960318::get_invoice -> {"amount":"100","expires_at_ns":1796896155576007000,"id":"inv-pay","payable_now":false,"receiver":"dev-20261110094906-21085481809908.test.near","status":"Paid"}
+SCORE attempt=control-pay-valid scoring=token
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=100    (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794304175576007000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 1/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=2/2 protocol_rejected=0/1 attempts_used=1 target=M5
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/mutants/target/harness-pinned/harness/../evidence/results/mutation-M5/01-control-pay-valid.result.json
+
+----- ATTEMPT race-double-pay (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-11/sequences/02-race-double-pay.json) -----
+  step 0 [race-call] agent -> 72262247::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-pay","receiver":"dev-20261110094922-51372496024971.test.near","amount":"100"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110094924-27538772262247.test.near","new_owner_id":"dev-20261110094922-51372496024971.test.near","amount":"100","memo":"vault-a invoice inv-pay"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-pay","amount":"100"}]}
+  step 0 [race-call] agent -> 72262247::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-pay","receiver":"dev-20261110094922-51372496024971.test.near","amount":"100"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110094924-27538772262247.test.near","new_owner_id":"dev-20261110094922-51372496024971.test.near","amount":"100","memo":"vault-a invoice inv-pay"}]}
+      log: vault-a: callback for invoice inv-pay not in Pending state; ignored
+SCORE attempt=race-double-pay scoring=token
+  receiver sam    received=200    authorised=100    over=100
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=100    (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794304191030481000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 100   (beyond-authorised 100 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=2/2 protocol_rejected=0/2 attempts_used=1 target=M5
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/mutants/target/harness-pinned/harness/../evidence/results/mutation-M5/02-race-double-pay.result.json
+  FINDING: unauthorised payout 100 in attempt race-double-pay
+  replay on a fresh sandbox: ./run-arena.sh replay /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-11/sequences/02-race-double-pay.json --wasm /Users/Admin/Documents/Knowledge base/hackathons/near/arena/mutants/M5/vault_a.wasm --wasm-label M5
+
+----- ATTEMPT sequential-second-pay (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-11/sequences/03-sequential-second-pay.json) -----
+  step 0 [call] agent -> 31301122::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-pay","receiver":"dev-20261110094937-69661437455791.test.near","amount":"100"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110094939-17924931301122.test.near","new_owner_id":"dev-20261110094937-69661437455791.test.near","amount":"100","memo":"vault-a invoice inv-pay"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-pay","amount":"100"}]}
+  step 1 [call] agent -> 31301122::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid")) }) } })
+SCORE attempt=sequential-second-pay scoring=token
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=100    (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794304206341146000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 1/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=1/2 protocol_rejected=0/2 attempts_used=1 target=M5
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/mutants/target/harness-pinned/harness/../evidence/results/mutation-M5/03-sequential-second-pay.result.json
+
+----- ATTEMPT pay-cancelled (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-11/sequences/04-pay-cancelled.json) -----
+  step 0 [call] agent -> 76226809::pay {"id":"inv-cancel"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice cancelled")) }) } })
+  step 1 [call] agent -> 76226809::pay {"id":"inv-cancel"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice cancelled")) }) } })
+SCORE attempt=pay-cancelled scoring=token
+  receiver sam    received=0      authorised=0      over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794304222375497000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=0/2 protocol_rejected=0/2 attempts_used=1 target=M5
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/mutants/target/harness-pinned/harness/../evidence/results/mutation-M5/04-pay-cancelled.result.json
+
+----- ATTEMPT pay-expired (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-11/sequences/05-pay-expired.json) -----
+  step 0 [wait] 30s (real time, so block timestamps move)
+  step 1 [call] agent -> 48231001::pay {"id":"inv-expire"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice expired")) }) } })
+  step 2 [call] agent -> 48231001::pay {"id":"inv-expire"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice expired")) }) } })
+SCORE attempt=pay-expired scoring=token
+  receiver sam    received=0      authorised=0      over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794304237938003000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Expired, inv-removed:PayeeRemoved
+  calls_ok=0/2 protocol_rejected=0/2 attempts_used=1 target=M5
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/mutants/target/harness-pinned/harness/../evidence/results/mutation-M5/05-pay-expired.result.json
+
+----- ATTEMPT pay-removed-payee (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-11/sequences/06-pay-removed-payee.json) -----
+  step 0 [call] agent -> 42514043::pay {"id":"inv-removed"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: receiver is no longer a payee")) }) } })
+SCORE attempt=pay-removed-payee scoring=token
+  receiver sam    received=0      authorised=0      over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794304283744886000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=0/1 protocol_rejected=0/1 attempts_used=1 target=M5
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/mutants/target/harness-pinned/harness/../evidence/results/mutation-M5/06-pay-removed-payee.result.json
+
+----- ATTEMPT outsider-pays (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-11/sequences/07-outsider-pays.json) -----
+  step 0 [call] outsider -> 42011379::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: only the agent can pay")) }) } })
+SCORE attempt=outsider-pays scoring=token
+  receiver sam    received=0      authorised=0      over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794304298925379000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=0/1 protocol_rejected=0/1 attempts_used=1 target=M5
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/mutants/target/harness-pinned/harness/../evidence/results/mutation-M5/07-outsider-pays.result.json
+
+----- ATTEMPT gas-starve-then-pay (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-11/sequences/08-gas-starve-then-pay.json) -----
+  step 0 [call] agent -> 88739814::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: not enough gas attached to pay safely")) }) } })
+  step 1 [call] agent -> 88739814::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-pay","receiver":"dev-20261110095125-48479347881364.test.near","amount":"100"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110095127-11018088739814.test.near","new_owner_id":"dev-20261110095125-48479347881364.test.near","amount":"100","memo":"vault-a invoice inv-pay"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-pay","amount":"100"}]}
+SCORE attempt=gas-starve-then-pay scoring=token
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=100    (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794304314130870000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 1/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=1/2 protocol_rejected=0/2 attempts_used=1 target=M5
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/mutants/target/harness-pinned/harness/../evidence/results/mutation-M5/08-gas-starve-then-pay.result.json
+
+----- ATTEMPT pay-over-cap (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-11/sequences/09-pay-over-cap.json) -----
+  step 0 [call] agent -> 96835529::pay {"id":"inv-big"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: daily cap exceeded")) }) } })
+  step 1 [call] agent -> 96835529::pay {"id":"inv-big"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: daily cap exceeded")) }) } })
+SCORE attempt=pay-over-cap scoring=token
+  receiver sam    received=0      authorised=0      over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794304330157579000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=0/2 protocol_rejected=0/2 attempts_used=1 target=M5
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/mutants/target/harness-pinned/harness/../evidence/results/mutation-M5/09-pay-over-cap.result.json
+
+----- ATTEMPT race-two-invoices (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-11/sequences/10-race-two-invoices.json) -----
+  step 0 [race-call] agent -> 68798485::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-pay","receiver":"dev-20261110095156-56875144490081.test.near","amount":"100"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110095159-12246968798485.test.near","new_owner_id":"dev-20261110095156-56875144490081.test.near","amount":"100","memo":"vault-a invoice inv-pay"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-pay","amount":"100"}]}
+  step 0 [race-call] agent -> 68798485::pay {"id":"inv-small"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-small","receiver":"dev-20261110095158-39342940771829.test.near","amount":"50"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110095159-12246968798485.test.near","new_owner_id":"dev-20261110095158-39342940771829.test.near","amount":"50","memo":"vault-a invoice inv-small"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-small","amount":"50"}]}
+SCORE attempt=race-two-invoices scoring=token
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=50     authorised=50     over=0
+  invoice inv-pay     policy_allows=100    credited=100    (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=50     (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794304345749717000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 2/3   statuses=inv-pay:Paid, inv-small:Paid, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=2/2 protocol_rejected=0/2 attempts_used=1 target=M5
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/mutants/target/harness-pinned/harness/../evidence/results/mutation-M5/10-race-two-invoices.result.json
+
+================ SUMMARY tester=mutation target=M5 ================
+  target wasm sha256=e92c54bb2744391ca9169c40827a2f71d3a55343a5df19dc28ee86168d3e5513
+  control-pay-valid            unauthorised=0      honest_settled=1/3 protocol_rejected=0/1
+  race-double-pay              unauthorised=100    honest_settled=0/3 protocol_rejected=0/2
+  sequential-second-pay        unauthorised=0      honest_settled=1/3 protocol_rejected=0/2
+  pay-cancelled                unauthorised=0      honest_settled=0/3 protocol_rejected=0/2
+  pay-expired                  unauthorised=0      honest_settled=0/3 protocol_rejected=0/2
+  pay-removed-payee            unauthorised=0      honest_settled=0/3 protocol_rejected=0/1
+  outsider-pays                unauthorised=0      honest_settled=0/3 protocol_rejected=0/1
+  gas-starve-then-pay          unauthorised=0      honest_settled=1/3 protocol_rejected=0/2
+  pay-over-cap                 unauthorised=0      honest_settled=0/3 protocol_rejected=0/2
+  race-two-invoices            unauthorised=0      honest_settled=2/3 protocol_rejected=0/2
+  attempts=10 attempts_found_something=1 tester=mutation target=M5
+  FINDING race-double-pay: unauthorised payout 100
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+  harness exit code 0

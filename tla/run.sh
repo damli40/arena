@@ -38,6 +38,9 @@ selected() {
 #   GHOSTREC=TRUE  record invoices reconciled back to Approved (review L3 witness)
 DONATE=FALSE
 GHOSTREC=FALSE
+# 2026-11-11: MAXRES = how many resolve_stuck transactions the owner may sign (default 1).
+# The vulnerable_fixture checks use 0 (resolve_stuck is refused in that mode anyway).
+MAXRES=1
 write_cfg() {
   local dir=$1 mode=$2 ninv=$3 maxpay=$4 maxrec=$5 wait=$6 mayfail=$7 maxfails=$8 invs=$9 ac=${10:-}
   {
@@ -47,6 +50,7 @@ write_cfg() {
     echo "  NInv = $ninv"
     echo "  MaxPay = $maxpay"
     echo "  MaxRec = $maxrec"
+    echo "  MaxRes = $MAXRES"
     echo "  WaitRule = $wait"
     echo "  MayFail = $mayfail"
     echo "  MaxFails = $maxfails"
@@ -136,8 +140,8 @@ SPEC="$HERE/Guard.tla"
 
 # ---- the two modes ---------------------------------------------------------------------
 #      name                 expect               spec  mode                 inv pay rec wait  mayfail  fails props
-check vuln_race             violation:NoOverpay  "$SPEC" vulnerable_fixture  1   2   0  TRUE  '{}'      0  "$PROPS"
-check vuln_testnet_order    violation:NoOverpay  "$SPEC" vulnerable_fixture  1   2   0  TRUE  '{}'      0  "$PROPS" TestnetOrder
+MAXRES=0 check vuln_race             violation:NoOverpay  "$SPEC" vulnerable_fixture  1   2   0  TRUE  '{}'      0  "$PROPS"
+MAXRES=0 check vuln_testnet_order    violation:NoOverpay  "$SPEC" vulnerable_fixture  1   2   0  TRUE  '{}'      0  "$PROPS" TestnetOrder
 check fixed_1inv            pass                 "$SPEC" fixed               1   3   1  TRUE  "$FAULTS" 1  "$PROPS"
 check fixed_2inv            pass                 "$SPEC" fixed               2   3   1  TRUE  "$FAULTS" 1  "$PROPS"
 # added after the plan (see the DEVIATION note below): 2 forced failures, 1 invoice
@@ -158,9 +162,14 @@ check wit_reconcile_says_approved_1fault pass "$SPEC" fixed 1 3 1 TRUE "$FAULTS"
 check wit_reconcile_says_approved violation:Wit_reconcile_says_approved "$SPEC" fixed 1 3 1 TRUE "$FAULTS" 2 "Wit_reconcile_says_approved"
 check wit_reconcile_ambiguous violation:Wit_reconcile_ambiguous "$SPEC" fixed 2 3 1 TRUE "$FAULTS" 1 "Wit_reconcile_ambiguous"
 
-# added 2026-11-11 (review L3): the full recovery path completes. reconcile sets the stuck
-# invoice back to Approved, the agent pays again, the receiver holds exactly 100.
-GHOSTREC=TRUE check wit_repaid_after_reconcile violation:Wit_repaid_after_reconcile "$SPEC" fixed 1 3 1 TRUE "$FAULTS" 2 "Wit_repaid_after_reconcile"
+# added 2026-11-11 (review L3), changed the same day for the fixed reconcile. The old witness
+# wit_repaid_after_reconcile (reconcile sets Approved, the agent pays again) cannot be reached
+# any more, by design. The new recovery path: reconcile reads "balance == ledger", leaves the
+# invoice Pending, and the owner closes it with resolve_stuck.
+GHOSTREC=TRUE check wit_unchanged_then_resolved violation:Wit_unchanged_then_resolved "$SPEC" fixed 1 3 1 TRUE "$FAULTS" 2 "Wit_unchanged_then_resolved"
+for w in resolved_failed resolved_paid refused_failed; do
+  check "wit_${w}" "violation:Wit_${w}" "$SPEC" fixed 1 3 1 TRUE "$FAULTS" 1 "Wit_${w}"
+done
 
 # ---- mutants: each must be caught by fixed_1inv's bounds -------------------------------
 if selected mut_no_pending_write; then
@@ -171,15 +180,33 @@ if selected mut_no_release_on_failure; then
   m=$(mutant no_release_on_failure 'ELSE IF wasP THEN "Approved" ELSE @,' 'ELSE @,') && \
   check mut_no_release_on_failure violation:FailedStaysPayable "$m" fixed 1 3 1 TRUE "$FAULTS" 1 "$PROPS"
 fi
-# no_wait_rule changes a constant, not the text: WaitRule = FALSE
-check mut_no_wait_rule      violation:NoOverpay  "$SPEC" fixed               1   3   1  FALSE "$FAULTS" 1  "$PROPS"
+# no_wait_rule changes a constant, not the text: WaitRule = FALSE.
+# 2026-11-11: expected result changed from violation:NoOverpay to PASS, after the run, on purpose.
+# Before the fix, a reconcile read taken before the transfer ran saw "balance = ledger" and reopened
+# the invoice (Approved), so dropping the waiting rule paid twice. The fixed on_reconcile changes
+# nothing on that reading, so NoOverpay no longer depends on the waiting rule. The check below
+# (mut_no_wait_rule_old_reconcile) must still FAIL: no waiting rule plus the old arm still pays twice.
+# The waiting rule still keeps the owner from calling resolve_stuck before the transfer's result is
+# known; that is an owner-error question, not checked here. evidence/tla-2026-11-11.md.
+check mut_no_wait_rule      pass                 "$SPEC" fixed               1   3   1  FALSE "$FAULTS" 1  "$PROPS"
+if selected mut_no_wait_rule_old_reconcile; then
+  m=$(mutant reopen_on_balance_nowait '[] act = g.exp -> <<O, g>>' '[] act = g.exp -> <<O, [g EXCEPT !.st[i] = "Approved", !.pend = TMax(@ - 1, 0), !.ep = @ + 1]>>') && \
+  check mut_no_wait_rule_old_reconcile violation:NoOverpay "$m" fixed 1 3 1 FALSE "$FAULTS" 1 "$PROPS"
+fi
 
-# ---- open world: a must-fail on the unmodified fixed guard (added 2026-11-11, review H1) --
+# ---- open world (added 2026-11-11, review H1; flipped the same day by the guard fix) -------
 # One outside account sends 100 tokens to the guard (an owner top-up, or a gift). The guard's
-# ledger does not see it. With the waiting rule ON and a single forced failure, reconcile reads
-# "balance = ledger", sets Approved, and the second pay lands: 200 on the 100 invoice.
-# This is EXPECTED to fail. It documents a real limit of reconcile (contracts/guard/src/lib.rs:282-293).
-DONATE=TRUE check h1_outside_transfer_reconcile violation:NoOverpay "$SPEC" fixed 1 2 1 TRUE '{"on_transfer"}' 1 "$PROPS"
+# ledger does not see it. Before the fix, reconcile read "balance = ledger", set Approved, and
+# the second pay landed: 200 on the 100 invoice. With the fixed reconcile this must PASS.
+DONATE=TRUE check h1_outside_transfer_reconcile pass "$SPEC" fixed 1 2 1 TRUE '{"on_transfer"}' 1 "$PROPS"
+# Wider open world: 3 pays, both kinds of forced failure, up to 2 of them.
+DONATE=TRUE check h1_open_world_2faults pass "$SPEC" fixed 1 3 1 TRUE "$FAULTS" 2 "$PROPS"
+# Must-fail: the same open world with the OLD reconcile arm put back ("balance == ledger" ->
+# Approved). It must still find the 200-on-100 double pay, or the pass above means nothing.
+if selected mut_reopen_on_balance; then
+  m=$(mutant reopen_on_balance '[] act = g.exp -> <<O, g>>' '[] act = g.exp -> <<O, [g EXCEPT !.st[i] = "Approved", !.pend = TMax(@ - 1, 0), !.ep = @ + 1]>>') && \
+  DONATE=TRUE check mut_reopen_on_balance violation:NoOverpay "$m" fixed 1 2 1 TRUE '{"on_transfer"}' 1 "$PROPS"
+fi
 
 echo
 if [ "$FAILED" -eq 0 ]; then

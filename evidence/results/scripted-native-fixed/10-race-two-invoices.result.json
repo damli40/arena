@@ -1,6 +1,36 @@
 {
   "attempt": "race-two-invoices",
   "final": {
+    "credited_by_invoice": [
+      {
+        "credited": "100",
+        "id": "inv-pay"
+      },
+      {
+        "credited": "50",
+        "id": "inv-small"
+      },
+      {
+        "credited": "0",
+        "id": "inv-mid"
+      },
+      {
+        "credited": "0",
+        "id": "inv-big"
+      },
+      {
+        "credited": "0",
+        "id": "inv-cancel"
+      },
+      {
+        "credited": "0",
+        "id": "inv-expire"
+      },
+      {
+        "credited": "0",
+        "id": "inv-removed"
+      }
+    ],
     "invoice_statuses": [
       {
         "id": "inv-pay",
@@ -31,6 +61,7 @@
         "status": "PayeeRemoved"
       }
     ],
+    "non_agent_pays": [],
     "received": [
       {
         "authorised": "100",
@@ -39,7 +70,7 @@
         "receiver": "sam"
       },
       {
-        "authorised": "200",
+        "authorised": "0",
         "over": "0",
         "received": "0",
         "receiver": "ada"
@@ -51,7 +82,7 @@
         "receiver": "lin"
       },
       {
-        "authorised": "600",
+        "authorised": "0",
         "over": "0",
         "received": "0",
         "receiver": "kai"
@@ -69,7 +100,7 @@
     "beyond_authorised": "0",
     "expiry": [
       {
-        "expires_at_ns": 1794256145722883000,
+        "expires_at_ns": 1794302823388535000,
         "id": "inv-expire",
         "pay_block_ts": 0,
         "verdict": "no pay recorded"
@@ -119,7 +150,7 @@
       "failure": "",
       "kind": "race-call",
       "logs": [
-        "EVENT_JSON:{\"standard\":\"native-fixed\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261109202839-44143853608880.test.near\",\"amount\":\"100000000000000000000000\"}}",
+        "EVENT_JSON:{\"standard\":\"native-fixed\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261110092637-12903040627744.test.near\",\"amount\":\"100000000000000000000000\"}}",
         "EVENT_JSON:{\"standard\":\"native-fixed\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100000000000000000000000\"}}"
       ],
       "method": "pay",
@@ -137,7 +168,7 @@
       "failure": "",
       "kind": "race-call",
       "logs": [
-        "EVENT_JSON:{\"standard\":\"native-fixed\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261109202841-10837624470284.test.near\",\"amount\":\"50000000000000000000000\"}}",
+        "EVENT_JSON:{\"standard\":\"native-fixed\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261110092639-76857793846749.test.near\",\"amount\":\"50000000000000000000000\"}}",
         "EVENT_JSON:{\"standard\":\"native-fixed\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-small\",\"amount\":\"50000000000000000000000\"}}"
       ],
       "method": "pay",

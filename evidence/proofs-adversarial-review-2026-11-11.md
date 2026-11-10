@@ -1,5 +1,7 @@
 # Adversarial review of the proofs (Nov 11 2026)
 
+> **Note added 2026-11-11 (after the fix).** H1 is fixed in `contracts/guard` (`reconcile` no longer reopens on an unchanged balance; owner-only `resolve_stuck`). Evidence: `verify-2026-11-11.md` (t11), `proofs-inductive-2026-11-11.md`. The scorer blind spots (M7, M8) are fixed: `mutation-table-2026-11-11.md`.
+
 **What was attacked:** `evidence/proofs-2026-11-10.md` (Proof 1: Kani + exhaustive run of the real guard; Proof 2: z3 on vault-a's policy) and `evidence/tla-2026-11-10.md` (the near-tla model `tla/Guard.tla`). The job was to make them fail, or show they claim more than they prove.
 
 **Read this first.**

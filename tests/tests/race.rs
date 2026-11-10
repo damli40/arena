@@ -337,6 +337,8 @@ fn classify(sam: u128, status: &str) -> &'static str {
         "Approved" => "(c) NOT STUCK: unpaid on record and in fact; retry is safe",
         "Paid" if sam == INVOICE_AMOUNT => "(c) NOT STUCK: Paid, Sam paid exactly once",
         "Paid" => "(!) Paid on record but Sam balance is not 1x",
+        "Failed" if sam == 0 => "(c) CLOSED by the owner as Failed: unpaid on record and in fact; pay refused",
+        "Failed" => "(!) Failed on record but Sam holds tokens for this bill",
         _ => "(?) unknown status",
     }
 }
@@ -551,10 +553,13 @@ async fn t7_fixed_reconcile_after_t5_marks_paid_and_blocks_retry() -> anyhow::Re
 }
 
 #[tokio::test]
-async fn t8_fixed_reconcile_after_t6_returns_to_approved_then_pays_once() -> anyhow::Result<()> {
+async fn t8_fixed_reconcile_after_t6_stays_pending_then_owner_closes_and_reissues() -> anyhow::Result<()> {
+    // Changed 2026-11-11 (evidence/fix-plan-2026-11-11.md). Before the fix, reconcile set this
+    // invoice back to Approved from "balance unchanged". That same reading also fits "the money
+    // left and the same amount came back in" (t11), so reconcile no longer reopens anything.
     let env = setup_with("fixed", false, GUARD_FAULT_WASM).await?;
     let id = "crash-t8";
-    println!("\n===== EVIDENCE: t8 fixed, t6 scenario then owner reconcile =====");
+    println!("\n===== EVIDENCE: t8 fixed, t6 scenario then owner reconcile, then resolve_stuck(sent=false) =====");
     sync_ledger(&env).await?;
     approve(&env, id).await?;
     snap(&env, id, "0 approved (Sam not registered)").await?;
@@ -567,32 +572,120 @@ async fn t8_fixed_reconcile_after_t6_returns_to_approved_then_pays_once() -> any
     env.worker.fast_forward(RECONCILE_WAIT_BLOCKS).await?;
     let rec = owner_call(&env, "reconcile", json!({"id": id})).await?;
     trace(&env, "reconcile", &rec).await?;
-    ok(rec)?;
+    ok(rec.clone())?;
     let s2 = snap(&env, id, "2 after reconcile").await?;
-    assert_eq!(s2.status, "Approved", "the balance shows the money did not leave");
+    assert!(rec.logs().iter().any(|l| l.contains("stays Pending")), "reconcile must say why it changed nothing: {:?}", rec.logs());
+    assert_eq!(s2.status, "Pending", "balance unchanged proves nothing: reconcile must not reopen the invoice");
+
+    let stranger = env.agent.call(env.guard.id(), "resolve_stuck").args_json(json!({"id": id, "sent": false})).max_gas().transact().await?;
+    assert!(failure_text(&stranger).contains("owner only"), "agent must not resolve: {}", failure_text(&stranger));
+
+    let res = owner_call(&env, "resolve_stuck", json!({"id": id, "sent": false})).await?;
+    trace(&env, "resolve_stuck sent=false", &res).await?;
+    ok(res)?;
+    let s3 = snap(&env, id, "3 after resolve_stuck(sent=false)").await?;
+    assert_eq!((s3.sam, s3.status.as_str()), (0, "Failed"), "owner closes the stuck invoice as Failed");
 
     register_sam(&env).await?;
-    snap(&env, id, "3 owner registers Sam").await?;
-    let r4 = pay(&env, id).await?;
-    trace(&env, "retry pay", &r4).await?;
-    // The fault build panics on EVERY crash- callback, so this one panics too.
-    assert!(fault_fired(&r4));
-    let s4 = snap(&env, id, "4 after retry (transfer ok, cb panicked again)").await?;
-    assert_eq!((s4.sam, s4.status.as_str()), (INVOICE_AMOUNT, "Pending"), "retry pays exactly once");
+    snap(&env, id, "4 owner registers Sam").await?;
+    let r5 = pay(&env, id).await?;
+    trace(&env, "pay the Failed invoice", &r5).await?;
+    assert!(failure_text(&r5).contains("closed as failed by the owner"), "Failed is terminal: {}", failure_text(&r5));
+    let again = owner_call(&env, "approve_invoice", json!({"id": id, "receiver": env.receiver.id(), "amount": INVOICE_AMOUNT.to_string()})).await?;
+    assert!(failure_text(&again).contains("has been acted on"), "the old id cannot be reused: {}", failure_text(&again));
+
+    let new_id = "t8-reissued";
+    approve(&env, new_id).await?;
+    let r6 = pay(&env, new_id).await?;
+    trace(&env, "pay the re-issued invoice", &r6).await?;
+    ok(r6)?;
+    let s6 = snap(&env, new_id, "6 re-issued invoice paid").await?;
+    assert_eq!((s6.sam, s6.status.as_str()), (INVOICE_AMOUNT, "Paid"), "Sam paid exactly once overall");
+    let l = ledger(&env).await?;
+    println!("  ledger = {l}");
+    assert_eq!(l["expected_balance"], (GUARD_FUNDING - INVOICE_AMOUNT).to_string());
+    assert_eq!(l["pending_count"], 0);
+    println!("RESULT t8: stuck Pending + Sam unpaid -> reconcile leaves it Pending; resolve_stuck(sent=false) -> Failed; pay refused; re-issued under a new id, paid once (Sam={})", s6.sam);
+    Ok(())
+}
+
+#[tokio::test]
+async fn t11_fixed_h1_outside_transfer_then_reconcile_does_not_reopen() -> anyhow::Result<()> {
+    // Review H1 on the real wasm: the transfer lands, its callback dies, and the owner tops the
+    // guard up by the invoice amount. The old reconcile read "balance = ledger" and set Approved,
+    // and a retry paid Sam a second time. The fixed reconcile must leave the invoice Pending.
+    let env = setup_with("fixed", true, GUARD_FAULT_WASM).await?;
+    let id = "crash-t11";
+    println!("\n===== EVIDENCE: t11 fixed, H1: transfer ok + callback panics + owner top-up, then reconcile =====");
+    sync_ledger(&env).await?;
+    approve(&env, id).await?;
+    snap(&env, id, "0 approved").await?;
+    let r1 = pay(&env, id).await?;
+    trace(&env, "pay 1", &r1).await?;
+    assert!(fault_fired(&r1));
+    let s1 = snap(&env, id, "1 after pay (transfer ok, callback panicked)").await?;
+    assert_eq!((s1.sam, s1.status.as_str(), s1.guard), (INVOICE_AMOUNT, "Pending", GUARD_FUNDING - INVOICE_AMOUNT));
+
+    // The owner tops the guard up by exactly the amount that looks missing.
+    ok(env
+        .owner
+        .call(env.token.id(), "ft_transfer")
+        .args_json(json!({"receiver_id": env.guard.id(), "amount": INVOICE_AMOUNT.to_string()}))
+        .deposit(NearToken::from_yoctonear(1))
+        .transact()
+        .await?)?;
+    let s2 = snap(&env, id, "2 owner sends 100 to the guard").await?;
+    assert_eq!(s2.guard, GUARD_FUNDING, "guard balance is back to the ledger value");
 
     env.worker.fast_forward(RECONCILE_WAIT_BLOCKS).await?;
-    let rec2 = owner_call(&env, "reconcile", json!({"id": id})).await?;
-    trace(&env, "reconcile again", &rec2).await?;
-    ok(rec2)?;
-    let s5 = snap(&env, id, "5 after second reconcile").await?;
-    assert_eq!(s5.status, "Paid");
+    let rec = owner_call(&env, "reconcile", json!({"id": id})).await?;
+    trace(&env, "reconcile", &rec).await?;
+    ok(rec.clone())?;
+    let s3 = snap(&env, id, "3 after reconcile").await?;
+    assert_eq!(s3.status, "Pending", "H1: the old code set Approved here; the fix must leave it Pending");
 
+    let r4 = pay(&env, id).await?;
+    trace(&env, "retry pay", &r4).await?;
+    let s4 = snap(&env, id, "4 after retry pay").await?;
+    assert!(failure_text(&r4).contains("payment already in flight"), "retry must be refused: {}", failure_text(&r4));
+    assert_eq!(s4.sam, INVOICE_AMOUNT, "Sam must not be paid twice");
+
+    let res = owner_call(&env, "resolve_stuck", json!({"id": id, "sent": true})).await?;
+    trace(&env, "resolve_stuck sent=true", &res).await?;
+    ok(res)?;
+    let s5 = snap(&env, id, "5 after resolve_stuck(sent=true)").await?;
+    assert_eq!(s5.status, "Paid");
     let r6 = pay(&env, id).await?;
     let s6 = snap(&env, id, "6 one more pay").await?;
     assert!(failure_text(&r6).contains("invoice already paid"), "{}", failure_text(&r6));
     assert_eq!(s6.sam, INVOICE_AMOUNT, "Sam paid exactly once overall");
-    println!("  ledger = {}", ledger(&env).await?);
-    println!("RESULT t8: stuck Pending + Sam unpaid -> reconcile -> Approved; register Sam; retry paid once (Sam={}); reconcile -> Paid; next pay refused", s6.sam);
+    // Nothing is Pending now, so the owner can re-sync the ledger to include the top-up.
+    sync_ledger(&env).await?;
+    assert_eq!(ledger(&env).await?["expected_balance"], GUARD_FUNDING.to_string());
+    println!("RESULT t11: transfer ok + callback dead + owner top-up 100 -> reconcile leaves it Pending (old code: Approved); retry refused; resolve_stuck(sent=true) -> Paid; Sam={}", s6.sam);
+    Ok(())
+}
+
+#[tokio::test]
+async fn t12_resolve_stuck_refusals() -> anyhow::Result<()> {
+    println!("\n===== EVIDENCE: t12 resolve_stuck refuses: too early, not Pending, vulnerable mode =====");
+    let env = setup_with("fixed", true, GUARD_FAULT_WASM).await?;
+    approve(&env, "plain").await?;
+    let r = owner_call(&env, "resolve_stuck", json!({"id": "plain", "sent": true})).await?;
+    assert!(failure_text(&r).contains("is not Pending"), "Approved invoice: {}", failure_text(&r));
+    approve(&env, "crash-t12").await?;
+    let p = pay(&env, "crash-t12").await?;
+    assert!(fault_fired(&p));
+    let r = owner_call(&env, "resolve_stuck", json!({"id": "crash-t12", "sent": false})).await?;
+    assert!(failure_text(&r).contains("too early"), "{}", failure_text(&r));
+    let s = snap(&env, "crash-t12", "after refused early resolve").await?;
+    assert_eq!(s.status, "Pending", "a refused resolve changes nothing");
+
+    let venv = setup("vulnerable_fixture", true).await?;
+    approve(&venv, "v").await?;
+    let r = venv.owner.call(venv.guard.id(), "resolve_stuck").args_json(json!({"id": "v", "sent": false})).max_gas().transact().await?;
+    assert!(failure_text(&r).contains("exists only in fixed mode"), "{}", failure_text(&r));
+    println!("RESULT t12: resolve_stuck refused for Approved, too early, and in vulnerable_fixture; nothing changed");
     Ok(())
 }
 

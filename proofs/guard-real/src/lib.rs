@@ -22,10 +22,13 @@
 //!   (`proofs/guard-model`), and the exhaustive run checks [`pay_would_be_accepted`]
 //!   against the real `pay` on every schedule.
 
-#[cfg(not(feature = "mutant"))]
+#[cfg(not(any(feature = "mutant", feature = "mutant-reopen")))]
 pub use guard::{Guard, Mode, Status};
 #[cfg(feature = "mutant")]
 pub use guard_mutant::{Guard, Mode, Status};
+// 2026-11-11: the pre-fix reconcile ("balance == ledger -> Approved"), as a must-fail mutant.
+#[cfg(feature = "mutant-reopen")]
+pub use guard_mutant_reopen::{Guard, Mode, Status};
 use guard_model::{Mode as MMode, Model, Status as MStatus};
 use near_sdk::json_types::U128;
 use near_sdk::mock::MockAction;
@@ -57,7 +60,39 @@ pub enum Item {
     /// The guard's `on_transfer(id)` callback. `outcome` is None until its transfer has
     /// run (it cannot run before), then the outcome it will see as a promise result.
     Callback { inv: usize, tag: usize, outcome: Option<bool> },
+    // ---- full world only (2026-11-11) ----
+    /// The owner's `reconcile` transaction, not yet sent (invoice and waiting are chosen
+    /// when it runs).
+    Reconcile,
+    /// The `ft_balance_of` receipt `reconcile` created: the token reads the guard's balance.
+    BalanceRead { inv: usize, epoch: u64 },
+    /// The `on_reconcile` callback, with the balance the read returned.
+    OnReconcile { inv: usize, epoch: u64, balance: u128 },
+    /// The owner's `resolve_stuck(id, sent)` transaction (choices made when it runs).
+    Resolve,
+    /// Someone else sends `DONATION` tokens to the guard (review H1).
+    Outside,
 }
+
+/// The choices the scheduler makes when an item runs.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Choice {
+    /// Transfer: the token moves the tokens (else it fails).
+    pub ok: bool,
+    /// Callback: it dies (out of gas / panic): its writes are rolled back.
+    pub dies: bool,
+    /// Reconcile / Resolve: which invoice.
+    pub inv: usize,
+    /// Resolve: what the owner states.
+    pub sent: bool,
+    /// Reconcile / Resolve: the owner waits RECONCILE_MIN_BLOCKS first.
+    pub wait: bool,
+}
+
+/// The guard's token balance at setup (full world: the owner funds it and syncs the ledger).
+pub const FUND: u128 = 1000;
+pub const DONATION: u128 = 100;
+pub const WAIT_BLOCKS: u64 = 100;
 
 /// What happened in one step (for readable traces).
 #[derive(Clone, Debug)]
@@ -67,6 +102,12 @@ pub enum Event {
     TransferOk { inv: usize, amount: u128 },
     TransferFailed { inv: usize },
     CallbackRan { inv: usize, ok: bool, status_after: Status },
+    CallbackDied { inv: usize },
+    ReconcileSent { inv: usize, accepted: bool, waited: bool },
+    BalanceRead { inv: usize, balance: u128 },
+    OnReconcile { inv: usize, accepted: bool, status_after: Status },
+    Resolve { inv: usize, sent: bool, waited: bool, accepted: bool, status_after: Status },
+    Outside { balance_after: u128 },
 }
 
 #[derive(Clone)]
@@ -83,7 +124,19 @@ pub struct World {
     pub model: Model<NINV>,
     /// Lockstep disagreements between the model and the real contract.
     pub mismatches: Vec<String>,
+    /// Full world (2026-11-11): the extra items exist, the ledger is synced at setup.
+    pub full: bool,
+    /// The guard's real token balance (what `ft_balance_of` would return).
+    pub guard_balance: u128,
+    /// How many more callbacks may die (full world: 1).
+    pub deaths_left: u8,
+    /// Invoices whose outcome the OWNER decided (a dead callback, resolve_stuck, or an
+    /// accepted on_reconcile). P2 ("nothing sent -> payable again") is not required of
+    /// them: a stuck or owner-closed bill is the documented trade-off.
+    pub touched: [bool; NINV],
 }
+
+pub type Key = (Vec<(Vec<u8>, Vec<u8>)>, Vec<(u8, usize, String, u128, u8)>, [u128; NINV], Model<NINV>, u128, u8, [bool; NINV]);
 
 fn context(predecessor: &str, block: u64) -> near_sdk::VMContext {
     VMContextBuilder::new()
@@ -125,6 +178,13 @@ fn with_guard<R>(f: impl FnOnce(&mut Guard) -> R) -> R {
 impl World {
     /// Deploy + init the guard, then the owner approves every invoice in [`INVOICES`].
     pub fn new(mode: Mode, pays: &[usize]) -> World {
+        Self::new_world(mode, pays, false)
+    }
+
+    /// `full = true` (2026-11-11): also one owner `reconcile`, one `resolve_stuck`, one
+    /// outside transfer and one callback death, anywhere in the schedule; the guard holds
+    /// FUND tokens and (fixed mode) the owner has synced the ledger to it.
+    pub fn new_world(mode: Mode, pays: &[usize], full: bool) -> World {
         install(HashMap::new(), GUARD, 1, vec![]);
         let g = Guard::new(mode, acc(OWNER), acc(AGENT), acc(TOKEN));
         env::state_write(&g);
@@ -136,23 +196,48 @@ impl World {
                 g.approve_invoice(id.to_string(), acc(recv), U128(amount));
             }
         });
-        let storage = take_storage();
+        let mut storage = take_storage();
+        let mut model = Model::new(
+            if mode == Mode::Fixed { MMode::Fixed } else { MMode::VulnerableFixture },
+            [INVOICES[0].2, INVOICES[1].2],
+            // LOCKSTEP_SELFTEST=1 gives the model the OPPOSITE mutant flag from the
+            // real build, so the lockstep check must report mismatches (it has teeth).
+            cfg!(feature = "mutant") ^ std::env::var_os("LOCKSTEP_SELFTEST").is_some(),
+        );
+        model.mutant_reopen_on_balance = cfg!(feature = "mutant-reopen");
+        let mut pending: Vec<Item> = pays.iter().map(|&inv| Item::Pay { inv }).collect();
+        if full {
+            pending.extend([Item::Reconcile, Item::Resolve, Item::Outside]);
+            if mode == Mode::Fixed {
+                // The owner calls sync_ledger; the token reports FUND (lines 358-387).
+                install(storage.clone(), OWNER, 2, vec![]);
+                let e = with_guard(|g| {
+                    let p = g.sync_ledger();
+                    drop(p);
+                    g.get_ledger().epoch
+                });
+                storage = take_storage();
+                install(storage, GUARD, 2, vec![]);
+                with_guard(|g| g.on_sync_ledger(e, Ok(U128(FUND))));
+                storage = take_storage();
+                let me = model.sync_ledger().expect("model sync");
+                model.on_sync_ledger(me, Some(FUND)).expect("model on_sync");
+            }
+        }
         World {
             mode,
             storage,
-            pending: pays.iter().map(|&inv| Item::Pay { inv }).collect(),
+            pending,
             sent: [0; NINV],
             block: 3,
             trace: Vec::new(),
             next_tag: 0,
-            model: Model::new(
-                if mode == Mode::Fixed { MMode::Fixed } else { MMode::VulnerableFixture },
-                [INVOICES[0].2, INVOICES[1].2],
-                // LOCKSTEP_SELFTEST=1 gives the model the OPPOSITE mutant flag from the
-                // real build, so the lockstep check must report mismatches (it has teeth).
-                cfg!(feature = "mutant") ^ std::env::var_os("LOCKSTEP_SELFTEST").is_some(),
-            ),
+            model,
             mismatches: Vec::new(),
+            full,
+            guard_balance: FUND,
+            deaths_left: if full { 1 } else { 0 },
+            touched: [false; NINV],
         }
     }
 
@@ -166,7 +251,7 @@ impl World {
     /// A canonical key for "same situation": storage, sent totals, and the waiting
     /// items as a multiset (transfers for the same invoice are interchangeable).
     /// Used by the exhaustive driver to visit each distinct state once.
-    pub fn key(&self) -> (Vec<(Vec<u8>, Vec<u8>)>, Vec<(u8, usize, String, u128, u8)>, [u128; NINV], Model<NINV>) {
+    pub fn key(&self) -> Key {
         let mut st: Vec<_> = self.storage.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
         st.sort();
         let mut pend: Vec<_> = self
@@ -177,10 +262,17 @@ impl World {
                 Item::Transfer { inv, receiver, amount, .. } => Some((1, *inv, receiver.clone(), *amount, 0)),
                 Item::Callback { outcome: None, .. } => None, // implied by its transfer
                 Item::Callback { inv, outcome: Some(ok), .. } => Some((2, *inv, String::new(), 0, *ok as u8)),
+                Item::Reconcile => Some((3, 0, String::new(), 0, 0)),
+                Item::BalanceRead { inv, epoch } => Some((4, *inv, epoch.to_string(), 0, 0)),
+                Item::OnReconcile { inv, epoch, balance } => Some((5, *inv, epoch.to_string(), *balance, 0)),
+                Item::Resolve => Some((6, 0, String::new(), 0, 0)),
+                Item::Outside => Some((7, 0, String::new(), 0, 0)),
             })
             .collect();
         pend.sort();
-        (st, pend, self.sent, self.model)
+        // The block height is left out (as before): it only matters through the waiting
+        // rule, and every owner action here either waits the full 100 blocks or not at all.
+        (st, pend, self.sent, self.model, self.guard_balance, self.deaths_left, self.touched)
     }
 
     /// Compare every field the model tracks with the real contract's own views
@@ -193,11 +285,7 @@ impl World {
         for (i, (id, _, _)) in INVOICES.iter().enumerate() {
             let r = g.get_invoice(id.to_string()).expect("invoice");
             let m = self.model.invoices[i];
-            let rs = match r.status {
-                Status::Approved => MStatus::Approved,
-                Status::Pending => MStatus::Pending,
-                Status::Paid => MStatus::Paid,
-            };
+            let rs = mstatus(r.status);
             if rs != m.status
                 || r.amount.0 != m.amount
                 || r.transfers_started != m.transfers_started
@@ -210,8 +298,8 @@ impl World {
         if ledger.pending_count != self.model.pending_count || ledger.epoch != self.model.epoch {
             diffs.push(format!("ledger: real pending={} epoch={} model pending={} epoch={}", ledger.pending_count, ledger.epoch, self.model.pending_count, self.model.epoch));
         }
-        if ledger.expected_balance.is_some() {
-            diffs.push("ledger: expected_balance set, the model assumes None".into());
+        if ledger.expected_balance.map(|v| v.0) != self.model.expected_balance {
+            diffs.push(format!("ledger: real expected_balance={:?} model={:?}", ledger.expected_balance.map(|v| v.0), self.model.expected_balance));
         }
         drop(g);
         self.mismatches.extend(diffs);
@@ -259,8 +347,44 @@ impl World {
     /// accepts this pay" (the Kani driver); None means "really call pay and catch a
     /// refusal" (the exhaustive driver, which then also checks the answer).
     pub fn step(&mut self, idx: usize, transfer_ok: bool, pay_accepted: Option<bool>) {
+        self.step_with(idx, Choice { ok: transfer_ok, ..Default::default() }, pay_accepted)
+    }
+
+    /// Run a guard method that may refuse (panic). Returns (accepted, receipts). On refusal
+    /// the storage is rolled back, as NEAR does. Only the guard's own call is inside
+    /// catch_unwind (review L1).
+    fn call_guard<R>(&mut self, who: &str, results: Vec<PromiseResult>, f: impl FnOnce(&mut Guard) -> R) -> (Option<R>, Vec<near_sdk::mock::Receipt>) {
+        let saved = self.storage.clone();
+        let block = self.block;
+        let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            install(saved.clone(), who, block, results);
+            let out = with_guard(f);
+            let receipts = near_sdk::mock::with_mocked_blockchain(|b| b.created_receipts());
+            (out, receipts, take_storage())
+        }));
+        match r {
+            Ok((out, receipts, storage)) => {
+                self.storage = storage;
+                (Some(out), receipts)
+            }
+            Err(_) => {
+                self.storage = saved;
+                (None, vec![])
+            }
+        }
+    }
+
+    /// Execute pending item `idx` with the scheduler's choices `c`.
+    pub fn step_with(&mut self, idx: usize, c: Choice, pay_accepted: Option<bool>) {
+        let transfer_ok = c.ok;
         let item = self.pending.remove(idx);
-        self.block += 1;
+        // Base world: one block per step (unchanged). Full world (2026-11-11): time moves only
+        // when the owner waits RECONCILE_MIN_BLOCKS. The guard reads the block height only for
+        // pending_since_block and that waiting rule, so this keeps every behaviour the rule
+        // can tell apart ("too early" vs "waited"), while letting equal states merge.
+        if !self.full {
+            self.block += 1;
+        }
         match item {
             Item::Pay { inv } => {
                 let before = self.status(inv);
@@ -318,6 +442,11 @@ impl World {
             }
             Item::Transfer { inv, tag, receiver, amount } => {
                 assert_eq!(receiver, INVOICES[inv].1, "guard sent to an unexpected receiver");
+                // The token refuses a transfer the guard cannot cover (full world tracks it).
+                let transfer_ok = transfer_ok && (!self.full || self.guard_balance >= amount);
+                if transfer_ok && self.full {
+                    self.guard_balance -= amount;
+                }
                 if transfer_ok {
                     self.sent[inv] += amount;
                     self.trace.push(Event::TransferOk { inv, amount });
@@ -333,6 +462,14 @@ impl World {
                     }
                 }
             }
+            Item::Callback { inv, outcome, .. } if c.dies && self.deaths_left > 0 => {
+                // Out of gas, or a panic: every write is rolled back. Nothing changes.
+                let _ = outcome.expect("callback ran before its transfer");
+                self.deaths_left -= 1;
+                self.touched[inv] = true;
+                self.trace.push(Event::CallbackDied { inv });
+                self.compare_with_model();
+            }
             Item::Callback { inv, outcome, .. } => {
                 let ok = outcome.expect("callback ran before its transfer");
                 let results = vec![if ok { PromiseResult::Successful(vec![]) } else { PromiseResult::Failed }];
@@ -344,8 +481,112 @@ impl World {
                 self.model.on_transfer(inv, ok);
                 self.compare_with_model();
             }
+            Item::Reconcile => {
+                let inv = c.inv;
+                if c.wait {
+                    self.block += WAIT_BLOCKS;
+                }
+                let id = INVOICES[inv].0.to_string();
+                let (r, receipts) = self.call_guard(OWNER, vec![], |g| drop(g.reconcile(id)));
+                let accepted = r.is_some();
+                if accepted {
+                    let epoch = decode_reconcile_receipts(inv, &receipts);
+                    self.pending.push(Item::BalanceRead { inv, epoch });
+                }
+                self.trace.push(Event::ReconcileSent { inv, accepted, waited: c.wait });
+                let m = self.model.reconcile(inv, self.block);
+                if m.is_ok() != accepted {
+                    self.mismatches.push(format!("reconcile({}) real accepted={accepted} model={m:?}", INVOICES[inv].0));
+                }
+                self.compare_with_model();
+            }
+            Item::BalanceRead { inv, epoch } => {
+                let balance = self.guard_balance;
+                self.trace.push(Event::BalanceRead { inv, balance });
+                self.pending.push(Item::OnReconcile { inv, epoch, balance });
+            }
+            Item::OnReconcile { inv, epoch, balance } => {
+                let id = INVOICES[inv].0.to_string();
+                let (r, _) = self.call_guard(GUARD, vec![], |g| g.on_reconcile(id, epoch, Ok(U128(balance))));
+                let accepted = r.is_some();
+                let after = self.status(inv);
+                if accepted {
+                    self.touched[inv] = true;
+                }
+                self.trace.push(Event::OnReconcile { inv, accepted, status_after: after });
+                let m = self.model.on_reconcile(inv, epoch, Some(balance));
+                match (m, r) {
+                    (Ok(ms), Some(rs)) if ms == mstatus(rs) => {}
+                    (Err(_), None) => {}
+                    (m, r) => self.mismatches.push(format!("on_reconcile({}) real={r:?} model={m:?}", INVOICES[inv].0)),
+                }
+                self.compare_with_model();
+            }
+            Item::Resolve => {
+                let inv = c.inv;
+                if c.wait {
+                    self.block += WAIT_BLOCKS;
+                }
+                let id = INVOICES[inv].0.to_string();
+                let sent = c.sent;
+                let (r, _) = self.call_guard(OWNER, vec![], |g| g.resolve_stuck(id, sent));
+                let accepted = r.is_some();
+                if accepted {
+                    self.touched[inv] = true;
+                }
+                let after = self.status(inv);
+                self.trace.push(Event::Resolve { inv, sent, waited: c.wait, accepted, status_after: after });
+                let m = self.model.resolve_stuck(inv, sent, self.block);
+                match (m, r) {
+                    (Ok(ms), Some(rs)) if ms == mstatus(rs) => {}
+                    (Err(_), None) => {}
+                    (m, r) => self.mismatches.push(format!("resolve_stuck({}) real={r:?} model={m:?}", INVOICES[inv].0)),
+                }
+                self.compare_with_model();
+            }
+            Item::Outside => {
+                self.guard_balance += DONATION;
+                self.trace.push(Event::Outside { balance_after: self.guard_balance });
+            }
         }
     }
+}
+
+pub fn mstatus(s: Status) -> MStatus {
+    match s {
+        Status::Approved => MStatus::Approved,
+        Status::Pending => MStatus::Pending,
+        Status::Paid => MStatus::Paid,
+        Status::Failed => MStatus::Failed,
+    }
+}
+
+/// `reconcile` must create exactly: ft_balance_of(guard) on the token, then
+/// on_reconcile(id, epoch_at_start) on the guard. Returns that epoch. A malformed receipt
+/// stops the run loudly (outside catch_unwind).
+fn decode_reconcile_receipts(inv: usize, receipts: &[near_sdk::mock::Receipt]) -> u64 {
+    let mut read = false;
+    let mut epoch = None;
+    for r in receipts {
+        for a in &r.actions {
+            if let MockAction::FunctionCallWeight { method_name, args, .. } = a {
+                let v: near_sdk::serde_json::Value = near_sdk::serde_json::from_slice(args).expect("json args");
+                match (r.receiver_id.as_str(), method_name.as_slice()) {
+                    (TOKEN, b"ft_balance_of") => {
+                        assert_eq!(v["account_id"].as_str(), Some(GUARD), "balance read of another account");
+                        read = true;
+                    }
+                    (GUARD, b"on_reconcile") => {
+                        assert_eq!(v["id"].as_str(), Some(INVOICES[inv].0), "on_reconcile for another invoice");
+                        epoch = Some(v["epoch_at_start"].as_u64().expect("epoch_at_start"));
+                    }
+                    other => panic!("unexpected receipt from reconcile {other:?}"),
+                }
+            }
+        }
+    }
+    assert!(read, "reconcile created no ft_balance_of");
+    epoch.expect("reconcile created no on_reconcile")
 }
 
 

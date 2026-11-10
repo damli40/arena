@@ -1,0 +1,8 @@
+mode=Fixed n=2 world=full invoices=[("inv-a", "sam.test", 100), ("inv-b", "ada.test", 50)]
+explored: 21345 distinct states, 81583 transitions, 718 distinct end states, 1826 pay-filter checks, in 298.6 s
+max tokens sent per invoice over all schedules: [100, 50]
+P1 (sent <= amount): 0 violating states
+P2 (no stuck funds at quiescence): 0 violations
+pay filter vs real pay: 0 disagreements
+model (proofs/guard-model) vs real contract, lockstep: 0 states with a mismatch
+RESULT build=real mode=fixed n=2 world=full p1=HOLDS p2=HOLDS filter=AGREES model=AGREES states=21345 end_states=718 max_sent=[100, 50] secs=298.6

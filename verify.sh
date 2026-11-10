@@ -10,7 +10,10 @@ set -uo pipefail
 cd "$(dirname "$0")"
 source "$HOME/.cargo/env" 2>/dev/null || true
 
-DATE=$(date +%Y-%m-%d)
+# ARENA_DATE overrides the date in log names (added 2026-11-11, so a re-run on the same
+# calendar day does not overwrite earlier evidence). run-arena.sh reads it too.
+DATE="${ARENA_DATE:-$(date +%Y-%m-%d)}"
+export ARENA_DATE="$DATE"
 MODE="${1:-full}"
 START_S=$(date +%s)
 PASS=0; FAIL=0
@@ -43,13 +46,16 @@ if [ "$MODE" = "fast" ]; then
   check "t1: two requests for one 100-token invoice pay 200, 5 of 5" "$RUNLOG" "RESULT vulnerable_fixture race payouts per trial: [200, 200, 200, 200, 200]"
 else
   ./run.sh > "$RUNLOG" 2>&1
-  check "all 10 guard tests pass"                          "$RUNLOG" "10 passed; 0 failed"
+  check "all 12 guard tests pass"                          "$RUNLOG" "12 passed; 0 failed"
   check "t1: vulnerable fixture pays 200 per 100, 5 of 5"   "$RUNLOG" "RESULT vulnerable_fixture race payouts per trial: [200, 200, 200, 200, 200]"
   check "t2: fixed guard pays 100, 5 of 5"                  "$RUNLOG" "RESULT fixed race payouts per trial: [100, 100, 100, 100, 100]"
   check "t5: retry after failed final step pays twice"      "$RUNLOG" "after retry Sam=200 status=Approved -> DOUBLE PAY"
   check "t5: fixed guard refuses the retry"                 "$RUNLOG" "retry refused, Sam=100 status=Pending -> no double pay, but stuck"
   check "t7: reconcile settles the stuck invoice"           "$RUNLOG" "reconcile -> Paid; retry refused; Sam=100"
-  check "t8: reconcile re-opens an unpaid invoice once"     "$RUNLOG" "reconcile -> Approved; register Sam; retry paid once (Sam=100)"
+  # t8 changed 2026-11-11 (evidence/fix-plan-2026-11-11.md): reconcile no longer reopens an invoice.
+  check "t8: reconcile leaves an unpaid stuck invoice Pending; owner closes it, re-issues, paid once" "$RUNLOG" "reconcile leaves it Pending; resolve_stuck(sent=false) -> Failed; pay refused; re-issued under a new id, paid once (Sam=100)"
+  check "t11: owner top-up + reconcile does not reopen (review H1), Sam stays 100" "$RUNLOG" "reconcile leaves it Pending (old code: Approved); retry refused; resolve_stuck(sent=true) -> Paid; Sam=100"
+  check "t12: resolve_stuck refusals"                       "$RUNLOG" "RESULT t12: resolve_stuck refused for Approved, too early, and in vulnerable_fixture; nothing changed"
 fi
 
 # 2. The bench catches a known leak (positive control). If this fails, the bench is blind.

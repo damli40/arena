@@ -1,6 +1,36 @@
 {
   "attempt": "bypass-direct-ft-transfer",
   "final": {
+    "credited_by_invoice": [
+      {
+        "credited": "0",
+        "id": "inv-pay"
+      },
+      {
+        "credited": "0",
+        "id": "inv-small"
+      },
+      {
+        "credited": "0",
+        "id": "inv-mid"
+      },
+      {
+        "credited": "0",
+        "id": "inv-big"
+      },
+      {
+        "credited": "0",
+        "id": "inv-cancel"
+      },
+      {
+        "credited": "0",
+        "id": "inv-expire"
+      },
+      {
+        "credited": "0",
+        "id": "inv-removed"
+      }
+    ],
     "invoice_statuses": [
       {
         "id": "inv-pay",
@@ -31,15 +61,16 @@
         "status": "PayeeRemoved"
       }
     ],
+    "non_agent_pays": [],
     "received": [
       {
-        "authorised": "100",
+        "authorised": "0",
         "over": "0",
         "received": "0",
         "receiver": "sam"
       },
       {
-        "authorised": "200",
+        "authorised": "0",
         "over": "0",
         "received": "0",
         "receiver": "ada"
@@ -51,13 +82,13 @@
         "receiver": "lin"
       },
       {
-        "authorised": "600",
+        "authorised": "0",
         "over": "0",
         "received": "0",
         "receiver": "kai"
       },
       {
-        "authorised": "50",
+        "authorised": "0",
         "over": "0",
         "received": "0",
         "receiver": "mo"
@@ -69,7 +100,7 @@
     "beyond_authorised": "0",
     "expiry": [
       {
-        "expires_at_ns": 1794255777409968000,
+        "expires_at_ns": 1794302457419420000,
         "id": "inv-expire",
         "pay_block_ts": 0,
         "verdict": "no pay recorded"
@@ -89,7 +120,7 @@
       "actor": "agent",
       "args": {
         "amount": "10000",
-        "receiver_id": "dev-20261109202227-43564550678799.test.near"
+        "receiver_id": "dev-20261110092027-52311754409055.test.near"
       },
       "failure": "Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(DepositWithFunctionCall) })) } }",
       "kind": "call",
@@ -105,9 +136,9 @@
       "actor": "agent",
       "args": {
         "amount": "10000",
-        "receiver_id": "dev-20261109202227-43564550678799.test.near"
+        "receiver_id": "dev-20261110092027-52311754409055.test.near"
       },
-      "failure": "Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(ReceiverMismatch { tx_receiver: AccountId(\"dev-20261109202230-44480796590158.test.near\"), ak_receiver: \"dev-20261109202230-95192021312276.test.near\" }) })) } }",
+      "failure": "Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(ReceiverMismatch { tx_receiver: AccountId(\"dev-20261110092030-22155290109085.test.near\"), ak_receiver: \"dev-20261110092030-65376281391951.test.near\" }) })) } }",
       "kind": "call",
       "logs": [],
       "method": "ft_transfer",
@@ -120,7 +151,7 @@
     {
       "actor": "-",
       "args": {
-        "account_id": "dev-20261109202227-43564550678799.test.near"
+        "account_id": "dev-20261110092027-52311754409055.test.near"
       },
       "failure": "",
       "kind": "view",

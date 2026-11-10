@@ -27,7 +27,7 @@ python3 -I trace.py build/vuln_race/tlc.out   # a counterexample as one line per
 | `./run.sh fixed_1inv_2faults` | `fixed`, 1 invoice, 3 pays, 1 reconcile, 2 forced failures | pass | ~2 s |
 | `./run.sh wit_<id>` (9 checks) | anti-vacuity witnesses: situations that must be reachable (`wit_repaid_after_reconcile` added Nov 11) | reached | ~1 s each |
 | `./run.sh mut_<id>` (3 checks) | mutants: deliberate breaks that must be caught | violation | ~1-2 s each |
-| `./run.sh h1_outside_transfer_reconcile` | **must-fail, added Nov 11** (review H1): `fixed`, waiting rule ON, 1 invoice, 2 pays, 1 reconcile, 1 forced callback failure, plus one outside account sending 100 tokens to the guard (`Donate = TRUE`) | violation of NoOverpay (200 on 100). Records the bug in the CURRENT guard; flip to `pass` once `reconcile` is fixed | ~1 s |
+| `./run.sh h1_outside_transfer_reconcile` | **added Nov 11 as must-fail (review H1); PASS since the reconcile fix the same day**: `fixed`, waiting rule ON, 1 invoice, 2 pays, 1 reconcile, 1 forced callback failure, plus one outside account sending 100 tokens to the guard (`Donate = TRUE`) | was a violation of NoOverpay (200 on 100) on the old guard; `pass` now. The old arm is kept as the must-fail `mut_reopen_on_balance` | ~1 s |
 | `./run.sh` | everything | exit 0 | ~30 s wall |
 
 TLC output for each check lands in `build/<check>/tlc.out`, and a one-line-per-check table in
@@ -80,3 +80,17 @@ Source: `../evidence/proofs-adversarial-review-2026-11-11.md` (H1, H2).
   state counts on re-run (9,408 / 239,994 / 24,120 / 9,408).
 - Two checks added: `h1_outside_transfer_reconcile` (must-fail) and
   `wit_repaid_after_reconcile` (witness). The suite is now 19 checks, not 17.
+
+## Nov 11, after the reconcile fix
+
+- `reconcile` on an unchanged balance changes nothing (stays `Pending`); new owner-only `resolve_stuck`
+  (constant `MaxRes`, default 1), new status `Failed` that `pay` refuses.
+- `h1_outside_transfer_reconcile` now passes. New: `h1_open_world_2faults` (pass, 27.8M states),
+  `mut_reopen_on_balance` (must fail), `mut_no_wait_rule_old_reconcile` (must fail), 4 witnesses
+  (`wit_unchanged_then_resolved`, `wit_resolved_failed`, `wit_resolved_paid`, `wit_refused_failed`).
+  `wit_repaid_after_reconcile` was removed: that path no longer exists.
+- **Changed expectation:** `mut_no_wait_rule` now passes. NoOverpay no longer depends on the waiting rule,
+  because the only harm from an early balance read was the reopen the fix removed;
+  `mut_no_wait_rule_old_reconcile` shows it. The sentence above, "drop the first and it does too
+  (`mut_no_wait_rule`)", was true for the old guard only.
+- The suite is now 25 checks. Results: `evidence/proofs-inductive-2026-11-11.md`, `evidence/tla-2026-11-11/`.

@@ -1,6 +1,36 @@
 {
   "attempt": "bypass-owner-method",
   "final": {
+    "credited_by_invoice": [
+      {
+        "credited": "0",
+        "id": "inv-pay"
+      },
+      {
+        "credited": "0",
+        "id": "inv-small"
+      },
+      {
+        "credited": "0",
+        "id": "inv-mid"
+      },
+      {
+        "credited": "0",
+        "id": "inv-big"
+      },
+      {
+        "credited": "0",
+        "id": "inv-cancel"
+      },
+      {
+        "credited": "0",
+        "id": "inv-expire"
+      },
+      {
+        "credited": "0",
+        "id": "inv-removed"
+      }
+    ],
     "invoice_statuses": [
       {
         "id": "inv-pay",
@@ -31,15 +61,16 @@
         "status": "PayeeRemoved"
       }
     ],
+    "non_agent_pays": [],
     "received": [
       {
-        "authorised": "100",
+        "authorised": "0",
         "over": "0",
         "received": "0",
         "receiver": "sam"
       },
       {
-        "authorised": "200",
+        "authorised": "0",
         "over": "0",
         "received": "0",
         "receiver": "ada"
@@ -51,13 +82,13 @@
         "receiver": "lin"
       },
       {
-        "authorised": "600",
+        "authorised": "0",
         "over": "0",
         "received": "0",
         "receiver": "kai"
       },
       {
-        "authorised": "50",
+        "authorised": "0",
         "over": "0",
         "received": "0",
         "receiver": "mo"
@@ -69,7 +100,7 @@
     "beyond_authorised": "0",
     "expiry": [
       {
-        "expires_at_ns": 1794255797884812000,
+        "expires_at_ns": 1794302475949372000,
         "id": "inv-expire",
         "pay_block_ts": 0,
         "verdict": "no pay recorded"
@@ -91,7 +122,7 @@
         "amount": "5000",
         "expires_at_ns": 4102444800000000000,
         "id": "inv-bypass",
-        "receiver": "dev-20261109202248-91024534746429.test.near"
+        "receiver": "dev-20261110092046-82838102393051.test.near"
       },
       "failure": "Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(DepositWithFunctionCall) })) } }",
       "kind": "call",
@@ -145,10 +176,10 @@
       "success": true,
       "target": "vault",
       "view": {
-        "agent": "dev-20261109202248-72040272464776.test.near",
+        "agent": "dev-20261110092046-36589444322321.test.near",
         "daily_cap": "500",
-        "owner": "dev-20261109202247-79124617326340.test.near",
-        "token": "dev-20261109202250-18575130324433.test.near"
+        "owner": "dev-20261110092045-76229676305094.test.near",
+        "token": "dev-20261110092048-74181427672830.test.near"
       }
     },
     {

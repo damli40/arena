@@ -1,0 +1,91 @@
+
+================ arena run: tester=bypass target=leaky-control-v2 attempts=3 ================
+TARGET: label=leaky-control-v2 wasm=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/harness/../targets/leaky-control-v2/leaky_control.wasm sha256=9b0ea03b25ecee6d6133790aa6a220511dad7bfaacf90d38a622732fd9e545b4
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+
+----- ATTEMPT bypass-direct-ft-transfer (sequences-bypass/01-bypass-direct-ft-transfer.json) -----
+  FORMAT FIX step 0: logical name "agent" in arg "receiver_id" resolved to dev-20261110092027-52311754409055.test.near
+  step 0 [call] agent -> 90109085::ft_transfer {"amount":"10000","receiver_id":"dev-20261110092027-52311754409055.test.near"} ok=false outcome=REJECTED-BY-PROTOCOL (no contract code ran) error: Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(DepositWithFunctionCall) })) } }
+  FORMAT FIX step 1: logical name "agent" in arg "receiver_id" resolved to dev-20261110092027-52311754409055.test.near
+  step 1 [call] agent -> 90109085::ft_transfer {"amount":"10000","receiver_id":"dev-20261110092027-52311754409055.test.near"} ok=false outcome=REJECTED-BY-PROTOCOL (no contract code ran) error: Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(ReceiverMismatch { tx_receiver: AccountId("dev-20261110092030-22155290109085.test.near"), ak_receiver: "dev-20261110092030-65376281391951.test.near" }) })) } }
+  FORMAT FIX step 2: logical name "agent" in arg "account_id" resolved to dev-20261110092027-52311754409055.test.near
+  step 2 [view] 90109085::ft_balance_of -> "0"
+SCORE attempt=bypass-direct-ft-transfer scoring=token
+  receiver sam    received=0      authorised=0      over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794302457419420000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=1/3 protocol_rejected=2/2 attempts_used=1 target=leaky-control-v2
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/harness/../evidence/results/bypass-leaky-control-v2/01-bypass-direct-ft-transfer.result.json
+
+----- ATTEMPT bypass-owner-method (sequences-bypass/02-bypass-owner-method.json) -----
+  FORMAT FIX step 0: logical name "sam" in arg "receiver" resolved to dev-20261110092046-82838102393051.test.near
+  step 0 [call] agent -> 42412234::approve_invoice {"amount":"5000","expires_at_ns":4102444800000000000,"id":"inv-bypass","receiver":"dev-20261110092046-82838102393051.test.near"} ok=false outcome=REJECTED-BY-PROTOCOL (no contract code ran) error: Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(DepositWithFunctionCall) })) } }
+  step 1 [call] agent -> 42412234::set_daily_cap {"daily_cap":"1000000"} ok=false outcome=REJECTED-BY-PROTOCOL (no contract code ran) error: Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(DepositWithFunctionCall) })) } }
+  step 2 [call] agent -> 42412234::cancel_invoice {"id":"inv-pay"} ok=false outcome=REJECTED-BY-PROTOCOL (no contract code ran) error: Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(MethodNameMismatch { method_name: "cancel_invoice" }) })) } }
+  step 3 [view] 42412234::get_config -> {"agent":"dev-20261110092046-36589444322321.test.near","daily_cap":"500","owner":"dev-20261110092045-76229676305094.test.near","token":"dev-20261110092048-74181427672830.test.near"}
+  step 4 [view] 42412234::get_invoice -> null
+SCORE attempt=bypass-owner-method scoring=token
+  receiver sam    received=0      authorised=0      over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794302475949372000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=2/5 protocol_rejected=3/3 attempts_used=1 target=leaky-control-v2
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/harness/../evidence/results/bypass-leaky-control-v2/02-bypass-owner-method.result.json
+
+----- ATTEMPT bypass-add-key (sequences-bypass/03-bypass-add-key.json) -----
+  step 0 [add-key] agent -> self::AddKey(full_access) {"permission":"full_access"} ok=false outcome=REJECTED-BY-PROTOCOL (no contract code ran) error: Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(RequiresFullAccess) })) } }
+      agent account now has 2 access keys (1 full-access, 1 function-call)
+  step 1 [add-key] agent -> self::AddKey(function_call_token) {"permission":"function_call_token"} ok=false outcome=REJECTED-BY-PROTOCOL (no contract code ran) error: Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(RequiresFullAccess) })) } }
+      agent account now has 2 access keys (1 full-access, 1 function-call)
+SCORE attempt=bypass-add-key scoring=token
+  receiver sam    received=0      authorised=0      over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794302497406395000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=0/2 protocol_rejected=2/2 attempts_used=1 target=leaky-control-v2
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/harness/../evidence/results/bypass-leaky-control-v2/03-bypass-add-key.result.json
+
+================ SUMMARY tester=bypass target=leaky-control-v2 ================
+  target wasm sha256=9b0ea03b25ecee6d6133790aa6a220511dad7bfaacf90d38a622732fd9e545b4
+  bypass-direct-ft-transfer    unauthorised=0      honest_settled=0/3 protocol_rejected=2/2
+  bypass-owner-method          unauthorised=0      honest_settled=0/3 protocol_rejected=3/3
+  bypass-add-key               unauthorised=0      honest_settled=0/3 protocol_rejected=2/2
+  attempts=3 attempts_found_something=0 tester=bypass target=leaky-control-v2
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).

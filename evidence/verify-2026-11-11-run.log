@@ -1,0 +1,527 @@
+    Finished `release` profile [optimized] target(s) in 0.04s
+    Finished `release` profile [optimized] target(s) in 0.03s
+    Finished `release` profile [optimized] target(s) in 0.11s
+     Running unittests src/lib.rs (target/release/deps/arena_tests-0194b2198943dd91)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/race.rs (target/release/deps/race-2f2695a7bfe1722b)
+
+running 12 tests
+test t10_normal_build_has_no_fault_and_callback_gas ... 
+===== EVIDENCE: t10 normal build has no fault injection; callback gas =====
+  marker in normal guard.wasm: false, in fault guard.wasm: true
+  [vulnerable_fixture pay (transfer fails)] tx success=true 
+    block    36  on dev-20261110091103-24296900698602.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    37  on dev-20261110091104-67345999284302.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=crash-normal transfer #1 started, mode=VulnerableFixture"]
+    block    38  on dev-20261110091104-88687062644320.test.near ok=false gas_burnt=  1.48 TGas logs=[]
+    block    39  on dev-20261110091104-67345999284302.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    39  on dev-20261110091103-24296900698602.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    39  on dev-20261110091104-67345999284302.test.near ok=true  gas_burnt=  1.55 TGas logs=["on_transfer: invoice=crash-normal transfer FAILED, status now Approved"]
+    block    38  on dev-20261110091103-24296900698602.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  [vulnerable_fixture retry (transfer ok)] tx success=true 
+    block    45  on dev-20261110091103-24296900698602.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    46  on dev-20261110091104-67345999284302.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=crash-normal transfer #2 started, mode=VulnerableFixture"]
+    block    47  on dev-20261110091104-88687062644320.test.near ok=true  gas_burnt=  1.78 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091104-67345999284302.test.near\",\"new_owner_id\":\"dev-20261110091103-80031270148141.test.near\",\"amount\":\"100\",\"memo\":\"invoice crash-normal\"}]}"]
+    block    48  on dev-20261110091103-24296900698602.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    48  on dev-20261110091104-67345999284302.test.near ok=true  gas_burnt=  1.56 TGas logs=["on_transfer: invoice=crash-normal confirmed, confirmed_payouts=1"]
+    block    47  on dev-20261110091103-24296900698602.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  STEP | vulnerable_fixture normal build, crash- id   | Sam= 100 | guard=  9900 | status=Paid     | confirmed=1 started=2 | (c) NOT STUCK: Paid, Sam paid exactly once
+  [sync_ledger] tx success=true 
+    block    33  on dev-20261110091109-74886196086288.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    34  on dev-20261110091110-87053220003723.test.near ok=true  gas_burnt=  2.08 TGas logs=[]
+    block    35  on dev-20261110091110-56734219794108.test.near ok=true  gas_burnt=  1.26 TGas logs=[]
+    block    36  on dev-20261110091109-74886196086288.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    36  on dev-20261110091110-87053220003723.test.near ok=true  gas_burnt=  1.34 TGas logs=[]
+    block    35  on dev-20261110091109-74886196086288.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  ledger after sync = {"epoch":1,"expected_balance":"10000","pending_count":0}
+  [fixed pay (transfer fails)] tx success=true 
+    block    41  on dev-20261110091109-65939497569208.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    42  on dev-20261110091110-87053220003723.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=crash-normal transfer #1 started, mode=Fixed"]
+    block    43  on dev-20261110091110-56734219794108.test.near ok=false gas_burnt=  1.48 TGas logs=[]
+    block    44  on dev-20261110091110-87053220003723.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    44  on dev-20261110091109-65939497569208.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    44  on dev-20261110091110-87053220003723.test.near ok=true  gas_burnt=  1.55 TGas logs=["on_transfer: invoice=crash-normal confirmed=false"]
+    block    43  on dev-20261110091109-65939497569208.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  [fixed retry (transfer ok)] tx success=true 
+    block    50  on dev-20261110091109-65939497569208.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    51  on dev-20261110091110-87053220003723.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=crash-normal transfer #2 started, mode=Fixed"]
+    block    52  on dev-20261110091110-56734219794108.test.near ok=true  gas_burnt=  1.79 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091110-87053220003723.test.near\",\"new_owner_id\":\"dev-20261110091110-85257280104643.test.near\",\"amount\":\"100\",\"memo\":\"invoice crash-normal\"}]}"]
+    block    53  on dev-20261110091109-65939497569208.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    53  on dev-20261110091110-87053220003723.test.near ok=true  gas_burnt=  1.55 TGas logs=["on_transfer: invoice=crash-normal confirmed=true"]
+    block    52  on dev-20261110091109-65939497569208.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  STEP | fixed normal build, crash- id                | Sam= 100 | guard=  9900 | status=Paid     | confirmed=1 started=2 | (c) NOT STUCK: Paid, Sam paid exactly once
+RESULT t10 callback gas_burnt, vulnerable_fixture: transfer-failed path 1.550 TGas (10% of 15), transfer-ok path 1.558 TGas (10% of 15)
+RESULT t10 callback gas_burnt, fixed: transfer-failed path 1.546 TGas (10% of 15), transfer-ok path 1.554 TGas (10% of 15)
+ok
+test t11_fixed_h1_outside_transfer_then_reconcile_does_not_reopen ... 
+===== EVIDENCE: t11 fixed, H1: transfer ok + callback panics + owner top-up, then reconcile =====
+  [sync_ledger] tx success=true 
+    block    37  on dev-20261110091116-50161837963355.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    38  on dev-20261110091117-37362611810751.test.near ok=true  gas_burnt=  2.08 TGas logs=[]
+    block    39  on dev-20261110091117-35558360857111.test.near ok=true  gas_burnt=  1.26 TGas logs=[]
+    block    40  on dev-20261110091116-50161837963355.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    40  on dev-20261110091117-37362611810751.test.near ok=true  gas_burnt=  1.34 TGas logs=[]
+    block    39  on dev-20261110091116-50161837963355.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  ledger after sync = {"epoch":1,"expected_balance":"10000","pending_count":0}
+  STEP | 0 approved                                   | Sam=   0 | guard= 10000 | status=Approved | confirmed=0 started=0 | (c) NOT STUCK: unpaid on record and in fact; retry is safe
+  [pay 1] tx success=false 
+    block    45  on dev-20261110091116-64730897536603.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    46  on dev-20261110091117-37362611810751.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=crash-t11 transfer #1 started, mode=Fixed"]
+    block    47  on dev-20261110091117-35558360857111.test.near ok=true  gas_burnt=  1.78 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091117-37362611810751.test.near\",\"new_owner_id\":\"dev-20261110091116-49836583507033.test.near\",\"amount\":\"100\",\"memo\":\"invoice crash-t11\"}]}"]
+    block    48  on dev-20261110091116-64730897536603.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    48  on dev-20261110091117-37362611810751.test.near ok=false gas_burnt=  1.25 TGas logs=[]
+    block    47  on dev-20261110091116-64730897536603.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: FAULT INJECTION (test build only): on_transfer panics for crash- ids")) }) } })
+  STEP | 1 after pay (transfer ok, callback panicked) | Sam= 100 | guard=  9900 | status=Pending  | confirmed=0 started=1 | (a) STUCK, Sam PAID: a blind reset+retry would double pay
+  STEP | 2 owner sends 100 to the guard               | Sam= 100 | guard= 10000 | status=Pending  | confirmed=0 started=1 | (a) STUCK, Sam PAID: a blind reset+retry would double pay
+  [reconcile] tx success=true 
+    block   161  on dev-20261110091116-50161837963355.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block   162  on dev-20261110091117-37362611810751.test.near ok=true  gas_burnt=  2.18 TGas logs=[]
+    block   163  on dev-20261110091117-35558360857111.test.near ok=true  gas_burnt=  1.26 TGas logs=[]
+    block   164  on dev-20261110091116-50161837963355.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block   164  on dev-20261110091117-37362611810751.test.near ok=true  gas_burnt=  1.59 TGas logs=["reconcile: invoice=crash-t11 ledger=10000 token_balance=10000 -> unchanged balance proves nothing; stays Pending, owner must call resolve_stuck"]
+    block   163  on dev-20261110091116-50161837963355.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  STEP | 3 after reconcile                            | Sam= 100 | guard= 10000 | status=Pending  | confirmed=0 started=1 | (a) STUCK, Sam PAID: a blind reset+retry would double pay
+  [retry pay] tx success=false 
+    block   166  on dev-20261110091116-64730897536603.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block   167  on dev-20261110091117-37362611810751.test.near ok=false gas_burnt=  1.30 TGas logs=[]
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: payment already in flight")) }) } })
+  STEP | 4 after retry pay                            | Sam= 100 | guard= 10000 | status=Pending  | confirmed=0 started=1 | (a) STUCK, Sam PAID: a blind reset+retry would double pay
+  [resolve_stuck sent=true] tx success=true 
+    block   169  on dev-20261110091116-50161837963355.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block   170  on dev-20261110091117-37362611810751.test.near ok=true  gas_burnt=  1.54 TGas logs=["resolve_stuck: invoice=crash-t11 owner says sent=true -> Paid"]
+  STEP | 5 after resolve_stuck(sent=true)             | Sam= 100 | guard= 10000 | status=Paid     | confirmed=1 started=1 | (c) NOT STUCK: Paid, Sam paid exactly once
+  STEP | 6 one more pay                               | Sam= 100 | guard= 10000 | status=Paid     | confirmed=1 started=1 | (c) NOT STUCK: Paid, Sam paid exactly once
+  [sync_ledger] tx success=true 
+    block   175  on dev-20261110091116-50161837963355.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block   176  on dev-20261110091117-37362611810751.test.near ok=true  gas_burnt=  2.08 TGas logs=[]
+    block   177  on dev-20261110091117-35558360857111.test.near ok=true  gas_burnt=  1.26 TGas logs=[]
+    block   178  on dev-20261110091116-50161837963355.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block   178  on dev-20261110091117-37362611810751.test.near ok=true  gas_burnt=  1.35 TGas logs=[]
+    block   177  on dev-20261110091116-50161837963355.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  ledger after sync = {"epoch":4,"expected_balance":"10000","pending_count":0}
+RESULT t11: transfer ok + callback dead + owner top-up 100 -> reconcile leaves it Pending (old code: Approved); retry refused; resolve_stuck(sent=true) -> Paid; Sam=100
+ok
+test t12_resolve_stuck_refusals ... 
+===== EVIDENCE: t12 resolve_stuck refuses: too early, not Pending, vulnerable mode =====
+  STEP | after refused early resolve                  | Sam= 100 | guard=  9900 | status=Pending  | confirmed=0 started=1 | (a) STUCK, Sam PAID: a blind reset+retry would double pay
+RESULT t12: resolve_stuck refused for Approved, too early, and in vulnerable_fixture; nothing changed
+ok
+test t1_vulnerable_fixture_pays_same_invoice_twice_under_race ... 
+===== EVIDENCE: race, mode=vulnerable_fixture, 5 trials, invoice amount 100 =====
+trial 0: receiver +200 (guard -200), invoice record = {"amount":"100","confirmed_payouts":2,"pending_since_block":0,"receiver":"dev-20261110091139-29042399514225.test.near","status":"Paid","transfers_started":2}
+  [pay A] tx success=true 
+    block    40  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    41  on dev-20261110091140-84890778768842.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=race-0 transfer #1 started, mode=VulnerableFixture"]
+    block    42  on dev-20261110091139-90352194381140.test.near ok=true  gas_burnt=  1.78 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091140-84890778768842.test.near\",\"new_owner_id\":\"dev-20261110091139-29042399514225.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-0\"}]}"]
+    block    43  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    43  on dev-20261110091140-84890778768842.test.near ok=true  gas_burnt=  1.55 TGas logs=["on_transfer: invoice=race-0 confirmed, confirmed_payouts=1"]
+    block    42  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  [pay B] tx success=true 
+    block    40  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    41  on dev-20261110091140-84890778768842.test.near ok=true  gas_burnt=  2.28 TGas logs=["pay: invoice=race-0 transfer #2 started, mode=VulnerableFixture"]
+    block    42  on dev-20261110091139-90352194381140.test.near ok=true  gas_burnt=  1.71 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091140-84890778768842.test.near\",\"new_owner_id\":\"dev-20261110091139-29042399514225.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-0\"}]}"]
+    block    43  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    43  on dev-20261110091140-84890778768842.test.near ok=true  gas_burnt=  1.55 TGas logs=["DOUBLE PAYOUT: invoice=race-0 was already Paid when another transfer confirmed", "on_transfer: invoice=race-0 confirmed, confirmed_payouts=2"]
+    block    42  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+trial 1: receiver +200 (guard -200), invoice record = {"amount":"100","confirmed_payouts":2,"pending_since_block":0,"receiver":"dev-20261110091139-29042399514225.test.near","status":"Paid","transfers_started":2}
+  [pay A] tx success=true 
+    block    48  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    49  on dev-20261110091140-84890778768842.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=race-1 transfer #1 started, mode=VulnerableFixture"]
+    block    50  on dev-20261110091139-90352194381140.test.near ok=true  gas_burnt=  1.78 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091140-84890778768842.test.near\",\"new_owner_id\":\"dev-20261110091139-29042399514225.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-1\"}]}"]
+    block    51  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    51  on dev-20261110091140-84890778768842.test.near ok=true  gas_burnt=  1.56 TGas logs=["on_transfer: invoice=race-1 confirmed, confirmed_payouts=1"]
+    block    50  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  [pay B] tx success=true 
+    block    48  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    49  on dev-20261110091140-84890778768842.test.near ok=true  gas_burnt=  2.28 TGas logs=["pay: invoice=race-1 transfer #2 started, mode=VulnerableFixture"]
+    block    50  on dev-20261110091139-90352194381140.test.near ok=true  gas_burnt=  1.71 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091140-84890778768842.test.near\",\"new_owner_id\":\"dev-20261110091139-29042399514225.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-1\"}]}"]
+    block    51  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    51  on dev-20261110091140-84890778768842.test.near ok=true  gas_burnt=  1.55 TGas logs=["DOUBLE PAYOUT: invoice=race-1 was already Paid when another transfer confirmed", "on_transfer: invoice=race-1 confirmed, confirmed_payouts=2"]
+    block    50  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+trial 2: receiver +200 (guard -200), invoice record = {"amount":"100","confirmed_payouts":2,"pending_since_block":0,"receiver":"dev-20261110091139-29042399514225.test.near","status":"Paid","transfers_started":2}
+  [pay A] tx success=true 
+    block    56  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    57  on dev-20261110091140-84890778768842.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=race-2 transfer #1 started, mode=VulnerableFixture"]
+    block    58  on dev-20261110091139-90352194381140.test.near ok=true  gas_burnt=  1.78 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091140-84890778768842.test.near\",\"new_owner_id\":\"dev-20261110091139-29042399514225.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-2\"}]}"]
+    block    59  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    59  on dev-20261110091140-84890778768842.test.near ok=true  gas_burnt=  1.56 TGas logs=["on_transfer: invoice=race-2 confirmed, confirmed_payouts=1"]
+    block    58  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  [pay B] tx success=true 
+    block    56  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    57  on dev-20261110091140-84890778768842.test.near ok=true  gas_burnt=  2.28 TGas logs=["pay: invoice=race-2 transfer #2 started, mode=VulnerableFixture"]
+    block    58  on dev-20261110091139-90352194381140.test.near ok=true  gas_burnt=  1.71 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091140-84890778768842.test.near\",\"new_owner_id\":\"dev-20261110091139-29042399514225.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-2\"}]}"]
+    block    59  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    59  on dev-20261110091140-84890778768842.test.near ok=true  gas_burnt=  1.55 TGas logs=["DOUBLE PAYOUT: invoice=race-2 was already Paid when another transfer confirmed", "on_transfer: invoice=race-2 confirmed, confirmed_payouts=2"]
+    block    58  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+trial 3: receiver +200 (guard -200), invoice record = {"amount":"100","confirmed_payouts":2,"pending_since_block":0,"receiver":"dev-20261110091139-29042399514225.test.near","status":"Paid","transfers_started":2}
+  [pay A] tx success=true 
+    block    64  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    65  on dev-20261110091140-84890778768842.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=race-3 transfer #1 started, mode=VulnerableFixture"]
+    block    66  on dev-20261110091139-90352194381140.test.near ok=true  gas_burnt=  1.78 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091140-84890778768842.test.near\",\"new_owner_id\":\"dev-20261110091139-29042399514225.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-3\"}]}"]
+    block    67  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    67  on dev-20261110091140-84890778768842.test.near ok=true  gas_burnt=  1.56 TGas logs=["on_transfer: invoice=race-3 confirmed, confirmed_payouts=1"]
+    block    66  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  [pay B] tx success=true 
+    block    64  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    65  on dev-20261110091140-84890778768842.test.near ok=true  gas_burnt=  2.28 TGas logs=["pay: invoice=race-3 transfer #2 started, mode=VulnerableFixture"]
+    block    66  on dev-20261110091139-90352194381140.test.near ok=true  gas_burnt=  1.71 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091140-84890778768842.test.near\",\"new_owner_id\":\"dev-20261110091139-29042399514225.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-3\"}]}"]
+    block    67  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    67  on dev-20261110091140-84890778768842.test.near ok=true  gas_burnt=  1.55 TGas logs=["DOUBLE PAYOUT: invoice=race-3 was already Paid when another transfer confirmed", "on_transfer: invoice=race-3 confirmed, confirmed_payouts=2"]
+    block    66  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+trial 4: receiver +200 (guard -200), invoice record = {"amount":"100","confirmed_payouts":2,"pending_since_block":0,"receiver":"dev-20261110091139-29042399514225.test.near","status":"Paid","transfers_started":2}
+  [pay A] tx success=true 
+    block    72  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    73  on dev-20261110091140-84890778768842.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=race-4 transfer #1 started, mode=VulnerableFixture"]
+    block    74  on dev-20261110091139-90352194381140.test.near ok=true  gas_burnt=  1.78 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091140-84890778768842.test.near\",\"new_owner_id\":\"dev-20261110091139-29042399514225.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-4\"}]}"]
+    block    75  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    75  on dev-20261110091140-84890778768842.test.near ok=true  gas_burnt=  1.56 TGas logs=["on_transfer: invoice=race-4 confirmed, confirmed_payouts=1"]
+    block    74  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  [pay B] tx success=true 
+    block    72  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    73  on dev-20261110091140-84890778768842.test.near ok=true  gas_burnt=  2.28 TGas logs=["pay: invoice=race-4 transfer #2 started, mode=VulnerableFixture"]
+    block    74  on dev-20261110091139-90352194381140.test.near ok=true  gas_burnt=  1.71 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091140-84890778768842.test.near\",\"new_owner_id\":\"dev-20261110091139-29042399514225.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-4\"}]}"]
+    block    75  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    75  on dev-20261110091140-84890778768842.test.near ok=true  gas_burnt=  1.55 TGas logs=["DOUBLE PAYOUT: invoice=race-4 was already Paid when another transfer confirmed", "on_transfer: invoice=race-4 confirmed, confirmed_payouts=2"]
+    block    74  on dev-20261110091139-14156331587638.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+RESULT vulnerable_fixture race payouts per trial: [200, 200, 200, 200, 200]
+ok
+test t2_fixed_pays_once_under_race ... 
+===== EVIDENCE: race, mode=fixed, 5 trials, invoice amount 100 =====
+trial 0: receiver +100 (guard -100), invoice record = {"amount":"100","confirmed_payouts":1,"pending_since_block":41,"receiver":"dev-20261110091149-22882986510885.test.near","status":"Paid","transfers_started":1}
+  [pay A] tx success=true 
+    block    40  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    41  on dev-20261110091150-84136663540479.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=race-0 transfer #1 started, mode=Fixed"]
+    block    42  on dev-20261110091149-70090988480676.test.near ok=true  gas_burnt=  1.78 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091150-84136663540479.test.near\",\"new_owner_id\":\"dev-20261110091149-22882986510885.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-0\"}]}"]
+    block    43  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    43  on dev-20261110091150-84136663540479.test.near ok=true  gas_burnt=  1.55 TGas logs=["on_transfer: invoice=race-0 confirmed=true"]
+    block    42  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  [pay B] tx success=false 
+    block    40  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    41  on dev-20261110091150-84136663540479.test.near ok=false gas_burnt=  1.30 TGas logs=[]
+    block    42  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: payment already in flight")) }) } })
+trial 1: receiver +100 (guard -100), invoice record = {"amount":"100","confirmed_payouts":1,"pending_since_block":49,"receiver":"dev-20261110091149-22882986510885.test.near","status":"Paid","transfers_started":1}
+  [pay A] tx success=true 
+    block    48  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    49  on dev-20261110091150-84136663540479.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=race-1 transfer #1 started, mode=Fixed"]
+    block    50  on dev-20261110091149-70090988480676.test.near ok=true  gas_burnt=  1.78 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091150-84136663540479.test.near\",\"new_owner_id\":\"dev-20261110091149-22882986510885.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-1\"}]}"]
+    block    51  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    51  on dev-20261110091150-84136663540479.test.near ok=true  gas_burnt=  1.55 TGas logs=["on_transfer: invoice=race-1 confirmed=true"]
+    block    50  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  [pay B] tx success=false 
+    block    48  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    49  on dev-20261110091150-84136663540479.test.near ok=false gas_burnt=  1.30 TGas logs=[]
+    block    50  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: payment already in flight")) }) } })
+trial 2: receiver +100 (guard -100), invoice record = {"amount":"100","confirmed_payouts":1,"pending_since_block":57,"receiver":"dev-20261110091149-22882986510885.test.near","status":"Paid","transfers_started":1}
+  [pay A] tx success=true 
+    block    56  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    57  on dev-20261110091150-84136663540479.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=race-2 transfer #1 started, mode=Fixed"]
+    block    58  on dev-20261110091149-70090988480676.test.near ok=true  gas_burnt=  1.78 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091150-84136663540479.test.near\",\"new_owner_id\":\"dev-20261110091149-22882986510885.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-2\"}]}"]
+    block    59  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    59  on dev-20261110091150-84136663540479.test.near ok=true  gas_burnt=  1.55 TGas logs=["on_transfer: invoice=race-2 confirmed=true"]
+    block    58  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  [pay B] tx success=false 
+    block    56  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    57  on dev-20261110091150-84136663540479.test.near ok=false gas_burnt=  1.30 TGas logs=[]
+    block    58  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: payment already in flight")) }) } })
+trial 3: receiver +100 (guard -100), invoice record = {"amount":"100","confirmed_payouts":1,"pending_since_block":65,"receiver":"dev-20261110091149-22882986510885.test.near","status":"Paid","transfers_started":1}
+  [pay A] tx success=true 
+    block    64  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    65  on dev-20261110091150-84136663540479.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=race-3 transfer #1 started, mode=Fixed"]
+    block    66  on dev-20261110091149-70090988480676.test.near ok=true  gas_burnt=  1.78 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091150-84136663540479.test.near\",\"new_owner_id\":\"dev-20261110091149-22882986510885.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-3\"}]}"]
+    block    67  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    67  on dev-20261110091150-84136663540479.test.near ok=true  gas_burnt=  1.55 TGas logs=["on_transfer: invoice=race-3 confirmed=true"]
+    block    66  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  [pay B] tx success=false 
+    block    64  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    65  on dev-20261110091150-84136663540479.test.near ok=false gas_burnt=  1.30 TGas logs=[]
+    block    66  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: payment already in flight")) }) } })
+trial 4: receiver +100 (guard -100), invoice record = {"amount":"100","confirmed_payouts":1,"pending_since_block":73,"receiver":"dev-20261110091149-22882986510885.test.near","status":"Paid","transfers_started":1}
+  [pay A] tx success=true 
+    block    72  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    73  on dev-20261110091150-84136663540479.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=race-4 transfer #1 started, mode=Fixed"]
+    block    74  on dev-20261110091149-70090988480676.test.near ok=true  gas_burnt=  1.78 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091150-84136663540479.test.near\",\"new_owner_id\":\"dev-20261110091149-22882986510885.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-4\"}]}"]
+    block    75  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    75  on dev-20261110091150-84136663540479.test.near ok=true  gas_burnt=  1.55 TGas logs=["on_transfer: invoice=race-4 confirmed=true"]
+    block    74  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  [pay B] tx success=false 
+    block    72  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    73  on dev-20261110091150-84136663540479.test.near ok=false gas_burnt=  1.30 TGas logs=[]
+    block    74  on dev-20261110091149-86069852145560.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: payment already in flight")) }) } })
+RESULT fixed race payouts per trial: [100, 100, 100, 100, 100]
+ok
+test t3_sequential_control_both_modes_refuse_second_pay ... 
+===== EVIDENCE: sequential control, mode=vulnerable_fixture =====
+  [pay 1] tx success=true 
+    block    40  on dev-20261110091158-82819967941748.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    41  on dev-20261110091159-65126264761707.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=seq transfer #1 started, mode=VulnerableFixture"]
+    block    42  on dev-20261110091159-77493175233851.test.near ok=true  gas_burnt=  1.79 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091159-65126264761707.test.near\",\"new_owner_id\":\"dev-20261110091159-12942382229722.test.near\",\"amount\":\"100\",\"memo\":\"invoice seq\"}]}"]
+    block    43  on dev-20261110091158-82819967941748.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    43  on dev-20261110091159-65126264761707.test.near ok=true  gas_burnt=  1.55 TGas logs=["on_transfer: invoice=seq confirmed, confirmed_payouts=1"]
+    block    42  on dev-20261110091158-82819967941748.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  [pay 2 (after pay 1 finished)] tx success=false 
+    block    45  on dev-20261110091158-82819967941748.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    46  on dev-20261110091159-65126264761707.test.near ok=false gas_burnt=  1.30 TGas logs=[]
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid")) }) } })
+receiver total = 100, invoice record = {"amount":"100","confirmed_payouts":1,"pending_since_block":0,"receiver":"dev-20261110091159-12942382229722.test.near","status":"Paid","transfers_started":1}
+RESULT sequential vulnerable_fixture: receiver=100, second pay refusal=Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid")) }) } })
+
+===== EVIDENCE: sequential control, mode=fixed =====
+  [pay 1] tx success=true 
+    block    40  on dev-20261110091204-40097430625763.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    41  on dev-20261110091205-83969723018718.test.near ok=true  gas_burnt=  2.31 TGas logs=["pay: invoice=seq transfer #1 started, mode=Fixed"]
+    block    42  on dev-20261110091205-70277384814584.test.near ok=true  gas_burnt=  1.79 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091205-83969723018718.test.near\",\"new_owner_id\":\"dev-20261110091205-92096528264395.test.near\",\"amount\":\"100\",\"memo\":\"invoice seq\"}]}"]
+    block    43  on dev-20261110091204-40097430625763.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    43  on dev-20261110091205-83969723018718.test.near ok=true  gas_burnt=  1.55 TGas logs=["on_transfer: invoice=seq confirmed=true"]
+    block    42  on dev-20261110091204-40097430625763.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  [pay 2 (after pay 1 finished)] tx success=false 
+    block    45  on dev-20261110091204-40097430625763.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    46  on dev-20261110091205-83969723018718.test.near ok=false gas_burnt=  1.30 TGas logs=[]
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid")) }) } })
+receiver total = 100, invoice record = {"amount":"100","confirmed_payouts":1,"pending_since_block":41,"receiver":"dev-20261110091205-92096528264395.test.near","status":"Paid","transfers_started":1}
+RESULT sequential fixed: receiver=100, second pay refusal=Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid")) }) } })
+ok
+test t4_fixed_recovers_from_genuinely_failed_transfer ... 
+===== EVIDENCE: failed transfer then retry, mode=fixed =====
+  [pay 1 (receiver unregistered)] tx success=true 
+    block    36  on dev-20261110091210-88828438426159.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    37  on dev-20261110091211-54272032856439.test.near ok=true  gas_burnt=  2.31 TGas logs=["pay: invoice=rec transfer #1 started, mode=Fixed"]
+    block    38  on dev-20261110091211-36742467281524.test.near ok=false gas_burnt=  1.48 TGas logs=[]
+    block    39  on dev-20261110091211-54272032856439.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    39  on dev-20261110091210-88828438426159.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    39  on dev-20261110091211-54272032856439.test.near ok=true  gas_burnt=  1.54 TGas logs=["on_transfer: invoice=rec confirmed=false"]
+    block    38  on dev-20261110091210-88828438426159.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+after failed transfer: receiver=0, guard change=0, invoice={"amount":"100","confirmed_payouts":0,"pending_since_block":37,"receiver":"dev-20261110091211-40980022110463.test.near","status":"Approved","transfers_started":1}
+  [pay 2 (receiver now registered)] tx success=true 
+    block    45  on dev-20261110091210-88828438426159.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    46  on dev-20261110091211-54272032856439.test.near ok=true  gas_burnt=  2.31 TGas logs=["pay: invoice=rec transfer #2 started, mode=Fixed"]
+    block    47  on dev-20261110091211-36742467281524.test.near ok=true  gas_burnt=  1.79 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091211-54272032856439.test.near\",\"new_owner_id\":\"dev-20261110091211-40980022110463.test.near\",\"amount\":\"100\",\"memo\":\"invoice rec\"}]}"]
+    block    48  on dev-20261110091210-88828438426159.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    48  on dev-20261110091211-54272032856439.test.near ok=true  gas_burnt=  1.55 TGas logs=["on_transfer: invoice=rec confirmed=true"]
+    block    47  on dev-20261110091210-88828438426159.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+after retry: receiver=100, invoice={"amount":"100","confirmed_payouts":1,"pending_since_block":46,"receiver":"dev-20261110091211-40980022110463.test.near","status":"Paid","transfers_started":2}
+  [pay 3 (already paid)] tx success=false 
+    block    50  on dev-20261110091210-88828438426159.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    51  on dev-20261110091211-54272032856439.test.near ok=false gas_burnt=  1.30 TGas logs=[]
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid")) }) } })
+RESULT fixed recovery: failed->Approved, retry paid 100, third pay refused
+ok
+test t5_transfer_ok_callback_panics_both_modes ... 
+===== EVIDENCE: t5 transfer OK + callback panics, mode=vulnerable_fixture, invoice 100 =====
+  STEP | 0 approved                                   | Sam=   0 | guard= 10000 | status=Approved | confirmed=0 started=0 | (c) NOT STUCK: unpaid on record and in fact; retry is safe
+  [pay 1] tx success=false 
+    block    40  on dev-20261110091217-45551203765571.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    41  on dev-20261110091218-93335469419308.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=crash-t5 transfer #1 started, mode=VulnerableFixture"]
+    block    42  on dev-20261110091218-17703155282598.test.near ok=true  gas_burnt=  1.78 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091218-93335469419308.test.near\",\"new_owner_id\":\"dev-20261110091217-79940559165329.test.near\",\"amount\":\"100\",\"memo\":\"invoice crash-t5\"}]}"]
+    block    43  on dev-20261110091217-45551203765571.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    43  on dev-20261110091218-93335469419308.test.near ok=false gas_burnt=  1.25 TGas logs=[]
+    block    42  on dev-20261110091217-45551203765571.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: FAULT INJECTION (test build only): on_transfer panics for crash- ids")) }) } })
+  STEP | 1 after pay (transfer ok, callback panicked) | Sam= 100 | guard=  9900 | status=Approved | confirmed=0 started=1 | (d) WRONG RECORD: says unpaid, Sam already paid; retry WILL double pay
+  [retry pay] tx success=false 
+    block    45  on dev-20261110091217-45551203765571.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    46  on dev-20261110091218-93335469419308.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=crash-t5 transfer #2 started, mode=VulnerableFixture"]
+    block    47  on dev-20261110091218-17703155282598.test.near ok=true  gas_burnt=  1.78 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091218-93335469419308.test.near\",\"new_owner_id\":\"dev-20261110091217-79940559165329.test.near\",\"amount\":\"100\",\"memo\":\"invoice crash-t5\"}]}"]
+    block    48  on dev-20261110091217-45551203765571.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    48  on dev-20261110091218-93335469419308.test.near ok=false gas_burnt=  1.25 TGas logs=[]
+    block    47  on dev-20261110091217-45551203765571.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: FAULT INJECTION (test build only): on_transfer panics for crash- ids")) }) } })
+  STEP | 2 after one retry pay                        | Sam= 200 | guard=  9800 | status=Approved | confirmed=0 started=2 | (d) WRONG RECORD: says unpaid, Sam already paid; retry WILL double pay
+  RETRY RESULT: ACCEPTED, a transfer was sent. Sam 100 -> 200. failures in tx: [Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: FAULT INJECTION (test build only): on_transfer panics for crash- ids")) }) } })]
+RESULT t5 vulnerable_fixture: after pay Sam=100 status=Approved (case d); after retry Sam=200 status=Approved -> DOUBLE PAY
+
+===== EVIDENCE: t5 transfer OK + callback panics, mode=fixed, invoice 100 =====
+  STEP | 0 approved                                   | Sam=   0 | guard= 10000 | status=Approved | confirmed=0 started=0 | (c) NOT STUCK: unpaid on record and in fact; retry is safe
+  [pay 1] tx success=false 
+    block    40  on dev-20261110091223-57701386493553.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    41  on dev-20261110091224-15886075145529.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=crash-t5 transfer #1 started, mode=Fixed"]
+    block    42  on dev-20261110091224-68718468866935.test.near ok=true  gas_burnt=  1.79 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091224-15886075145529.test.near\",\"new_owner_id\":\"dev-20261110091224-82511155437492.test.near\",\"amount\":\"100\",\"memo\":\"invoice crash-t5\"}]}"]
+    block    43  on dev-20261110091223-57701386493553.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    43  on dev-20261110091224-15886075145529.test.near ok=false gas_burnt=  1.25 TGas logs=[]
+    block    42  on dev-20261110091223-57701386493553.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: FAULT INJECTION (test build only): on_transfer panics for crash- ids")) }) } })
+  STEP | 1 after pay (transfer ok, callback panicked) | Sam= 100 | guard=  9900 | status=Pending  | confirmed=0 started=1 | (a) STUCK, Sam PAID: a blind reset+retry would double pay
+  [retry pay] tx success=false 
+    block    45  on dev-20261110091223-57701386493553.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    46  on dev-20261110091224-15886075145529.test.near ok=false gas_burnt=  1.30 TGas logs=[]
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: payment already in flight")) }) } })
+  STEP | 2 after one retry pay                        | Sam= 100 | guard=  9900 | status=Pending  | confirmed=0 started=1 | (a) STUCK, Sam PAID: a blind reset+retry would double pay
+  RETRY RESULT: REFUSED by the guard, no transfer sent. Sam 100 -> 100. [Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: payment already in flight")) }) } })]
+RESULT t5 fixed: after pay Sam=100 status=Pending (case a); retry refused, Sam=100 status=Pending -> no double pay, but stuck
+ok
+test t6_transfer_fails_callback_panics_both_modes ... 
+===== EVIDENCE: t6 transfer FAILS + callback panics, mode=vulnerable_fixture, invoice 100 =====
+  STEP | 0 approved (Sam not registered)              | Sam=   0 | guard= 10000 | status=Approved | confirmed=0 started=0 | (c) NOT STUCK: unpaid on record and in fact; retry is safe
+  [pay 1] tx success=false 
+    block    36  on dev-20261110091229-99498808790011.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    37  on dev-20261110091230-68633245626978.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=crash-t6 transfer #1 started, mode=VulnerableFixture"]
+    block    38  on dev-20261110091230-33466836044581.test.near ok=false gas_burnt=  1.48 TGas logs=[]
+    block    39  on dev-20261110091230-68633245626978.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    39  on dev-20261110091229-99498808790011.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    39  on dev-20261110091230-68633245626978.test.near ok=false gas_burnt=  1.25 TGas logs=[]
+    block    38  on dev-20261110091229-99498808790011.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: The account dev-20261110091230-99262694337862.test.near is not registered")) }) } })
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: FAULT INJECTION (test build only): on_transfer panics for crash- ids")) }) } })
+  STEP | 1 after pay (transfer failed, cb panicked)   | Sam=   0 | guard= 10000 | status=Approved | confirmed=0 started=1 | (c) NOT STUCK: unpaid on record and in fact; retry is safe
+  STEP | 1b owner registers Sam on the token          | Sam=   0 | guard= 10000 | status=Approved | confirmed=0 started=1 | (c) NOT STUCK: unpaid on record and in fact; retry is safe
+  [retry pay] tx success=false 
+    block    45  on dev-20261110091229-99498808790011.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    46  on dev-20261110091230-68633245626978.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=crash-t6 transfer #2 started, mode=VulnerableFixture"]
+    block    47  on dev-20261110091230-33466836044581.test.near ok=true  gas_burnt=  1.79 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091230-68633245626978.test.near\",\"new_owner_id\":\"dev-20261110091230-99262694337862.test.near\",\"amount\":\"100\",\"memo\":\"invoice crash-t6\"}]}"]
+    block    48  on dev-20261110091229-99498808790011.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    48  on dev-20261110091230-68633245626978.test.near ok=false gas_burnt=  1.25 TGas logs=[]
+    block    47  on dev-20261110091229-99498808790011.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: FAULT INJECTION (test build only): on_transfer panics for crash- ids")) }) } })
+  STEP | 2 after one retry pay                        | Sam= 100 | guard=  9900 | status=Approved | confirmed=0 started=2 | (d) WRONG RECORD: says unpaid, Sam already paid; retry WILL double pay
+  RETRY RESULT: ACCEPTED, a transfer was sent. Sam 0 -> 100. failures in tx: [Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: FAULT INJECTION (test build only): on_transfer panics for crash- ids")) }) } })]
+RESULT t6 vulnerable_fixture: after pay Sam=0 status=Approved (case c); after retry Sam=100 status=Approved (case d: next retry would double pay)
+
+===== EVIDENCE: t6 transfer FAILS + callback panics, mode=fixed, invoice 100 =====
+  STEP | 0 approved (Sam not registered)              | Sam=   0 | guard= 10000 | status=Approved | confirmed=0 started=0 | (c) NOT STUCK: unpaid on record and in fact; retry is safe
+  [pay 1] tx success=false 
+    block    36  on dev-20261110091236-45901850787716.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    37  on dev-20261110091237-50621718491602.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=crash-t6 transfer #1 started, mode=Fixed"]
+    block    38  on dev-20261110091236-45046593622236.test.near ok=false gas_burnt=  1.48 TGas logs=[]
+    block    39  on dev-20261110091237-50621718491602.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    39  on dev-20261110091236-45901850787716.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    39  on dev-20261110091237-50621718491602.test.near ok=false gas_burnt=  1.25 TGas logs=[]
+    block    38  on dev-20261110091236-45901850787716.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: The account dev-20261110091236-50961722804894.test.near is not registered")) }) } })
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: FAULT INJECTION (test build only): on_transfer panics for crash- ids")) }) } })
+  STEP | 1 after pay (transfer failed, cb panicked)   | Sam=   0 | guard= 10000 | status=Pending  | confirmed=0 started=1 | (b) STUCK, Sam UNPAID: honest invoice frozen, retry refused
+  STEP | 1b owner registers Sam on the token          | Sam=   0 | guard= 10000 | status=Pending  | confirmed=0 started=1 | (b) STUCK, Sam UNPAID: honest invoice frozen, retry refused
+  [retry pay] tx success=false 
+    block    45  on dev-20261110091236-45901850787716.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    46  on dev-20261110091237-50621718491602.test.near ok=false gas_burnt=  1.30 TGas logs=[]
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: payment already in flight")) }) } })
+  STEP | 2 after one retry pay                        | Sam=   0 | guard= 10000 | status=Pending  | confirmed=0 started=1 | (b) STUCK, Sam UNPAID: honest invoice frozen, retry refused
+  RETRY RESULT: REFUSED by the guard, no transfer sent. Sam 0 -> 0. [Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: payment already in flight")) }) } })]
+RESULT t6 fixed: after pay Sam=0 status=Pending (case b); retry refused even though Sam is now registered -> honest invoice frozen
+ok
+test t7_fixed_reconcile_after_t5_marks_paid_and_blocks_retry ... 
+===== EVIDENCE: t7 fixed, t5 scenario then owner reconcile =====
+  [sync_ledger] tx success=true 
+    block    37  on dev-20261110091241-39650787840823.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    38  on dev-20261110091243-63318253897835.test.near ok=true  gas_burnt=  2.08 TGas logs=[]
+    block    39  on dev-20261110091242-28455835812925.test.near ok=true  gas_burnt=  1.26 TGas logs=[]
+    block    40  on dev-20261110091241-39650787840823.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    40  on dev-20261110091243-63318253897835.test.near ok=true  gas_burnt=  1.34 TGas logs=[]
+    block    39  on dev-20261110091241-39650787840823.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  ledger after sync = {"epoch":1,"expected_balance":"10000","pending_count":0}
+  STEP | 0 approved                                   | Sam=   0 | guard= 10000 | status=Approved | confirmed=0 started=0 | (c) NOT STUCK: unpaid on record and in fact; retry is safe
+  [pay 1] tx success=false 
+    block    45  on dev-20261110091242-85674875916896.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    46  on dev-20261110091243-63318253897835.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=crash-t7 transfer #1 started, mode=Fixed"]
+    block    47  on dev-20261110091242-28455835812925.test.near ok=true  gas_burnt=  1.78 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091243-63318253897835.test.near\",\"new_owner_id\":\"dev-20261110091242-42173385209009.test.near\",\"amount\":\"100\",\"memo\":\"invoice crash-t7\"}]}"]
+    block    48  on dev-20261110091242-85674875916896.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    48  on dev-20261110091243-63318253897835.test.near ok=false gas_burnt=  1.25 TGas logs=[]
+    block    47  on dev-20261110091242-85674875916896.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: FAULT INJECTION (test build only): on_transfer panics for crash- ids")) }) } })
+  STEP | 1 after pay (transfer ok, callback panicked) | Sam= 100 | guard=  9900 | status=Pending  | confirmed=0 started=1 | (a) STUCK, Sam PAID: a blind reset+retry would double pay
+  [reconcile right away] tx success=false 
+    block    50  on dev-20261110091241-39650787840823.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    51  on dev-20261110091243-63318253897835.test.near ok=false gas_burnt=  1.33 TGas logs=[]
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: too early: wait until block 146 (now 51) so an in-flight transfer cannot be mistaken for a failed one")) }) } })
+  STEP | 1b reconcile right away -> refused, too early | Sam= 100 | guard=  9900 | status=Pending  | confirmed=0 started=1 | (a) STUCK, Sam PAID: a blind reset+retry would double pay
+  [reconcile after waiting] tx success=true 
+    block   164  on dev-20261110091241-39650787840823.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block   165  on dev-20261110091243-63318253897835.test.near ok=true  gas_burnt=  2.18 TGas logs=[]
+    block   166  on dev-20261110091242-28455835812925.test.near ok=true  gas_burnt=  1.26 TGas logs=[]
+    block   167  on dev-20261110091241-39650787840823.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block   167  on dev-20261110091243-63318253897835.test.near ok=true  gas_burnt=  1.57 TGas logs=["reconcile: invoice=crash-t7 ledger=10000 token_balance=9900 -> Paid"]
+    block   166  on dev-20261110091241-39650787840823.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  STEP | 2 after reconcile                            | Sam= 100 | guard=  9900 | status=Paid     | confirmed=1 started=1 | (c) NOT STUCK: Paid, Sam paid exactly once
+  ledger = {"epoch":3,"expected_balance":"9900","pending_count":0}
+  [retry pay] tx success=false 
+    block   169  on dev-20261110091242-85674875916896.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block   170  on dev-20261110091243-63318253897835.test.near ok=false gas_burnt=  1.30 TGas logs=[]
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid")) }) } })
+  STEP | 3 after one retry pay                        | Sam= 100 | guard=  9900 | status=Paid     | confirmed=1 started=1 | (c) NOT STUCK: Paid, Sam paid exactly once
+RESULT t7: stuck Pending + Sam paid -> reconcile -> Paid; retry refused; Sam=100
+ok
+test t8_fixed_reconcile_after_t6_stays_pending_then_owner_closes_and_reissues ... 
+===== EVIDENCE: t8 fixed, t6 scenario then owner reconcile, then resolve_stuck(sent=false) =====
+  [sync_ledger] tx success=true 
+    block    33  on dev-20261110091251-79070990906090.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    34  on dev-20261110091252-61798576055774.test.near ok=true  gas_burnt=  2.08 TGas logs=[]
+    block    35  on dev-20261110091252-28610480001808.test.near ok=true  gas_burnt=  1.26 TGas logs=[]
+    block    36  on dev-20261110091251-79070990906090.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    36  on dev-20261110091252-61798576055774.test.near ok=true  gas_burnt=  1.34 TGas logs=[]
+    block    35  on dev-20261110091251-79070990906090.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  ledger after sync = {"epoch":1,"expected_balance":"10000","pending_count":0}
+  STEP | 0 approved (Sam not registered)              | Sam=   0 | guard= 10000 | status=Approved | confirmed=0 started=0 | (c) NOT STUCK: unpaid on record and in fact; retry is safe
+  [pay 1] tx success=false 
+    block    41  on dev-20261110091251-98057774842419.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    42  on dev-20261110091252-61798576055774.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=crash-t8 transfer #1 started, mode=Fixed"]
+    block    43  on dev-20261110091252-28610480001808.test.near ok=false gas_burnt=  1.48 TGas logs=[]
+    block    44  on dev-20261110091252-61798576055774.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    44  on dev-20261110091251-98057774842419.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    44  on dev-20261110091252-61798576055774.test.near ok=false gas_burnt=  1.25 TGas logs=[]
+    block    43  on dev-20261110091251-98057774842419.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: The account dev-20261110091251-28749650204658.test.near is not registered")) }) } })
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: FAULT INJECTION (test build only): on_transfer panics for crash- ids")) }) } })
+  STEP | 1 after pay (transfer failed, cb panicked)   | Sam=   0 | guard= 10000 | status=Pending  | confirmed=0 started=1 | (b) STUCK, Sam UNPAID: honest invoice frozen, retry refused
+  [reconcile] tx success=true 
+    block   154  on dev-20261110091251-79070990906090.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block   155  on dev-20261110091252-61798576055774.test.near ok=true  gas_burnt=  2.18 TGas logs=[]
+    block   156  on dev-20261110091252-28610480001808.test.near ok=true  gas_burnt=  1.26 TGas logs=[]
+    block   157  on dev-20261110091251-79070990906090.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block   157  on dev-20261110091252-61798576055774.test.near ok=true  gas_burnt=  1.59 TGas logs=["reconcile: invoice=crash-t8 ledger=10000 token_balance=10000 -> unchanged balance proves nothing; stays Pending, owner must call resolve_stuck"]
+    block   156  on dev-20261110091251-79070990906090.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  STEP | 2 after reconcile                            | Sam=   0 | guard= 10000 | status=Pending  | confirmed=0 started=1 | (b) STUCK, Sam UNPAID: honest invoice frozen, retry refused
+  [resolve_stuck sent=false] tx success=true 
+    block   162  on dev-20261110091251-79070990906090.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block   163  on dev-20261110091252-61798576055774.test.near ok=true  gas_burnt=  1.54 TGas logs=["resolve_stuck: invoice=crash-t8 owner says sent=false -> Failed"]
+  STEP | 3 after resolve_stuck(sent=false)            | Sam=   0 | guard= 10000 | status=Failed   | confirmed=0 started=1 | (c) CLOSED by the owner as Failed: unpaid on record and in fact; pay refused
+  STEP | 4 owner registers Sam                        | Sam=   0 | guard= 10000 | status=Failed   | confirmed=0 started=1 | (c) CLOSED by the owner as Failed: unpaid on record and in fact; pay refused
+  [pay the Failed invoice] tx success=false 
+    block   169  on dev-20261110091251-98057774842419.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block   170  on dev-20261110091252-61798576055774.test.near ok=false gas_burnt=  1.32 TGas logs=[]
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice closed as failed by the owner; approve a new invoice id to pay it")) }) } })
+  [pay the re-issued invoice] tx success=true 
+    block   178  on dev-20261110091251-98057774842419.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block   179  on dev-20261110091252-61798576055774.test.near ok=true  gas_burnt=  2.33 TGas logs=["pay: invoice=t8-reissued transfer #1 started, mode=Fixed"]
+    block   180  on dev-20261110091252-28610480001808.test.near ok=true  gas_burnt=  1.78 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091252-61798576055774.test.near\",\"new_owner_id\":\"dev-20261110091251-28749650204658.test.near\",\"amount\":\"100\",\"memo\":\"invoice t8-reissued\"}]}"]
+    block   181  on dev-20261110091251-98057774842419.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block   181  on dev-20261110091252-61798576055774.test.near ok=true  gas_burnt=  1.56 TGas logs=["on_transfer: invoice=t8-reissued confirmed=true"]
+    block   180  on dev-20261110091251-98057774842419.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  STEP | 6 re-issued invoice paid                     | Sam= 100 | guard=  9900 | status=Paid     | confirmed=1 started=1 | (c) NOT STUCK: Paid, Sam paid exactly once
+  ledger = {"epoch":5,"expected_balance":"9900","pending_count":0}
+RESULT t8: stuck Pending + Sam unpaid -> reconcile leaves it Pending; resolve_stuck(sent=false) -> Failed; pay refused; re-issued under a new id, paid once (Sam=100)
+ok
+test t9_fixed_reconcile_refuses_when_two_invoices_pending ... 
+===== EVIDENCE: t9 fixed, two stuck invoices -> reconcile must refuse =====
+  [sync_ledger] tx success=true 
+    block    37  on dev-20261110091302-30468522301339.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    38  on dev-20261110091303-63090057661846.test.near ok=true  gas_burnt=  2.08 TGas logs=[]
+    block    39  on dev-20261110091303-99651496733865.test.near ok=true  gas_burnt=  1.26 TGas logs=[]
+    block    40  on dev-20261110091302-30468522301339.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    40  on dev-20261110091303-63090057661846.test.near ok=true  gas_burnt=  1.34 TGas logs=[]
+    block    39  on dev-20261110091302-30468522301339.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  ledger after sync = {"epoch":1,"expected_balance":"10000","pending_count":0}
+  STEP | after pay crash-a                            | Sam= 100 | guard=  9900 | status=Pending  | confirmed=0 started=1 | (a) STUCK, Sam PAID: a blind reset+retry would double pay
+  STEP | after pay crash-b                            | Sam= 200 | guard=  9800 | status=Pending  | confirmed=0 started=1 | (a) STUCK, Sam PAID: a blind reset+retry would double pay
+  [reconcile crash-a] tx success=false 
+    block   166  on dev-20261110091302-30468522301339.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block   167  on dev-20261110091303-63090057661846.test.near ok=false gas_burnt=  1.32 TGas logs=[]
+    failure: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: ambiguous: 2 invoices are Pending, one balance cannot tell which transfer happened")) }) } })
+  STEP | crash-a after refused reconcile              | Sam= 200 | guard=  9800 | status=Pending  | confirmed=0 started=1 | (a) STUCK, Sam PAID: a blind reset+retry would double pay
+RESULT t9: two Pending invoices -> reconcile refused as ambiguous, nothing changed
+ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 128.02s
+
+   Doc-tests arena_tests
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -60,7 +60,7 @@ check_frozen() {
 run_dir() { # $1 = sequences dir suffix, $2 = log label; harness flags after
   local dir="$1" label="$2"; shift 2
   ensure_built
-  local log="$EVIDENCE/arena-$(date +%Y-%m-%d)-$label.log"
+  local log="$EVIDENCE/arena-${ARENA_DATE:-$(date +%Y-%m-%d)}-$label.log"
   check_frozen "before $label run"
   echo "running tester=$dir $* -> $log"
   "$HARNESS" run "sequences-$dir" --budget 10 "$@" 2>&1 | tee "$log"

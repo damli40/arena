@@ -1113,12 +1113,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "guard-mutant-reopen"
+version = "0.1.0"
+dependencies = [
+ "near-sdk",
+]
+
+[[package]]
 name = "guard-proofs"
 version = "0.1.0"
 dependencies = [
  "guard",
  "guard-model",
  "guard-mutant",
+ "guard-mutant-reopen",
  "near-parameters",
  "near-sdk",
 ]

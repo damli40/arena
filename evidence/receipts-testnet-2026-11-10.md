@@ -1,5 +1,7 @@
 # arena-receipts on NEAR testnet (Nov 10 2026)
 
+> **Note added 2026-11-11.** These receipts carry the OLD guard hash (`fcce82bf…`). No receipt exists yet for the Nov 11 guard (`0382023b…`): it needs a new testnet race first, which is blocked on testnet NEAR (`fix-plan-2026-11-11.md`, 3h/3i). `tools/receipts/publish.py` now takes `--race-md` / `--race-raw` for that run. `testnet-2026-11-09.md` itself carries no note on purpose: these receipts commit to its sha256 (`665779ca…`).
+
 **Result.** 7 receipts published. 7 of 7 live `passes` calls returned what the plan (`evidence/receipts-plan.md`, written before deploy) expected. The planted-flaw guard fails (`false`), the fixed guard passes (`true`); vault-a fails with an intent limit of 0 under the broad policy and passes under the narrow one.
 
 **A receipt proves who published a score and when, and points to the evidence by hash. It does not prove the bench ran unmodified, or that the tests were good.**

@@ -21,6 +21,12 @@ impl Oracle for Kani {
             Cover::PaidOnce => kani::cover!(c, "inv-a paid exactly once"),
             Cover::RefusedInFlight => kani::cover!(c, "a pay refused because a payment is in flight"),
             Cover::RetriedAfterFailure => kani::cover!(c, "a pay accepted again after a failed transfer"),
+            Cover::CallbackDied => kani::cover!(c, "full: a callback died"),
+            Cover::H1Reading => kani::cover!(c, "full: reconcile read balance == ledger although the tokens left (H1)"),
+            Cover::ReconcileSettledPaid => kani::cover!(c, "full: on_reconcile settled Paid"),
+            Cover::ResolvedFailed => kani::cover!(c, "full: resolve_stuck closed an invoice as Failed"),
+            Cover::ResolvedPaid => kani::cover!(c, "full: resolve_stuck closed an invoice as Paid"),
+            Cover::OutsideTransferThenReconcile => kani::cover!(c, "full: outside transfer, then a reconcile read after tokens left"),
         }
     }
     fn check(&mut self, c: bool, what: Check) {
@@ -76,4 +82,28 @@ fn fixed_n4() {
 #[kani::unwind(13)]
 fn vulnerable_fixture_n4() {
     world::<_, 4>(&mut Kani, Mode::VulnerableFixture, false);
+}
+
+// ---- world_full (2026-11-11): dead callbacks, reconcile, resolve_stuck, outside transfer ----
+// N = 2 pays; at most 3N + 5 = 11 steps, so unwind 12.
+
+/// Expected: VERIFICATION SUCCESSFUL. The new guard, with every extra path.
+#[kani::proof]
+#[kani::unwind(12)]
+fn fixed_full_n2() {
+    world_full::<_, 2>(&mut Kani, Mode::Fixed, false);
+}
+
+/// Must FAIL on P1: the pre-2026-11-11 reconcile arm (balance == ledger -> Approved).
+#[kani::proof]
+#[kani::unwind(12)]
+fn old_reconcile_full_n2() {
+    world_full::<_, 2>(&mut Kani, Mode::Fixed, true);
+}
+
+/// Must FAIL on P1: the planted flaw, in the same world.
+#[kani::proof]
+#[kani::unwind(12)]
+fn vulnerable_fixture_full_n2() {
+    world_full::<_, 2>(&mut Kani, Mode::VulnerableFixture, false);
 }

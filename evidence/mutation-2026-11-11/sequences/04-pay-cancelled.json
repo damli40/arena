@@ -1,0 +1,4 @@
+{"name":"pay-cancelled","steps":[
+        {"call":{"actor":"agent","method":"pay","args":{"id":"inv-cancel"}}},
+        {"call":{"actor":"agent","method":"pay","args":{"id":"inv-cancel"}}}
+    ]}

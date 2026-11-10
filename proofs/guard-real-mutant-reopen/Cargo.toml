@@ -1,0 +1,18 @@
+[package]
+# MUST-FAIL MUTANT (2026-11-11). A copy of contracts/guard/src/lib.rs with the pre-fix
+# `on_reconcile` arm put back: "balance == ledger -> Approved" (review H1). Made by
+# proofs/run.sh's check: the diff to contracts/guard/src/lib.rs must be exactly that arm.
+# Never deploy. Used only to show the full real-source run catches the old double pay.
+name = "guard-mutant-reopen"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+near-sdk = "=5.27.0"
+
+[features]
+fault-injection = []

@@ -1,13 +1,19 @@
 //! Exhaustive bounded check of the REAL guard: every schedule, every transfer outcome,
 //! every choice of invoice per `pay`. Plain Rust, no solver: it runs each case.
 //!
-//!   cargo run --release --bin exhaustive -- <vulnerable_fixture|fixed> <N pays>
+//!   cargo run --release --bin exhaustive -- <vulnerable_fixture|fixed> <N pays> [full]
+//!
+//! `full` (2026-11-11): the schedule also contains one owner `reconcile` (any invoice,
+//! waiting the 100 blocks or not; then its balance read and its callback), one owner
+//! `resolve_stuck` (any invoice, either answer, waiting or not), one outside transfer of
+//! 100 tokens into the guard, and up to one callback that dies. In the full world P2 is not
+//! required of an invoice the owner decided (a dead callback, resolve_stuck, on_reconcile):
+//! a stuck or owner-closed bill is the documented trade-off. P1 is required everywhere.
 //!
 //! Prints one summary line per property and the first counterexample trace, then
 //! `RESULT mode=... n=... p1=HOLDS|FAILS p2=HOLDS|FAILS filter=AGREES|DISAGREES`.
 use guard_proofs::*;
 
-type Key = (Vec<(Vec<u8>, Vec<u8>)>, Vec<(u8, usize, String, u128, u8)>, [u128; NINV], guard_model::Model<NINV>);
 
 #[derive(Default)]
 struct Stats {
@@ -57,6 +63,9 @@ fn dfs(w: World, pays: &[usize], st: &mut Stats) {
         st.leaves += 1;
         for i in 0..NINV {
             let s = w.status(i);
+            if w.touched[i] {
+                continue; // owner-decided outcome: P2 not required (P1 still checked above)
+            }
             let ok = if w.sent[i] == 0 { s == Status::Approved } else { s == Status::Paid };
             // "Payable again" is checked for real: a fresh pay must be accepted.
             let payable_again = if w.sent[i] == 0 {
@@ -78,23 +87,29 @@ fn dfs(w: World, pays: &[usize], st: &mut Stats) {
         return;
     }
     for idx in runnable {
-        let outcomes: &[bool] = match w.pending[idx] {
-            Item::Transfer { .. } => &[true, false],
-            _ => &[true],
+        let d = Choice::default();
+        let choices: Vec<Choice> = match w.pending[idx] {
+            Item::Transfer { .. } => vec![Choice { ok: true, ..d }, Choice { ok: false, ..d }],
+            Item::Callback { .. } if w.deaths_left > 0 => vec![d, Choice { dies: true, ..d }],
+            Item::Reconcile => (0..NINV).flat_map(|inv| [true, false].map(|wait| Choice { inv, wait, ..d })).collect(),
+            Item::Resolve => (0..NINV)
+                .flat_map(|inv| [true, false].into_iter().flat_map(move |sent| [true, false].map(move |wait| Choice { inv, sent, wait, ..d })))
+                .collect(),
+            _ => vec![d],
         };
-        for &ok in outcomes {
+        for c in choices {
             st.edges += 1;
             let mut next = w.clone();
             if let Item::Pay { inv } = next.pending[idx] {
                 let predicted = pay_would_be_accepted(next.mode, next.status(inv));
-                next.step(idx, ok, None);
+                next.step_with(idx, c, None);
                 let actual = matches!(next.trace.last(), Some(Event::PayAccepted { .. }));
                 st.filter_checks += 1;
                 if predicted != actual {
                     st.filter_disagreements += 1;
                 }
             } else {
-                next.step(idx, ok, None);
+                next.step_with(idx, c, None);
             }
             dfs(next, pays, st);
         }
@@ -106,9 +121,10 @@ fn main() {
     let mode = match args.get(1).map(|s| s.as_str()) {
         Some("vulnerable_fixture") => Mode::VulnerableFixture,
         Some("fixed") => Mode::Fixed,
-        _ => panic!("usage: exhaustive <vulnerable_fixture|fixed> <N>"),
+        _ => panic!("usage: exhaustive <vulnerable_fixture|fixed> <N> [full]"),
     };
     let n: u32 = args.get(2).map(|s| s.parse().unwrap()).unwrap_or(3);
+    let full = args.get(3).map(|s| s == "full").unwrap_or(false);
     // Silence the guard's expected refusals (they are panics caught by the driver).
     std::panic::set_hook(Box::new(|_| {}));
     let t0 = std::time::Instant::now();
@@ -116,11 +132,11 @@ fn main() {
     for combo in 0..(NINV as u32).pow(n) {
         let mut c = combo;
         let pays: Vec<usize> = (0..n).map(|_| { let v = (c % NINV as u32) as usize; c /= NINV as u32; v }).collect();
-        let w = World::new(mode, &pays);
+        let w = World::new_world(mode, &pays, full);
         dfs(w, &pays, &mut st);
     }
     let secs = t0.elapsed().as_secs_f64();
-    println!("mode={mode:?} n={n} invoices={:?}", INVOICES);
+    println!("mode={mode:?} n={n} world={} invoices={:?}", if full { "full" } else { "base" }, INVOICES);
     println!("explored: {} distinct states, {} transitions, {} distinct end states, {} pay-filter checks, in {secs:.1} s", st.nodes, st.edges, st.leaves, st.filter_checks);
     println!("max tokens sent per invoice over all schedules: {:?}", st.max_sent);
     println!("P1 (sent <= amount): {} violating states", st.p1_violations);
@@ -146,15 +162,17 @@ fn main() {
         }
     }
     println!(
-        "RESULT build={} mode={} n={n} p1={} p2={} filter={} model={} states={} end_states={} secs={secs:.1}",
-        if cfg!(feature = "mutant") { "mutant" } else { "real" },
+        "RESULT build={} mode={} n={n} world={} p1={} p2={} filter={} model={} states={} end_states={} max_sent={:?} secs={secs:.1}",
+        if cfg!(feature = "mutant") { "mutant" } else if cfg!(feature = "mutant-reopen") { "mutant-reopen" } else { "real" },
         if mode == Mode::Fixed { "fixed" } else { "vulnerable_fixture" },
+        if full { "full" } else { "base" },
         if st.p1_violations == 0 { "HOLDS" } else { "FAILS" },
         if st.p2_violations == 0 { "HOLDS" } else { "FAILS" },
         if st.filter_disagreements == 0 { "AGREES" } else { "DISAGREES" },
         if st.model_mismatch_states == 0 { "AGREES" } else { "DISAGREES" },
         st.nodes,
-        st.leaves
+        st.leaves,
+        st.max_sent
     );
 }
 
@@ -166,5 +184,11 @@ fn describe(e: &Event) -> String {
         Event::TransferOk { inv, amount } => format!("token transfer for {} succeeds: {amount} tokens move", id(inv)),
         Event::TransferFailed { inv } => format!("token transfer for {} fails: nothing moves", id(inv)),
         Event::CallbackRan { inv, ok, status_after } => format!("on_transfer({}) sees {} -> status {status_after:?}", id(inv), if *ok { "success" } else { "failure" }),
+        Event::CallbackDied { inv } => format!("on_transfer({}) DIES (out of gas): rolled back, nothing recorded", id(inv)),
+        Event::ReconcileSent { inv, accepted, waited } => format!("owner reconcile({}){} -> {}", id(inv), if *waited { " after waiting 100 blocks" } else { " right away" }, if *accepted { "accepted, balance read scheduled" } else { "refused" }),
+        Event::BalanceRead { balance, .. } => format!("token reports the guard's balance: {balance}"),
+        Event::OnReconcile { inv, accepted, status_after } => format!("on_reconcile({}) -> {} , status {status_after:?}", id(inv), if *accepted { "accepted" } else { "refused" }),
+        Event::Resolve { inv, sent, waited, accepted, status_after } => format!("owner resolve_stuck({}, sent={sent}){} -> {}, status {status_after:?}", id(inv), if *waited { " after waiting" } else { "" }, if *accepted { "accepted" } else { "refused" }),
+        Event::Outside { balance_after } => format!("someone sends 100 tokens to the guard (balance now {balance_after})"),
     }
 }

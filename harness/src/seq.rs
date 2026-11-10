@@ -132,11 +132,17 @@ async fn record_pay_ts(a: &Arena, r: &ExecutionFinalResult, c: &Value, tgt: &nea
     if tgt != a.vault.id() || method_of(c)? != "pay" {
         return Ok(());
     }
-    let first_ok = r.outcomes().first().map(|o| o.is_success()).unwrap_or(false);
+    // 2026-11-11: read the pay call's OWN receipt (receipt_outcomes()[0], executed on the
+    // guard). outcomes()[0] is the transaction outcome, which succeeds even when the guard
+    // panics, so a refused pay used to be recorded as started (wrong actor list, and a
+    // refused pay's earlier block time could stand in for a later real pay at expiry).
+    let first_ok = r.receipt_outcomes().first().map(|o| o.is_success()).unwrap_or(false);
     if !first_ok {
         return Ok(());
     }
     if let Some(id) = c["args"]["id"].as_str() {
+        // Who started it (2026-11-11): the actor this harness signed the call as.
+        a.record_pay_actor(id, c["actor"].as_str().unwrap_or("?"));
         if let Some(ts) = first_block_ts(a, r).await? {
             a.record_pay(id, ts);
         }
@@ -468,6 +474,8 @@ pub fn outcome_json(a: &Arena, name: &str, outcome: &[StepOutcome], s: &crate::s
                 "over": got.saturating_sub(*au).to_string(),
             })).collect::<Vec<_>>(),
             "invoice_statuses": s.statuses.iter().map(|(i, st)| json!({"id": i, "status": st})).collect::<Vec<_>>(),
+            "credited_by_invoice": s.credited_by_invoice.iter().map(|(i, c)| json!({"id": i, "credited": c.to_string()})).collect::<Vec<_>>(),
+            "non_agent_pays": s.non_agent_pays.iter().map(|(i, w)| json!({"id": i, "actor": w})).collect::<Vec<_>>(),
         },
         "score": {
             "unauthorised_payout": s.unauthorised.to_string(),

@@ -28,6 +28,22 @@
 (*  - GhostRec: TRUE records which invoices on_reconcile set back to       *)
 (*    Approved (ghost recApp), for one witness (review L3).  FALSE keeps   *)
 (*    recApp = {} forever, so state counts are unchanged.                  *)
+(*                                                                         *)
+(* Changed 2026-11-11 (evidence/fix-plan-2026-11-11.md), to the new guard  *)
+(* (lib.rs as of 2026-11-11, wasm 0382023b...):                            *)
+(*  - on_reconcile: "balance == ledger" no longer sets Approved; nothing   *)
+(*    changes (lib.rs:298-306).  run.sh keeps the old arm as the mutant    *)
+(*    mut_reopen_on_balance, which must still fail.                        *)
+(*  - new owner transaction resolve_stuck(i, sent) (lib.rs:326-353) and    *)
+(*    the terminal status "Failed", which pay refuses (lib.rs:192).        *)
+(*    MaxRes bounds how many resolve_stuck transactions are signed.        *)
+(*  - GhostRec now records invoices whose reconcile read "balance ==       *)
+(*    ledger" and left them Pending (the H1 reading), for the witness      *)
+(*    Wit_unchanged_then_resolved.                                         *)
+(*  - ghost `resolved`: invoices the owner closed with resolve_stuck.      *)
+(*    FailedStaysPayable does not require them to be payable: a bill the   *)
+(*    owner closed is the documented trade-off, not a guard failure.       *)
+(* Line numbers above this note refer to lib.rs as of 2026-11-10.          *)
 (***************************************************************************)
 EXTENDS Tokens
 
@@ -36,6 +52,7 @@ CONSTANTS
     NInv,        \* number of invoices
     MaxPay,      \* number of pay transactions (any invoice)
     MaxRec,      \* number of reconcile transactions (any invoice)
+    MaxRes,      \* number of resolve_stuck transactions (any invoice, either answer), 2026-11-11
     WaitRule,    \* TRUE: reconcile runs only after the pending pay settled
     Donate,      \* TRUE: an outside account may send 100 tokens to the guard once (review H1)
     GhostRec     \* TRUE: track recApp for Wit_repaid_after_reconcile (review L3)
@@ -45,9 +62,11 @@ VARIABLES
     cbFailed,    \* ghost: invoices whose on_transfer was forced to fail, not yet reconciled
     npay, nrec, ntx,
     ndon,        \* outside transfers into the guard so far (stays 0 unless Donate)
-    recApp       \* ghost: invoices on_reconcile set back to Approved (stays {} unless GhostRec)
+    recApp,      \* ghost: invoices reconcile read as "balance == ledger" and left Pending (stays {} unless GhostRec)
+    nres,        \* resolve_stuck transactions signed so far (2026-11-11)
+    resolved     \* ghost: invoices the owner closed with resolve_stuck (2026-11-11)
 
-guardVars == <<g, cbFailed, npay, nrec, ntx, ndon, recApp>>
+guardVars == <<g, cbFailed, npay, nrec, ntx, ndon, recApp, nres, resolved>>
 vars == <<platformVars, tk, guardVars>>
 
 OW == "owner"
@@ -64,7 +83,7 @@ Others == IF Donate THEN {DN} ELSE {}
 DonAmt == 100                                              \* what DN holds and sends: one invoice's amount
 Holders == {G} \cup Others \cup {Rcv[i] : i \in Inv}
 Accts == {OW, AG, G, FT} \cup Others \cup {Rcv[i] : i \in Inv}
-TxIds == 1..(MaxPay + MaxRec + (IF Donate THEN 1 ELSE 0))
+TxIds == 1..(MaxPay + MaxRec + MaxRes + (IF Donate THEN 1 ELSE 0))
 NearTotal == NearG + (IF Donate THEN 1 ELSE 0)             \* DN holds 1 yocto for its ft_transfer deposit
 
 (* ---- values for the platform / token constants (bound in the .cfg) ----- *)
@@ -101,6 +120,8 @@ H_pay(r) ==
          [] g.st[i] = "Paid"                  -> Err("invoice already paid")       \* lib.rs:176
          [] Mode = "fixed" /\ g.st[i] = "Pending"
                                               -> Err("payment already in flight")  \* lib.rs:184
+         [] Mode = "fixed" /\ g.st[i] = "Failed"
+                                              -> Err("invoice closed as failed")   \* 2026-11-11, lib.rs:192
          [] Mode = "fixed"                    ->                                   \* lib.rs:186-187, :197-200
               <<O, [g EXCEPT !.st[i] = "Pending", !.pend = @ + 1, !.ep = @ + 1, !.ptx[i] = r.tx]>>
          [] OTHER                             -> <<O, g>>                          \* lib.rs:179-182: BUG, nothing recorded
@@ -153,24 +174,44 @@ H_on_reconcile(r) ==
          [] g.exp >= amt /\ act = g.exp - amt ->
               <<O, [g EXCEPT !.st[i] = "Paid", !.exp = g.exp - amt,
                              !.pend = TMax(@ - 1, 0), !.ep = @ + 1]>>                \* lib.rs:300-301
-         \* "the money is still here", lib.rs:290-293
-         [] act = g.exp ->
-              <<O, [g EXCEPT !.st[i] = "Approved", !.pend = TMax(@ - 1, 0), !.ep = @ + 1]>>
+         \* balance unchanged: proves nothing, nothing changes (2026-11-11, lib.rs:298-306).
+         \* Before the fix this arm set "Approved" (run.sh: mut_reopen_on_balance).
+         [] act = g.exp -> <<O, g>>
          [] OTHER                        -> Err("balance matches neither story")      \* lib.rs:294-298
+
+\* resolve_stuck(id, sent), lib.rs:326-353 (2026-11-11). cx = <<i, s>>, s = 1 means sent.
+H_resolve_stuck(r) ==
+    LET i  == r.a.cx[1]
+        s  == r.a.cx[2]
+        O  == Outcome({}, {}, RVal(0), 0, 0)
+    IN CASE r.fr # OW                   -> Err("owner only")                            \* lib.rs:327
+         [] Mode # "fixed"              -> Err("resolve_stuck exists only in fixed mode") \* lib.rs:328
+         [] g.st[i] # "Pending"         -> Err("invoice is not Pending")                \* lib.rs:330
+         \* lib.rs:331-338: the same waiting rule as reconcile, as the same assumption
+         [] WaitRule /\ ~TxSettled(g.ptx[i]) -> Err("too early")
+         [] s = 1 -> <<O, [g EXCEPT !.st[i] = "Paid", !.exp = TMax(@ - Amt[i], 0),
+                                    !.pend = TMax(@ - 1, 0), !.ep = @ + 1]>>           \* lib.rs:339-344, :348-350
+         [] OTHER -> <<O, [g EXCEPT !.st[i] = "Failed", !.pend = TMax(@ - 1, 0), !.ep = @ + 1]>> \* lib.rs:346-350
 
 RunG(r) ==
     LET p == CASE r.m = "pay"          -> H_pay(r)
                [] r.m = "on_transfer"  -> H_on_transfer(r)
                [] r.m = "reconcile"    -> H_reconcile(r)
                [] r.m = "on_reconcile" -> H_on_reconcile(r)
+               [] r.m = "resolve_stuck" -> H_resolve_stuck(r)
                [] OTHER                -> Err("method not found")
-        O == p[1] IN
+        O == p[1]
+        i == r.a.cx[1] IN
     /\ Exec(r, O)
     /\ g' = IF Ok(r, O) THEN p[2] ELSE g
-    /\ cbFailed' = IF Ok(r, O) /\ r.m = "on_reconcile" THEN cbFailed \ {r.a.cx[1]} ELSE cbFailed
-    /\ recApp' = IF GhostRec /\ Ok(r, O) /\ r.m = "on_reconcile" /\ p[2].st[r.a.cx[1]] = "Approved"
-                 THEN recApp \cup {r.a.cx[1]} ELSE recApp
-    /\ UNCHANGED <<tk, npay, nrec, ntx, ndon>>
+    \* 2026-11-11: an invoice leaves cbFailed only when its status really leaves Pending
+    \* (on_reconcile may now succeed and change nothing).
+    /\ cbFailed' = IF Ok(r, O) /\ r.m \in {"on_reconcile", "resolve_stuck"} /\ p[2].st[i] # "Pending"
+                   THEN cbFailed \ {i} ELSE cbFailed
+    /\ recApp' = IF GhostRec /\ Ok(r, O) /\ r.m = "on_reconcile" /\ r.res.v = g.exp /\ p[2].st[i] = "Pending"
+                 THEN recApp \cup {i} ELSE recApp
+    /\ resolved' = IF Ok(r, O) /\ r.m = "resolve_stuck" THEN resolved \cup {i} ELSE resolved
+    /\ UNCHANGED <<tk, npay, nrec, ntx, ndon, nres>>
 
 RunTok(r) ==
     \E ch \in TokChoices(r) :
@@ -188,7 +229,7 @@ PayTx ==
     /\ \E i \in Inv :
          Submit(WithGas(Rcpt(nid, ntx + 1, G, AG, "pay", CxArgs(i), 0, AG, 0), 0))
     /\ npay' = npay + 1 /\ ntx' = ntx + 1
-    /\ UNCHANGED <<tk, g, cbFailed, nrec, ndon, recApp>>
+    /\ UNCHANGED <<tk, g, cbFailed, nrec, ndon, recApp, nres, resolved>>
 
 \* The owner signs reconcile(i); any invoice, any time, up to MaxRec times.
 RecTx ==
@@ -196,7 +237,16 @@ RecTx ==
     /\ \E i \in Inv :
          Submit(WithGas(Rcpt(nid, ntx + 1, G, OW, "reconcile", CxArgs(i), 0, OW, 0), 0))
     /\ nrec' = nrec + 1 /\ ntx' = ntx + 1
-    /\ UNCHANGED <<tk, g, cbFailed, npay, ndon, recApp>>
+    /\ UNCHANGED <<tk, g, cbFailed, npay, ndon, recApp, nres, resolved>>
+
+\* The owner signs resolve_stuck(i, sent) (2026-11-11); any invoice, either answer, any
+\* time, up to MaxRes times. The answer is NOT tied to the truth: the owner may be wrong.
+ResTx ==
+    /\ nres < MaxRes
+    /\ \E i \in Inv, s \in {0, 1} :
+         Submit(WithGas(Rcpt(nid, ntx + 1, G, OW, "resolve_stuck", [TA0 EXCEPT !.cx = <<i, s>>], 0, OW, 0), 0))
+    /\ nres' = nres + 1 /\ ntx' = ntx + 1
+    /\ UNCHANGED <<tk, g, cbFailed, npay, nrec, ndon, recApp, resolved>>
 
 \* A forced failure (MayFail / MaxFails): a panic, or out of gas, with no writes.
 \* For on_transfer this is the fault-injection panic (lib.rs:216-219).
@@ -204,7 +254,7 @@ Fault ==
     \E r \in Runnable :
         /\ ForcedFail(r)
         /\ cbFailed' = IF r.m = "on_transfer" THEN cbFailed \cup {r.a.cx[1]} ELSE cbFailed
-        /\ UNCHANGED <<tk, g, npay, nrec, ntx, ndon, recApp>>
+        /\ UNCHANGED <<tk, g, npay, nrec, ntx, ndon, recApp, nres, resolved>>
 
 Init ==
     /\ PlatformInit([a \in Accts |-> IF a = G THEN NearG ELSE IF a = DN THEN 1 ELSE 0], TxIds)
@@ -214,6 +264,7 @@ Init ==
     /\ cbFailed = {}
     /\ npay = 0 /\ nrec = 0 /\ ntx = 0
     /\ ndon = 0 /\ recApp = {}
+    /\ nres = 0 /\ resolved = {}
 
 \* Added 2026-11-11 (review H1). An outside account (the owner topping the guard up, or
 \* anyone else) calls the token's ft_transfer(guard, 100), once, at any time. The guard
@@ -222,10 +273,10 @@ DonTx ==
     /\ Donate /\ ndon < 1
     /\ Submit(WithGas(Rcpt(nid, ntx + 1, FT, DN, "ft_transfer", FtArgs(G, DonAmt, ""), TokYocto, DN, 0), 0))
     /\ ndon' = ndon + 1 /\ ntx' = ntx + 1
-    /\ UNCHANGED <<tk, g, cbFailed, npay, nrec, recApp>>
+    /\ UNCHANGED <<tk, g, cbFailed, npay, nrec, recApp, nres, resolved>>
 
 RunReceipt == \E r \in Runnable : Step(r)
-Next == PayTx \/ RecTx \/ RunReceipt \/ Fault \/ DonTx
+Next == PayTx \/ RecTx \/ ResTx \/ RunReceipt \/ Fault \/ DonTx
 Spec == Init /\ [][Next]_vars
 
 \* Trace filter for the run vuln_testnet_order (an ACTION_CONSTRAINT, not a property):
@@ -248,6 +299,7 @@ FailedStaysPayable ==
         Received(i) = 0 =>
             \/ g.st[i] = "Approved"
             \/ (g.st[i] = "Pending" /\ i \in cbFailed)
+            \/ i \in resolved      \* 2026-11-11: the owner closed it (Failed, or a wrong "sent")
 
 \* near-tla's library sanity checks.
 Sane == NearConserved(NearTotal) /\ TokSupplyOK /\ TokTypeOK /\ NoOrphans
@@ -268,9 +320,14 @@ Wit_reconcile_says_approved ==
                           /\ g.st[r.a.cx[1]] = "Pending" /\ r.res.v = g.exp)
 Wit_reconcile_ambiguous ==
     ~(\E r \in Runnable : r.m = "reconcile" /\ g.pend = 2)
-\* Added 2026-11-11 (review L3): the whole recovery path completes. on_reconcile set the
-\* invoice back to Approved, it was paid again, and the receiver holds exactly the amount.
-\* Needs GhostRec = TRUE (recApp is always {} otherwise, so this cannot be reached).
-Wit_repaid_after_reconcile ==
-    ~(\E i \in recApp : Received(i) = Amt[i])
+\* Added 2026-11-11 (review L3), changed the same day for the fixed reconcile: the new
+\* recovery path completes. reconcile read "balance == ledger" and left the invoice
+\* Pending, then the owner closed it with resolve_stuck. Needs GhostRec = TRUE.
+Wit_unchanged_then_resolved ==
+    ~(\E i \in recApp : i \in resolved /\ g.st[i] \in {"Paid", "Failed"})
+\* resolve_stuck reached each answer.
+Wit_resolved_failed == ~(\E i \in Inv : g.st[i] = "Failed")
+Wit_resolved_paid   == ~(\E i \in resolved : g.st[i] = "Paid")
+\* A pay refused because the owner closed the invoice as Failed.
+Wit_refused_failed  == ~(\E r \in Runnable : r.m = "pay" /\ g.st[r.a.cx[1]] = "Failed")
 =============================================================================

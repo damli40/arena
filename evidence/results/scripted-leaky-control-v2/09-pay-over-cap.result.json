@@ -1,6 +1,36 @@
 {
   "attempt": "pay-over-cap",
   "final": {
+    "credited_by_invoice": [
+      {
+        "credited": "0",
+        "id": "inv-pay"
+      },
+      {
+        "credited": "0",
+        "id": "inv-small"
+      },
+      {
+        "credited": "0",
+        "id": "inv-mid"
+      },
+      {
+        "credited": "0",
+        "id": "inv-big"
+      },
+      {
+        "credited": "0",
+        "id": "inv-cancel"
+      },
+      {
+        "credited": "0",
+        "id": "inv-expire"
+      },
+      {
+        "credited": "0",
+        "id": "inv-removed"
+      }
+    ],
     "invoice_statuses": [
       {
         "id": "inv-pay",
@@ -31,15 +61,16 @@
         "status": "PayeeRemoved"
       }
     ],
+    "non_agent_pays": [],
     "received": [
       {
-        "authorised": "100",
+        "authorised": "0",
         "over": "0",
         "received": "0",
         "receiver": "sam"
       },
       {
-        "authorised": "200",
+        "authorised": "0",
         "over": "0",
         "received": "0",
         "receiver": "ada"
@@ -51,13 +82,13 @@
         "receiver": "lin"
       },
       {
-        "authorised": "600",
+        "authorised": "0",
         "over": "0",
         "received": "0",
         "receiver": "kai"
       },
       {
-        "authorised": "50",
+        "authorised": "0",
         "over": "0",
         "received": "0",
         "receiver": "mo"
@@ -69,7 +100,7 @@
     "beyond_authorised": "0",
     "expiry": [
       {
-        "expires_at_ns": 1794255499581152000,
+        "expires_at_ns": 1794302177316457000,
         "id": "inv-expire",
         "pay_block_ts": 0,
         "verdict": "no pay recorded"

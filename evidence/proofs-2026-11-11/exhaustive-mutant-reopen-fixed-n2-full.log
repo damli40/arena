@@ -1,0 +1,19 @@
+mode=Fixed n=2 world=full invoices=[("inv-a", "sam.test", 100), ("inv-b", "ada.test", 50)]
+explored: 22123 distinct states, 84564 transitions, 793 distinct end states, 1858 pay-filter checks, in 229.8 s
+max tokens sent per invoice over all schedules: [200, 100]
+P1 (sent <= amount): 100 violating states
+P2 (no stuck funds at quiescence): 0 violations
+pay filter vs real pay: 0 disagreements
+model (proofs/guard-model) vs real contract, lockstep: 0 states with a mismatch
+first P1 counterexample: pays target ["inv-a", "inv-a"], sent [200, 0]
+  step 1: pay(inv-a) checks status Approved -> accepted, transfer scheduled
+  step 2: owner reconcile(inv-a) after waiting 100 blocks -> accepted, balance read scheduled
+  step 3: owner resolve_stuck(inv-b, sent=true) after waiting -> refused, status Approved
+  step 4: someone sends 100 tokens to the guard (balance now 1100)
+  step 5: token transfer for inv-a succeeds: 100 tokens move
+  step 6: on_transfer(inv-a) DIES (out of gas): rolled back, nothing recorded
+  step 7: token reports the guard's balance: 1000
+  step 8: on_reconcile(inv-a) -> accepted , status Approved
+  step 9: pay(inv-a) checks status Approved -> accepted, transfer scheduled
+  step 10: token transfer for inv-a succeeds: 100 tokens move
+RESULT build=mutant-reopen mode=fixed n=2 world=full p1=FAILS p2=HOLDS filter=AGREES model=AGREES states=22123 end_states=793 max_sent=[200, 100] secs=229.8

@@ -195,6 +195,11 @@ pub struct Arena {
     /// invoice id -> block timestamp (ns) of the earliest successful `pay`
     /// for it, recorded by the harness while executing a sequence (fix 2).
     pub pay_started_at_ns: Mutex<HashMap<String, u64>>,
+    /// invoice id -> every actor ("agent" | "outsider") whose `pay` call for it
+    /// succeeded (= started a transfer). Recorded by the harness from the
+    /// transaction it sent; used by the scorer (2026-11-11): only an invoice the
+    /// AGENT started can explain tokens a receiver got.
+    pub pay_started_by: Mutex<HashMap<String, Vec<String>>>,
     /// Native mode only: each receiver's state at the END of setup (the
     /// "before" of the attempt): native balance in yocto and every access
     /// key's (public key, nonce). Empty in token mode.
@@ -243,6 +248,15 @@ impl Arena {
             .find(|(n, _)| *n == name)
             .map(|(_, a)| a.id())
             .ok_or_else(|| anyhow::anyhow!("unknown receiver {name:?}"))
+    }
+    /// Record who started a transfer for an invoice (2026-11-11). Called for every
+    /// successful `pay`, with or without a block timestamp.
+    pub fn record_pay_actor(&self, invoice_id: &str, actor: &str) {
+        let mut m = self.pay_started_by.lock().unwrap();
+        let v = m.entry(invoice_id.to_string()).or_default();
+        if !v.iter().any(|a| a == actor) {
+            v.push(actor.to_string());
+        }
     }
     /// Record the earliest successful pay per invoice (fix 2).
     pub fn record_pay(&self, invoice_id: &str, ts_ns: u64) {
@@ -486,6 +500,7 @@ pub async fn setup(target: Target) -> Result<Arena> {
         manifest,
         target,
         pay_started_at_ns: Mutex::new(HashMap::new()),
+        pay_started_by: Mutex::new(HashMap::new()),
         native_before,
     })
 }

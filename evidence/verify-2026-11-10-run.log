@@ -1,0 +1,102 @@
+    Finished `release` profile [optimized] target(s) in 0.24s
+    Finished `release` profile [optimized] target(s) in 0.13s
+    Finished `release` profile [optimized] target(s) in 0.76s
+     Running unittests src/lib.rs (target/release/deps/arena_tests-0194b2198943dd91)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/race.rs (target/release/deps/race-2f2695a7bfe1722b)
+
+running 1 test
+test t1_vulnerable_fixture_pays_same_invoice_twice_under_race ... 
+===== EVIDENCE: race, mode=vulnerable_fixture, 5 trials, invoice amount 100 =====
+trial 0: receiver +200 (guard -200), invoice record = {"amount":"100","confirmed_payouts":2,"pending_since_block":0,"receiver":"dev-20261109233924-48108795337549.test.near","status":"Paid","transfers_started":2}
+  [pay A] tx success=true 
+    block    38  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    39  on dev-20261109233925-37708980106544.test.near ok=true  gas_burnt=  2.31 TGas logs=["pay: invoice=race-0 transfer #1 started, mode=VulnerableFixture"]
+    block    40  on dev-20261109233924-65033593830669.test.near ok=true  gas_burnt=  1.78 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261109233925-37708980106544.test.near\",\"new_owner_id\":\"dev-20261109233924-48108795337549.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-0\"}]}"]
+    block    41  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    41  on dev-20261109233925-37708980106544.test.near ok=true  gas_burnt=  1.55 TGas logs=["on_transfer: invoice=race-0 confirmed, confirmed_payouts=1"]
+    block    40  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  [pay B] tx success=true 
+    block    38  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    39  on dev-20261109233925-37708980106544.test.near ok=true  gas_burnt=  2.28 TGas logs=["pay: invoice=race-0 transfer #2 started, mode=VulnerableFixture"]
+    block    40  on dev-20261109233924-65033593830669.test.near ok=true  gas_burnt=  1.71 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261109233925-37708980106544.test.near\",\"new_owner_id\":\"dev-20261109233924-48108795337549.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-0\"}]}"]
+    block    41  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    41  on dev-20261109233925-37708980106544.test.near ok=true  gas_burnt=  1.55 TGas logs=["DOUBLE PAYOUT: invoice=race-0 was already Paid when another transfer confirmed", "on_transfer: invoice=race-0 confirmed, confirmed_payouts=2"]
+    block    40  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+trial 1: receiver +200 (guard -200), invoice record = {"amount":"100","confirmed_payouts":2,"pending_since_block":0,"receiver":"dev-20261109233924-48108795337549.test.near","status":"Paid","transfers_started":2}
+  [pay A] tx success=true 
+    block    47  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    48  on dev-20261109233925-37708980106544.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=race-1 transfer #1 started, mode=VulnerableFixture"]
+    block    49  on dev-20261109233924-65033593830669.test.near ok=true  gas_burnt=  1.78 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261109233925-37708980106544.test.near\",\"new_owner_id\":\"dev-20261109233924-48108795337549.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-1\"}]}"]
+    block    50  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    50  on dev-20261109233925-37708980106544.test.near ok=true  gas_burnt=  1.55 TGas logs=["on_transfer: invoice=race-1 confirmed, confirmed_payouts=1"]
+    block    51  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    49  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  [pay B] tx success=true 
+    block    47  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    48  on dev-20261109233925-37708980106544.test.near ok=true  gas_burnt=  2.28 TGas logs=["pay: invoice=race-1 transfer #2 started, mode=VulnerableFixture"]
+    block    49  on dev-20261109233924-65033593830669.test.near ok=true  gas_burnt=  1.71 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261109233925-37708980106544.test.near\",\"new_owner_id\":\"dev-20261109233924-48108795337549.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-1\"}]}"]
+    block    50  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    50  on dev-20261109233925-37708980106544.test.near ok=true  gas_burnt=  1.55 TGas logs=["DOUBLE PAYOUT: invoice=race-1 was already Paid when another transfer confirmed", "on_transfer: invoice=race-1 confirmed, confirmed_payouts=2"]
+    block    51  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    49  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+trial 2: receiver +200 (guard -200), invoice record = {"amount":"100","confirmed_payouts":2,"pending_since_block":0,"receiver":"dev-20261109233924-48108795337549.test.near","status":"Paid","transfers_started":2}
+  [pay A] tx success=true 
+    block    56  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    57  on dev-20261109233925-37708980106544.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=race-2 transfer #1 started, mode=VulnerableFixture"]
+    block    58  on dev-20261109233924-65033593830669.test.near ok=true  gas_burnt=  1.78 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261109233925-37708980106544.test.near\",\"new_owner_id\":\"dev-20261109233924-48108795337549.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-2\"}]}"]
+    block    59  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    59  on dev-20261109233925-37708980106544.test.near ok=true  gas_burnt=  1.55 TGas logs=["on_transfer: invoice=race-2 confirmed, confirmed_payouts=1"]
+    block    58  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  [pay B] tx success=true 
+    block    56  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    57  on dev-20261109233925-37708980106544.test.near ok=true  gas_burnt=  2.28 TGas logs=["pay: invoice=race-2 transfer #2 started, mode=VulnerableFixture"]
+    block    58  on dev-20261109233924-65033593830669.test.near ok=true  gas_burnt=  1.71 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261109233925-37708980106544.test.near\",\"new_owner_id\":\"dev-20261109233924-48108795337549.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-2\"}]}"]
+    block    59  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    59  on dev-20261109233925-37708980106544.test.near ok=true  gas_burnt=  1.55 TGas logs=["DOUBLE PAYOUT: invoice=race-2 was already Paid when another transfer confirmed", "on_transfer: invoice=race-2 confirmed, confirmed_payouts=2"]
+    block    58  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+trial 3: receiver +200 (guard -200), invoice record = {"amount":"100","confirmed_payouts":2,"pending_since_block":0,"receiver":"dev-20261109233924-48108795337549.test.near","status":"Paid","transfers_started":2}
+  [pay A] tx success=true 
+    block    65  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    66  on dev-20261109233925-37708980106544.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=race-3 transfer #1 started, mode=VulnerableFixture"]
+    block    67  on dev-20261109233924-65033593830669.test.near ok=true  gas_burnt=  1.78 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261109233925-37708980106544.test.near\",\"new_owner_id\":\"dev-20261109233924-48108795337549.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-3\"}]}"]
+    block    68  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    68  on dev-20261109233925-37708980106544.test.near ok=true  gas_burnt=  1.55 TGas logs=["on_transfer: invoice=race-3 confirmed, confirmed_payouts=1"]
+    block    67  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  [pay B] tx success=true 
+    block    65  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    66  on dev-20261109233925-37708980106544.test.near ok=true  gas_burnt=  2.28 TGas logs=["pay: invoice=race-3 transfer #2 started, mode=VulnerableFixture"]
+    block    67  on dev-20261109233924-65033593830669.test.near ok=true  gas_burnt=  1.71 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261109233925-37708980106544.test.near\",\"new_owner_id\":\"dev-20261109233924-48108795337549.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-3\"}]}"]
+    block    68  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    68  on dev-20261109233925-37708980106544.test.near ok=true  gas_burnt=  1.55 TGas logs=["DOUBLE PAYOUT: invoice=race-3 was already Paid when another transfer confirmed", "on_transfer: invoice=race-3 confirmed, confirmed_payouts=2"]
+    block    67  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+trial 4: receiver +200 (guard -200), invoice record = {"amount":"100","confirmed_payouts":2,"pending_since_block":0,"receiver":"dev-20261109233924-48108795337549.test.near","status":"Paid","transfers_started":2}
+  [pay A] tx success=true 
+    block    74  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    75  on dev-20261109233925-37708980106544.test.near ok=true  gas_burnt=  2.32 TGas logs=["pay: invoice=race-4 transfer #1 started, mode=VulnerableFixture"]
+    block    76  on dev-20261109233924-65033593830669.test.near ok=true  gas_burnt=  1.78 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261109233925-37708980106544.test.near\",\"new_owner_id\":\"dev-20261109233924-48108795337549.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-4\"}]}"]
+    block    77  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    77  on dev-20261109233925-37708980106544.test.near ok=true  gas_burnt=  1.55 TGas logs=["on_transfer: invoice=race-4 confirmed, confirmed_payouts=1"]
+    block    76  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+  [pay B] tx success=true 
+    block    74  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.31 TGas logs=[]
+    block    75  on dev-20261109233925-37708980106544.test.near ok=true  gas_burnt=  2.28 TGas logs=["pay: invoice=race-4 transfer #2 started, mode=VulnerableFixture"]
+    block    76  on dev-20261109233924-65033593830669.test.near ok=true  gas_burnt=  1.71 TGas logs=["EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261109233925-37708980106544.test.near\",\"new_owner_id\":\"dev-20261109233924-48108795337549.test.near\",\"amount\":\"100\",\"memo\":\"invoice race-4\"}]}"]
+    block    77  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+    block    77  on dev-20261109233925-37708980106544.test.near ok=true  gas_burnt=  1.55 TGas logs=["DOUBLE PAYOUT: invoice=race-4 was already Paid when another transfer confirmed", "on_transfer: invoice=race-4 confirmed, confirmed_payouts=2"]
+    block    76  on dev-20261109233923-36725366042509.test.near ok=true  gas_burnt=  0.22 TGas logs=[]
+RESULT vulnerable_fixture race payouts per trial: [200, 200, 200, 200, 200]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 10.25s
+
+   Doc-tests arena_tests
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

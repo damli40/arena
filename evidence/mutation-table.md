@@ -1,5 +1,7 @@
 # Mutation table for vault-a (run 2026-11-10)
 
+> **Note added 2026-11-11.** This table is the Nov 10 run and its numbers stay as they were. The scorer was fixed after it (per-invoice allowance, caller checked). Re-run on the same mutants: **7 of 10 caught**, M7 200 and M8 100 now caught, M6 now 300. See `mutation-table-2026-11-11.md`.
+
 **Caught 5 of 10.** Five planted flaws made the bench score a payment beyond policy. The other five scored 0 on all 10 attacks: the bench cannot see them. Every one of the 10 results matched the prediction written before any run (`evidence/mutation-plan.md`).
 
 **How it works.** A mutant is a copy of `targets/vault-a` with one planted flaw. The bench runs its existing 10 scripted attacks against each mutant. "Caught" means at least one attack ended with `unauthorised > 0`, which counts tokens paid beyond the policy and is read from final token balances.

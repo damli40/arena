@@ -56,12 +56,18 @@ def receipt(path: Path, commit: str, **f) -> dict:
             "harness_commit": commit, "evidence_sha256": sha256(path), "evidence_path": str(path.relative_to(ROOT))}
 
 
-def race(commit: str):
-    p = EV / "testnet-2026-11-09.md"
+# The testnet race evidence to publish. Defaults = the Nov 9 run (guard fcce82bf...). After a new testnet
+# race (e.g. with the Nov 11 guard, 0382023b...), pass --race-md and --race-raw for that run's files.
+RACE_MD = "testnet-2026-11-09.md"
+RACE_RAW = ["testnet-2026-11-09-run8-raw.json", "testnet-2026-11-09-run9-raw.json"]
+
+
+def race(commit: str, md: str = RACE_MD, raws=None):
+    p = EV / md
     t = p.read_text()
     code_hash = re.search(r"guard\.wasm sha256 `([0-9a-f]{64})`", t).group(1)
     limit = int(re.search(r"may pay at most its amount \((\d+) test tokens\)", t).group(1))
-    for raw in ("testnet-2026-11-09-run8-raw.json", "testnet-2026-11-09-run9-raw.json"):
+    for raw in (raws or RACE_RAW):
         h = json.loads((EV / raw).read_text())["header"]["guard_wasm_sha256"]
         assert h == code_hash, f"{raw} ran {h}, md says {code_hash}"
     # Count only trials where both pays reached the chain and overlapped (rows 1-10 of the full table).
@@ -129,10 +135,26 @@ def coverage(commit: str):
     return out
 
 
-def all_receipts():
+def proof(commit: str):
+    """2026-11-11, opt-in (--with-proof). One receipt for proofs/run.sh on the Nov 11 guard source.
+    Scoped name on purpose: it covers the pay/callback race and the bounded full world, plus the
+    inductive step ON THE MODEL; it is not a claim that no invoice can ever be paid twice."""
+    p = EV / "proofs-inductive-2026-11-11.md"
+    t = p.read_text()
+    code_hash = re.search(r"guard\.wasm sha256 `([0-9a-f]{64})`", t).group(1)
+    con = (EV / "proofs-2026-11-11/console.log").read_text()
+    m = re.search(r"^proofs: (\d+) passed, (\d+) failed", con, re.M)
+    held, failed = int(m.group(1)), int(m.group(2))
+    return [receipt(p, commit, guard_code_hash=code_hash, guard_label="fixed (mode=fixed), proofs on source + model",
+                    suite="proof-pay-race-inductive", beyond_policy=0 if failed == 0 else 1,
+                    against_intent=None, tests_run=held + failed, tests_held=held)]
+
+
+def all_receipts(race_md: str = RACE_MD, race_raw=None, with_proof: bool = False):
     commit = harness_commit()
     va = vault_a_hash()
-    return race(commit) + [injection_broad(commit, va), injection_narrow(commit, va)] + coverage(commit)
+    rs = race(commit, race_md, race_raw) + [injection_broad(commit, va), injection_narrow(commit, va)] + coverage(commit)
+    return rs + (proof(commit) if with_proof else [])
 
 
 def cli(*args) -> list:
@@ -164,8 +186,11 @@ def main():
     ap.add_argument("--dry-run", action="store_true", help="print the receipts, send nothing")
     ap.add_argument("--contract", help="arena-receipts contract account id on testnet")
     ap.add_argument("--check", action="store_true", help="skip publishing; only run the live passes calls")
+    ap.add_argument("--race-md", default=RACE_MD, help="testnet race evidence file in evidence/ (default: the Nov 9 run)")
+    ap.add_argument("--race-raw", nargs="+", default=None, help="that run's raw JSON files in evidence/")
+    ap.add_argument("--with-proof", action="store_true", help="also publish the proof-pay-race-inductive receipt (Nov 11 guard)")
     a = ap.parse_args()
-    rs = all_receipts()
+    rs = all_receipts(a.race_md, a.race_raw, a.with_proof)
     if a.dry_run or not a.contract:
         print(json.dumps(rs, indent=2))
         if not a.dry_run:

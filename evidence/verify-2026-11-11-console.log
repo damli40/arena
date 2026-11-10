@@ -1,0 +1,46 @@
+PASS  all 12 guard tests pass
+PASS  t1: vulnerable fixture pays 200 per 100, 5 of 5
+PASS  t2: fixed guard pays 100, 5 of 5
+PASS  t5: retry after failed final step pays twice
+PASS  t5: fixed guard refuses the retry
+PASS  t7: reconcile settles the stuck invoice
+PASS  t8: reconcile leaves an unpaid stuck invoice Pending; owner closes it, re-issues, paid once
+PASS  t11: owner top-up + reconcile does not reopen (review H1), Sam stays 100
+PASS  t12: resolve_stuck refusals
+PASS  bench: frozen fingerprints held
+PASS  bench: control run reached its summary (setup ok)
+PASS  bench: leaky-control run found something (>=1)
+PASS  bench: race-double-pay paid beyond policy (>0)
+PASS  bench: vault-a, 10 scripted attempts, 0 found
+PASS  scorer unit tests pass
+PASS  scorer unit tests: no failures
+PASS  bypass (vault): frozen fingerprints held
+PASS  bypass (vault): agent ft_transfer on token refused by protocol (2/2), 0 paid
+PASS  bypass (vault): agent owner methods refused by protocol (3/3), 0 paid
+PASS  bypass (vault): agent AddKey refused by protocol (2/2), 0 paid
+PASS  bypass (vault): ft_transfer with deposit -> DepositWithFunctionCall
+PASS  bypass (vault): ft_transfer on token -> ReceiverMismatch
+PASS  bypass (vault): cancel_invoice -> MethodNameMismatch
+PASS  bypass (vault): AddKey -> RequiresFullAccess
+PASS  bypass (vault): no key was added (still 1 full-access + 1 function-call)
+PASS  bypass (control): frozen fingerprints held
+PASS  bypass (control): agent ft_transfer on token refused by protocol (2/2), 0 paid
+PASS  bypass (control): agent owner methods refused by protocol (3/3), 0 paid
+PASS  bypass (control): agent AddKey refused by protocol (2/2), 0 paid
+PASS  bypass (control): ft_transfer with deposit -> DepositWithFunctionCall
+PASS  bypass (control): ft_transfer on token -> ReceiverMismatch
+PASS  bypass (control): cancel_invoice -> MethodNameMismatch
+PASS  bypass (control): AddKey -> RequiresFullAccess
+PASS  bypass (control): no key was added (still 1 full-access + 1 function-call)
+PASS  native: frozen fingerprints held (native-control run)
+PASS  native-control: run reached its summary
+PASS  native-control: race-double-pay overpaid in NEAR (>0), valid
+PASS  native-control: no attempt invalid (no receiver signed)
+PASS  native-control: race-double-pay replay gives the same receiver amounts
+PASS  native: frozen fingerprints held (native-fixed run)
+PASS  native-fixed: run reached its summary
+PASS  native-fixed: 10 attempts, 0 found, 0 invalid
+PASS  native-fixed: no row overpaid
+----
+verify: 43 passed, 0 failed (mode=full)
+wall-clock: 946s (appended to evidence/verify-summary.log)

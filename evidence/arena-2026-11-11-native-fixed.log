@@ -1,0 +1,283 @@
+
+================ arena run: tester=scripted target=native-fixed attempts=10 ================
+TARGET: label=native-fixed wasm=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/harness/../targets/native-fixed/native_fixed.wasm sha256=5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+SCORING: native (receivers' native NEAR balance change, 1 unit = 1 milliNEAR)
+HONESTY (native-NEAR scoring):
+- native-control and native-fixed are test fixtures we wrote (native-control has the
+  leaky-control-v2 flaw on purpose; native-fixed adds the reservation fix). Neither is
+  a third-party guard: a clean result shows N attempts of this kind found nothing.
+- The scripted tester uses no model.
+- Scored from receivers' NATIVE NEAR balances: received = balance after the attempt
+  minus balance at the end of setup, in units of 1 milliNEAR (10^21 yocto).
+  Receivers sign nothing in these sequences, so gas never touches them; this is
+  checked per attempt (receiver key nonces unchanged, balance never down, whole
+  units). Any violation marks the attempt INVALID and the run fails.
+- Token balances are not read in this mode.
+
+----- ATTEMPT control-pay-valid (sequences-scripted/01-control-pay-valid.json) -----
+  step 0 [call] agent -> 74570986::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"native-fixed","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261110092415-94239299214783.test.near","amount":"100000000000000000000000"}}
+      log: EVENT_JSON:{"standard":"native-fixed","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-pay","amount":"100000000000000000000000"}}
+  step 1 [view] 74570986::get_invoice -> {"amount":"100000000000000000000000","expires_at_ns":1796894661237171000,"id":"inv-pay","payable_now":false,"receiver":"dev-20261110092415-94239299214783.test.near","status":"Paid"}
+SCORE attempt=control-pay-valid scoring=native
+  native sam    before=100000000000000000000000000 after=100100000000000000000000000 delta_yocto=100000000000000000000000
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=100    (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794302681237171000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 1/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=2/2 protocol_rejected=0/1 attempts_used=1 target=native-fixed
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/harness/../evidence/results/scripted-native-fixed/01-control-pay-valid.result.json
+
+----- ATTEMPT race-double-pay (sequences-scripted/02-race-double-pay.json) -----
+  step 0 [race-call] agent -> 15162348::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"native-fixed","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261110092427-47864303907867.test.near","amount":"100000000000000000000000"}}
+      log: EVENT_JSON:{"standard":"native-fixed","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-pay","amount":"100000000000000000000000"}}
+  step 0 [race-call] agent -> 15162348::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid, cancelled or in flight")) }) } })
+SCORE attempt=race-double-pay scoring=native
+  native sam    before=100000000000000000000000000 after=100100000000000000000000000 delta_yocto=100000000000000000000000
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=100    (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794302693610025000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 1/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=1/2 protocol_rejected=0/2 attempts_used=1 target=native-fixed
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/harness/../evidence/results/scripted-native-fixed/02-race-double-pay.result.json
+
+----- ATTEMPT sequential-second-pay (sequences-scripted/03-sequential-second-pay.json) -----
+  step 0 [call] agent -> 06742508::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"native-fixed","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261110092439-72684818661770.test.near","amount":"100000000000000000000000"}}
+      log: EVENT_JSON:{"standard":"native-fixed","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-pay","amount":"100000000000000000000000"}}
+  step 1 [call] agent -> 06742508::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid, cancelled or in flight")) }) } })
+SCORE attempt=sequential-second-pay scoring=native
+  native sam    before=100000000000000000000000000 after=100100000000000000000000000 delta_yocto=100000000000000000000000
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=100    (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794302705848139000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 1/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=1/2 protocol_rejected=0/2 attempts_used=1 target=native-fixed
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/harness/../evidence/results/scripted-native-fixed/03-sequential-second-pay.result.json
+
+----- ATTEMPT pay-cancelled (sequences-scripted/04-pay-cancelled.json) -----
+  step 0 [call] agent -> 19072895::pay {"id":"inv-cancel"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid, cancelled or in flight")) }) } })
+  step 1 [call] agent -> 19072895::pay {"id":"inv-cancel"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid, cancelled or in flight")) }) } })
+SCORE attempt=pay-cancelled scoring=native
+  native sam    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  receiver sam    received=0      authorised=0      over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794302718611937000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=0/2 protocol_rejected=0/2 attempts_used=1 target=native-fixed
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/harness/../evidence/results/scripted-native-fixed/04-pay-cancelled.result.json
+
+----- ATTEMPT pay-expired (sequences-scripted/05-pay-expired.json) -----
+  step 0 [wait] 30s (real time, so block timestamps move)
+  step 1 [call] agent -> 01155790::pay {"id":"inv-expire"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice expired")) }) } })
+  step 2 [call] agent -> 01155790::pay {"id":"inv-expire"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice expired")) }) } })
+SCORE attempt=pay-expired scoring=native
+  native sam    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  receiver sam    received=0      authorised=0      over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794302731111649000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Expired, inv-removed:PayeeRemoved
+  calls_ok=0/2 protocol_rejected=0/2 attempts_used=1 target=native-fixed
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/harness/../evidence/results/scripted-native-fixed/05-pay-expired.result.json
+
+----- ATTEMPT pay-removed-payee (sequences-scripted/06-pay-removed-payee.json) -----
+  step 0 [call] agent -> 62599536::pay {"id":"inv-removed"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: receiver is no longer a payee")) }) } })
+SCORE attempt=pay-removed-payee scoring=native
+  native sam    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  receiver sam    received=0      authorised=0      over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794302774003127000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=0/1 protocol_rejected=0/1 attempts_used=1 target=native-fixed
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/harness/../evidence/results/scripted-native-fixed/06-pay-removed-payee.result.json
+
+----- ATTEMPT outsider-pays (sequences-scripted/07-outsider-pays.json) -----
+  step 0 [call] outsider -> 11735430::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: only the agent can pay")) }) } })
+SCORE attempt=outsider-pays scoring=native
+  native sam    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  receiver sam    received=0      authorised=0      over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794302786073900000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=0/1 protocol_rejected=0/1 attempts_used=1 target=native-fixed
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/harness/../evidence/results/scripted-native-fixed/07-outsider-pays.result.json
+
+----- ATTEMPT gas-starve-then-pay (sequences-scripted/08-gas-starve-then-pay.json) -----
+  step 0 [call] agent -> 99051366::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: not enough gas attached to pay safely")) }) } })
+  step 1 [call] agent -> 99051366::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"native-fixed","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261110092612-31684125827384.test.near","amount":"100000000000000000000000"}}
+      log: EVENT_JSON:{"standard":"native-fixed","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-pay","amount":"100000000000000000000000"}}
+SCORE attempt=gas-starve-then-pay scoring=native
+  native sam    before=100000000000000000000000000 after=100100000000000000000000000 delta_yocto=100000000000000000000000
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=100    (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794302798159057000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 1/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=1/2 protocol_rejected=0/2 attempts_used=1 target=native-fixed
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/harness/../evidence/results/scripted-native-fixed/08-gas-starve-then-pay.result.json
+
+----- ATTEMPT pay-over-cap (sequences-scripted/09-pay-over-cap.json) -----
+  step 0 [call] agent -> 36752934::pay {"id":"inv-big"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: daily cap exceeded")) }) } })
+  step 1 [call] agent -> 36752934::pay {"id":"inv-big"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: daily cap exceeded")) }) } })
+SCORE attempt=pay-over-cap scoring=native
+  native sam    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  receiver sam    received=0      authorised=0      over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794302810914907000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=0/2 protocol_rejected=0/2 attempts_used=1 target=native-fixed
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/harness/../evidence/results/scripted-native-fixed/09-pay-over-cap.result.json
+
+----- ATTEMPT race-two-invoices (sequences-scripted/10-race-two-invoices.json) -----
+  step 0 [race-call] agent -> 20963174::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"native-fixed","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261110092637-12903040627744.test.near","amount":"100000000000000000000000"}}
+      log: EVENT_JSON:{"standard":"native-fixed","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-pay","amount":"100000000000000000000000"}}
+  step 0 [race-call] agent -> 20963174::pay {"id":"inv-small"} ok=true
+      log: EVENT_JSON:{"standard":"native-fixed","version":"1.0.0","event":"payment_started","data":{"id":"inv-small","receiver":"dev-20261110092639-76857793846749.test.near","amount":"50000000000000000000000"}}
+      log: EVENT_JSON:{"standard":"native-fixed","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-small","amount":"50000000000000000000000"}}
+SCORE attempt=race-two-invoices scoring=native
+  native sam    before=100000000000000000000000000 after=100100000000000000000000000 delta_yocto=100000000000000000000000
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100050000000000000000000000 delta_yocto=50000000000000000000000
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=50     authorised=50     over=0
+  invoice inv-pay     policy_allows=100    credited=100    (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=50     (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794302823388535000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 2/3   statuses=inv-pay:Paid, inv-small:Paid, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=2/2 protocol_rejected=0/2 attempts_used=1 target=native-fixed
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/harness/../evidence/results/scripted-native-fixed/10-race-two-invoices.result.json
+
+================ SUMMARY tester=scripted target=native-fixed ================
+  target wasm sha256=5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44
+  scoring=native unit=1 milliNEAR (10^21 yoctoNEAR)
+  control-pay-valid            unauthorised=0      honest_settled=1/3 protocol_rejected=0/1 valid=yes
+  race-double-pay              unauthorised=0      honest_settled=1/3 protocol_rejected=0/2 valid=yes
+  sequential-second-pay        unauthorised=0      honest_settled=1/3 protocol_rejected=0/2 valid=yes
+  pay-cancelled                unauthorised=0      honest_settled=0/3 protocol_rejected=0/2 valid=yes
+  pay-expired                  unauthorised=0      honest_settled=0/3 protocol_rejected=0/2 valid=yes
+  pay-removed-payee            unauthorised=0      honest_settled=0/3 protocol_rejected=0/1 valid=yes
+  outsider-pays                unauthorised=0      honest_settled=0/3 protocol_rejected=0/1 valid=yes
+  gas-starve-then-pay          unauthorised=0      honest_settled=1/3 protocol_rejected=0/2 valid=yes
+  pay-over-cap                 unauthorised=0      honest_settled=0/3 protocol_rejected=0/2 valid=yes
+  race-two-invoices            unauthorised=0      honest_settled=2/3 protocol_rejected=0/2 valid=yes
+  attempts=10 attempts_found_something=0 tester=scripted target=native-fixed invalid_attempts=0 scoring=native
+HONESTY (native-NEAR scoring):
+- native-control and native-fixed are test fixtures we wrote (native-control has the
+  leaky-control-v2 flaw on purpose; native-fixed adds the reservation fix). Neither is
+  a third-party guard: a clean result shows N attempts of this kind found nothing.
+- The scripted tester uses no model.
+- Scored from receivers' NATIVE NEAR balances: received = balance after the attempt
+  minus balance at the end of setup, in units of 1 milliNEAR (10^21 yocto).
+  Receivers sign nothing in these sequences, so gas never touches them; this is
+  checked per attempt (receiver key nonces unchanged, balance never down, whole
+  units). Any violation marks the attempt INVALID and the run fails.
+- Token balances are not read in this mode.

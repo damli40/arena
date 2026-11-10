@@ -1,6 +1,36 @@
 {
   "attempt": "control-pay-valid",
   "final": {
+    "credited_by_invoice": [
+      {
+        "credited": "100",
+        "id": "inv-pay"
+      },
+      {
+        "credited": "0",
+        "id": "inv-small"
+      },
+      {
+        "credited": "0",
+        "id": "inv-mid"
+      },
+      {
+        "credited": "0",
+        "id": "inv-big"
+      },
+      {
+        "credited": "0",
+        "id": "inv-cancel"
+      },
+      {
+        "credited": "0",
+        "id": "inv-expire"
+      },
+      {
+        "credited": "0",
+        "id": "inv-removed"
+      }
+    ],
     "invoice_statuses": [
       {
         "id": "inv-pay",
@@ -31,6 +61,7 @@
         "status": "PayeeRemoved"
       }
     ],
+    "non_agent_pays": [],
     "received": [
       {
         "authorised": "100",
@@ -39,7 +70,7 @@
         "receiver": "sam"
       },
       {
-        "authorised": "200",
+        "authorised": "0",
         "over": "0",
         "received": "0",
         "receiver": "ada"
@@ -51,13 +82,13 @@
         "receiver": "lin"
       },
       {
-        "authorised": "600",
+        "authorised": "0",
         "over": "0",
         "received": "0",
         "receiver": "kai"
       },
       {
-        "authorised": "50",
+        "authorised": "0",
         "over": "0",
         "received": "0",
         "receiver": "mo"
@@ -69,7 +100,7 @@
     "beyond_authorised": "0",
     "expiry": [
       {
-        "expires_at_ns": 1794255530918455000,
+        "expires_at_ns": 1794302208623140000,
         "id": "inv-expire",
         "pay_block_ts": 0,
         "verdict": "no pay recorded"
@@ -93,8 +124,8 @@
       "failure": "",
       "kind": "call",
       "logs": [
-        "EVENT_JSON:{\"standard\":\"vault-a\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":[{\"id\":\"inv-pay\",\"receiver\":\"dev-20261109201821-17183015787235.test.near\",\"amount\":\"100\"}]}",
-        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261109201824-79789348481433.test.near\",\"new_owner_id\":\"dev-20261109201821-17183015787235.test.near\",\"amount\":\"100\",\"memo\":\"vault-a invoice inv-pay\"}]}",
+        "EVENT_JSON:{\"standard\":\"vault-a\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":[{\"id\":\"inv-pay\",\"receiver\":\"dev-20261110091619-63774189626097.test.near\",\"amount\":\"100\"}]}",
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110091621-80615955346266.test.near\",\"new_owner_id\":\"dev-20261110091619-63774189626097.test.near\",\"amount\":\"100\",\"memo\":\"vault-a invoice inv-pay\"}]}",
         "EVENT_JSON:{\"standard\":\"vault-a\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":[{\"id\":\"inv-pay\",\"amount\":\"100\"}]}"
       ],
       "method": "pay",
@@ -119,10 +150,10 @@
       "target": "vault",
       "view": {
         "amount": "100",
-        "expires_at_ns": 1796847510918455000,
+        "expires_at_ns": 1796894188623140000,
         "id": "inv-pay",
         "payable_now": false,
-        "receiver": "dev-20261109201821-17183015787235.test.near",
+        "receiver": "dev-20261110091619-63774189626097.test.near",
         "status": "Paid"
       }
     }
