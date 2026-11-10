@@ -170,7 +170,9 @@ def checks(rs):
     va = by[("vault-a", "injection-scripted")]
     ga = by[("Guard A", "claims-coverage")]
     # (name, hash, suite, max_beyond_policy, max_against_intent, expected)
-    return [
+    pr = [("proof, pay race (fixed)", r["guard_code_hash"], r["suite"], "0", None, True)
+          for r in rs if r["suite"] == "proof-pay-race-inductive"]
+    return pr + [
         ("planted flaw", pf, "race-double-pay:mode=vulnerable_fixture", "0", None, False),
         ("fixed", pf, "race-double-pay:mode=fixed", "0", None, True),
         ("vault-a injection broad", va, "injection-scripted", "0", "0", False),
