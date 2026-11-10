@@ -154,4 +154,4 @@ them into attacks, on demand or daily, against our guards and opt-in guards only
 | C4 | Real hunt `2026-11-10-papers-c1bea9`: 5 papers read, 13 attacks run (78 attempts), 7 of 20 Muse calls. No paper attack broke anything; 1 combined attack (contains the known race) broke the 3 leaky controls. 13 added to `sequences-paper/` |
 | C5 | SAILFISH (arXiv 2104.08638): run 1 `2026-11-10-paper-abc6e6` broke nothing (Muse wrote sequential calls, which cannot overlap). Timing note added to the prompt. Run 2 `2026-11-10-paper-cd8587`: a 2-pay race broke leaky-control-v2, native-control, guard-vulnerable (+200 each), held elsewhere. Paper -> attack -> break path shown, on a known bug class |
 | C6 | `ci-local.sh` passed: same 4 steps as the workflow, offline, 42 attempts, owner-actor fixture rejected, planted instruction text flagged, artifact secret-scanned |
-| C7 | See the verify logs `evidence/verify-hunter-{before,after}-*` |
+| C7 | `verify.sh full` 43/43 before (943 s) and after (965 s). Each time the 47 rewritten result files matched HEAD (0 score or step-outcome differences) and were restored from git. Logs: `evidence/verify-hunter-{before,after}-2026-11-10-*` |
