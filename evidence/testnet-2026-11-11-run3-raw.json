@@ -1,0 +1,962 @@
+{
+  "errors": [],
+  "funder_balance_end_yocto": "2490819721208396299999988",
+  "header": {
+    "funder": "arena-race-funder-1111.testnet",
+    "funder_balance_start_yocto": "6752645985369126799999989",
+    "guard_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+    "network": "testnet",
+    "rpc": "https://rpc.testnet.fastnear.com",
+    "started_unix_ms": "1794326557698",
+    "token_wasm_sha256": "c8071a2265b6dbd595f319972dc3271d928a73b5a98456538ae5246abf8d3e61",
+    "trial_upfront_millinear": "6500",
+    "trials_per_mode": 5
+  },
+  "stopped": null,
+  "trials": [
+    {
+      "accounts": {
+        "agent": "r11cfx0-agent.arena-race-funder-1111.testnet",
+        "funder": "arena-race-funder-1111.testnet",
+        "guard": "r11cfx0-guard.arena-race-funder-1111.testnet",
+        "owner": "r11cfx0-owner.arena-race-funder-1111.testnet",
+        "receiver": "r11cfx0-sam.arena-race-funder-1111.testnet",
+        "token": "r11cfx0-token.arena-race-funder-1111.testnet"
+      },
+      "agent_txs_sent_during_race": 2,
+      "deleted_accounts": [
+        {
+          "account": "r11cfx0-token.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "Ho4PfwvCSG1MnkrYQSsbT61uKXi5okp7NUZvuFRjgUGY"
+        },
+        {
+          "account": "r11cfx0-guard.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "5wMkTuyvLMrGtTj8bQ4cqUjzQ1KYtfvcvYKsXTYoYuuD"
+        },
+        {
+          "account": "r11cfx0-sam.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "7R5UNcScMbYYPKmcUt5PASUXCDzhaKMjxViAxZqok5S2"
+        },
+        {
+          "account": "r11cfx0-owner.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "BT8wckW2ZG7EoQitGhcPcn4mUgsdfWcsQgZmbnNGvCGo"
+        },
+        {
+          "account": "r11cfx0-agent.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "GuDEAUHXTs3u5WJeH48z4C2j4HkdVpbidb9urw5G3o7a"
+        }
+      ],
+      "earlier_pay_callback_height": null,
+      "elapsed_s": 52,
+      "funder_balance_after_yocto": "6710833165524195699999989",
+      "funder_balance_before_yocto": "6752645985369126799999989",
+      "guard_paid_out": "100",
+      "invoice_amount": "100",
+      "invoice_id": "inv-fixed-0",
+      "invoice_record_after": {
+        "amount": "100",
+        "confirmed_payouts": 1,
+        "pending_since_block": 277089501,
+        "receiver": "r11cfx0-sam.arena-race-funder-1111.testnet",
+        "status": "Paid",
+        "transfers_started": 1
+      },
+      "kept_alive": false,
+      "later_pay_check_height": 277089501,
+      "mode": "fixed",
+      "mode_onchain": "fixed",
+      "overlapped": null,
+      "pay_a": {
+        "broadcast_returned_unix_ms": "1794326593433",
+        "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: payment already in flight\")) }) } })",
+        "link": "https://testnet.nearblocks.io/txns/CNge5pR61eMyE7zf17r4ywQvAShxnjvSbmHvCX5op3RB",
+        "outcome_fetch_error": null,
+        "sent_unix_ms": "1794326592922",
+        "steps": [
+          {
+            "block_height": 277089500,
+            "executor": "r11cfx0-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "tx_to_receipt (agent signs)"
+          },
+          {
+            "block_height": 277089501,
+            "executor": "r11cfx0-guard.arena-race-funder-1111.testnet",
+            "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: payment already in flight\")) }) } })",
+            "logs": [],
+            "ok": false,
+            "role": "pay (guard: check + start transfer)"
+          }
+        ],
+        "success": false,
+        "tx": "CNge5pR61eMyE7zf17r4ywQvAShxnjvSbmHvCX5op3RB"
+      },
+      "pay_b": {
+        "broadcast_returned_unix_ms": "1794326593582",
+        "failure": "",
+        "link": "https://testnet.nearblocks.io/txns/HXgM6vVbAPFUNV44b8FNRGs1oYAcaZ3VtUZJhn6jeLVQ",
+        "outcome_fetch_error": null,
+        "sent_unix_ms": "1794326592922",
+        "steps": [
+          {
+            "block_height": 277089500,
+            "executor": "r11cfx0-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "tx_to_receipt (agent signs)"
+          },
+          {
+            "block_height": 277089501,
+            "executor": "r11cfx0-guard.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [
+              "pay: invoice=inv-fixed-0 transfer #1 started, mode=Fixed"
+            ],
+            "ok": true,
+            "role": "pay (guard: check + start transfer)"
+          },
+          {
+            "block_height": 277089502,
+            "executor": "r11cfx0-token.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [
+              "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"r11cfx0-guard.arena-race-funder-1111.testnet\",\"new_owner_id\":\"r11cfx0-sam.arena-race-funder-1111.testnet\",\"amount\":\"100\",\"memo\":\"invoice inv-fixed-0\"}]}"
+            ],
+            "ok": true,
+            "role": "ft_transfer (token moves)"
+          },
+          {
+            "block_height": 277089503,
+            "executor": "r11cfx0-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "other receipt on r11cfx0-agent.arena-race-funder-1111.testnet (e.g. gas refund)"
+          },
+          {
+            "block_height": 277089503,
+            "executor": "r11cfx0-guard.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [
+              "on_transfer: invoice=inv-fixed-0 confirmed=true"
+            ],
+            "ok": true,
+            "role": "on_transfer (guard callback: writes result)"
+          },
+          {
+            "block_height": 277089502,
+            "executor": "r11cfx0-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "other receipt on r11cfx0-agent.arena-race-funder-1111.testnet (e.g. gas refund)"
+          }
+        ],
+        "success": true,
+        "tx": "HXgM6vVbAPFUNV44b8FNRGs1oYAcaZ3VtUZJhn6jeLVQ"
+      },
+      "receiver_balance_after": "100",
+      "receiver_balance_before": "0",
+      "receiver_received": "100",
+      "rule": "an invoice may pay at most its amount (100 test tokens)",
+      "rule_held": true,
+      "setup_txs": [
+        {
+          "step": "token.new",
+          "tx": "EVrnmeLJekKY2NT6b2qsUSG1vNZzHo8gKpAruhqpUjHQ"
+        },
+        {
+          "step": "guard.new",
+          "tx": "kkr9sPhZS6ixsAQ6yt6ZBaJFtPC7U5HVUWrJMmoTQVP"
+        },
+        {
+          "step": "storage_deposit r11cfx0-guard.arena-race-funder-1111.testnet",
+          "tx": "5FvKwq5LLiKedCPnWxTnsejGJqxS9HUqrytGqQpN3ZMu"
+        },
+        {
+          "step": "storage_deposit r11cfx0-sam.arena-race-funder-1111.testnet",
+          "tx": "9oobr1mUkNaAAqxtcVdLgAdhodYdhgQ3PjS6i4xngeWG"
+        },
+        {
+          "step": "fund guard 1000",
+          "tx": "8VzoyPWJs6KhYH3ZR4wANRtLutDST8dFEpbCSbh6oiwa"
+        },
+        {
+          "step": "approve_invoice 100",
+          "tx": "2TSYWi3zLeDxpyaHUitGkA7ZnvsEMkJyWJSZfmcWiJ7b"
+        }
+      ],
+      "trial": 0
+    },
+    {
+      "accounts": {
+        "agent": "r11cfx1-agent.arena-race-funder-1111.testnet",
+        "funder": "arena-race-funder-1111.testnet",
+        "guard": "r11cfx1-guard.arena-race-funder-1111.testnet",
+        "owner": "r11cfx1-owner.arena-race-funder-1111.testnet",
+        "receiver": "r11cfx1-sam.arena-race-funder-1111.testnet",
+        "token": "r11cfx1-token.arena-race-funder-1111.testnet"
+      },
+      "agent_txs_sent_during_race": 2,
+      "deleted_accounts": [
+        {
+          "account": "r11cfx1-token.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "EAuLUhxBrh2p8BzPXKnyVN68JcLJA81Qt7ufN8kNNvAj"
+        },
+        {
+          "account": "r11cfx1-guard.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "5aresBmgSMzBHgjuBSsdFyeh5tVSSrwMELty5m9mag13"
+        },
+        {
+          "account": "r11cfx1-sam.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "JCFvCnNaVqdxjANa4vcBsqgJYR1HSiuJ6u2zuo8Ka3f2"
+        },
+        {
+          "account": "r11cfx1-owner.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "7TJ94TkAKT3NphJhiR8gQDgKjvYNgth9sLgVBBCXmPaQ"
+        },
+        {
+          "account": "r11cfx1-agent.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "BDUJaXw8E9fST62CmtasS42GSyzwEaxThnU32R4tYmvY"
+        }
+      ],
+      "earlier_pay_callback_height": 277089613,
+      "elapsed_s": 52,
+      "funder_balance_after_yocto": "6669020345679264599999989",
+      "funder_balance_before_yocto": "6710833165524195699999989",
+      "guard_paid_out": "100",
+      "invoice_amount": "100",
+      "invoice_id": "inv-fixed-1",
+      "invoice_record_after": {
+        "amount": "100",
+        "confirmed_payouts": 1,
+        "pending_since_block": 277089611,
+        "receiver": "r11cfx1-sam.arena-race-funder-1111.testnet",
+        "status": "Paid",
+        "transfers_started": 1
+      },
+      "kept_alive": false,
+      "later_pay_check_height": 277089611,
+      "mode": "fixed",
+      "mode_onchain": "fixed",
+      "overlapped": true,
+      "pay_a": {
+        "broadcast_returned_unix_ms": "1794326655180",
+        "failure": "",
+        "link": "https://testnet.nearblocks.io/txns/5WuUKVEGgFboTEUydmmsPPHyscBmGD3f1NHhGj1NNgfw",
+        "outcome_fetch_error": null,
+        "sent_unix_ms": "1794326654800",
+        "steps": [
+          {
+            "block_height": 277089610,
+            "executor": "r11cfx1-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "tx_to_receipt (agent signs)"
+          },
+          {
+            "block_height": 277089611,
+            "executor": "r11cfx1-guard.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [
+              "pay: invoice=inv-fixed-1 transfer #1 started, mode=Fixed"
+            ],
+            "ok": true,
+            "role": "pay (guard: check + start transfer)"
+          },
+          {
+            "block_height": 277089612,
+            "executor": "r11cfx1-token.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [
+              "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"r11cfx1-guard.arena-race-funder-1111.testnet\",\"new_owner_id\":\"r11cfx1-sam.arena-race-funder-1111.testnet\",\"amount\":\"100\",\"memo\":\"invoice inv-fixed-1\"}]}"
+            ],
+            "ok": true,
+            "role": "ft_transfer (token moves)"
+          },
+          {
+            "block_height": 277089613,
+            "executor": "r11cfx1-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "other receipt on r11cfx1-agent.arena-race-funder-1111.testnet (e.g. gas refund)"
+          },
+          {
+            "block_height": 277089613,
+            "executor": "r11cfx1-guard.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [
+              "on_transfer: invoice=inv-fixed-1 confirmed=true"
+            ],
+            "ok": true,
+            "role": "on_transfer (guard callback: writes result)"
+          },
+          {
+            "block_height": 277089614,
+            "executor": "r11cfx1-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "other receipt on r11cfx1-agent.arena-race-funder-1111.testnet (e.g. gas refund)"
+          },
+          {
+            "block_height": 277089612,
+            "executor": "r11cfx1-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "other receipt on r11cfx1-agent.arena-race-funder-1111.testnet (e.g. gas refund)"
+          }
+        ],
+        "success": true,
+        "tx": "5WuUKVEGgFboTEUydmmsPPHyscBmGD3f1NHhGj1NNgfw"
+      },
+      "pay_b": {
+        "broadcast_returned_unix_ms": "1794326655180",
+        "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: payment already in flight\")) }) } })",
+        "link": "https://testnet.nearblocks.io/txns/97eKGNeJBsmgf2mYk1ujG5xQosbYh2RUYbfoMg7toDox",
+        "outcome_fetch_error": null,
+        "sent_unix_ms": "1794326654800",
+        "steps": [
+          {
+            "block_height": 277089610,
+            "executor": "r11cfx1-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "tx_to_receipt (agent signs)"
+          },
+          {
+            "block_height": 277089611,
+            "executor": "r11cfx1-guard.arena-race-funder-1111.testnet",
+            "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: payment already in flight\")) }) } })",
+            "logs": [],
+            "ok": false,
+            "role": "pay (guard: check + start transfer)"
+          }
+        ],
+        "success": false,
+        "tx": "97eKGNeJBsmgf2mYk1ujG5xQosbYh2RUYbfoMg7toDox"
+      },
+      "receiver_balance_after": "100",
+      "receiver_balance_before": "0",
+      "receiver_received": "100",
+      "rule": "an invoice may pay at most its amount (100 test tokens)",
+      "rule_held": true,
+      "setup_txs": [
+        {
+          "step": "token.new",
+          "tx": "GVgtsgWHBThiMAa7H5tDSBx55eENMgkmJSYCWkpBFVZa"
+        },
+        {
+          "step": "guard.new",
+          "tx": "4WuMAJq6TmqdRPj45B4AVo6ZRrV6gwHqXD3GM2q6qinV"
+        },
+        {
+          "step": "storage_deposit r11cfx1-guard.arena-race-funder-1111.testnet",
+          "tx": "EDFPY4QxkttdDCepdRivusry2Fx41mFAA8VuykGqJA7N"
+        },
+        {
+          "step": "storage_deposit r11cfx1-sam.arena-race-funder-1111.testnet",
+          "tx": "HivT3j3fGyd9yrt8gByHEG3DHApdBoM23mQD9YncKvTW"
+        },
+        {
+          "step": "fund guard 1000",
+          "tx": "ETGEiN2YVNppRceVcRVHYUBpMUX4nasmCkGGwWu5n61E"
+        },
+        {
+          "step": "approve_invoice 100",
+          "tx": "4x6m4M6hpXH5epwTtyrbpVhKvJiwvRkQJh1HeyvdKLri"
+        }
+      ],
+      "trial": 1
+    },
+    {
+      "accounts": {
+        "agent": "r11cfx2-agent.arena-race-funder-1111.testnet",
+        "funder": "arena-race-funder-1111.testnet",
+        "guard": "r11cfx2-guard.arena-race-funder-1111.testnet",
+        "owner": "r11cfx2-owner.arena-race-funder-1111.testnet",
+        "receiver": "r11cfx2-sam.arena-race-funder-1111.testnet",
+        "token": "r11cfx2-token.arena-race-funder-1111.testnet"
+      },
+      "agent_txs_sent_during_race": 2,
+      "deleted_accounts": [
+        {
+          "account": "r11cfx2-token.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "1UW36nZvY7LFU8QvQMfDvcQ7pKvQB6SbHnmM6s7Wo35"
+        },
+        {
+          "account": "r11cfx2-guard.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "2KizkXWabt3HpokjMWV99GJAdZJzQQ1UyZkst8CTbsLB"
+        },
+        {
+          "account": "r11cfx2-sam.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "eDxRBzQLZUT17dea4i9XrywLmfHuv6DPZwMCHAcsiiY"
+        },
+        {
+          "account": "r11cfx2-owner.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "Gcq6G5UD4Zw8PGXaQt1cZgh9sHe28FEHML99zVuTejMo"
+        },
+        {
+          "account": "r11cfx2-agent.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "5KADdiwnLJ9Y9wL4vTKeHRdnHg9Lqizp6wZdGhVDpuAQ"
+        }
+      ],
+      "earlier_pay_callback_height": 277089727,
+      "elapsed_s": 50,
+      "funder_balance_after_yocto": "6627207525834333499999989",
+      "funder_balance_before_yocto": "6669020345679264599999989",
+      "guard_paid_out": "100",
+      "invoice_amount": "100",
+      "invoice_id": "inv-fixed-2",
+      "invoice_record_after": {
+        "amount": "100",
+        "confirmed_payouts": 1,
+        "pending_since_block": 277089725,
+        "receiver": "r11cfx2-sam.arena-race-funder-1111.testnet",
+        "status": "Paid",
+        "transfers_started": 1
+      },
+      "kept_alive": false,
+      "later_pay_check_height": 277089726,
+      "mode": "fixed",
+      "mode_onchain": "fixed",
+      "overlapped": true,
+      "pay_a": {
+        "broadcast_returned_unix_ms": "1794326717601",
+        "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: payment already in flight\")) }) } })",
+        "link": "https://testnet.nearblocks.io/txns/TbyQfdgHUyiYQhtckVNWqXSHgrqhZAFfMVCbn6grKWh",
+        "outcome_fetch_error": null,
+        "sent_unix_ms": "1794326717188",
+        "steps": [
+          {
+            "block_height": 277089725,
+            "executor": "r11cfx2-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "tx_to_receipt (agent signs)"
+          },
+          {
+            "block_height": 277089726,
+            "executor": "r11cfx2-guard.arena-race-funder-1111.testnet",
+            "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: payment already in flight\")) }) } })",
+            "logs": [],
+            "ok": false,
+            "role": "pay (guard: check + start transfer)"
+          },
+          {
+            "block_height": 277089727,
+            "executor": "r11cfx2-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "other receipt on r11cfx2-agent.arena-race-funder-1111.testnet (e.g. gas refund)"
+          }
+        ],
+        "success": false,
+        "tx": "TbyQfdgHUyiYQhtckVNWqXSHgrqhZAFfMVCbn6grKWh"
+      },
+      "pay_b": {
+        "broadcast_returned_unix_ms": "1794326717519",
+        "failure": "",
+        "link": "https://testnet.nearblocks.io/txns/2Pdw2JGBQxqh649DksbXNkto3mhCxkPtAyTgvEpeiJEy",
+        "outcome_fetch_error": null,
+        "sent_unix_ms": "1794326717188",
+        "steps": [
+          {
+            "block_height": 277089724,
+            "executor": "r11cfx2-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "tx_to_receipt (agent signs)"
+          },
+          {
+            "block_height": 277089725,
+            "executor": "r11cfx2-guard.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [
+              "pay: invoice=inv-fixed-2 transfer #1 started, mode=Fixed"
+            ],
+            "ok": true,
+            "role": "pay (guard: check + start transfer)"
+          },
+          {
+            "block_height": 277089726,
+            "executor": "r11cfx2-token.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [
+              "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"r11cfx2-guard.arena-race-funder-1111.testnet\",\"new_owner_id\":\"r11cfx2-sam.arena-race-funder-1111.testnet\",\"amount\":\"100\",\"memo\":\"invoice inv-fixed-2\"}]}"
+            ],
+            "ok": true,
+            "role": "ft_transfer (token moves)"
+          },
+          {
+            "block_height": 277089727,
+            "executor": "r11cfx2-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "other receipt on r11cfx2-agent.arena-race-funder-1111.testnet (e.g. gas refund)"
+          },
+          {
+            "block_height": 277089727,
+            "executor": "r11cfx2-guard.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [
+              "on_transfer: invoice=inv-fixed-2 confirmed=true"
+            ],
+            "ok": true,
+            "role": "on_transfer (guard callback: writes result)"
+          },
+          {
+            "block_height": 277089728,
+            "executor": "r11cfx2-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "other receipt on r11cfx2-agent.arena-race-funder-1111.testnet (e.g. gas refund)"
+          },
+          {
+            "block_height": 277089726,
+            "executor": "r11cfx2-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "other receipt on r11cfx2-agent.arena-race-funder-1111.testnet (e.g. gas refund)"
+          }
+        ],
+        "success": true,
+        "tx": "2Pdw2JGBQxqh649DksbXNkto3mhCxkPtAyTgvEpeiJEy"
+      },
+      "receiver_balance_after": "100",
+      "receiver_balance_before": "0",
+      "receiver_received": "100",
+      "rule": "an invoice may pay at most its amount (100 test tokens)",
+      "rule_held": true,
+      "setup_txs": [
+        {
+          "step": "token.new",
+          "tx": "CYzTVw5PfCcg7RdwioEBWzV91sCSFEB54czLcd2n2k4u"
+        },
+        {
+          "step": "guard.new",
+          "tx": "7W873ztmAfCmrN7T1vUCCYphKBw9BpAG1upxfAAjeTwU"
+        },
+        {
+          "step": "storage_deposit r11cfx2-guard.arena-race-funder-1111.testnet",
+          "tx": "Bg9AokVirSJvTeYaQ8sQ6NGtNFeLGf8Fage7MkujQtje"
+        },
+        {
+          "step": "storage_deposit r11cfx2-sam.arena-race-funder-1111.testnet",
+          "tx": "8fZt8GiwH5gxYCv9jm6pvJak6ZzAzxYZKjmcEb57sc3N"
+        },
+        {
+          "step": "fund guard 1000",
+          "tx": "Ggera3Sz2pQjitwUJ7ihnnqEzd2pqKDyPgccfBMxGCnD"
+        },
+        {
+          "step": "approve_invoice 100",
+          "tx": "6nvhgh2LxoCwYtXomPEUAXjGPs6oWPhxnBmhcH5itzxA"
+        }
+      ],
+      "trial": 2
+    },
+    {
+      "accounts": {
+        "agent": "r11cfx3-agent.arena-race-funder-1111.testnet",
+        "funder": "arena-race-funder-1111.testnet",
+        "guard": "r11cfx3-guard.arena-race-funder-1111.testnet",
+        "owner": "r11cfx3-owner.arena-race-funder-1111.testnet",
+        "receiver": "r11cfx3-sam.arena-race-funder-1111.testnet",
+        "token": "r11cfx3-token.arena-race-funder-1111.testnet"
+      },
+      "agent_txs_sent_during_race": 2,
+      "deleted_accounts": [
+        {
+          "account": "r11cfx3-token.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "6SKig84sM6yfUfrB23bSooqERpJ3DtHZKBaEgPe3zc4y"
+        },
+        {
+          "account": "r11cfx3-guard.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "7HCYzTZS7sMyt1W9r36weiFrhq9UfruxuSAXbKjWDiPZ"
+        },
+        {
+          "account": "r11cfx3-sam.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "4VKaWu3HtHGt8uUKVZX989MhRsBG6EzH2BFJjXPHzaU6"
+        },
+        {
+          "account": "r11cfx3-owner.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "6GeyC8kaZxHyMNSsDto4tEZEc5Pyb3HtM4dKWmwYWtZm"
+        },
+        {
+          "account": "r11cfx3-agent.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "BTozug3C6JM78DrowFS7hjVJQsmhEgCC1znouSBEstF3"
+        }
+      ],
+      "earlier_pay_callback_height": 277089838,
+      "elapsed_s": 47,
+      "funder_balance_after_yocto": "6585394705989402399999989",
+      "funder_balance_before_yocto": "6627207525834333499999989",
+      "guard_paid_out": "100",
+      "invoice_amount": "100",
+      "invoice_id": "inv-fixed-3",
+      "invoice_record_after": {
+        "amount": "100",
+        "confirmed_payouts": 1,
+        "pending_since_block": 277089836,
+        "receiver": "r11cfx3-sam.arena-race-funder-1111.testnet",
+        "status": "Paid",
+        "transfers_started": 1
+      },
+      "kept_alive": false,
+      "later_pay_check_height": 277089837,
+      "mode": "fixed",
+      "mode_onchain": "fixed",
+      "overlapped": true,
+      "pay_a": {
+        "broadcast_returned_unix_ms": "1794326776107",
+        "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: payment already in flight\")) }) } })",
+        "link": "https://testnet.nearblocks.io/txns/Cu1uXD1DSBUxp9MGPuZBHuZz2JYswT8Mm7xHasdEpC9D",
+        "outcome_fetch_error": null,
+        "sent_unix_ms": "1794326775740",
+        "steps": [
+          {
+            "block_height": 277089836,
+            "executor": "r11cfx3-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "tx_to_receipt (agent signs)"
+          },
+          {
+            "block_height": 277089837,
+            "executor": "r11cfx3-guard.arena-race-funder-1111.testnet",
+            "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: payment already in flight\")) }) } })",
+            "logs": [],
+            "ok": false,
+            "role": "pay (guard: check + start transfer)"
+          },
+          {
+            "block_height": 277089838,
+            "executor": "r11cfx3-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "other receipt on r11cfx3-agent.arena-race-funder-1111.testnet (e.g. gas refund)"
+          }
+        ],
+        "success": false,
+        "tx": "Cu1uXD1DSBUxp9MGPuZBHuZz2JYswT8Mm7xHasdEpC9D"
+      },
+      "pay_b": {
+        "broadcast_returned_unix_ms": "1794326776112",
+        "failure": "",
+        "link": "https://testnet.nearblocks.io/txns/H6QgaojdDaBpLnHXJJAmrnsimAEPKqRyUx3xvZQZAHeD",
+        "outcome_fetch_error": null,
+        "sent_unix_ms": "1794326775740",
+        "steps": [
+          {
+            "block_height": 277089835,
+            "executor": "r11cfx3-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "tx_to_receipt (agent signs)"
+          },
+          {
+            "block_height": 277089836,
+            "executor": "r11cfx3-guard.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [
+              "pay: invoice=inv-fixed-3 transfer #1 started, mode=Fixed"
+            ],
+            "ok": true,
+            "role": "pay (guard: check + start transfer)"
+          },
+          {
+            "block_height": 277089837,
+            "executor": "r11cfx3-token.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [
+              "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"r11cfx3-guard.arena-race-funder-1111.testnet\",\"new_owner_id\":\"r11cfx3-sam.arena-race-funder-1111.testnet\",\"amount\":\"100\",\"memo\":\"invoice inv-fixed-3\"}]}"
+            ],
+            "ok": true,
+            "role": "ft_transfer (token moves)"
+          },
+          {
+            "block_height": 277089838,
+            "executor": "r11cfx3-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "other receipt on r11cfx3-agent.arena-race-funder-1111.testnet (e.g. gas refund)"
+          },
+          {
+            "block_height": 277089838,
+            "executor": "r11cfx3-guard.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [
+              "on_transfer: invoice=inv-fixed-3 confirmed=true"
+            ],
+            "ok": true,
+            "role": "on_transfer (guard callback: writes result)"
+          },
+          {
+            "block_height": 277089839,
+            "executor": "r11cfx3-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "other receipt on r11cfx3-agent.arena-race-funder-1111.testnet (e.g. gas refund)"
+          },
+          {
+            "block_height": 277089837,
+            "executor": "r11cfx3-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "other receipt on r11cfx3-agent.arena-race-funder-1111.testnet (e.g. gas refund)"
+          }
+        ],
+        "success": true,
+        "tx": "H6QgaojdDaBpLnHXJJAmrnsimAEPKqRyUx3xvZQZAHeD"
+      },
+      "receiver_balance_after": "100",
+      "receiver_balance_before": "0",
+      "receiver_received": "100",
+      "rule": "an invoice may pay at most its amount (100 test tokens)",
+      "rule_held": true,
+      "setup_txs": [
+        {
+          "step": "token.new",
+          "tx": "48YdiLX6qPsP4jMpvRSGLq5nxKbbGp6nwLYh9ixF61ZT"
+        },
+        {
+          "step": "guard.new",
+          "tx": "6baWZtZoqXAumi6BVdnxbrzEZ8HmF9Rw9A7cKbdxw7HY"
+        },
+        {
+          "step": "storage_deposit r11cfx3-guard.arena-race-funder-1111.testnet",
+          "tx": "BqXxvqy6svxA9sk5mb9cpzKwxypDmB6qHrmJq22sfVJt"
+        },
+        {
+          "step": "storage_deposit r11cfx3-sam.arena-race-funder-1111.testnet",
+          "tx": "C5fNsbtubYAht84zZMXqGv5ZUceTa4xty6a7QhhvMRHZ"
+        },
+        {
+          "step": "fund guard 1000",
+          "tx": "5P4y91GDMkqHefDMDfTDbR7F1b9muMssMpfTjPBEVwRK"
+        },
+        {
+          "step": "approve_invoice 100",
+          "tx": "86yvZJaNLATmsWLmr3b7bUU43yJkcuC1b6A6nfgYhpyu"
+        }
+      ],
+      "trial": 3
+    },
+    {
+      "accounts": {
+        "agent": "r11cfx4-agent.arena-race-funder-1111.testnet",
+        "funder": "arena-race-funder-1111.testnet",
+        "guard": "r11cfx4-guard.arena-race-funder-1111.testnet",
+        "owner": "r11cfx4-owner.arena-race-funder-1111.testnet",
+        "receiver": "r11cfx4-sam.arena-race-funder-1111.testnet",
+        "token": "r11cfx4-token.arena-race-funder-1111.testnet"
+      },
+      "agent_txs_sent_during_race": 2,
+      "deleted_accounts": [],
+      "earlier_pay_callback_height": 277089940,
+      "elapsed_s": 44,
+      "funder_balance_after_yocto": "2490819721208396299999988",
+      "funder_balance_before_yocto": "6585394705989402399999989",
+      "guard_paid_out": "100",
+      "invoice_amount": "100",
+      "invoice_id": "inv-fixed-4",
+      "invoice_record_after": {
+        "amount": "100",
+        "confirmed_payouts": 1,
+        "pending_since_block": 277089938,
+        "receiver": "r11cfx4-sam.arena-race-funder-1111.testnet",
+        "status": "Paid",
+        "transfers_started": 1
+      },
+      "kept_alive": true,
+      "later_pay_check_height": 277089938,
+      "mode": "fixed",
+      "mode_onchain": "fixed",
+      "overlapped": true,
+      "pay_a": {
+        "broadcast_returned_unix_ms": "1794326835331",
+        "failure": "",
+        "link": "https://testnet.nearblocks.io/txns/D17CtxXPKcawquU637tG2B2rDHYEJgbpFgFzsNM8EdLj",
+        "outcome_fetch_error": null,
+        "sent_unix_ms": "1794326834946",
+        "steps": [
+          {
+            "block_height": 277089937,
+            "executor": "r11cfx4-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "tx_to_receipt (agent signs)"
+          },
+          {
+            "block_height": 277089938,
+            "executor": "r11cfx4-guard.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [
+              "pay: invoice=inv-fixed-4 transfer #1 started, mode=Fixed"
+            ],
+            "ok": true,
+            "role": "pay (guard: check + start transfer)"
+          },
+          {
+            "block_height": 277089939,
+            "executor": "r11cfx4-token.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [
+              "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"r11cfx4-guard.arena-race-funder-1111.testnet\",\"new_owner_id\":\"r11cfx4-sam.arena-race-funder-1111.testnet\",\"amount\":\"100\",\"memo\":\"invoice inv-fixed-4\"}]}"
+            ],
+            "ok": true,
+            "role": "ft_transfer (token moves)"
+          },
+          {
+            "block_height": 277089940,
+            "executor": "r11cfx4-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "other receipt on r11cfx4-agent.arena-race-funder-1111.testnet (e.g. gas refund)"
+          },
+          {
+            "block_height": 277089940,
+            "executor": "r11cfx4-guard.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [
+              "on_transfer: invoice=inv-fixed-4 confirmed=true"
+            ],
+            "ok": true,
+            "role": "on_transfer (guard callback: writes result)"
+          },
+          {
+            "block_height": 277089939,
+            "executor": "r11cfx4-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "other receipt on r11cfx4-agent.arena-race-funder-1111.testnet (e.g. gas refund)"
+          }
+        ],
+        "success": true,
+        "tx": "D17CtxXPKcawquU637tG2B2rDHYEJgbpFgFzsNM8EdLj"
+      },
+      "pay_b": {
+        "broadcast_returned_unix_ms": "1794326835339",
+        "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: payment already in flight\")) }) } })",
+        "link": "https://testnet.nearblocks.io/txns/HuFZF753WBTpbJXx4vA2AHuViqUqC3PUcEJ9F6N1jshG",
+        "outcome_fetch_error": null,
+        "sent_unix_ms": "1794326834946",
+        "steps": [
+          {
+            "block_height": 277089937,
+            "executor": "r11cfx4-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "tx_to_receipt (agent signs)"
+          },
+          {
+            "block_height": 277089938,
+            "executor": "r11cfx4-guard.arena-race-funder-1111.testnet",
+            "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: payment already in flight\")) }) } })",
+            "logs": [],
+            "ok": false,
+            "role": "pay (guard: check + start transfer)"
+          }
+        ],
+        "success": false,
+        "tx": "HuFZF753WBTpbJXx4vA2AHuViqUqC3PUcEJ9F6N1jshG"
+      },
+      "receiver_balance_after": "100",
+      "receiver_balance_before": "0",
+      "receiver_received": "100",
+      "rule": "an invoice may pay at most its amount (100 test tokens)",
+      "rule_held": true,
+      "setup_txs": [
+        {
+          "step": "token.new",
+          "tx": "83iyZoj8BBa8XnbPmvbMZJk5Nrwtjktaq7Z3r9HsrC5F"
+        },
+        {
+          "step": "guard.new",
+          "tx": "FW9EFrnMZT6u3Ld1RZ7c389ADdkWPtH7EF3HdZTKM3gs"
+        },
+        {
+          "step": "storage_deposit r11cfx4-guard.arena-race-funder-1111.testnet",
+          "tx": "AYLTe9YzErFSiWyjQpbSdBx1uZbPtJ6qfA5i4SEAg73W"
+        },
+        {
+          "step": "storage_deposit r11cfx4-sam.arena-race-funder-1111.testnet",
+          "tx": "2zJj3SQAMsJjDFXoBNLqXqmJeVkeHwMeiZBfFPdLZT3n"
+        },
+        {
+          "step": "fund guard 1000",
+          "tx": "f5wd9Jobrhq3kquf3sEKtujJehXpWMFNhotaf51EMCA"
+        },
+        {
+          "step": "approve_invoice 100",
+          "tx": "5P4QzUoDoSkh6zXnUUSTEafgShovCRdYzap2PDkjfDcE"
+        }
+      ],
+      "trial": 4
+    }
+  ]
+}

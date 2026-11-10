@@ -1,0 +1,23 @@
+header: {"funder":"arena-race-funder-1111.testnet","funder_balance_start_yocto":"6752645985369126799999989","guard_wasm_sha256":"0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e","network":"testnet","rpc":"https://rpc.testnet.fastnear.com","started_unix_ms":"1794326557698","token_wasm_sha256":"c8071a2265b6dbd595f319972dc3271d928a73b5a98456538ae5246abf8d3e61","trial_upfront_millinear":"6500","trials_per_mode":5}
+== mode=fixed trial=0: creating fresh accounts
+   owner=r11cfx0-owner.arena-race-funder-1111.testnet agent=r11cfx0-agent.arena-race-funder-1111.testnet receiver=r11cfx0-sam.arena-race-funder-1111.testnet token=r11cfx0-token.arena-race-funder-1111.testnet guard=r11cfx0-guard.arena-race-funder-1111.testnet
+   RESULT mode=fixed trial=0: receiver +100 | pays sent=2 | pay heights A=Some(277089501) B=Some(277089501) | callbacks A=None B=Some(277089503) | overlap=None
+   funder 6.76 NEAR -> 6.72 NEAR
+== mode=fixed trial=1: creating fresh accounts
+   owner=r11cfx1-owner.arena-race-funder-1111.testnet agent=r11cfx1-agent.arena-race-funder-1111.testnet receiver=r11cfx1-sam.arena-race-funder-1111.testnet token=r11cfx1-token.arena-race-funder-1111.testnet guard=r11cfx1-guard.arena-race-funder-1111.testnet
+   RESULT mode=fixed trial=1: receiver +100 | pays sent=2 | pay heights A=Some(277089611) B=Some(277089611) | callbacks A=Some(277089613) B=None | overlap=Some(true)
+   funder 6.72 NEAR -> 6.67 NEAR
+== mode=fixed trial=2: creating fresh accounts
+   owner=r11cfx2-owner.arena-race-funder-1111.testnet agent=r11cfx2-agent.arena-race-funder-1111.testnet receiver=r11cfx2-sam.arena-race-funder-1111.testnet token=r11cfx2-token.arena-race-funder-1111.testnet guard=r11cfx2-guard.arena-race-funder-1111.testnet
+   RESULT mode=fixed trial=2: receiver +100 | pays sent=2 | pay heights A=Some(277089726) B=Some(277089725) | callbacks A=None B=Some(277089727) | overlap=Some(true)
+   funder 6.67 NEAR -> 6.63 NEAR
+== mode=fixed trial=3: creating fresh accounts
+   owner=r11cfx3-owner.arena-race-funder-1111.testnet agent=r11cfx3-agent.arena-race-funder-1111.testnet receiver=r11cfx3-sam.arena-race-funder-1111.testnet token=r11cfx3-token.arena-race-funder-1111.testnet guard=r11cfx3-guard.arena-race-funder-1111.testnet
+   RESULT mode=fixed trial=3: receiver +100 | pays sent=2 | pay heights A=Some(277089837) B=Some(277089836) | callbacks A=None B=Some(277089838) | overlap=Some(true)
+   funder 6.63 NEAR -> 6.59 NEAR
+== mode=fixed trial=4: creating fresh accounts
+   owner=r11cfx4-owner.arena-race-funder-1111.testnet agent=r11cfx4-agent.arena-race-funder-1111.testnet receiver=r11cfx4-sam.arena-race-funder-1111.testnet token=r11cfx4-token.arena-race-funder-1111.testnet guard=r11cfx4-guard.arena-race-funder-1111.testnet
+   RESULT mode=fixed trial=4: receiver +100 | pays sent=2 | pay heights A=Some(277089938) B=Some(277089938) | callbacks A=Some(277089940) B=None | overlap=Some(true)
+   funder 6.59 NEAR -> 2.50 NEAR
+funder end balance 2.50 NEAR
+wrote ../../evidence/testnet-2026-11-11-run3-raw.json: 5 trials, 0 errors

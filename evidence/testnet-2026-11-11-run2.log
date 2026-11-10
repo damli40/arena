@@ -1,0 +1,19 @@
+header: {"funder":"arena-race-funder-1111.testnet","funder_balance_start_yocto":"10974403949151892199999990","guard_wasm_sha256":"0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e","network":"testnet","rpc":"https://rpc.testnet.fastnear.com","started_unix_ms":"1794326299667","token_wasm_sha256":"c8071a2265b6dbd595f319972dc3271d928a73b5a98456538ae5246abf8d3e61","trial_upfront_millinear":"6500","trials_per_mode":4}
+== mode=vulnerable_fixture trial=0: creating fresh accounts
+   owner=r11bvf0-owner.arena-race-funder-1111.testnet agent=r11bvf0-agent.arena-race-funder-1111.testnet receiver=r11bvf0-sam.arena-race-funder-1111.testnet token=r11bvf0-token.arena-race-funder-1111.testnet guard=r11bvf0-guard.arena-race-funder-1111.testnet
+   RESULT mode=vulnerable_fixture trial=0: receiver +200 | pays sent=2 | pay heights A=Some(277089075) B=Some(277089075) | callbacks A=Some(277089077) B=Some(277089077) | overlap=Some(true)
+   funder 10.98 NEAR -> 10.94 NEAR
+== mode=vulnerable_fixture trial=1: creating fresh accounts
+   owner=r11bvf1-owner.arena-race-funder-1111.testnet agent=r11bvf1-agent.arena-race-funder-1111.testnet receiver=r11bvf1-sam.arena-race-funder-1111.testnet token=r11bvf1-token.arena-race-funder-1111.testnet guard=r11bvf1-guard.arena-race-funder-1111.testnet
+   RESULT mode=vulnerable_fixture trial=1: receiver +200 | pays sent=2 | pay heights A=Some(277089182) B=Some(277089184) | callbacks A=Some(277089184) B=Some(277089186) | overlap=Some(true)
+   funder 10.94 NEAR -> 10.89 NEAR
+== mode=vulnerable_fixture trial=2: creating fresh accounts
+   owner=r11bvf2-owner.arena-race-funder-1111.testnet agent=r11bvf2-agent.arena-race-funder-1111.testnet receiver=r11bvf2-sam.arena-race-funder-1111.testnet token=r11bvf2-token.arena-race-funder-1111.testnet guard=r11bvf2-guard.arena-race-funder-1111.testnet
+   RESULT mode=vulnerable_fixture trial=2: receiver +200 | pays sent=2 | pay heights A=Some(277089292) B=Some(277089292) | callbacks A=Some(277089294) B=Some(277089294) | overlap=Some(true)
+   funder 10.89 NEAR -> 10.85 NEAR
+== mode=vulnerable_fixture trial=3: creating fresh accounts
+   owner=r11bvf3-owner.arena-race-funder-1111.testnet agent=r11bvf3-agent.arena-race-funder-1111.testnet receiver=r11bvf3-sam.arena-race-funder-1111.testnet token=r11bvf3-token.arena-race-funder-1111.testnet guard=r11bvf3-guard.arena-race-funder-1111.testnet
+   RESULT mode=vulnerable_fixture trial=3: receiver +200 | pays sent=2 | pay heights A=Some(277089400) B=Some(277089400) | callbacks A=Some(277089402) B=Some(277089402) | overlap=Some(true)
+   funder 10.85 NEAR -> 6.76 NEAR
+funder end balance 6.76 NEAR
+wrote ../../evidence/testnet-2026-11-11-run2-raw.json: 4 trials, 0 errors

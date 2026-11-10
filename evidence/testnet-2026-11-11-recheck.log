@@ -1,0 +1,12 @@
+run1 vulnerable_fixture 0 block 277088405 sam 200 | guard account now: deleted
+run2 vulnerable_fixture 0 block 277089081 sam 200 | guard account now: deleted
+run2 vulnerable_fixture 1 block 277089190 sam 200 | guard account now: deleted
+run2 vulnerable_fixture 2 block 277089298 sam 200 | guard account now: deleted
+run2 vulnerable_fixture 3 block 277089406 sam 200 | guard account now: exists
+run3 fixed 0 block 277089506 sam 100 | guard account now: deleted
+run3 fixed 1 block 277089617 sam 100 | guard account now: deleted
+run3 fixed 2 block 277089731 sam 100 | guard account now: deleted
+run3 fixed 3 block 277089842 sam 100 | guard account now: deleted
+run3 fixed 4 block 277089943 sam 100 | guard account now: exists
+r11bvf3-guard.arena-race-funder-1111.testnet code sha256 0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e get_mode "vulnerable_fixture"
+r11cfx4-guard.arena-race-funder-1111.testnet code sha256 0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e get_mode "fixed"
