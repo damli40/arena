@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Check Before You Pay</title>
+<style>
+  :root {
+    --bg: #fafaf9; --card: #ffffff; --ink: #1c1917; --muted: #57534e; --line: #e7e5e4;
+    --held: #166534; --held-bg: #f0fdf4; --broke: #991b1b; --broke-bg: #fef2f2;
+    --unclear: #92400e; --unclear-bg: #fffbeb; --none: #44403c; --none-bg: #f5f5f4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0c0a09; --card: #1c1917; --ink: #f5f5f4; --muted: #a8a29e; --line: #292524;
+      --held: #86efac; --held-bg: #052e16; --broke: #fca5a5; --broke-bg: #450a0a;
+      --unclear: #fcd34d; --unclear-bg: #451a03; --none: #d6d3d1; --none-bg: #292524;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0c0a09; --card: #1c1917; --ink: #f5f5f4; --muted: #a8a29e; --line: #292524;
+    --held: #86efac; --held-bg: #052e16; --broke: #fca5a5; --broke-bg: #450a0a;
+    --unclear: #fcd34d; --unclear-bg: #451a03; --none: #d6d3d1; --none-bg: #292524;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 680px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  p.lede { color: var(--muted); margin: 0 0 24px; }
+  form { display: flex; gap: 8px; flex-wrap: wrap; }
+  input { flex: 1 1 260px; min-width: 0; padding: 10px 12px; font: inherit; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); }
+  button { padding: 10px 16px; font: inherit; border: 1px solid var(--ink); border-radius: 8px; background: var(--ink); color: var(--bg); cursor: pointer; }
+  button.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+  .examples { margin: 8px 0 24px; font-size: .9rem; color: var(--muted); }
+  .examples button.ex { padding: 0; margin-right: 12px; border: 0; background: none; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
+  .badge { display: inline-block; font-size: .8rem; font-weight: 600; padding: 2px 10px; border-radius: 999px; margin-bottom: 10px; }
+  .s-held { color: var(--held); background: var(--held-bg); }
+  .s-broke { color: var(--broke); background: var(--broke-bg); }
+  .s-unclear_setting, .s-error { color: var(--unclear); background: var(--unclear-bg); }
+  .s-no_record, .s-no_contract, .s-no_account, .s-bad_input { color: var(--none); background: var(--none-bg); }
+  .sentence { font-size: 1.1rem; margin: 0 0 6px; }
+  .caveat { color: var(--muted); margin: 0 0 16px; font-size: .9rem; }
+  .offline { font-size: .85rem; color: var(--unclear); margin: 0 0 12px; }
+  ul.receipts { list-style: none; padding: 0; margin: 0; }
+  ul.receipts li { border-top: 1px solid var(--line); padding: 10px 0; font-size: .9rem; overflow-wrap: anywhere; }
+  ul.receipts li.off { color: var(--muted); }
+  .meta, .notes { font-size: .85rem; color: var(--muted); overflow-wrap: anywhere; }
+  .notes p { margin: 6px 0 0; }
+  code { font-size: .85em; }
+  a { color: inherit; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Check before you pay</h1>
+  <p class="lede">Type a guard's account on NEAR testnet. This page asks the chain which code the account runs and whether Arena has published a test result for that code in the mode the guard reports.</p>
+
+  <form id="f">
+    <input id="acct" autocomplete="off" spellcheck="false" placeholder="guard account, e.g. r11cfx4-guard.arena-race-funder-1111.testnet" aria-label="Guard account id">
+    <button type="submit">Check</button>
+  </form>
+  <div class="examples">Try:
+    <button type="button" class="ex" data-acct="r11cfx4-guard.arena-race-funder-1111.testnet">fixed guard</button>
+    <button type="button" class="ex" data-acct="r11bvf3-guard.arena-race-funder-1111.testnet">planted-flaw guard</button>
+    <button type="button" class="ex" data-acct="r11cfx4-token.arena-race-funder-1111.testnet">a token (no record)</button>
+  </div>
+
+  <section id="out" aria-live="polite"></section>
+</main>
+
+<!-- Bundled example answers, copied from live lookups, shown when the network or the lookup module is not available. -->
+<script type="application/json" id="bundled-example">
+[
+ {
+  "account": "r11cfx4-guard.arena-race-funder-1111.testnet",
+  "network": "testnet",
+  "status": "held",
+  "sentence": "Held the double-pay race test (5 of 5 runs held, 0 paid over the limit) and the pay-race proof run (30 of 30 checks held, 0 paid over the limit) in mode \"fixed\", published 2026-11-10.",
+  "caveat": "A record of what Arena tested, not a guarantee.",
+  "code_hash": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+  "mode": "fixed",
+  "mode_read": "ok",
+  "block": {
+   "height": 277112853,
+   "hash": "6QNZEiPBq72aNNJbWK86phvDgiZaeTsJ5oWXBmKgrwH5"
+  },
+  "suite_filter": null,
+  "receipts": [
+   {
+    "suite": "race-double-pay:mode=vulnerable_fixture",
+    "test": "double-pay race test",
+    "what": "two pays for one invoice, sent to overlap on testnet",
+    "guard_label": "planted-flaw (mode=vulnerable_fixture)",
+    "result": "broke",
+    "tests_run": 5,
+    "tests_held": 0,
+    "beyond_policy": "100",
+    "against_intent": null,
+    "published_at_ns": "1794327022853541570",
+    "published_at": "2026-11-10T16:10:22.853Z",
+    "published_date": "2026-11-10",
+    "age_days": 0,
+    "publish_tx": "BFhjD3wrZafHa3ZJTsoAv5mtkg4eSnWKb7phxv6W2ypS",
+    "publish_tx_url": "https://testnet.nearblocks.io/txns/BFhjD3wrZafHa3ZJTsoAv5mtkg4eSnWKb7phxv6W2ypS",
+    "publish_tx_note": null,
+    "evidence_path": "evidence/testnet-2026-11-11.md",
+    "evidence_sha256": "312cd0cd0b4b2211eceb987a04038e5fe172b88947699a09e81d61ec6a5a59d4",
+    "harness_commit": "86ccccdfff54def98bcc89a0615cd471da040c83",
+    "counted": false,
+    "not_counted_because": "it is for mode \"vulnerable_fixture\", and this guard reports mode \"fixed\""
+   },
+   {
+    "suite": "race-double-pay:mode=fixed",
+    "test": "double-pay race test",
+    "what": "two pays for one invoice, sent to overlap on testnet",
+    "guard_label": "fixed (mode=fixed)",
+    "result": "held",
+    "tests_run": 5,
+    "tests_held": 5,
+    "beyond_policy": "0",
+    "against_intent": null,
+    "published_at_ns": "1794327024705760594",
+    "published_at": "2026-11-10T16:10:24.705Z",
+    "published_date": "2026-11-10",
+    "age_days": 0,
+    "publish_tx": "92oZhohuHcH73HBDUQfp55ApXMnFMMEUoUVRKmoht949",
+    "publish_tx_url": "https://testnet.nearblocks.io/txns/92oZhohuHcH73HBDUQfp55ApXMnFMMEUoUVRKmoht949",
+    "publish_tx_note": null,
+    "evidence_path": "evidence/testnet-2026-11-11.md",
+    "evidence_sha256": "312cd0cd0b4b2211eceb987a04038e5fe172b88947699a09e81d61ec6a5a59d4",
+    "harness_commit": "86ccccdfff54def98bcc89a0615cd471da040c83",
+    "counted": true,
+    "not_counted_because": null
+   },
+   {
+    "suite": "proof-pay-race-inductive",
+    "test": "pay-race proof run",
+    "what": "proofs on the guard source and model for the pay/callback race (not a claim that no invoice can ever be paid twice)",
+    "guard_label": "fixed (mode=fixed), proofs on source + model",
+    "result": "held",
+    "tests_run": 30,
+    "tests_held": 30,
+    "beyond_policy": "0",
+    "against_intent": null,
+    "published_at_ns": "1794327037932266177",
+    "published_at": "2026-11-10T16:10:37.932Z",
+    "published_date": "2026-11-10",
+    "age_days": 0,
+    "publish_tx": "Gc13udsQVQJ4Yn1vX5wRLgdiWeejvHZ3ivW3STyAAqvd",
+    "publish_tx_url": "https://testnet.nearblocks.io/txns/Gc13udsQVQJ4Yn1vX5wRLgdiWeejvHZ3ivW3STyAAqvd",
+    "publish_tx_note": null,
+    "evidence_path": "evidence/proofs-inductive-2026-11-11.md",
+    "evidence_sha256": "3df396b11867c61aa701b18c6269f80950b7a5e12dbff2cdc43f9c7050475e83",
+    "harness_commit": "86ccccdfff54def98bcc89a0615cd471da040c83",
+    "counted": true,
+    "not_counted_because": null
+   }
+  ],
+  "notes": [
+   "This account still has a full-access key, so its owner can replace the code or its settings after you check. Check again right before you pay.",
+   "Only the mode was matched. Other setup (who owns the guard, which agent and token it serves) was not checked against what Arena tested."
+  ],
+  "error": null,
+  "receipts_contract": "receipts.dev-20261109195231-98743803426969.testnet",
+  "rpc": "https://rpc.testnet.fastnear.com"
+ },
+ {
+  "account": "r11bvf3-guard.arena-race-funder-1111.testnet",
+  "network": "testnet",
+  "status": "broke",
+  "sentence": "Broke the double-pay race test (0 of 5 runs held; worst run paid 100 over the limit) in mode \"vulnerable_fixture\", published 2026-11-10.",
+  "caveat": "A record of what Arena tested, not a guarantee.",
+  "code_hash": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+  "mode": "vulnerable_fixture",
+  "mode_read": "ok",
+  "block": {
+   "height": 277112854,
+   "hash": "Hv9HdAFhcxZ372d7iGNzsi1GrbRA7UnAGzhDgwuWbr99"
+  },
+  "suite_filter": null,
+  "receipts": [
+   {
+    "suite": "race-double-pay:mode=vulnerable_fixture",
+    "test": "double-pay race test",
+    "what": "two pays for one invoice, sent to overlap on testnet",
+    "guard_label": "planted-flaw (mode=vulnerable_fixture)",
+    "result": "broke",
+    "tests_run": 5,
+    "tests_held": 0,
+    "beyond_policy": "100",
+    "against_intent": null,
+    "published_at_ns": "1794327022853541570",
+    "published_at": "2026-11-10T16:10:22.853Z",
+    "published_date": "2026-11-10",
+    "age_days": 0,
+    "publish_tx": "BFhjD3wrZafHa3ZJTsoAv5mtkg4eSnWKb7phxv6W2ypS",
+    "publish_tx_url": "https://testnet.nearblocks.io/txns/BFhjD3wrZafHa3ZJTsoAv5mtkg4eSnWKb7phxv6W2ypS",
+    "publish_tx_note": null,
+    "evidence_path": "evidence/testnet-2026-11-11.md",
+    "evidence_sha256": "312cd0cd0b4b2211eceb987a04038e5fe172b88947699a09e81d61ec6a5a59d4",
+    "harness_commit": "86ccccdfff54def98bcc89a0615cd471da040c83",
+    "counted": true,
+    "not_counted_because": null
+   },
+   {
+    "suite": "race-double-pay:mode=fixed",
+    "test": "double-pay race test",
+    "what": "two pays for one invoice, sent to overlap on testnet",
+    "guard_label": "fixed (mode=fixed)",
+    "result": "held",
+    "tests_run": 5,
+    "tests_held": 5,
+    "beyond_policy": "0",
+    "against_intent": null,
+    "published_at_ns": "1794327024705760594",
+    "published_at": "2026-11-10T16:10:24.705Z",
+    "published_date": "2026-11-10",
+    "age_days": 0,
+    "publish_tx": "92oZhohuHcH73HBDUQfp55ApXMnFMMEUoUVRKmoht949",
+    "publish_tx_url": "https://testnet.nearblocks.io/txns/92oZhohuHcH73HBDUQfp55ApXMnFMMEUoUVRKmoht949",
+    "publish_tx_note": null,
+    "evidence_path": "evidence/testnet-2026-11-11.md",
+    "evidence_sha256": "312cd0cd0b4b2211eceb987a04038e5fe172b88947699a09e81d61ec6a5a59d4",
+    "harness_commit": "86ccccdfff54def98bcc89a0615cd471da040c83",
+    "counted": false,
+    "not_counted_because": "it is for mode \"fixed\", and this guard reports mode \"vulnerable_fixture\""
+   },
+   {
+    "suite": "proof-pay-race-inductive",
+    "test": "pay-race proof run",
+    "what": "proofs on the guard source and model for the pay/callback race (not a claim that no invoice can ever be paid twice)",
+    "guard_label": "fixed (mode=fixed), proofs on source + model",
+    "result": "held",
+    "tests_run": 30,
+    "tests_held": 30,
+    "beyond_policy": "0",
+    "against_intent": null,
+    "published_at_ns": "1794327037932266177",
+    "published_at": "2026-11-10T16:10:37.932Z",
+    "published_date": "2026-11-10",
+    "age_days": 0,
+    "publish_tx": "Gc13udsQVQJ4Yn1vX5wRLgdiWeejvHZ3ivW3STyAAqvd",
+    "publish_tx_url": "https://testnet.nearblocks.io/txns/Gc13udsQVQJ4Yn1vX5wRLgdiWeejvHZ3ivW3STyAAqvd",
+    "publish_tx_note": null,
+    "evidence_path": "evidence/proofs-inductive-2026-11-11.md",
+    "evidence_sha256": "3df396b11867c61aa701b18c6269f80950b7a5e12dbff2cdc43f9c7050475e83",
+    "harness_commit": "86ccccdfff54def98bcc89a0615cd471da040c83",
+    "counted": false,
+    "not_counted_because": "it is for mode \"fixed\", and this guard reports mode \"vulnerable_fixture\""
+   }
+  ],
+  "notes": [
+   "This account still has a full-access key, so its owner can replace the code or its settings after you check. Check again right before you pay."
+  ],
+  "error": null,
+  "receipts_contract": "receipts.dev-20261109195231-98743803426969.testnet",
+  "rpc": "https://rpc.testnet.fastnear.com"
+ }
+]
+</script>
+
+<script type="module">
+const out = document.getElementById("out");
+const input = document.getElementById("acct");
+const bundled = JSON.parse(document.getElementById("bundled-example").textContent);
+
+const LABEL = {
+  held: "Held", broke: "Broke", unclear_setting: "Don't rely on it", no_record: "No Arena record",
+  no_contract: "No contract", no_account: "No such account", error: "Lookup failed", bad_input: "Not an account id",
+};
+
+function el(tag, attrs = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  for (const k of kids) e.append(k);
+  return e;
+}
+function link(href, text) { return el("a", { href, target: "_blank", rel: "noopener" }, text); }
+
+function render(a, offlineNote) {
+  out.replaceChildren();
+  const card = el("div", { class: "card" });
+  if (offlineNote) card.append(el("p", { class: "offline" }, offlineNote));
+  card.append(el("span", { class: `badge s-${a.status}` }, LABEL[a.status] || a.status));
+  card.append(el("p", { class: "sentence" }, a.sentence));
+  card.append(el("p", { class: "caveat" }, a.caveat));
+  const meta = [`Account ${a.account}`];
+  if (a.code_hash) meta.push(`code sha256 ${a.code_hash.slice(0, 12)}…`);
+  if (a.mode_read) meta.push(a.mode_read === "ok" ? `mode ${a.mode}` : a.mode_read === "no_get_mode" ? "no get_mode()" : "mode unreadable");
+  if (a.block) meta.push(`read at block ${a.block.height}`);
+  card.append(el("p", { class: "meta" }, meta.join(" · ")));
+  if (a.receipts.length) {
+    const ul = el("ul", { class: "receipts" });
+    for (const d of a.receipts) {
+      const li = el("li", { class: d.counted ? "" : "off" });
+      if (!d.counted) li.append(el("strong", {}, "Does not apply to this guard: "));
+      li.append(el(d.counted ? "strong" : "span", {}, `${d.test}: ${d.result}`), ` (${d.tests_held} of ${d.tests_run} held, ${d.beyond_policy} over the limit). `);
+      li.append(d.counted ? "Counted in the answer. " : `Not counted: ${d.not_counted_because}. `);
+      li.append(el("br"), `Published ${d.published_date} · `, link(d.publish_tx_url, d.publish_tx ? "publish tx" : "receipts contract"), " · evidence ",
+        el("code", {}, d.evidence_path), ` sha256 ${d.evidence_sha256.slice(0, 12)}…`);
+      ul.append(li);
+    }
+    card.append(ul);
+  }
+  if (a.notes.length) {
+    const n = el("div", { class: "notes" });
+    for (const t of a.notes) n.append(el("p", {}, t));
+    card.append(n);
+  }
+  out.append(card);
+}
+
+function showBundled(account, why) {
+  const ex = bundled.find((a) => a.account === account);
+  if (!ex) {
+    // Never show another account's saved answer: with no live lookup, this account gets no answer at all.
+    return render({ account, status: "error", sentence: "No live lookup is available here, and there is no saved example for this account. There is no answer, so treat the guard as unchecked.",
+      caveat: bundled[0].caveat, code_hash: null, mode_read: null, block: null, receipts: [], notes: [] }, why);
+  }
+  render(ex, `${why} Showing a saved example from ${ex.block ? `block ${ex.block.height}` : "an earlier run"}, not a live answer.`);
+}
+
+let lib = null;
+try { lib = await import("./arena-lookup.mjs"); } catch { lib = null; }
+
+async function check(account) {
+  account = account.trim();
+  if (!account) return;
+  if (!lib) return showBundled(account, "The live lookup could not load here (opened as a file, or the module is missing).");
+  out.replaceChildren(el("p", { class: "meta" }, "Checking testnet…"));
+  const a = await lib.lookup(account);
+  if (a.status === "error" && bundled.some((b) => b.account === account)) {
+    return showBundled(account, `No network answer (${a.error}).`);
+  }
+  render(a);
+}
+
+document.getElementById("f").addEventListener("submit", (e) => { e.preventDefault(); check(input.value); });
+for (const a of document.querySelectorAll("[data-acct]")) {
+  a.addEventListener("click", () => { input.value = a.dataset.acct; check(a.dataset.acct); });
+}
+if (!lib) showBundled(bundled[0].account, "The live lookup could not load here (opened as a file, or the module is missing).");
+</script>
+</body>
+</html>
