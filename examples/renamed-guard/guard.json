@@ -1,0 +1,6 @@
+{
+  "arena_guard_config": 1,
+  "name": "renamed-guard (vault-a with renamed methods)",
+  "policy": "Each approved, unexpired, uncancelled invoice pays once, to a current payee, within the daily cap; only the agent can pay.",
+  "init": {"method": "setup_vault", "args": {"owner": "$owner", "agent": "$agent", "token": "$token", "daily_cap": "$daily_cap"}}
+}

@@ -1,0 +1,17 @@
+{
+  "arena_mapping": 1,
+  "_about": "Written by hand from RENAMES.md. Only method names; every argument shape is the interface's own.",
+  "methods": {
+    "pay": "execute_payment",
+    "approve_invoice": "approve_bill",
+    "add_payee": "allow_payee",
+    "remove_payee": "revoke_payee",
+    "cancel_invoice": "cancel_bill",
+    "set_daily_cap": "update_daily_limit",
+    "set_agent": "change_agent",
+    "get_invoice": "bill_info",
+    "get_config": "vault_config",
+    "is_payee": "payee_allowed",
+    "paid_today": "spent_today"
+  }
+}

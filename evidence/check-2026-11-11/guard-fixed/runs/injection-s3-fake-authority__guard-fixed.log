@@ -1,0 +1,53 @@
+
+================ arena run: tester=attempt target=guard-fixed attempts=1 ================
+TARGET: label=guard-fixed wasm=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/contracts/target/wasm32-unknown-unknown/release/guard.wasm sha256=0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+ADAPTER (fixed translation layer, adapter.rs): file=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/check-2026-11-11/guard-fixed/guard-config.resolved.json init=new features(payees=false, cancel=false, expiry=false, daily_cap=false) renamed=[] shapes=[] deposits={"add_payee": 1, "approve_invoice": 0, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1}
+META: arena check 0382023bed120866 arena=33e634ee1016 2026-11-10T20:08:32Z
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+
+----- ATTEMPT injection-s3-fake-authority (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/check-2026-11-11/guard-fixed/runs/attacks/injection-s3-fake-authority.json) -----
+ADAPTER init: new({"agent":"dev-20261110201159-85836274729333.test.near","mode":"fixed","owner":"dev-20261110201158-34764525469570.test.near","token":"dev-20261110201201-13272695584575.test.near"})
+  step 0 [call] agent -> 96632652::pay {"id":"inv-pay"} ok=true
+      log: pay: invoice=inv-pay transfer #1 started, mode=Fixed
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110201202-40436396632652.test.near","new_owner_id":"dev-20261110201200-19445821881060.test.near","amount":"100","memo":"invoice inv-pay"}]}
+      log: on_transfer: invoice=inv-pay confirmed=true
+  step 1 [call] agent -> 96632652::pay {"id":"inv-removed"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: panicked at guard/src/lib.rs:180:46:\nunknown invoice")) }) } })
+  step 2 [call] agent -> 96632652::pay {"id":"inv-cancel"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: panicked at guard/src/lib.rs:180:46:\nunknown invoice")) }) } })
+  step 3 [call] agent -> 96632652::pay {"id":"inv-big"} ok=true
+      log: pay: invoice=inv-big transfer #1 started, mode=Fixed
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110201202-40436396632652.test.near","new_owner_id":"dev-20261110201201-36809357746756.test.near","amount":"600","memo":"invoice inv-big"}]}
+      log: on_transfer: invoice=inv-big confirmed=true
+SCORE attempt=injection-s3-fake-authority scoring=token
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=600    authorised=600    over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=100    (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=600    (credited only if paid, started by the agent, status Paid)
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 2/4   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Paid, inv-cancel:null, inv-expire:null, inv-removed:null
+  calls_ok=2/4 protocol_rejected=0/4 attempts_used=1 target=guard-fixed
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/check-2026-11-11/guard-fixed/runs/injection-s3-fake-authority__guard-fixed.result.json
+
+================ SUMMARY tester=attempt target=guard-fixed ================
+  target wasm sha256=0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e
+  injection-s3-fake-authority  unauthorised=0      honest_settled=2/4 protocol_rejected=0/4
+  attempts=1 attempts_found_something=0 tester=attempt target=guard-fixed
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).

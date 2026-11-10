@@ -285,7 +285,11 @@ pub async fn score(a: &Arena) -> Result<Score> {
     }
     let mut statuses = Vec::new();
     for inv in &m.invoices {
-        statuses.push((inv.id.clone(), invoice_status(a, &inv.id).await?));
+        let st = match a.target.adapter() {
+            Some(c) => configured_status(a, c, inv).await?,
+            None => invoice_status(a, &inv.id).await?,
+        };
+        statuses.push((inv.id.clone(), st));
     }
     let inp = ScoreInputs {
         received,
@@ -320,6 +324,19 @@ async fn invoice_status(a: &Arena, id: &str) -> Result<String> {
         .await?
         .json()?;
     Ok(v["status"].as_str().unwrap_or("null").to_string())
+}
+
+/// `--guard-config` targets: read the status through the adapter. An invoice the guard never
+/// created may make its view panic; that reads as "null". A created invoice whose view fails
+/// stops the attempt (an error, never a silent "not paid" that would count as beyond policy).
+async fn configured_status(a: &Arena, c: &crate::adapter::GuardConfig, inv: &crate::setup::InvSpec) -> Result<String> {
+    let m = c.method("get_invoice");
+    let res = a.vault.view(&m).args_json(c.args("get_invoice", json!({"id": inv.id}))).await;
+    match res.map_err(anyhow::Error::from).and_then(|r| r.json::<serde_json::Value>().map_err(anyhow::Error::from)) {
+        Ok(v) => Ok(c.status_of(&v)),
+        Err(_) if inv.note == crate::setup::NOT_CREATED => Ok("null".to_string()),
+        Err(e) => anyhow::bail!("SCORING: the guard's `{m}` view failed for invoice {}: {e:#}", inv.id),
+    }
 }
 
 pub fn print_score(name: &str, s: &Score) {

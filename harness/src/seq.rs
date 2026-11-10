@@ -232,11 +232,33 @@ async fn finish(
     })
 }
 
+/// `--guard-config` targets only (adapter.rs): the guard's own method name and argument shape
+/// for a vault call, printed whenever it differs. Token calls and every other target pass
+/// through unchanged, so existing runs send exactly what they sent before.
+fn adapt(a: &Arena, i: usize, tgt_name: &str, method: &str, args: &Value) -> (String, Value) {
+    match a.target.adapter() {
+        Some(c) if tgt_name == "vault" => {
+            let m = c.method(method);
+            let sent = c.args(method, args.clone());
+            if m != method || &sent != args {
+                println!(
+                    "  ADAPTER step {i}: {method} {} sent as {m} {}",
+                    serde_json::to_string(args).unwrap_or_default(),
+                    serde_json::to_string(&sent).unwrap_or_default()
+                );
+            }
+            (m, sent)
+        }
+        _ => (method.to_string(), args.clone()),
+    }
+}
+
 fn build_tx(a: &Arena, i: usize, c: &Value) -> Result<(near_workspaces::operations::CallTransaction, &'static str, Value)> {
     let actor = a.actor(c["actor"].as_str().context("call needs an actor")?)?;
     let (tgt, tgt_name) = target_id(a, c)?;
     let args = args_of(a, c, i);
-    let mut tx = actor.call(tgt, method_of(c)?).args_json(args.clone());
+    let (method, sent) = adapt(a, i, tgt_name, method_of(c)?, &args);
+    let mut tx = actor.call(tgt, &method).args_json(sent);
     if let Some(g) = c.get("gas_tgas").and_then(|v| v.as_u64()) {
         tx = tx.gas(Gas::from_tgas(g));
     } else {
@@ -300,8 +322,9 @@ async fn do_view(a: &Arena, i: usize, v: &Value) -> Result<StepOutcome> {
     let (tgt, tgt_name) = target_id(a, v)?;
     let args = args_of(a, v, i);
     let m = v["method"].as_str().context("view needs a method")?;
+    let (vm, sent) = adapt(a, i, tgt_name, m, &args);
     let res = if tgt == a.vault.id() {
-        a.vault.view(m).args_json(args.clone()).await
+        a.vault.view(&vm).args_json(sent).await
     } else {
         a.token.view(m).args_json(args.clone()).await
     };

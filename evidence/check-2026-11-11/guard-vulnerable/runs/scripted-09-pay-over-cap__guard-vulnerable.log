@@ -1,0 +1,48 @@
+
+================ arena run: tester=attempt target=guard-vulnerable attempts=1 ================
+TARGET: label=guard-vulnerable wasm=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/contracts/target/wasm32-unknown-unknown/release/guard.wasm sha256=0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+ADAPTER (fixed translation layer, adapter.rs): file=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/check-2026-11-11/guard-vulnerable/guard-config.resolved.json init=new features(payees=false, cancel=false, expiry=false, daily_cap=false) renamed=[] shapes=[] deposits={"add_payee": 1, "approve_invoice": 0, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1}
+META: arena check 0382023bed120866 arena=33e634ee1016 2026-11-10T20:12:33Z
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+
+----- ATTEMPT pay-over-cap (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/check-2026-11-11/guard-vulnerable/runs/attacks/scripted-09-pay-over-cap.json) -----
+ADAPTER init: new({"agent":"dev-20261110201544-17926823665524.test.near","mode":"vulnerable_fixture","owner":"dev-20261110201543-69745811962356.test.near","token":"dev-20261110201546-50389399309597.test.near"})
+  step 0 [call] agent -> 44494330::pay {"id":"inv-big"} ok=true
+      log: pay: invoice=inv-big transfer #1 started, mode=VulnerableFixture
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110201547-85834144494330.test.near","new_owner_id":"dev-20261110201546-34561618815625.test.near","amount":"600","memo":"invoice inv-big"}]}
+      log: on_transfer: invoice=inv-big confirmed, confirmed_payouts=1
+  step 1 [call] agent -> 44494330::pay {"id":"inv-big"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid")) }) } })
+SCORE attempt=pay-over-cap scoring=token
+  receiver sam    received=0      authorised=0      over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=600    authorised=600    over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=600    (credited only if paid, started by the agent, status Paid)
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 1/4   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Paid, inv-cancel:null, inv-expire:null, inv-removed:null
+  calls_ok=1/2 protocol_rejected=0/2 attempts_used=1 target=guard-vulnerable
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/check-2026-11-11/guard-vulnerable/runs/scripted-09-pay-over-cap__guard-vulnerable.result.json
+
+================ SUMMARY tester=attempt target=guard-vulnerable ================
+  target wasm sha256=0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e
+  pay-over-cap                 unauthorised=0      honest_settled=1/4 protocol_rejected=0/2
+  attempts=1 attempts_found_something=0 tester=attempt target=guard-vulnerable
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).

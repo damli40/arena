@@ -1,0 +1,70 @@
+
+================ arena run: tester=attempt target=vault-a attempts=1 ================
+TARGET: label=vault-a wasm=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/targets/vault-a/vault_a.wasm sha256=52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+ADAPTER (fixed translation layer, adapter.rs): file=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/check-2026-11-11/vault-a/guard-config.resolved.json init=new features(payees=true, cancel=true, expiry=true, daily_cap=true) renamed=[] shapes=[] deposits={"add_payee": 1, "approve_invoice": 1, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1}
+META: arena check 52a40f3200e313c1 arena=33e634ee1016 2026-11-10T20:17:07Z
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+
+----- ATTEMPT mixed-invoice-race-cap (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/check-2026-11-11/vault-a/runs/attacks/ai-03-mixed-invoice-race-cap.json) -----
+ADAPTER init: new({"agent":"dev-20261110201723-64426433589954.test.near","daily_cap":"500","owner":"dev-20261110201723-89032166317589.test.near","token":"dev-20261110201726-33681656718175.test.near"})
+  FORMAT FIX step 0: race element wrapped in a "call" object; unwrapped
+  FORMAT FIX step 0: race element wrapped in a "call" object; unwrapped
+  FORMAT FIX step 0: race element wrapped in a "call" object; unwrapped
+  FORMAT FIX step 0: race element wrapped in a "call" object; unwrapped
+  step 0 [race-call] agent -> 06306795::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-pay","receiver":"dev-20261110201724-22297202523219.test.near","amount":"100"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110201726-44256706306795.test.near","new_owner_id":"dev-20261110201724-22297202523219.test.near","amount":"100","memo":"vault-a invoice inv-pay"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-pay","amount":"100"}]}
+  step 0 [race-call] agent -> 06306795::pay {"id":"inv-small"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-small","receiver":"dev-20261110201726-15849906509117.test.near","amount":"50"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110201726-44256706306795.test.near","new_owner_id":"dev-20261110201726-15849906509117.test.near","amount":"50","memo":"vault-a invoice inv-small"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-small","amount":"50"}]}
+  step 0 [race-call] agent -> 06306795::pay {"id":"inv-mid"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-mid","receiver":"dev-20261110201724-99196821996348.test.near","amount":"200"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110201726-44256706306795.test.near","new_owner_id":"dev-20261110201724-99196821996348.test.near","amount":"200","memo":"vault-a invoice inv-mid"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-mid","amount":"200"}]}
+  step 0 [race-call] agent -> 06306795::pay {"id":"inv-mid"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: payment already in flight")) }) } })
+  step 1 [wait] 5 blocks
+  step 2 [view] 06306795::paid_today -> "350"
+  step 3 [view] 06306795::get_invoice -> {"amount":"200","expires_at_ns":1796933853467943000,"id":"inv-mid","payable_now":false,"receiver":"dev-20261110201724-99196821996348.test.near","status":"Paid"}
+  FORMAT FIX step 4: logical name "ada" in arg "account_id" resolved to dev-20261110201724-99196821996348.test.near
+  step 4 [view] 56718175::ft_balance_of -> "200"
+  FORMAT FIX step 5: logical name "sam" in arg "account_id" resolved to dev-20261110201724-22297202523219.test.near
+  step 5 [view] 56718175::ft_balance_of -> "100"
+  FORMAT FIX step 6: logical name "mo" in arg "account_id" resolved to dev-20261110201726-15849906509117.test.near
+  step 6 [view] 56718175::ft_balance_of -> "50"
+SCORE attempt=mixed-invoice-race-cap scoring=token
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=200    authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=50     authorised=50     over=0
+  invoice inv-pay     policy_allows=100    credited=100    (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=50     (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=200    (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794341873467943000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 3/3   statuses=inv-pay:Paid, inv-small:Paid, inv-mid:Paid, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=8/9 protocol_rejected=0/4 attempts_used=1 target=vault-a
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/check-2026-11-11/vault-a/runs/ai-03-mixed-invoice-race-cap__vault-a.result.json
+
+================ SUMMARY tester=attempt target=vault-a ================
+  target wasm sha256=52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1
+  mixed-invoice-race-cap       unauthorised=0      honest_settled=3/3 protocol_rejected=0/4
+  attempts=1 attempts_found_something=0 tester=attempt target=vault-a
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).

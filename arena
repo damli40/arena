@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Arena command line.
+#
+#   ./arena check <guard.wasm> [--config guard.json] [--mapping mapping.json] [--out arena-report]
+#                 [--fail-on beyond-policy|against-intent|never] [--jobs N] [--no-muse] [--label NAME]
+#
+# Runs every attack in Arena's library against your guard on a LOCAL NEAR sandbox and writes a
+# report card to ./arena-report (report.html, report.json, badge.svg, shields.json, summary.md).
+# See docs/CHECK-YOUR-GUARD.md.
+set -euo pipefail
+ARENA_HOME="$(cd "$(dirname "$0")" && pwd)"
+source "$HOME/.cargo/env" 2>/dev/null || true
+case "${1:-}" in
+  check) shift; exec python3 -I "$ARENA_HOME/tools/check/check.py" "$@" ;;
+  *) echo "usage: $0 check <guard.wasm> [--config guard.json] [--mapping mapping.json] [--out DIR] [--fail-on beyond-policy|against-intent|never]" >&2; exit 64 ;;
+esac

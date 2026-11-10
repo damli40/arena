@@ -1,0 +1,5 @@
+compare vault-a vs board[vault-a]: 52 same, 0 different, 0 not on the board
+compare leaky-control-v2 vs board[leaky-control-v2]: 52 same, 0 different, 0 not on the board
+compare guard-fixed vs board[guard-fixed]: 52 same, 0 different, 0 not on the board
+compare guard-vulnerable vs board[guard-vulnerable]: 52 same, 0 different, 0 not on the board
+compare renamed-guard vs board[vault-a]: 52 same, 0 different, 0 not on the board

@@ -51,6 +51,10 @@ pub enum Target {
     /// the others are never created and authorise nothing. The cap is not scored (the guard
     /// claims none). `fixed` picks mode `fixed`, else `vulnerable_fixture` (a labelled test case).
     Guard { fixed: bool },
+    /// Any token guard described by a `--guard-config` file (`arena check`, 2026-11-11): its
+    /// init call, the rules it claims, and the fixed adapter's method/argument mapping
+    /// (adapter.rs). Without the flag this variant is never built.
+    Configured { wasm: std::path::PathBuf, label: String, cfg: crate::adapter::GuardConfig },
 }
 
 impl Target {
@@ -62,6 +66,7 @@ impl Target {
             Target::NativeControl => resolve("../targets/native-control/native_control.wasm"),
             Target::NativeFixed => resolve("../targets/native-fixed/native_fixed.wasm"),
             Target::Custom { wasm, .. } => wasm.clone(),
+            Target::Configured { wasm, .. } => wasm.clone(),
             Target::Guard { .. } => resolve("../contracts/target/wasm32-unknown-unknown/release/guard.wasm"),
         }
     }
@@ -76,6 +81,7 @@ impl Target {
             Target::NativeControl => "native-control".to_string(),
             Target::NativeFixed => "native-fixed".to_string(),
             Target::Custom { label, .. } => label.clone(),
+            Target::Configured { label, .. } => label.clone(),
             Target::Guard { fixed: true } => "guard-fixed".to_string(),
             Target::Guard { fixed: false } => "guard-vulnerable".to_string(),
         }
@@ -110,6 +116,19 @@ impl Target {
             .unwrap_or_else(|| "custom".to_string());
         Ok(Target::Custom { wasm, label, native })
     }
+    /// A configured target from `--wasm <path> --guard-config <file>` (token scoring only).
+    pub fn configured(path: &str, label: Option<&str>, cfg_file: &str) -> Result<Self> {
+        let Target::Custom { wasm, label, .. } = Self::custom(path, label, false)? else { unreachable!() };
+        let cfg = crate::adapter::GuardConfig::load(cfg_file)?;
+        Ok(Target::Configured { wasm, label, cfg })
+    }
+    /// The adapter in force, if any (only for `--guard-config` targets).
+    pub fn adapter(&self) -> Option<&crate::adapter::GuardConfig> {
+        match self {
+            Target::Configured { cfg, .. } => Some(cfg),
+            _ => None,
+        }
+    }
     /// The flags that select this same target again (printed in replay lines).
     pub fn replay_flags(&self) -> String {
         match self {
@@ -119,6 +138,9 @@ impl Target {
             Target::NativeFixed => "--target native-fixed".to_string(),
             Target::Guard { fixed: true } => "--target guard-fixed".to_string(),
             Target::Guard { fixed: false } => "--target guard-vulnerable".to_string(),
+            Target::Configured { wasm, label, cfg } => {
+                format!("--wasm {} --wasm-label {label} --guard-config {}", wasm.display(), cfg.file)
+            }
             Target::Custom { wasm, label, native } => format!(
                 "--wasm {} --wasm-label {label}{}",
                 wasm.display(),
@@ -164,6 +186,9 @@ const EXPIRY_OFFSET_S: u64 = 20;
 
 /// A receiver/payee in logical terms. Testers never see raw account ids;
 /// they use these names.
+/// Note on a starting invoice a configured guard cannot express (its rule is not claimed).
+pub const NOT_CREATED: &str = "not created: the guard does not claim the rule this invoice needs (cancel, expiry or payee list)";
+
 pub const RECEIVERS: [&str; 5] = ["sam", "ada", "lin", "kai", "mo"];
 
 /// One invoice as the scorer understands it. `valid` follows the policy
@@ -324,13 +349,20 @@ pub async fn setup(target: Target) -> Result<Arena> {
     // tester step signed as "agent" uses this key; the full-access key is
     // used only here, to add it.
     let fc_sk = SecretKey::from_random(KeyType::ED25519);
+    let adapter = target.adapter().cloned();
+    // A configured guard's own name for `pay` (adapter.rs); otherwise exactly AGENT_METHODS.
+    let mapped_pay: Vec<String> = adapter.iter().map(|c| c.method("pay")).collect();
+    let agent_methods: Vec<&str> = match &adapter {
+        Some(_) => mapped_pay.iter().map(|s| s.as_str()).collect(),
+        None => AGENT_METHODS.to_vec(),
+    };
     ok(agent_full_access
         .batch(agent_full_access.id())
         .add_key(
             fc_sk.public_key(),
             AccessKey::function_call_access(
                 vault.id(),
-                AGENT_METHODS,
+                &agent_methods,
                 Some(NearToken::from_near(AGENT_KEY_ALLOWANCE_NEAR)),
             ),
         )
@@ -348,6 +380,12 @@ pub async fn setup(target: Target) -> Result<Arena> {
     // Vault: `new` may only be called by the vault account itself
     // (INTERFACE.md: "the vault account itself only (deploy + init)").
     let is_guard = target.is_contracts_guard();
+    if let Some(c) = &adapter {
+        let args = c.init_args(owner.id().as_str(), agent_full_access.id().as_str(), token.id().as_str(), DAILY_CAP * unit);
+        println!("ADAPTER init: {}({})", c.init_method, args);
+        ok(vault.call(&c.init_method).args_json(args).transact().await?)
+            .with_context(|| format!("SETUP STEP init: the guard's init call `{}` failed", c.init_method))?;
+    }
     let init_args = match &target {
         Target::Guard { fixed } => json!({
             "mode": if *fixed { "fixed" } else { "vulnerable_fixture" },
@@ -362,9 +400,12 @@ pub async fn setup(target: Target) -> Result<Arena> {
             "daily_cap": (DAILY_CAP * unit).to_string(),
         }),
     };
-    ok(vault.call("new").args_json(init_args).transact().await?)?;
+    if adapter.is_none() {
+        ok(vault.call("new").args_json(init_args).transact().await?)?;
+    }
     // contracts/guard claims no daily cap: score none (the cap term can never fire).
-    let cap: u128 = if is_guard { u128::MAX } else { DAILY_CAP };
+    // A configured guard that claims no cap is scored the same way.
+    let cap: u128 = if is_guard || adapter.as_ref().map(|c| !c.features.daily_cap).unwrap_or(false) { u128::MAX } else { DAILY_CAP };
 
     if native {
         // Native mode: no token registration or token funding (the guard never
@@ -399,7 +440,20 @@ pub async fn setup(target: Target) -> Result<Arena> {
     }
 
     // Payees (contracts/guard has no payee list).
-    for r in RECEIVERS.iter().filter(|_| !is_guard) {
+    if let Some(c) = &adapter {
+        for r in RECEIVERS.iter().filter(|_| c.features.payees) {
+            let acct = by_name.iter().find(|(n, _)| n == r).unwrap().1.id().clone();
+            let m = c.method("add_payee");
+            ok(owner
+                .call(vault.id(), &m)
+                .args_json(c.args("add_payee", json!({"account": acct})))
+                .deposit(NearToken::from_yoctonear(c.deposit("add_payee")))
+                .transact()
+                .await?)
+            .with_context(|| format!("SETUP STEP add_payee: the owner's `{m}` call failed"))?;
+        }
+    }
+    for r in RECEIVERS.iter().filter(|_| !is_guard && adapter.is_none()) {
         let acct = by_name.iter().find(|(n, _)| n == r).unwrap().1.id().clone();
         ok(owner
             .call(vault.id(), "add_payee")
@@ -432,6 +486,75 @@ pub async fn setup(target: Target) -> Result<Arena> {
     for Spec(id, recv, amount, exp, cancelled, remove) in specs {
         let acct = by_name.iter().find(|(n, _)| n == &recv).unwrap().1.id().clone();
         let expiring = exp == soon;
+        if let Some(c) = &adapter {
+            // Configured guard: create only the invoices whose rule it claims; the rest are
+            // never created and authorise nothing (same rule as the contracts/guard branch).
+            let f = &c.features;
+            let created = (!cancelled || f.cancel) && (!remove || f.payees) && (!expiring || f.expiry);
+            if created {
+                let m = c.method("approve_invoice");
+                ok(owner
+                    .call(vault.id(), &m)
+                    .args_json(c.args(
+                        "approve_invoice",
+                        json!({"id": id, "receiver": acct, "amount": (amount * unit).to_string(), "expires_at_ns": exp}),
+                    ))
+                    .deposit(NearToken::from_yoctonear(c.deposit("approve_invoice")))
+                    .transact()
+                    .await?)
+                .with_context(|| format!("SETUP STEP approve_invoice: the owner's `{m}` call for {id} failed"))?;
+            }
+            let valid = created && !cancelled && !remove;
+            let should_pay = valid && running_cap + amount <= cap;
+            if should_pay {
+                running_cap += amount;
+            }
+            invoices.push(InvSpec {
+                id: id.to_string(),
+                receiver: recv,
+                amount,
+                valid,
+                should_pay,
+                expires_at_ns: exp,
+                expiring: expiring && created,
+                note: if !created {
+                    NOT_CREATED
+                } else if cancelled {
+                    "cancelled by the owner right after approval"
+                } else if remove {
+                    "payee removed by the owner right after approval"
+                } else if expiring {
+                    "valid now, but expires soon after setup (payable only while block time < expires_at_ns)"
+                } else if should_pay {
+                    "valid, payable within the daily cap"
+                } else if cap == u128::MAX {
+                    "valid (this guard claims no daily cap)"
+                } else {
+                    "valid, but its amount alone exceeds the daily cap"
+                },
+            });
+            if created && cancelled {
+                let m = c.method("cancel_invoice");
+                ok(owner
+                    .call(vault.id(), &m)
+                    .args_json(c.args("cancel_invoice", json!({"id": id})))
+                    .deposit(NearToken::from_yoctonear(c.deposit("cancel_invoice")))
+                    .transact()
+                    .await?)
+                .with_context(|| format!("SETUP STEP cancel_invoice: the owner's `{m}` call for {id} failed"))?;
+            }
+            if created && remove {
+                let m = c.method("remove_payee");
+                ok(owner
+                    .call(vault.id(), &m)
+                    .args_json(c.args("remove_payee", json!({"account": acct})))
+                    .deposit(NearToken::from_yoctonear(c.deposit("remove_payee")))
+                    .transact()
+                    .await?)
+                .with_context(|| format!("SETUP STEP remove_payee: the owner's `{m}` call failed"))?;
+            }
+            continue;
+        }
         if is_guard {
             // contracts/guard: only invoices it can express are created (no cancel, expiry, payees).
             let expressible = !cancelled && !remove && !expiring;
@@ -626,6 +749,9 @@ impl OwnerPolicy {
 /// and narrow the scorer's manifest so `valid`/`should_pay` follow the policy
 /// actually in force. Returns the read-back as JSON for the result file.
 pub async fn apply_owner_policy(a: &mut Arena, p: &OwnerPolicy) -> Result<serde_json::Value> {
+    if a.target.adapter().is_some() {
+        bail!("--owner-policy is not supported with --guard-config yet");
+    }
     if a.target.is_contracts_guard() {
         bail!("--owner-policy needs the vault-a interface (payees, daily cap); contracts/guard has neither");
     }

@@ -1,0 +1,7 @@
+{
+  "arena_guard_config": 1,
+  "_about": "contracts/guard in mode vulnerable_fixture. It claims only: each approved invoice pays at most once, and only the agent can pay. No payee list, no cancel, no expiry, no daily cap.",
+  "init": {"method": "new", "args": {"mode": "vulnerable_fixture", "owner": "$owner", "agent": "$agent", "token": "$token"}},
+  "features": {"payees": false, "cancel": false, "expiry": false, "daily_cap": false},
+  "deposits": {"approve_invoice": 0}
+}

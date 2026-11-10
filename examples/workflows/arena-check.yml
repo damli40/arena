@@ -1,0 +1,76 @@
+# Copy this file to .github/workflows/arena-check.yml in YOUR guard's repo.
+# It builds your guard, runs Arena's attack library against it on a local NEAR sandbox inside
+# the runner, and puts the result in the job summary and a downloadable report.
+#
+# Replace the three marked lines: ARENA_OWNER (where Arena lives on GitHub), ARENA_COMMIT (a full
+# 40-character commit SHA of Arena; pin a SHA, not a branch), and your build command + wasm path.
+name: arena check
+
+# pull_request, NEVER pull_request_target: pull_request_target runs the PR's code with the base
+# repo's secrets and a write token, so a stranger's PR could steal them.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Read-only: the check reads your code and writes nothing back to the repo.
+permissions:
+  contents: read
+
+jobs:
+  arena:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # 1. Build your guard. Arena needs the .wasm file, nothing else from your repo.
+      - name: Build the guard
+        run: |
+          rustup target add wasm32-unknown-unknown
+          cargo build --release --target wasm32-unknown-unknown            # <- your build command
+
+      # 2. Run Arena against it.
+      - name: Arena check
+        uses: ARENA_OWNER/arena@ARENA_COMMIT                                  # <- pin a full commit SHA
+        with:
+          wasm: target/wasm32-unknown-unknown/release/my_guard.wasm          # <- your wasm
+          # config: arena/guard.json        # only if your init args differ from Arena's interface
+          # mapping: arena/mapping.json     # only if your method names differ
+          fail-on: beyond-policy            # or against-intent, or never
+          # muse-api-key: ${{ secrets.MUSE_API_KEY }}  # optional: lets Muse PROPOSE a mapping.
+          #   Secrets are not given to pull requests from forks, so commit a mapping.json instead
+          #   if outside contributors open PRs.
+
+# Optional: comment the result on the pull request. Off by default. To turn it on:
+#  1. give the "Arena check" step an id:      id: arena
+#  2. add these outputs to the `arena` job:
+#       outputs:
+#         badge: ${{ steps.arena.outputs.badge }}
+#         beyond: ${{ steps.arena.outputs.beyond-policy }}
+#         intent: ${{ steps.arena.outputs.against-intent }}
+#  3. add this second job. It alone gets `pull-requests: write`, and it runs no code from the PR
+#     (it only posts the numbers), so the PR's build step never runs next to a write token.
+#     On PRs from forks GitHub hands out a read-only token, so this job fails there; that is
+#     GitHub protecting you, not a bug.
+#
+#  comment:
+#    needs: arena
+#    if: always() && github.event_name == 'pull_request'
+#    runs-on: ubuntu-latest
+#    permissions:
+#      pull-requests: write
+#    steps:
+#      - env:
+#          GH_TOKEN: ${{ github.token }}
+#          PR: ${{ github.event.pull_request.number }}
+#          BADGE: ${{ needs.arena.outputs.badge }}
+#          BEYOND: ${{ needs.arena.outputs.beyond }}
+#          INTENT: ${{ needs.arena.outputs.intent }}
+#        run: |
+#          gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body "arena: $BADGE
+#          Tokens paid beyond the guard's own rules: $BEYOND
+#          Tokens paid against the owner's intent: $INTENT
+#          Full report: the arena-report artifact of this run."

@@ -1,0 +1,2 @@
+{"arena_guard_config": 1, "init": {"method": "new", "args": {"mode": "fixed", "owner": "$agent", "agent": "$owner", "token": "$token"}},
+ "features": {"payees": false, "cancel": false, "expiry": false, "daily_cap": false}, "deposits": {"approve_invoice": 0}}

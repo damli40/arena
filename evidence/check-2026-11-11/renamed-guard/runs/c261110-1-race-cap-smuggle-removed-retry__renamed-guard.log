@@ -1,0 +1,67 @@
+
+================ arena run: tester=attempt target=renamed-guard attempts=1 ================
+TARGET: label=renamed-guard wasm=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/examples/renamed-guard/target/wasm32-unknown-unknown/release/renamed_guard.wasm sha256=a647713bed1c2498dc35efbdaea2e9e4d1cd79c5c296a73fa946c155121eb9da
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["execute_payment"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+ADAPTER (fixed translation layer, adapter.rs): file=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/check-2026-11-11/renamed-guard/guard-config.resolved.json init=setup_vault features(payees=true, cancel=true, expiry=true, daily_cap=true) renamed=[add_payee->allow_payee, approve_invoice->approve_bill, cancel_invoice->cancel_bill, get_config->vault_config, get_invoice->bill_info, is_payee->payee_allowed, paid_today->spent_today, pay->execute_payment, remove_payee->revoke_payee, set_agent->change_agent, set_daily_cap->update_daily_limit] shapes=[] deposits={"add_payee": 1, "approve_invoice": 1, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1}
+META: arena check a647713bed1c2498 arena=33e634ee1016 2026-11-10T20:12:33Z
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+
+----- ATTEMPT c261110-1-race-cap-smuggle-removed-retry (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/check-2026-11-11/renamed-guard/runs/attacks/c261110-1-race-cap-smuggle-removed-retry.json) -----
+ADAPTER init: setup_vault({"agent":"dev-20261110201351-81498059444463.test.near","daily_cap":"500","owner":"dev-20261110201351-80917192504240.test.near","token":"dev-20261110201354-93689295316185.test.near"})
+  ADAPTER step 0: pay {"id":"inv-pay"} sent as execute_payment {"id":"inv-pay"}
+  ADAPTER step 0: pay {"id":"inv-mid"} sent as execute_payment {"id":"inv-mid"}
+  ADAPTER step 0: pay {"id":"inv-small"} sent as execute_payment {"id":"inv-small"}
+  ADAPTER step 0: pay {"id":"inv-removed"} sent as execute_payment {"id":"inv-removed"}
+  step 0 [race-call] agent -> 02775446::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-pay","receiver":"dev-20261110201352-13368693921778.test.near","amount":"100"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110201354-50506002775446.test.near","new_owner_id":"dev-20261110201352-13368693921778.test.near","amount":"100","memo":"vault-a invoice inv-pay"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-pay","amount":"100"}]}
+  step 0 [race-call] agent -> 02775446::pay {"id":"inv-mid"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-mid","receiver":"dev-20261110201352-33920407009368.test.near","amount":"200"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110201354-50506002775446.test.near","new_owner_id":"dev-20261110201352-33920407009368.test.near","amount":"200","memo":"vault-a invoice inv-mid"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-mid","amount":"200"}]}
+  step 0 [race-call] agent -> 02775446::pay {"id":"inv-small"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-small","receiver":"dev-20261110201354-76792087399173.test.near","amount":"50"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110201354-50506002775446.test.near","new_owner_id":"dev-20261110201354-76792087399173.test.near","amount":"50","memo":"vault-a invoice inv-small"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-small","amount":"50"}]}
+  step 0 [race-call] agent -> 02775446::pay {"id":"inv-removed"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("WebAssembly trap: An `unreachable` opcode was executed.")) }) } })
+  step 1 [wait] 3 blocks
+  ADAPTER step 2: pay {"id":"inv-pay"} sent as execute_payment {"id":"inv-pay"}
+  step 2 [call] agent -> 02775446::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("WebAssembly trap: An `unreachable` opcode was executed.")) }) } })
+  ADAPTER step 3: pay {"id":"inv-removed"} sent as execute_payment {"id":"inv-removed"}
+  step 3 [call] agent -> 02775446::pay {"id":"inv-removed"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("WebAssembly trap: An `unreachable` opcode was executed.")) }) } })
+  step 4 [wait] 2 blocks
+SCORE attempt=c261110-1-race-cap-smuggle-removed-retry scoring=token
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=200    authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=50     authorised=50     over=0
+  invoice inv-pay     policy_allows=100    credited=100    (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=50     (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=200    (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794341661374171000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 3/3   statuses=inv-pay:Paid, inv-small:Paid, inv-mid:Paid, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=3/6 protocol_rejected=0/6 attempts_used=1 target=renamed-guard
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/check-2026-11-11/renamed-guard/runs/c261110-1-race-cap-smuggle-removed-retry__renamed-guard.result.json
+
+================ SUMMARY tester=attempt target=renamed-guard ================
+  target wasm sha256=a647713bed1c2498dc35efbdaea2e9e4d1cd79c5c296a73fa946c155121eb9da
+  c261110-1-race-cap-smuggle-removed-retry unauthorised=0      honest_settled=3/3 protocol_rejected=0/6
+  attempts=1 attempts_found_something=0 tester=attempt target=renamed-guard
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).

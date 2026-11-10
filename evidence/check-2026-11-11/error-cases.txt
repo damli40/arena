@@ -1,0 +1,59 @@
+# arena check: error messages (2026-11-10 local). Each run stops at the preflight; --only none skips the library.
+
+### wrong method names, no mapping, Muse off
+$ ./arena check examples/renamed-guard/target/wasm32-unknown-unknown/release/renamed_guard.wasm --no-muse
+COULD NOT FINISH:
+  Your guard's methods do not line up with what Arena calls:
+    - init: the guard has no method `new`. Set init.method in your config to your init method's name.
+    - pay: the guard has no method `pay`. Arena needs the method for this role (the agent calls it with an invoice id; it pays that invoice by calling ft_transfer on the NEP-141 token). Map it with "methods": {"pay": "<your method>"}.
+    - approve_invoice: the guard has no method `approve_invoice`. Arena needs the method for this role (the owner approves an invoice with an id, a receiver, an amount, and an expiry if the guard has one). Map it with "methods": {"approve_invoice": "<your method>"}.
+    - add_payee: the guard has no method `add_payee`. Arena needs the method for this role (the owner adds an account to the payee list). Map it with "methods": {"add_payee": "<your method>"}.
+    - remove_payee: the guard has no method `remove_payee`. Arena needs the method for this role (the owner removes an account from the payee list). Map it with "methods": {"remove_payee": "<your method>"}.
+    - cancel_invoice: the guard has no method `cancel_invoice`. Arena needs the method for this role (the owner cancels an approved invoice). Map it with "methods": {"cancel_invoice": "<your method>"}.
+    - get_invoice: the guard has no method `get_invoice`. Arena needs the method for this role (a view that returns one invoice, including whether it is paid). Map it with "methods": {"get_invoice": "<your method>"}.
+    - Methods your wasm exports: allow_payee, approve_bill, bill_info, cancel_bill, change_agent, contract_source_metadata, execute_payment, on_transfer_complete, payee_allowed, revoke_payee, setup_vault, spent_today, update_daily_limit, vault_config
+  wall-clock: 0.0 s
+exit=2
+
+### init failed (config omits the mode argument)
+$ ./arena check contracts/target/wasm32-unknown-unknown/release/guard.wasm --config evidence/check-2026-11-11/error-case-inputs/init-missing-mode.json
+COULD NOT FINISH:
+  Preflight (one honest payment) could not run. The guard's init call `new` failed: the guard could not read the arguments Arena sent (Failed to deserialize input from JSON. Error: `missing field `mode` at line 1 column 163`). Check init.args in your config, or the argument-shape choices ("shapes") in your mapping. Full log: errcases/out-2/runs/scripted-01-control-pay-valid__guard.log
+  wall-clock: 5.3 s
+exit=2
+
+### deposit refused (approve_invoice sent 1 yocto to a non-payable method)
+$ ./arena check contracts/target/wasm32-unknown-unknown/release/guard.wasm --config evidence/check-2026-11-11/error-case-inputs/deposit-refused.json
+COULD NOT FINISH:
+  Preflight (one honest payment) could not run. The owner's `approve_invoice` call for inv-pay failed: the guard refuses an attached deposit (Method approve_invoice doesn't accept deposit). Set "deposits": {"approve_invoice": 0} in your mapping. Full log: errcases/out-3/runs/scripted-01-control-pay-valid__guard.log
+  wall-clock: 9.3 s
+exit=2
+
+### pay mapped to a method that sends no tokens
+$ ./arena check contracts/target/wasm32-unknown-unknown/release/guard.wasm --config examples/configs/contracts-guard-fixed.json --mapping evidence/check-2026-11-11/error-case-inputs/pay-is-a-view.json --no-muse
+COULD NOT FINISH:
+  Preflight failed: Arena approved one 100-token invoice (inv-pay, to sam) and the agent called `get_mode` once. The call succeeded, but no ft_transfer was seen and sam got 0 tokens. Arena scores only NEP-141 tokens: `get_mode` must call ft_transfer on the token account it was given at init ($token). If `get_mode` is not your pay method, fix methods.pay in your mapping. Log: errcases/out-4/runs/scripted-01-control-pay-valid__guard.log
+  wall-clock: 11.3 s
+exit=2
+
+### status read wrong (paid value set to 'paid', guard says 'Paid')
+$ ./arena check contracts/target/wasm32-unknown-unknown/release/guard.wasm --config examples/configs/contracts-guard-fixed.json --mapping evidence/check-2026-11-11/error-case-inputs/status-wrong.json
+COULD NOT FINISH:
+  Preflight failed: Arena approved one 100-token invoice (inv-pay, to sam) and the agent called `pay` once. sam got the 100 tokens, but the guard's invoice status reads 'Paid', which is not the paid value Arena was told to expect. Arena reads get_invoice (`get_invoice`) field 'status' and expects 'paid'. Fix shapes.status_field / shapes.paid_value in your mapping. Log: errcases/out-5/runs/scripted-01-control-pay-valid__guard.log
+  wall-clock: 11.6 s
+exit=2
+
+### owner and agent swapped in init args
+$ ./arena check contracts/target/wasm32-unknown-unknown/release/guard.wasm --config evidence/check-2026-11-11/error-case-inputs/owner-swapped.json
+COULD NOT FINISH:
+  Preflight (one honest payment) could not run. Setup failed at approve_invoice: the owner's `approve_invoice` call for inv-pay failed (owner only). Check that your init args put Arena's owner in the owner role ($owner), and the deposits in your mapping. Full log: errcases/out-6/runs/scripted-01-control-pay-valid__guard.log
+  wall-clock: 9.1 s
+exit=2
+
+### not a wasm file
+$ ./arena check README.md
+COULD NOT FINISH:
+  README.md: not a wasm file (it does not start with the wasm magic bytes \0asm). Pass the .wasm your build produced (e.g. target/wasm32-unknown-unknown/release/<name>.wasm).
+  wall-clock: 0.0 s
+exit=2
+

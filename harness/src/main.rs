@@ -22,6 +22,7 @@
 //! Result JSON per attempt goes to evidence/results/<tester>-<target>/
 //! (or `--out` for `attempt`), never into the sequence folder.
 
+mod adapter;
 mod scorer;
 mod scripted;
 mod seq;
@@ -59,7 +60,7 @@ fn honesty(native: bool) -> &'static str {
 }
 
 /// Flags that take a value (so their value is never read as a positional).
-const VALUE_FLAGS: [&str; 8] = ["--budget", "--label", "--target", "--meta", "--wasm", "--wasm-label", "--out", "--owner-policy"];
+const VALUE_FLAGS: [&str; 9] = ["--budget", "--label", "--target", "--meta", "--wasm", "--wasm-label", "--out", "--owner-policy", "--guard-config"];
 
 fn arg_dir(args: &[String], what: &str) -> Result<PathBuf> {
     let mut it = args.iter();
@@ -75,6 +76,13 @@ fn arg_dir(args: &[String], what: &str) -> Result<PathBuf> {
 
 /// `--wasm <path>` (any guard) wins over `--target`; default vault-a.
 fn target_of(args: &[String]) -> Result<Target> {
+    if let Some(cfg) = flag(args, "--guard-config") {
+        let w = flag(args, "--wasm").context("--guard-config needs --wasm <path>")?;
+        if args.iter().any(|a| a == "--native") {
+            bail!("--guard-config is for token guards only (no --native)");
+        }
+        return Target::configured(w, flag(args, "--wasm-label"), cfg);
+    }
     if let Some(w) = flag(args, "--wasm") {
         return Target::custom(w, flag(args, "--wasm-label"), args.iter().any(|a| a == "--native"));
     }
@@ -209,9 +217,12 @@ async fn run_files(
     println!("TARGET: label={tl} wasm={} sha256={wasm_sha}", wasm.display());
     println!(
         "AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods={:?}, allowance={} NEAR). The agent's full-access key signs no tester step.",
-        setup::AGENT_METHODS,
+        target.adapter().map(|c| vec![c.method("pay")]).unwrap_or_else(|| setup::AGENT_METHODS.iter().map(|m| m.to_string()).collect()),
         setup::AGENT_KEY_ALLOWANCE_NEAR
     );
+    if let Some(c) = target.adapter() {
+        println!("ADAPTER (fixed translation layer, adapter.rs): {}", c.describe());
+    }
     let native = target.is_native();
     if native {
         println!("SCORING: native (receivers' native NEAR balance change, 1 unit = 1 milliNEAR)");
