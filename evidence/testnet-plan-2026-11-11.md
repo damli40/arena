@@ -69,3 +69,34 @@ measured after trial 1; if they are above 0.05 per trial the run is stopped and 
 
 The receipts contract pays its own gas: it holds 2.695 NEAR, of which 1.953 is locked by storage, so
 ≈0.74 is free. Publishing 8 receipts needs ≈0.1 (storage + gas). No top-up expected.
+
+---
+
+## Amendment after trial 1 (written 2026-11-10 ~17:45 WAT, before resuming)
+
+**What happened.** Run 1 trial `r11vf0` (vulnerable_fixture) finished: receiver +200, both checks in block
+277088399, both callbacks in 277088401, as expected. Right after it the runner printed the funder at
+**8.71 NEAR**, which looked like 2.3 NEAR lost on a trial that was supposed to return everything. I stopped
+the run by hand (it was creating trial `r11vf1`). That reading was wrong: it was taken before the deleted
+accounts' NEAR had arrived. The five delete transactions, read back from archival RPC, returned 6.4934 of
+the 6.50 NEAR handed out (agent 2.2985, token 1.9508, guard 1.9483, owner 0.2460, sam 0.0497).
+
+**Measured cost.** Creating one trial account costs the funder **0.0071 NEAR** (nearblocks, tx
+`4njTHje8…`), not the ≈0.0004 I assumed. So a deleted trial costs ≈0.043 NEAR (5 × 0.0071 + 0.0066 spent
+by the trial's own accounts). That is under the 0.05 stop line written above, so the run continues.
+Also lost per deleted account: a ≈0.00023 NEAR gas refund that arrives after the account is gone.
+
+**Clean-up.** The four half-built `r11vf1` accounts were deleted back into the funder
+(`testnet-2026-11-11-reclaim-vf1.log`; the guard account was never created). Funder now **10.974 NEAR**.
+
+**Runner changes before resuming.** (1) It waits 10 s before reading the funder after a trial, and re-reads
+up to 3 times before the stop rule fires. (2) Stop line: up-front + 0.04 NEAR (covers the five creations)
+instead of + 0.1.
+
+**New cost estimate.** 9 trials left (vulnerable_fixture 4, fixed 5). Before the last fixed trial the
+funder should hold 10.974 − 8 × 0.043 − 4.054 (kept vulnerable trial) ≈ **6.58**; that trial needs 6.54.
+About 0.04 NEAR to spare. If it is short, the stop rule fires and the report says so.
+
+**How it resumes (no result is re-run or dropped).** Trial `r11vf0` counts (it is in
+`testnet-2026-11-11-run1-raw.json`). Run 2: `vulnerable_fixture` × 4, tag `r11b`, last one kept. Run 3:
+`fixed` × 5, tag `r11c`, last one kept. Expected results unchanged: 200 × 5 and 100 × 5.

@@ -1,0 +1,258 @@
+{
+  "errors": [],
+  "header": {
+    "funder": "arena-race-funder-1111.testnet",
+    "funder_balance_start_yocto": "11046226822294087699999990",
+    "guard_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+    "network": "testnet",
+    "rpc": "https://rpc.testnet.fastnear.com",
+    "started_unix_ms": "1794325906973",
+    "token_wasm_sha256": "c8071a2265b6dbd595f319972dc3271d928a73b5a98456538ae5246abf8d3e61",
+    "trial_upfront_millinear": "6500",
+    "trials_per_mode": 5
+  },
+  "trials": [
+    {
+      "accounts": {
+        "agent": "r11vf0-agent.arena-race-funder-1111.testnet",
+        "funder": "arena-race-funder-1111.testnet",
+        "guard": "r11vf0-guard.arena-race-funder-1111.testnet",
+        "owner": "r11vf0-owner.arena-race-funder-1111.testnet",
+        "receiver": "r11vf0-sam.arena-race-funder-1111.testnet",
+        "token": "r11vf0-token.arena-race-funder-1111.testnet"
+      },
+      "agent_txs_sent_during_race": 2,
+      "deleted_accounts": [
+        {
+          "account": "r11vf0-token.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "t1kkxxR1LxPbz1bUaSvmE7z5V1UmREHj1MT3oZDPS5a"
+        },
+        {
+          "account": "r11vf0-guard.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "AgRU4YfGJ3T2tGUxzmkpczmKhMscSCN4Q9BfkfcJ8f5s"
+        },
+        {
+          "account": "r11vf0-sam.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "GAu8DuJTMbs5xZU2yL1rZPuZiKNvd1kDZGczNULyA48Y"
+        },
+        {
+          "account": "r11vf0-owner.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "F52PzvdW4YrvWMpque6pbecowVN7hgtj3VFatrccSrsf"
+        },
+        {
+          "account": "r11vf0-agent.arena-race-funder-1111.testnet",
+          "failure": "",
+          "ok": true,
+          "tx": "79kAJnMGpkCuq8KbLL1XK1QDMSWFT6yg78CYgfzaQVUV"
+        }
+      ],
+      "earlier_pay_callback_height": 277088401,
+      "elapsed_s": 50,
+      "funder_balance_after_yocto": "8705510385129915999999990",
+      "funder_balance_before_yocto": "11046226822294087699999990",
+      "guard_paid_out": "200",
+      "invoice_amount": "100",
+      "invoice_id": "inv-vulnerable_fixture-0",
+      "invoice_record_after": {
+        "amount": "100",
+        "confirmed_payouts": 2,
+        "pending_since_block": 0,
+        "receiver": "r11vf0-sam.arena-race-funder-1111.testnet",
+        "status": "Paid",
+        "transfers_started": 2
+      },
+      "kept_alive": false,
+      "later_pay_check_height": 277088399,
+      "mode": "vulnerable_fixture",
+      "mode_onchain": "vulnerable_fixture",
+      "overlapped": true,
+      "pay_a": {
+        "broadcast_returned_unix_ms": "1794325940928",
+        "failure": "",
+        "link": "https://testnet.nearblocks.io/txns/3WaHTc9SdTAvThe5KUkDsnNXnVH35FxbFoFWqpEtHcF4",
+        "outcome_fetch_error": null,
+        "sent_unix_ms": "1794325940357",
+        "steps": [
+          {
+            "block_height": 277088398,
+            "executor": "r11vf0-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "tx_to_receipt (agent signs)"
+          },
+          {
+            "block_height": 277088399,
+            "executor": "r11vf0-guard.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [
+              "pay: invoice=inv-vulnerable_fixture-0 transfer #1 started, mode=VulnerableFixture"
+            ],
+            "ok": true,
+            "role": "pay (guard: check + start transfer)"
+          },
+          {
+            "block_height": 277088400,
+            "executor": "r11vf0-token.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [
+              "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"r11vf0-guard.arena-race-funder-1111.testnet\",\"new_owner_id\":\"r11vf0-sam.arena-race-funder-1111.testnet\",\"amount\":\"100\",\"memo\":\"invoice inv-vulnerable_fixture-0\"}]}"
+            ],
+            "ok": true,
+            "role": "ft_transfer (token moves)"
+          },
+          {
+            "block_height": 277088401,
+            "executor": "r11vf0-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "other receipt on r11vf0-agent.arena-race-funder-1111.testnet (e.g. gas refund)"
+          },
+          {
+            "block_height": 277088401,
+            "executor": "r11vf0-guard.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [
+              "on_transfer: invoice=inv-vulnerable_fixture-0 confirmed, confirmed_payouts=1"
+            ],
+            "ok": true,
+            "role": "on_transfer (guard callback: writes result)"
+          },
+          {
+            "block_height": 277088402,
+            "executor": "r11vf0-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "other receipt on r11vf0-agent.arena-race-funder-1111.testnet (e.g. gas refund)"
+          },
+          {
+            "block_height": 277088400,
+            "executor": "r11vf0-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "other receipt on r11vf0-agent.arena-race-funder-1111.testnet (e.g. gas refund)"
+          }
+        ],
+        "success": true,
+        "tx": "3WaHTc9SdTAvThe5KUkDsnNXnVH35FxbFoFWqpEtHcF4"
+      },
+      "pay_b": {
+        "broadcast_returned_unix_ms": "1794325941015",
+        "failure": "",
+        "link": "https://testnet.nearblocks.io/txns/FjwLVnCwtUgUY3ubYggZrCiCUGR9aa2pu6XoiPA6ExmM",
+        "outcome_fetch_error": null,
+        "sent_unix_ms": "1794325940357",
+        "steps": [
+          {
+            "block_height": 277088398,
+            "executor": "r11vf0-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "tx_to_receipt (agent signs)"
+          },
+          {
+            "block_height": 277088399,
+            "executor": "r11vf0-guard.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [
+              "pay: invoice=inv-vulnerable_fixture-0 transfer #2 started, mode=VulnerableFixture"
+            ],
+            "ok": true,
+            "role": "pay (guard: check + start transfer)"
+          },
+          {
+            "block_height": 277088400,
+            "executor": "r11vf0-token.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [
+              "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"r11vf0-guard.arena-race-funder-1111.testnet\",\"new_owner_id\":\"r11vf0-sam.arena-race-funder-1111.testnet\",\"amount\":\"100\",\"memo\":\"invoice inv-vulnerable_fixture-0\"}]}"
+            ],
+            "ok": true,
+            "role": "ft_transfer (token moves)"
+          },
+          {
+            "block_height": 277088401,
+            "executor": "r11vf0-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "other receipt on r11vf0-agent.arena-race-funder-1111.testnet (e.g. gas refund)"
+          },
+          {
+            "block_height": 277088401,
+            "executor": "r11vf0-guard.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [
+              "DOUBLE PAYOUT: invoice=inv-vulnerable_fixture-0 was already Paid when another transfer confirmed",
+              "on_transfer: invoice=inv-vulnerable_fixture-0 confirmed, confirmed_payouts=2"
+            ],
+            "ok": true,
+            "role": "on_transfer (guard callback: writes result)"
+          },
+          {
+            "block_height": 277088402,
+            "executor": "r11vf0-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "other receipt on r11vf0-agent.arena-race-funder-1111.testnet (e.g. gas refund)"
+          },
+          {
+            "block_height": 277088400,
+            "executor": "r11vf0-agent.arena-race-funder-1111.testnet",
+            "failure": "",
+            "logs": [],
+            "ok": true,
+            "role": "other receipt on r11vf0-agent.arena-race-funder-1111.testnet (e.g. gas refund)"
+          }
+        ],
+        "success": true,
+        "tx": "FjwLVnCwtUgUY3ubYggZrCiCUGR9aa2pu6XoiPA6ExmM"
+      },
+      "receiver_balance_after": "200",
+      "receiver_balance_before": "0",
+      "receiver_received": "200",
+      "rule": "an invoice may pay at most its amount (100 test tokens)",
+      "rule_held": false,
+      "setup_txs": [
+        {
+          "step": "token.new",
+          "tx": "7wzpbjjQWHqti1UTABPhEHSV5JNK59nB9ezRZhxmnL3w"
+        },
+        {
+          "step": "guard.new",
+          "tx": "6UTGnDbD2PxdBizDy3R5nYq7FQKb2YF7PAMZJzJy6bhY"
+        },
+        {
+          "step": "storage_deposit r11vf0-guard.arena-race-funder-1111.testnet",
+          "tx": "5CvptwLwHx72YTwC4cXsUSsMBBRCapXewjpcg7p5V2wX"
+        },
+        {
+          "step": "storage_deposit r11vf0-sam.arena-race-funder-1111.testnet",
+          "tx": "HK2gEyuqkVgzB2RQrmc62rC3UzhQTZ7aeboPaQsEbHCq"
+        },
+        {
+          "step": "fund guard 1000",
+          "tx": "9WN2VHz8q94uP1Q3JnskT9YsRMLHa2PSNPXuAJQufN9a"
+        },
+        {
+          "step": "approve_invoice 100",
+          "tx": "5o7Gd5hxzYZbz3NJcWohH9MHgnujHnTGcpyL6Y3Lyuv3"
+        }
+      ],
+      "trial": 0
+    }
+  ]
+}

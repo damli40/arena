@@ -576,10 +576,18 @@ async fn main() -> anyhow::Result<()> {
             'outer: for mode in &modes {
                 for n in 0..trials {
                     // Never start a trial the funder cannot finish: a half-built trial strands NEAR.
-                    let before = balance(&worker, &funder_id).await?;
-                    let need = (trial_upfront_milli() + 100) * 10u128.pow(21);
+                    // Up-front + 0.04 NEAR: five account creations cost 0.0071 NEAR each (measured
+                    // Nov 10, trial r11vf0). Re-read up to 3 times: right after a trial the RPC can
+                    // still show the balance before the deleted accounts' NEAR arrived.
+                    let need = (trial_upfront_milli() + 40) * 10u128.pow(21);
+                    let mut before = balance(&worker, &funder_id).await?;
+                    for _ in 0..3 {
+                        if before >= need { break; }
+                        tokio::time::sleep(std::time::Duration::from_secs(10)).await;
+                        before = balance(&worker, &funder_id).await?;
+                    }
                     if before < need {
-                        let msg = format!("stopped before mode={mode} trial={n}: funder has {} yocto, a trial needs {} (up-front + 0.1 margin)", before, need);
+                        let msg = format!("stopped before mode={mode} trial={n}: funder has {} yocto, a trial needs {} (up-front + 0.04)", before, need);
                         eprintln!("   {msg}");
                         stopped = Some(msg);
                         break 'outer;
@@ -587,6 +595,9 @@ async fn main() -> anyhow::Result<()> {
                     let keep = n + 1 == trials;
                     match trial(&worker, &funder, &tag, mode, n, keep, &token_wasm, &guard_wasm).await {
                         Ok(mut v) => {
+                            // Let the deleted accounts' transfers land before reading (trial r11vf0
+                            // read 8.71 right away; the true balance was ~2.3 NEAR higher).
+                            tokio::time::sleep(std::time::Duration::from_secs(10)).await;
                             let after = balance(&worker, &funder_id).await?;
                             v["funder_balance_before_yocto"] = json!(before.to_string());
                             v["funder_balance_after_yocto"] = json!(after.to_string());
