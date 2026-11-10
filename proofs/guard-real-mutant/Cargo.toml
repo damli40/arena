@@ -1,0 +1,18 @@
+[package]
+# MUST-FAIL MUTANT. A copy of contracts/guard/src/lib.rs with exactly one line
+# deleted: line 186, `inv.status = Status::Pending;` in `fixed` mode's `pay`.
+# Made by `sed '186d'`; proofs/run.sh re-checks that the diff is that one line.
+# Never deploy. Used only to show the conformance/exhaustive check can fail.
+name = "guard-mutant"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+near-sdk = "=5.27.0"
+
+[features]
+fault-injection = []

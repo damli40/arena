@@ -1,0 +1,10 @@
+mode=Fixed n=3 invoices=[("inv-a", "sam.test", 100), ("inv-b", "ada.test", 50)]
+explored: 1670 distinct states, 2368 transitions, 342 distinct end states, 352 pay-filter checks, in 6.7 s
+max tokens sent per invoice over all schedules: [100, 50]
+P1 (sent <= amount): 0 violating states
+P2 (no stuck funds at quiescence): 0 violations
+pay filter vs real pay: 0 disagreements
+model (proofs/guard-model) vs real contract, lockstep: 1666 states with a mismatch
+first mismatch: ["inv-a: real Pending/1/0/4 model Approved/1/0/4"]
+  step 1: pay(inv-a) checks status Approved -> accepted, transfer scheduled
+RESULT build=real mode=fixed n=3 p1=HOLDS p2=HOLDS filter=AGREES model=DISAGREES states=1670 end_states=342 secs=6.7

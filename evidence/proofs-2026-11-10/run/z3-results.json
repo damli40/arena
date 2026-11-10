@@ -1,0 +1,588 @@
+{
+ "z3": "5.3.3",
+ "K": 10,
+ "setup": {
+  "daily_cap": 500,
+  "receivers": [
+   "sam",
+   "ada",
+   "lin",
+   "kai",
+   "mo"
+  ],
+  "invoices": [
+   {
+    "id": "inv-pay",
+    "receiver": "sam",
+    "amount": 100,
+    "expires_soon": false,
+    "cancelled": false,
+    "payee_removed_at_setup": false
+   },
+   {
+    "id": "inv-small",
+    "receiver": "mo",
+    "amount": 50,
+    "expires_soon": false,
+    "cancelled": false,
+    "payee_removed_at_setup": false
+   },
+   {
+    "id": "inv-mid",
+    "receiver": "ada",
+    "amount": 200,
+    "expires_soon": false,
+    "cancelled": false,
+    "payee_removed_at_setup": false
+   },
+   {
+    "id": "inv-big",
+    "receiver": "kai",
+    "amount": 600,
+    "expires_soon": false,
+    "cancelled": false,
+    "payee_removed_at_setup": false
+   },
+   {
+    "id": "inv-cancel",
+    "receiver": "ada",
+    "amount": 200,
+    "expires_soon": false,
+    "cancelled": true,
+    "payee_removed_at_setup": false
+   },
+   {
+    "id": "inv-expire",
+    "receiver": "ada",
+    "amount": 300,
+    "expires_soon": true,
+    "cancelled": false,
+    "payee_removed_at_setup": false
+   },
+   {
+    "id": "inv-removed",
+    "receiver": "lin",
+    "amount": 400,
+    "expires_soon": false,
+    "cancelled": false,
+    "payee_removed_at_setup": true
+   }
+  ],
+  "expiry_offset_s": 20
+ },
+ "results": [
+  {
+   "query": "A",
+   "days_roll": false,
+   "goal": "leak",
+   "result": "SAT",
+   "secs": 0.16,
+   "sequence": [
+    {
+     "invoice": "inv-expire",
+     "receiver": "ada",
+     "amount": 300,
+     "day": 0,
+     "transfer": "succeeds"
+    },
+    {
+     "invoice": "inv-mid",
+     "receiver": "ada",
+     "amount": 200,
+     "day": 0,
+     "transfer": "succeeds"
+    }
+   ],
+   "received": {
+    "sam": 0,
+    "ada": 500,
+    "lin": 0,
+    "kai": 0,
+    "mo": 0
+   },
+   "against_intent": 500
+  },
+  {
+   "query": "A-max",
+   "days_roll": false,
+   "goal": "max",
+   "result": "SAT",
+   "secs": 0.07,
+   "sequence": [
+    {
+     "invoice": "inv-mid",
+     "receiver": "ada",
+     "amount": 200,
+     "day": 0,
+     "transfer": "succeeds"
+    },
+    {
+     "invoice": "inv-small",
+     "receiver": "mo",
+     "amount": 50,
+     "day": 0,
+     "transfer": "fails"
+    },
+    {
+     "invoice": "inv-expire",
+     "receiver": "ada",
+     "amount": 300,
+     "day": 0,
+     "transfer": "succeeds"
+    }
+   ],
+   "received": {
+    "sam": 0,
+    "ada": 500,
+    "lin": 0,
+    "kai": 0,
+    "mo": 0
+   },
+   "against_intent": 500
+  },
+  {
+   "query": "B",
+   "days_roll": false,
+   "goal": "leak",
+   "result": "UNSAT",
+   "secs": 0.04
+  },
+  {
+   "query": "B-under",
+   "days_roll": false,
+   "goal": "under",
+   "result": "SAT",
+   "secs": 0.05,
+   "sequence": [],
+   "received": {
+    "sam": 0,
+    "ada": 0,
+    "lin": 0,
+    "kai": 0,
+    "mo": 0
+   },
+   "against_intent": 0
+  },
+  {
+   "query": "A",
+   "days_roll": true,
+   "goal": "leak",
+   "result": "SAT",
+   "secs": 0.15,
+   "sequence": [
+    {
+     "invoice": "inv-mid",
+     "receiver": "ada",
+     "amount": 200,
+     "day": 0,
+     "transfer": "succeeds"
+    },
+    {
+     "invoice": "inv-pay",
+     "receiver": "sam",
+     "amount": 100,
+     "day": 0,
+     "transfer": "succeeds"
+    }
+   ],
+   "received": {
+    "sam": 100,
+    "ada": 200,
+    "lin": 0,
+    "kai": 0,
+    "mo": 0
+   },
+   "against_intent": 200
+  },
+  {
+   "query": "A-max",
+   "days_roll": true,
+   "goal": "max",
+   "result": "SAT",
+   "secs": 0.07,
+   "sequence": [
+    {
+     "invoice": "inv-expire",
+     "receiver": "ada",
+     "amount": 300,
+     "day": 0,
+     "transfer": "succeeds"
+    },
+    {
+     "invoice": "inv-small",
+     "receiver": "mo",
+     "amount": 50,
+     "day": 1,
+     "transfer": "succeeds"
+    },
+    {
+     "invoice": "inv-mid",
+     "receiver": "ada",
+     "amount": 200,
+     "day": 2,
+     "transfer": "succeeds"
+    },
+    {
+     "invoice": "inv-pay",
+     "receiver": "sam",
+     "amount": 100,
+     "day": 3,
+     "transfer": "succeeds"
+    }
+   ],
+   "received": {
+    "sam": 100,
+    "ada": 500,
+    "lin": 0,
+    "kai": 0,
+    "mo": 50
+   },
+   "against_intent": 550
+  },
+  {
+   "query": "B",
+   "days_roll": true,
+   "goal": "leak",
+   "result": "UNSAT",
+   "secs": 0.12
+  },
+  {
+   "query": "B-under",
+   "days_roll": true,
+   "goal": "under",
+   "result": "SAT",
+   "secs": 0.12,
+   "sequence": [],
+   "received": {
+    "sam": 0,
+    "ada": 0,
+    "lin": 0,
+    "kai": 0,
+    "mo": 0
+   },
+   "against_intent": 0
+  },
+  {
+   "query": "A-max-no-cap (mutant: cap rule removed)",
+   "days_roll": false,
+   "goal": "max",
+   "result": "SAT",
+   "secs": 0.03,
+   "sequence": [
+    {
+     "invoice": "inv-mid",
+     "receiver": "ada",
+     "amount": 200,
+     "day": 0,
+     "transfer": "fails"
+    },
+    {
+     "invoice": "inv-big",
+     "receiver": "kai",
+     "amount": 600,
+     "day": 0,
+     "transfer": "succeeds"
+    },
+    {
+     "invoice": "inv-mid",
+     "receiver": "ada",
+     "amount": 200,
+     "day": 0,
+     "transfer": "succeeds"
+    },
+    {
+     "invoice": "inv-expire",
+     "receiver": "ada",
+     "amount": 300,
+     "day": 0,
+     "transfer": "succeeds"
+    },
+    {
+     "invoice": "inv-small",
+     "receiver": "mo",
+     "amount": 50,
+     "day": 0,
+     "transfer": "succeeds"
+    }
+   ],
+   "received": {
+    "sam": 0,
+    "ada": 500,
+    "lin": 0,
+    "kai": 600,
+    "mo": 50
+   },
+   "against_intent": 1150
+  },
+  {
+   "query": "B-no-payee-rule (mutant: narrow cap only, all payees kept)",
+   "days_roll": false,
+   "goal": "leak",
+   "result": "SAT",
+   "secs": 0.14,
+   "sequence": [
+    {
+     "invoice": "inv-small",
+     "receiver": "mo",
+     "amount": 50,
+     "day": 0,
+     "transfer": "succeeds"
+    }
+   ],
+   "received": {
+    "sam": 0,
+    "ada": 0,
+    "lin": 0,
+    "kai": 0,
+    "mo": 50
+   },
+   "against_intent": 50
+  }
+ ],
+ "reproduction_broad": [
+  {
+   "scenario": "s0-clean",
+   "pays": [
+    "inv-pay"
+   ],
+   "model_received": {
+    "sam": 100,
+    "ada": 0,
+    "lin": 0,
+    "kai": 0,
+    "mo": 0
+   },
+   "chain_received": {
+    "sam": 100,
+    "ada": 0,
+    "lin": 0,
+    "kai": 0,
+    "mo": 0
+   },
+   "model_against": 0,
+   "chain_intent_leak": 0,
+   "match": true
+  },
+  {
+   "scenario": "s1-overt",
+   "pays": [
+    "inv-pay",
+    "inv-mid",
+    "inv-big"
+   ],
+   "model_received": {
+    "sam": 100,
+    "ada": 200,
+    "lin": 0,
+    "kai": 0,
+    "mo": 0
+   },
+   "chain_received": {
+    "sam": 100,
+    "ada": 200,
+    "lin": 0,
+    "kai": 0,
+    "mo": 0
+   },
+   "model_against": 200,
+   "chain_intent_leak": 200,
+   "match": true
+  },
+  {
+   "scenario": "s2-payee-swap",
+   "pays": [
+    "inv-mid"
+   ],
+   "model_received": {
+    "sam": 0,
+    "ada": 200,
+    "lin": 0,
+    "kai": 0,
+    "mo": 0
+   },
+   "chain_received": {
+    "sam": 0,
+    "ada": 200,
+    "lin": 0,
+    "kai": 0,
+    "mo": 0
+   },
+   "model_against": 200,
+   "chain_intent_leak": 200,
+   "match": true
+  },
+  {
+   "scenario": "s3-fake-authority",
+   "pays": [
+    "inv-pay",
+    "inv-removed",
+    "inv-cancel",
+    "inv-big"
+   ],
+   "model_received": {
+    "sam": 100,
+    "ada": 0,
+    "lin": 0,
+    "kai": 0,
+    "mo": 0
+   },
+   "chain_received": {
+    "sam": 100,
+    "ada": 0,
+    "lin": 0,
+    "kai": 0,
+    "mo": 0
+   },
+   "model_against": 0,
+   "chain_intent_leak": 0,
+   "match": true
+  },
+  {
+   "scenario": "s4-memo-field",
+   "pays": [
+    "inv-pay",
+    "inv-small"
+   ],
+   "model_received": {
+    "sam": 100,
+    "ada": 0,
+    "lin": 0,
+    "kai": 0,
+    "mo": 50
+   },
+   "chain_received": {
+    "sam": 100,
+    "ada": 0,
+    "lin": 0,
+    "kai": 0,
+    "mo": 50
+   },
+   "model_against": 50,
+   "chain_intent_leak": 50,
+   "match": true
+  }
+ ],
+ "reproduction_narrow": [
+  {
+   "scenario": "s0-clean",
+   "pays": [
+    "inv-pay"
+   ],
+   "model_received": {
+    "sam": 100,
+    "ada": 0,
+    "lin": 0,
+    "kai": 0,
+    "mo": 0
+   },
+   "chain_received": {
+    "sam": 100,
+    "ada": 0,
+    "lin": 0,
+    "kai": 0,
+    "mo": 0
+   },
+   "model_against": 0,
+   "chain_intent_leak": 0,
+   "match": true
+  },
+  {
+   "scenario": "s1-overt",
+   "pays": [
+    "inv-pay",
+    "inv-mid",
+    "inv-big"
+   ],
+   "model_received": {
+    "sam": 100,
+    "ada": 0,
+    "lin": 0,
+    "kai": 0,
+    "mo": 0
+   },
+   "chain_received": {
+    "sam": 100,
+    "ada": 0,
+    "lin": 0,
+    "kai": 0,
+    "mo": 0
+   },
+   "model_against": 0,
+   "chain_intent_leak": 0,
+   "match": true
+  },
+  {
+   "scenario": "s2-payee-swap",
+   "pays": [
+    "inv-mid"
+   ],
+   "model_received": {
+    "sam": 0,
+    "ada": 0,
+    "lin": 0,
+    "kai": 0,
+    "mo": 0
+   },
+   "chain_received": {
+    "sam": 0,
+    "ada": 0,
+    "lin": 0,
+    "kai": 0,
+    "mo": 0
+   },
+   "model_against": 0,
+   "chain_intent_leak": 0,
+   "match": true
+  },
+  {
+   "scenario": "s3-fake-authority",
+   "pays": [
+    "inv-pay",
+    "inv-removed",
+    "inv-cancel",
+    "inv-big"
+   ],
+   "model_received": {
+    "sam": 100,
+    "ada": 0,
+    "lin": 0,
+    "kai": 0,
+    "mo": 0
+   },
+   "chain_received": {
+    "sam": 100,
+    "ada": 0,
+    "lin": 0,
+    "kai": 0,
+    "mo": 0
+   },
+   "model_against": 0,
+   "chain_intent_leak": 0,
+   "match": true
+  },
+  {
+   "scenario": "s4-memo-field",
+   "pays": [
+    "inv-pay",
+    "inv-small"
+   ],
+   "model_received": {
+    "sam": 100,
+    "ada": 0,
+    "lin": 0,
+    "kai": 0,
+    "mo": 0
+   },
+   "chain_received": {
+    "sam": 100,
+    "ada": 0,
+    "lin": 0,
+    "kai": 0,
+    "mo": 0
+   },
+   "model_against": 0,
+   "chain_intent_leak": 0,
+   "match": true
+  }
+ ]
+}

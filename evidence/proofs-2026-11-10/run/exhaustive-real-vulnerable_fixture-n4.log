@@ -1,0 +1,16 @@
+mode=VulnerableFixture n=4 invoices=[("inv-a", "sam.test", 100), ("inv-b", "ada.test", 50)]
+explored: 1534 distinct states, 4820 transitions, 60 distinct end states, 964 pay-filter checks, in 9.7 s
+max tokens sent per invoice over all schedules: [400, 200]
+P1 (sent <= amount): 472 violating states
+P2 (no stuck funds at quiescence): 0 violations
+pay filter vs real pay: 0 disagreements
+model (proofs/guard-model) vs real contract, lockstep: 0 states with a mismatch
+first P1 counterexample: pays target ["inv-a", "inv-a", "inv-a", "inv-a"], sent [200, 0]
+  step 1: pay(inv-a) checks status Approved -> accepted, transfer scheduled
+  step 2: pay(inv-a) checks status Approved -> accepted, transfer scheduled
+  step 3: pay(inv-a) checks status Approved -> accepted, transfer scheduled
+  step 4: pay(inv-a) checks status Approved -> accepted, transfer scheduled
+  step 5: token transfer for inv-a succeeds: 100 tokens move
+  step 6: on_transfer(inv-a) sees success -> status Paid
+  step 7: token transfer for inv-a succeeds: 100 tokens move
+RESULT build=real mode=vulnerable_fixture n=4 p1=FAILS p2=HOLDS filter=AGREES model=AGREES states=1534 end_states=60 secs=9.7

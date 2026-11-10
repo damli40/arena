@@ -1,0 +1,10 @@
+the agent submits 3 pays, for ["inv-a", "inv-a", "inv-a"]
+step 1: pay #1 (inv-a) checks status Approved -> accepted, transfer scheduled
+step 2: transfer for pay #1 (inv-a) fails (total sent for inv-a: 0)
+step 3: pay #2 (inv-a) checks status Approved -> accepted, transfer scheduled
+step 4: on_transfer for pay #1 (inv-a) sees failure -> status Approved
+step 5: pay #3 (inv-a) checks status Approved -> accepted, transfer scheduled
+step 6: transfer for pay #3 (inv-a) succeeds (total sent for inv-a: 100)
+step 7: transfer for pay #2 (inv-a) succeeds (total sent for inv-a: 200)
+  -> CHECK FAILED: P1: tokens sent for an invoice never exceed its amount
+RESULT failed_checks=["P1: tokens sent for an invoice never exceed its amount"]

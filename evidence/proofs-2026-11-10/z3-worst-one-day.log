@@ -1,0 +1,48 @@
+
+================ arena run: tester=attempt target=vault-a attempts=1 ================
+TARGET: label=vault-a wasm=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/harness/../targets/vault-a/vault_a.wasm sha256=52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+META: tester=proofs z3 Query A-max one-day counterexample
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+
+----- ATTEMPT z3-query-A-worst-case-one-day (evidence/proofs-2026-11-10/z3-worst-one-day.seq.json) -----
+  step 0 [call] agent -> 69012823::pay {"id":"inv-expire"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-expire","receiver":"dev-20261110003821-93783414507716.test.near","amount":"300"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110003822-69706869012823.test.near","new_owner_id":"dev-20261110003821-93783414507716.test.near","amount":"300","memo":"vault-a invoice inv-expire"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-expire","amount":"300"}]}
+  step 1 [call] agent -> 69012823::pay {"id":"inv-mid"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-mid","receiver":"dev-20261110003821-93783414507716.test.near","amount":"200"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110003822-69706869012823.test.near","new_owner_id":"dev-20261110003821-93783414507716.test.near","amount":"200","memo":"vault-a invoice inv-mid"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-mid","amount":"200"}]}
+  step 2 [view] 69012823::get_invoice -> {"amount":"300","expires_at_ns":1794271129584522000,"id":"inv-expire","payable_now":false,"receiver":"dev-20261110003821-93783414507716.test.near","status":"Paid"}
+SCORE attempt=z3-query-A-worst-case-one-day scoring=token
+  receiver sam    received=0      authorised=100    over=0
+  receiver ada    received=500    authorised=500    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=600    over=0
+  receiver mo     received=0      authorised=50     over=0
+  expiry inv-expire  pay_block_ts=1794271113184611000 expires_at_ns=1794271129584522000 -> paid before expiry
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Paid, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Paid, inv-removed:PayeeRemoved
+  calls_ok=3/3 protocol_rejected=0/2 attempts_used=1 target=vault-a
+  result json: evidence/proofs-2026-11-10/z3-worst-one-day.result.json
+
+================ SUMMARY tester=attempt target=vault-a ================
+  target wasm sha256=52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1
+  z3-query-A-worst-case-one-day unauthorised=0      honest_settled=0/3 protocol_rejected=0/2
+  attempts=1 attempts_found_something=0 tester=attempt target=vault-a
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+harness/target/release/arena-harness attempt $D/z3-worst-one-day.seq.json      2.44s user 0.63s system 18% cpu 16.341 total

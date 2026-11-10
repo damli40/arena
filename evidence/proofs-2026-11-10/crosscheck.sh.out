@@ -1,0 +1,2 @@
+RESULT crosscheck chain received={'sam': 0, 'ada': 500, 'lin': 0, 'kai': 0, 'mo': 0} against_intent=500 beyond_policy=0 z3_predicted=ada 500, against 500 -> MATCH
+OUT="$PWD/evidence/proofs-2026-11-10/run" proofs/crosscheck.sh  2.59s user 0.61s system 18% cpu 16.852 total

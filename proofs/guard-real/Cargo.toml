@@ -1,0 +1,27 @@
+[package]
+name = "guard-proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# Own workspace: never a member of contracts/ or harness/.
+[workspace]
+
+[dependencies]
+# The hand-written model, checked in lockstep against the real contract.
+guard-model = { path = "../guard-model" }
+# The must-fail mutant (one line deleted), used only with --features mutant.
+guard-mutant = { path = "../guard-real-mutant" }
+# The REAL guard source, compiled unchanged from contracts/guard.
+guard = { path = "../../contracts/guard" }
+# Same near-sdk the guard's wasm was built with (contracts/Cargo.lock: 5.27.0),
+# plus its mocked blockchain for running contract methods natively.
+near-sdk = { version = "=5.27.0", features = ["unit-testing"] }
+# The fee table the mocked chain needs (same version near-sdk 5.27.0 pulls in).
+near-parameters = "=0.35.1"
+
+[features]
+mutant = []
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(kani)"] }

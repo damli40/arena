@@ -1,0 +1,2618 @@
+Kani Rust Verifier 0.68.0 (cargo plugin)
+CBMC 6.11.0
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling serde_core v1.0.229
+   Compiling libc v0.2.191
+   Compiling serde v1.0.229
+   Compiling cfg-if v1.0.5
+   Compiling equivalent v1.0.3
+   Compiling hashbrown v0.17.1
+   Compiling itoa v1.0.18
+   Compiling autocfg v1.5.1
+   Compiling pin-project-lite v0.2.17
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling once_cell v1.21.4
+   Compiling anyhow v1.0.104
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling thiserror v2.0.21
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling shlex v2.0.1
+   Compiling memchr v2.8.3
+   Compiling version_check v0.9.5
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling zmij v1.0.23
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling find-msvc-tools v0.1.15
+   Compiling tracing-core v0.1.36
+   Compiling generic-array v0.14.7
+   Compiling ident_case v1.0.1
+   Compiling strsim v0.11.1
+   Compiling fnv v1.0.7
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling typenum v1.20.1
+   Compiling bytes v1.12.1
+   Compiling futures-core v0.3.34
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling winnow v1.0.5
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling toml_datetime v1.1.3+spec-1.1.0
+   Compiling foldhash v0.2.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling indexmap v2.14.2
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling num-traits v0.2.19
+   Compiling toml_edit v0.25.19+spec-1.1.0
+   Compiling syn v3.0.9
+   Compiling syn v2.0.119
+   Compiling cfg_aliases v0.2.2
+   Compiling stable_deref_trait v1.2.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling serde_json v1.0.154
+   Compiling subtle v2.6.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling borsh v1.8.1
+   Compiling proc-macro-crate v3.5.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling jobserver v0.1.35
+   Compiling synstructure v0.14.0
+   Compiling cc v1.11.1
+   Compiling foldhash v0.1.5
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling futures-sink v0.3.34
+   Compiling socket2 v0.6.5
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling mio v1.2.4
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling log v0.4.35
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling heck v0.5.0
+   Compiling tokio v1.54.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling tracing-attributes v0.1.31
+   Compiling block-buffer v0.10.4
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling crypto-common v0.1.7
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling digest v0.10.7
+   Compiling serde_derive v1.0.229
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling thiserror-impl v2.0.21
+   Compiling zerofrom-derive v0.1.8
+   Compiling yoke-derive v0.8.4
+   Compiling tracing v0.1.44
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling derive_arbitrary v1.5.0
+   Compiling zerofrom v0.1.8
+   Compiling arbitrary v1.5.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling borsh-derive v1.8.1
+   Compiling zerovec-derive v0.11.7
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling displaydoc v0.2.7
+   Compiling cpufeatures v0.2.17
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling slab v0.4.12
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling zerocopy v0.8.63
+   Compiling cranelift-srcgen v0.123.20
+   Compiling cranelift-assembler-x64-meta v0.123.20
+   Compiling darling_core v0.21.3
+warning: use of an unstable feature
+   --> /Users/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anyhow-1.0.104/src/lib.rs:210:50
+    |
+210 | #![cfg_attr(error_generic_member_access, feature(error_generic_member_access))]
+    |                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+
+   Compiling base64 v0.22.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling futures-macro v0.3.34
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling pulley-macros v36.0.20
+   Compiling percent-encoding v2.3.2
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling futures-task v0.3.34
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling unicode-segmentation v1.12.0
+   Compiling futures-util v0.3.34
+   Compiling convert_case v0.10.0
+   Compiling sha2 v0.10.9
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling http v1.5.0
+   Compiling num-bigint v0.3.3
+warning: use of an unstable feature
+   --> /Users/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.21/src/lib.rs:271:50
+    |
+271 | #![cfg_attr(error_generic_member_access, feature(error_generic_member_access))]
+    |                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+
+   Compiling crossbeam-utils v0.8.23
+   Compiling cranelift-bitset v0.123.20
+   Compiling libm v0.2.16
+   Compiling unicode-xid v0.2.6
+   Compiling writeable v0.6.4
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling utf_types v1.0.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling getrandom v0.3.4
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling cranelift-isle v0.123.20
+   Compiling litemap v0.8.3
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling allocator-api2 v0.2.21
+   Compiling bitflags v2.13.2
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling darling_macro v0.21.3
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling utf8_iter v1.1.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling yoke v0.8.4
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling pulley-interpreter v36.0.20
+   Compiling darling v0.21.3
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling derive_more-impl v2.1.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling smallvec v1.16.5
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling hashbrown v0.15.5
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling hex v0.4.3
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling num-integer v0.1.47
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling tokio-util v0.7.20
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling futures-channel v0.3.34
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling num-rational v0.3.2
+   Compiling near-schema-checker-core v0.35.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling target-lexicon v0.13.5
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling icu_properties_data v2.4.0
+   Compiling httparse v1.10.1
+   Compiling ppv-lite86 v0.2.21
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling near-schema-checker-macro v0.35.1
+   Compiling semver v1.0.28
+   Compiling icu_normalizer_data v2.4.0
+   Compiling crunchy v0.2.4
+   Compiling cranelift-codegen-shared v0.123.20
+   Compiling rustversion v1.0.23
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling cranelift-codegen-meta v0.123.20
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling rustc_version v0.4.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling zerovec v0.11.9
+   Compiling zerotrie v0.2.5
+   Compiling near-schema-checker-lib v0.35.1
+   Compiling serde_with_macros v3.17.0
+   Compiling serde_with v3.17.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling near-account-id v2.6.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling derive_more v2.1.1
+   Compiling cranelift-entity v0.123.20
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling http-body v1.1.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling cranelift-assembler-x64 v0.123.20
+   Compiling enum-map-derive v0.17.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling atomic-waker v1.1.2
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling spin v0.9.9
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling try-lock v0.2.5
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling bs58 v0.4.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling want v0.3.2
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling lazy_static v1.5.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling h2 v0.4.20
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling tinystr v0.8.5
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling icu_locale_core v2.4.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling potential_utf v0.1.6
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling icu_collections v2.4.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling enum-map v2.7.3
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling icu_provider v2.4.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling wasmtime-internal-math v36.0.20
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling cranelift-codegen v0.123.20
+   Compiling curve25519-dalek v4.1.3
+   Compiling rand_core v0.9.5
+   Compiling near-token v0.3.6
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling near-gas v0.3.7
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling bumpalo v3.20.3
+   Compiling secp256k1-sys v0.8.2
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling serde_repr v0.1.21
+   Compiling gimli v0.32.3
+   Compiling base64 v0.21.7
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling syn v1.0.109
+   Compiling wasmparser v0.236.1
+   Compiling parking_lot_core v0.9.12
+   Compiling rustc-hash v2.1.3
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling byteorder v1.5.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling either v1.19.0
+   Compiling static_assertions v1.1.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling crc32fast v1.5.4
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling tower-service v0.3.3
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling itertools v0.14.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling hyper v1.12.0
+   Compiling regalloc2 v0.12.2
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling icu_properties v2.4.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling rand_chacha v0.9.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling near-primitives-core v0.35.1
+   Compiling icu_normalizer v2.4.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling cranelift-bforest v0.123.20
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling cranelift-control v0.123.20
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling tokio-stream v0.1.19
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling darling_core v0.20.11
+   Compiling regex-syntax v0.8.11
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling powerfmt v0.2.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling pkg-config v0.3.34
+   Compiling scopeguard v1.2.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling thiserror v1.0.69
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling signature v2.2.0
+   Compiling radium v0.7.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling crossbeam-epoch v0.9.21
+   Compiling object v0.37.3
+   Compiling darling_macro v0.20.11
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling ed25519 v2.2.3
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling zstd-sys v2.1.2+zstd.1.5.7
+   Compiling lock_api v0.4.14
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling deranged v0.5.9
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling regex-automata v0.4.18
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling idna_adapter v1.2.2
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling rand v0.9.5
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling prost-derive v0.13.5
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling hyper-util v0.1.21
+   Compiling fixed-hash v0.7.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling uint v0.9.5
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling futures-executor v0.3.34
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling opentelemetry v0.30.0
+   Compiling keccak v0.1.6
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling thiserror-impl v1.0.69
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling pin-project-internal v1.1.13
+   Compiling indexmap v1.9.3
+   Compiling tower-layer v0.3.3
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling json_comments v0.2.2
+   Compiling time-core v0.1.7
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling wasm-encoder v0.236.1
+   Compiling utf8parse v0.2.2
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling heck v0.4.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling sync_wrapper v1.0.2
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling num-conv v0.1.0
+   Compiling tap v1.0.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling crossbeam-deque v0.8.8
+   Compiling strum_macros v0.24.3
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling wyz v0.5.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling time v0.3.45
+   Compiling pin-project v1.1.13
+   Compiling tower v0.5.3
+   Compiling anstyle-parse v1.0.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling near-config-utils v0.35.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling prost v0.13.5
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling hyper-timeout v0.5.2
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling opentelemetry_sdk v0.30.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling sha3 v0.10.9
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling primitive-types v0.10.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling matchers v0.2.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling idna v1.1.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling parking_lot v0.12.5
+   Compiling ed25519-dalek v2.2.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling secp256k1 v0.27.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling darling v0.20.11
+   Compiling sharded-slab v0.1.7
+   Compiling http-body-util v0.1.5
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling cobs v0.3.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling form_urlencoded v1.2.2
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling blake2 v0.10.6
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling async-trait v0.1.92
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling wasmtime-internal-versioned-export-macros v36.0.20
+   Compiling tracing-log v0.2.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling getrandom v0.2.17
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling thread_local v1.1.10
+   Compiling leb128fmt v0.1.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling anstyle v1.0.14
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling rustix v1.1.6
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling nu-ansi-term v0.50.3
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling anstyle-query v1.1.5
+   Compiling rayon-core v1.13.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling termcolor v1.4.1
+   Compiling funty v2.0.0
+   Compiling near-stdx v0.35.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling ryu v1.0.23
+   Compiling colorchoice v1.0.5
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling hashbrown v0.12.3
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling unsafe-libyaml v0.2.11
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling is_terminal_polyfill v1.70.2
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling anstream v1.0.0
+   Compiling bitvec v1.1.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling wasmprinter v0.236.1
+   Compiling serde_yaml v0.9.34+deprecated
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling near-crypto v0.35.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling tonic v0.13.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling tracing-subscriber v0.3.23
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling rand_core v0.6.4
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling url v2.5.8
+   Compiling postcard v1.1.3
+warning: use of an unstable feature
+   --> /Users/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-1.0.69/src/lib.rs:268:50
+    |
+268 | #![cfg_attr(error_generic_member_access, feature(error_generic_member_access))]
+    |                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+
+   Compiling strum v0.24.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling ripemd v0.1.3
+   Compiling errno v0.3.14
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling zstd-safe v7.4.0
+   Compiling prometheus v0.13.4
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling wasmparser v0.228.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling getrandom v0.4.3
+   Compiling clap_lex v1.1.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling wasmtime-internal-unwinder v36.0.20
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling clap_builder v4.6.7
+   Compiling derive_builder_core v0.20.2
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling wasmtime-environ v36.0.20
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling opentelemetry-proto v0.30.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling wasmparser v0.105.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling cranelift-native v0.123.20
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling cranelift-frontend v0.123.20
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling rand_chacha v0.3.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling wasmtime v36.0.20
+   Compiling crossbeam-channel v0.5.17
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling blst v0.3.17
+   Compiling clap_derive v4.6.7
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling zeroize_derive v1.5.0
+   Compiling near-parameters v0.35.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling num_cpus v1.17.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling leb128 v0.2.7
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling dissimilar v1.0.11
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling prefix-sum-vec v0.1.2
+   Compiling finite-wasm v0.6.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling near-sys v0.2.9
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling finite-wasm v0.5.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling symlink v0.1.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling core-foundation-sys v0.8.7
+   Compiling bs58 v0.5.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling iana-time-zone v0.1.65
+   Compiling clap v4.6.7
+   Compiling near-crypto-hash v0.1.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling tracing-appender v0.2.5
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling near-sdk-env v0.1.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling wasmprinter v0.2.57
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling wasm-encoder v0.27.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling threadpool v1.8.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling zeroize v1.9.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling wasmtime-internal-cranelift v36.0.20
+   Compiling rand v0.8.8
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling rayon v1.12.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling opentelemetry-otlp v0.30.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling derive_builder_macro v0.20.2
+   Compiling tracing-opentelemetry v0.31.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling bytesize v1.3.3
+   Compiling hashbrown v0.16.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling wasmtime-internal-jit-icache-coherence v36.0.20
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling mach2 v0.4.3
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling wasmtime-internal-asm-macros v36.0.20
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling rustc-hex v2.1.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling fastrand v2.5.0
+   Compiling wasmtime-internal-slab v36.0.20
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling near-sdk-macros v5.27.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling opentelemetry-semantic-conventions v0.30.0
+   Compiling tempfile v3.27.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling near-o11y v0.35.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling lru v0.16.4
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling zeropool-bn v0.5.11
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling derive_builder v0.20.2
+   Compiling chrono v0.4.45
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling zstd v0.13.4
+   Compiling near-time v0.35.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling near-fmt v0.35.1
+   Compiling strum_macros v0.26.4
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling ordered-float v4.6.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling cfg_eval v0.1.2
+   Compiling smart-default v0.7.1
+   Compiling Inflector v0.11.4
+   Compiling wasmparser v0.78.2
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling easy-ext v0.2.9
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling strum v0.26.3
+   Compiling near-sdk-core v4.1.0
+   Compiling near-global-contracts v0.1.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling near-primitives v0.35.1
+   Compiling near-vm-runner v0.35.1
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling near-sdk v5.27.0
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+   Compiling guard v0.1.0 (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/contracts/guard)
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+warning: linker stdout: -Wl,-exported_symbols_list -Wl,/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/guard/f04a428e1f5500e7/out/rustcvezU5d/list /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/guard/f04a428e1f5500e7/out/rustcvezU5d/symbols.o /Users/Admin/.kani/kani-0.68.0/lib/rustlib/aarch64-apple-darwin/lib/libpanic_abort-dc15bfb1ff53828d.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-sdk/3b7392ed4146d5f3/out/libnear_sdk-3b7392ed4146d5f3.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-global-contracts/24a8023b1bf67692/out/libnear_global_contracts-24a8023b1bf67692.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-sdk-core/9e79504981c5c23c/out/libnear_sdk_core-9e79504981c5c23c.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-crypto-hash/d9aa9e858b916d94/out/libnear_crypto_hash-d9aa9e858b916d94.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/bs58/bf21bce7de6c4f77/out/libbs58-bf21bce7de6c4f77.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-vm-runner/4144d6638f0d8221/out/libnear_vm_runner-4144d6638f0d8221.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/blst/9d7eafe48823bcd5/out/libblst-9d7eafe48823bcd5.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/threadpool/6cf28e0517cc5c5c/out/libthreadpool-6cf28e0517cc5c5c.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/num_cpus/1ecb3e867a4acca4/out/libnum_cpus-1ecb3e867a4acca4.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/zeroize/56bf3e3cc9c67271/out/libzeroize-56bf3e3cc9c67271.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/lru/f01d5348b56367bf/out/liblru-f01d5348b56367bf.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/hashbrown/a6e7a2a625937a2b/out/libhashbrown-a6e7a2a625937a2b.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tempfile/da4554ba52fbe791/out/libtempfile-da4554ba52fbe791.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/getrandom/09d7702182ceffa2/out/libgetrandom-09d7702182ceffa2.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/fastrand/f2adba876050e6fe/out/libfastrand-f2adba876050e6fe.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmparser/d0f0bff95ea1178c/out/libwasmparser-d0f0bff95ea1178c.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmtime/160c4d362ecd8e64/out/libwasmtime-160c4d362ecd8e64.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmtime-internal-cranelift/68a4d62cca6f8b80/out/libwasmtime_internal_cranelift-68a4d62cca6f8b80.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/cranelift-native/f33134f926fba5b9/out/libcranelift_native-f33134f926fba5b9.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/cranelift-frontend/3052ac102062ac54/out/libcranelift_frontend-3052ac102062ac54.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/mach2/1889be6a586dfad0/out/libmach2-1889be6a586dfad0.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/rustix/2e6e7cabe341c991/out/librustix-2e6e7cabe341c991.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/errno/1db6a501ecce8ff6/out/liberrno-1db6a501ecce8ff6.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/rayon/ab31201efedd0ebf/out/librayon-ab31201efedd0ebf.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/rayon-core/13d1401423494e36/out/librayon_core-13d1401423494e36.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/crossbeam-deque/2d482466eb4d942e/out/libcrossbeam_deque-2d482466eb4d942e.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/crossbeam-epoch/800e691d65e0464b/out/libcrossbeam_epoch-800e691d65e0464b.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmtime-internal-unwinder/34fb783506b4fe97/out/libwasmtime_internal_unwinder-34fb783506b4fe97.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/cranelift-codegen/376863df33f3f6fe/out/libcranelift_codegen-376863df33f3f6fe.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/cranelift-assembler-x64/03edab760ad17d60/out/libcranelift_assembler_x64-03edab760ad17d60.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/pulley-interpreter/290029d44758667b/out/libpulley_interpreter-290029d44758667b.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmtime-internal-math/51c0446f763865de/out/libwasmtime_internal_math-51c0446f763865de.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/libm/f57dd673a0078bf8/out/liblibm-f57dd673a0078bf8.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/cranelift-codegen-shared/6e730b6eedb51c86/out/libcranelift_codegen_shared-6e730b6eedb51c86.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/regalloc2/d4118b60e9a16385/out/libregalloc2-d4118b60e9a16385.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/bumpalo/8b352dc8ee4e733e/out/libbumpalo-8b352dc8ee4e733e.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/rustc-hash/060d715944c51ef7/out/librustc_hash-060d715944c51ef7.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/allocator-api2/27dbdaf8b40fa6e1/out/liballocator_api2-27dbdaf8b40fa6e1.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/cranelift-control/67d076b5ad7010a5/out/libcranelift_control-67d076b5ad7010a5.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/cranelift-bforest/4acaab003bbb62c7/out/libcranelift_bforest-4acaab003bbb62c7.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmtime-internal-slab/138af36c17afba91/out/libwasmtime_internal_slab-138af36c17afba91.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmtime-internal-jit-icache-coherence/9b1c283ec9b0f85f/out/libwasmtime_internal_jit_icache_coherence-9b1c283ec9b0f85f.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmtime-environ/9bf6fdb39e7699eb/out/libwasmtime_environ-9bf6fdb39e7699eb.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/postcard/333f0a809e1c37e9/out/libpostcard-333f0a809e1c37e9.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/cobs/df229f9b59f7bb84/out/libcobs-df229f9b59f7bb84.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/gimli/96c26b76f5b363b7/out/libgimli-96c26b76f5b363b7.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/cranelift-entity/d38f2e076a29d570/out/libcranelift_entity-d38f2e076a29d570.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/cranelift-bitset/64a084d11b9bbb29/out/libcranelift_bitset-64a084d11b9bbb29.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/target-lexicon/77f626c7e7c65a38/out/libtarget_lexicon-77f626c7e7c65a38.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/object/a174dddf4b4aa5bd/out/libobject-a174dddf4b4aa5bd.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/crc32fast/26ea3264af262c4d/out/libcrc32fast-26ea3264af262c4d.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/finite-wasm/d1906b2a45119045/out/libfinite_wasm-d1906b2a45119045.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasm-encoder/18cd2fa5af108d6f/out/libwasm_encoder-18cd2fa5af108d6f.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/leb128/2a864da66317d1d8/out/libleb128-2a864da66317d1d8.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmparser/e9ac6e905e005402/out/libwasmparser-e9ac6e905e005402.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/url/90ccd09d8576b1d7/out/liburl-90ccd09d8576b1d7.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/idna/397c08a12f263f06/out/libidna-397c08a12f263f06.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/idna_adapter/96d731b9aa455fe2/out/libidna_adapter-96d731b9aa455fe2.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/icu_properties/e478fee757f30a32/out/libicu_properties-e478fee757f30a32.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/icu_properties_data/d347fb7fa70da89d/out/libicu_properties_data-d347fb7fa70da89d.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/icu_normalizer/de61f48bdeadd979/out/libicu_normalizer-de61f48bdeadd979.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/icu_normalizer_data/eeba19d42d4c0d48/out/libicu_normalizer_data-eeba19d42d4c0d48.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/icu_collections/36d079195d8afdac/out/libicu_collections-36d079195d8afdac.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/utf8_iter/a19db865e7751a56/out/libutf8_iter-a19db865e7751a56.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/utf_types/a35a1781a4543b59/out/libutf_types-a35a1781a4543b59.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/potential_utf/580cadec4a154311/out/libpotential_utf-580cadec4a154311.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/icu_provider/2f518b4be15a3f2a/out/libicu_provider-2f518b4be15a3f2a.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/icu_locale_core/384240e85fd889c3/out/libicu_locale_core-384240e85fd889c3.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tinystr/f7592b1cbadfbad0/out/libtinystr-f7592b1cbadfbad0.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/litemap/293b896c3498736f/out/liblitemap-293b896c3498736f.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/writeable/53badf3d1a5eca19/out/libwriteable-53badf3d1a5eca19.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/zerovec/2f1c5ec73e8a11eb/out/libzerovec-2f1c5ec73e8a11eb.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/zerotrie/2ad0234076bbbb15/out/libzerotrie-2ad0234076bbbb15.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/yoke/1ae98fbe9f877976/out/libyoke-1ae98fbe9f877976.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/stable_deref_trait/77f9771157a0a8ff/out/libstable_deref_trait-77f9771157a0a8ff.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/zerofrom/a8e5364cb45e8b22/out/libzerofrom-a8e5364cb45e8b22.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/form_urlencoded/ec41678ec13059dc/out/libform_urlencoded-ec41678ec13059dc.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/indexmap/3019c94b2ed1c0a9/out/libindexmap-3019c94b2ed1c0a9.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/hashbrown/c463562768a60005/out/libhashbrown-c463562768a60005.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasm-encoder/efd58139f31dc0dd/out/libwasm_encoder-efd58139f31dc0dd.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/leb128fmt/0d6093b9ce230f33/out/libleb128fmt-0d6093b9ce230f33.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmparser/d373c9301a3552db/out/libwasmparser-d373c9301a3552db.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/finite-wasm/635dd95fe86bce4a/out/libfinite_wasm-635dd95fe86bce4a.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmparser/69cd9ca1352ba0b6/out/libwasmparser-69cd9ca1352ba0b6.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/bitflags/d3e024902cf3c162/out/libbitflags-d3e024902cf3c162.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/hashbrown/a3a50f166009f22b/out/libhashbrown-a3a50f166009f22b.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/foldhash/fb7cd851dc10e75e/out/libfoldhash-fb7cd851dc10e75e.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/semver/662f35df6c631092/out/libsemver-662f35df6c631092.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/prefix-sum-vec/e39a225304fafc07/out/libprefix_sum_vec-e39a225304fafc07.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-o11y/2196fbc0d02e4ec8/out/libnear_o11y-2196fbc0d02e4ec8.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/opentelemetry-otlp/f81f3a802a6cb2dd/out/libopentelemetry_otlp-f81f3a802a6cb2dd.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/opentelemetry-proto/cadf36bd756517f4/out/libopentelemetry_proto-cadf36bd756517f4.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tonic/6e8168b0efae9a71/out/libtonic-6e8168b0efae9a71.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/hyper-timeout/31505f9cb56bfbe2/out/libhyper_timeout-31505f9cb56bfbe2.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tower/4daffc5c40af82cd/out/libtower-4daffc5c40af82cd.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/sync_wrapper/51bd2524cf4ef771/out/libsync_wrapper-51bd2524cf4ef771.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/hyper-util/913a4517125ff3a6/out/libhyper_util-913a4517125ff3a6.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/hyper/ff9b38476aa18edb/out/libhyper-ff9b38476aa18edb.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/want/b00bdb2e90c9f263/out/libwant-b00bdb2e90c9f263.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/try-lock/a2d6fddd7760319d/out/libtry_lock-a2d6fddd7760319d.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/httparse/4ef7133bd53d8c1f/out/libhttparse-4ef7133bd53d8c1f.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/futures-channel/fb1a4525a55cf3a7/out/libfutures_channel-fb1a4525a55cf3a7.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/h2/b001c7b504769081/out/libh2-b001c7b504769081.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tokio-util/7008cb6b56275afb/out/libtokio_util-7008cb6b56275afb.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/atomic-waker/477a78803ec453a4/out/libatomic_waker-477a78803ec453a4.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tower-layer/6dd56e90d39e9f95/out/libtower_layer-6dd56e90d39e9f95.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/prost/588cdd95ccbd49b5/out/libprost-588cdd95ccbd49b5.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/pin-project/59c8a73d25c37d88/out/libpin_project-59c8a73d25c37d88.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tower-service/27d7227332481832/out/libtower_service-27d7227332481832.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/http-body-util/6505fd6765640b3f/out/libhttp_body_util-6505fd6765640b3f.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/http-body/12678f395afd193c/out/libhttp_body-12678f395afd193c.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/http/72f0cace00ba2ae1/out/libhttp-72f0cace00ba2ae1.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/clap/70e1685e99722131/out/libclap-70e1685e99722131.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/clap_builder/61c8625450dd71e1/out/libclap_builder-61c8625450dd71e1.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/strsim/b9c11f2c2ad96c6d/out/libstrsim-b9c11f2c2ad96c6d.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/anstream/d60d305d0e6bdfa3/out/libanstream-d60d305d0e6bdfa3.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/anstyle-query/efa2bef42301b08c/out/libanstyle_query-efa2bef42301b08c.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/is_terminal_polyfill/e346a4937e1e22ff/out/libis_terminal_polyfill-e346a4937e1e22ff.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/colorchoice/9b7282b00672e661/out/libcolorchoice-9b7282b00672e661.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/anstyle-parse/3230f134f526dce8/out/libanstyle_parse-3230f134f526dce8.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/utf8parse/b515a4fc62a4ec17/out/libutf8parse-b515a4fc62a4ec17.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/clap_lex/02f1d13aba1ddc70/out/libclap_lex-02f1d13aba1ddc70.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/anstyle/e182d124124aefe2/out/libanstyle-e182d124124aefe2.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/opentelemetry-semantic-conventions/5e993072882aef80/out/libopentelemetry_semantic_conventions-5e993072882aef80.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/prometheus/7c20d6891a9773b5/out/libprometheus-7c20d6891a9773b5.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/thiserror/8c6d676b92266d3d/out/libthiserror-8c6d676b92266d3d.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/fnv/ac522ce2d6fbe0bc/out/libfnv-ac522ce2d6fbe0bc.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tracing-appender/0d5a9b898e962a55/out/libtracing_appender-0d5a9b898e962a55.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/symlink/1add7c6297b9dfe3/out/libsymlink-1add7c6297b9dfe3.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/crossbeam-channel/79165420ca28ab91/out/libcrossbeam_channel-79165420ca28ab91.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/crossbeam-utils/32801cfb14949bb5/out/libcrossbeam_utils-32801cfb14949bb5.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tracing-opentelemetry/02ed215a302db89b/out/libtracing_opentelemetry-02ed215a302db89b.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/opentelemetry_sdk/18ddea3796aaa03b/out/libopentelemetry_sdk-18ddea3796aaa03b.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tokio-stream/af6cfb173a892def/out/libtokio_stream-af6cfb173a892def.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/futures-executor/652d4dc167e1130d/out/libfutures_executor-652d4dc167e1130d.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tokio/319e5045ec44dc48/out/libtokio-319e5045ec44dc48.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/socket2/99d509ea30494e11/out/libsocket2-99d509ea30494e11.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/mio/fd62232459bb5597/out/libmio-fd62232459bb5597.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/rand/557b3540ebd5eb1b/out/librand-557b3540ebd5eb1b.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/rand_chacha/00cfe9a46fe70f94/out/librand_chacha-00cfe9a46fe70f94.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/rand_core/ab647c2683cf2f1b/out/librand_core-ab647c2683cf2f1b.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/getrandom/72b8afaf03a31319/out/libgetrandom-72b8afaf03a31319.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/futures-util/4df74fe5d6e11e97/out/libfutures_util-4df74fe5d6e11e97.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/slab/af4a4679ceb4ebca/out/libslab-af4a4679ceb4ebca.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/futures-task/b05294c6224bb487/out/libfutures_task-b05294c6224bb487.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/percent-encoding/e4678b9d177b7720/out/libpercent_encoding-e4678b9d177b7720.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tracing-subscriber/618039b3f4e24f83/out/libtracing_subscriber-618039b3f4e24f83.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/sharded-slab/c2eaea544e7bfe11/out/libsharded_slab-c2eaea544e7bfe11.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/matchers/1055f4c49cbd37db/out/libmatchers-1055f4c49cbd37db.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/regex-automata/d005da9d7fbd1db6/out/libregex_automata-d005da9d7fbd1db6.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/regex-syntax/bdb5a1998ea3fa38/out/libregex_syntax-bdb5a1998ea3fa38.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/nu-ansi-term/cd1ea22d9f7fc4cb/out/libnu_ansi_term-cd1ea22d9f7fc4cb.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/thread_local/5092cdae572c88c7/out/libthread_local-5092cdae572c88c7.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tracing-log/bfaa68a32d06cae0/out/libtracing_log-bfaa68a32d06cae0.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/log/481d708c1735ca28/out/liblog-481d708c1735ca28.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/opentelemetry/7879b21d39f7d37b/out/libopentelemetry-7879b21d39f7d37b.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/futures-sink/bf29ed705ebde537/out/libfutures_sink-bf29ed705ebde537.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/futures-core/b5848769fb0d3542/out/libfutures_core-b5848769fb0d3542.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/ripemd/78e223e64ad3be50/out/libripemd-78e223e64ad3be50.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/zeropool-bn/9693a490ce440be9/out/libzeropool_bn-9693a490ce440be9.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/lazy_static/f0975e33450d83bf/out/liblazy_static-f0975e33450d83bf.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/spin/fdd076f917fd8a76/out/libspin-fdd076f917fd8a76.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/rand/49ab73d659169444/out/librand-49ab73d659169444.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/rand_chacha/9d130e18765f0bb7/out/librand_chacha-9d130e18765f0bb7.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/ppv-lite86/2b82e7832b523db9/out/libppv_lite86-2b82e7832b523db9.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/zerocopy/018a4dc59aa11a68/out/libzerocopy-018a4dc59aa11a68.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/rand_core/fd65203a8d3ea100/out/librand_core-fd65203a8d3ea100.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/getrandom/576c9f8ef3355e94/out/libgetrandom-576c9f8ef3355e94.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/parking_lot/4199947d0440c883/out/libparking_lot-4199947d0440c883.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/parking_lot_core/0645426a3b676352/out/libparking_lot_core-0645426a3b676352.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/libc/57ecd96d18c2bc37/out/liblibc-57ecd96d18c2bc37.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/lock_api/02efe4c2cc69c69d/out/liblock_api-02efe4c2cc69c69d.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/scopeguard/2cb8640f0a281c7c/out/libscopeguard-2cb8640f0a281c7c.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-primitives/a53ef21280f6a106/out/libnear_primitives-a53ef21280f6a106.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/smallvec/13148e93e60967f0/out/libsmallvec-13148e93e60967f0.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/zstd/06847db33049e212/out/libzstd-06847db33049e212.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/zstd-safe/a8f2b43eb17bdc09/out/libzstd_safe-a8f2b43eb17bdc09.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/zstd-sys/3d9839f10abf037a/out/libzstd_sys-3d9839f10abf037a.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/derive_builder/c1df179ecc3fda99/out/libderive_builder-c1df179ecc3fda99.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/sha3/612475d4fc0c30f0/out/libsha3-612475d4fc0c30f0.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/keccak/a64b06f4ac2dba61/out/libkeccak-a64b06f4ac2dba61.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/bytes/5ee834b1bc40c815/out/libbytes-5ee834b1bc40c815.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/chrono/ebeae468ee4c9208/out/libchrono-ebeae468ee4c9208.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/iana-time-zone/ac531c48d314fd97/out/libiana_time_zone-ac531c48d314fd97.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/core-foundation-sys/a0ed1d6c5f131e32/out/libcore_foundation_sys-a0ed1d6c5f131e32.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-fmt/c83cbc729d7dd5d7/out/libnear_fmt-c83cbc729d7dd5d7.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/bytesize/7d12b2fabb682aff/out/libbytesize-7d12b2fabb682aff.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/ordered-float/33772aea2bd9ba62/out/libordered_float-33772aea2bd9ba62.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-time/545ee4100edceeaa/out/libnear_time-545ee4100edceeaa.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/time/8358ec182f58a823/out/libtime-8358ec182f58a823.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/time-core/8353e29d94ca6f54/out/libtime_core-8353e29d94ca6f54.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/num-conv/bab576e4dbd168e8/out/libnum_conv-bab576e4dbd168e8.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/deranged/2d7eb5b346c357da/out/libderanged-2d7eb5b346c357da.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/powerfmt/235c703bfbfd0919/out/libpowerfmt-235c703bfbfd0919.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/itertools/5ca6d19c15cb1810/out/libitertools-5ca6d19c15cb1810.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/either/ba6bc6e78fc806b2/out/libeither-ba6bc6e78fc806b2.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/bitvec/c3b5bd91d6522997/out/libbitvec-c3b5bd91d6522997.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wyz/719bbd054718a578/out/libwyz-719bbd054718a578.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tap/15ba77bb6cc99895/out/libtap-15ba77bb6cc99895.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/radium/1050b823edf82254/out/libradium-1050b823edf82254.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/funty/907c2f5b7728eca5/out/libfunty-907c2f5b7728eca5.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-crypto/d999da3605aca028/out/libnear_crypto-d999da3605aca028.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-config-utils/d2786ada12abb578/out/libnear_config_utils-d2786ada12abb578.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/anyhow/9ee7ed159ede7fe2/out/libanyhow-9ee7ed159ede7fe2.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tracing/8b43ed510d8f14e7/out/libtracing-8b43ed510d8f14e7.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/pin-project-lite/c4fdac95f97419b9/out/libpin_project_lite-c4fdac95f97419b9.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tracing-core/fd94708b7bb12463/out/libtracing_core-fd94708b7bb12463.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/json_comments/cb8aa7d2a4d6c517/out/libjson_comments-cb8aa7d2a4d6c517.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-stdx/654bb902c19e67ac/out/libnear_stdx-654bb902c19e67ac.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/secp256k1/f422437e479da18e/out/libsecp256k1-f422437e479da18e.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/secp256k1-sys/fb7814111788dbd8/out/libsecp256k1_sys-fb7814111788dbd8.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/primitive-types/e1a99104cd06fa6c/out/libprimitive_types-e1a99104cd06fa6c.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/uint/7328f9274db07bbc/out/libuint-7328f9274db07bbc.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/crunchy/c568212127baa18e/out/libcrunchy-c568212127baa18e.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/byteorder/4d5b7c1cdb67f62b/out/libbyteorder-4d5b7c1cdb67f62b.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/fixed-hash/a81cee9ad0c78f49/out/libfixed_hash-a81cee9ad0c78f49.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/static_assertions/164e3ddf4340f632/out/libstatic_assertions-164e3ddf4340f632.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/ed25519-dalek/d740a70e8c3b6a54/out/libed25519_dalek-d740a70e8c3b6a54.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/ed25519/3efbe3012cebc77d/out/libed25519-3efbe3012cebc77d.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/signature/b194715dd57dc0d4/out/libsignature-b194715dd57dc0d4.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/curve25519-dalek/e38009fc965d1baa/out/libcurve25519_dalek-e38009fc965d1baa.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/blake2/c62a4e2f85297c90/out/libblake2-c62a4e2f85297c90.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-parameters/b00919ca27b56f28/out/libnear_parameters-b00919ca27b56f28.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/serde_yaml/393d160998751ec2/out/libserde_yaml-393d160998751ec2.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/ryu/93686c4ae126a5e8/out/libryu-93686c4ae126a5e8.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/unsafe-libyaml/280207bf2666b1a7/out/libunsafe_libyaml-280207bf2666b1a7.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/strum/7e2c9e136f17020f/out/libstrum-7e2c9e136f17020f.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-primitives-core/880be8aee178940b/out/libnear_primitives_core-880be8aee178940b.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-token/7fe6f3d266b2f62e/out/libnear_token-7fe6f3d266b2f62e.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/bs58/b3eeddb282263e62/out/libbs58-b3eeddb282263e62.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/thiserror/3149b6b6208f5a42/out/libthiserror-3149b6b6208f5a42.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/arbitrary/a0b08756ed09bced/out/libarbitrary-a0b08756ed09bced.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/derive_more/5b946ad65bd4f30a/out/libderive_more-5b946ad65bd4f30a.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/enum-map/42cb06b32dbd39e4/out/libenum_map-42cb06b32dbd39e4.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/base64/d39cb77c7380f6d9/out/libbase64-d39cb77c7380f6d9.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/sha2/00b0b284969456d4/out/libsha2-00b0b284969456d4.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/cfg-if/10a28549b38759c6/out/libcfg_if-10a28549b38759c6.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/digest/4962a5dd844060ff/out/libdigest-4962a5dd844060ff.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/subtle/1d507d90fb8e91c1/out/libsubtle-1d507d90fb8e91c1.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/block-buffer/ce61c088295c0d4f/out/libblock_buffer-ce61c088295c0d4f.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/crypto-common/f0ba553412bf626d/out/libcrypto_common-f0ba553412bf626d.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/generic-array/f06d85ebb396c5e9/out/libgeneric_array-f06d85ebb396c5e9.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/typenum/2337126ef67f4ebd/out/libtypenum-2337126ef67f4ebd.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-gas/41de723c758cd2f1/out/libnear_gas-41de723c758cd2f1.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/serde_with/9ffe5a489728f7e9/out/libserde_with-9ffe5a489728f7e9.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/serde_json/525aadde569dcef7/out/libserde_json-525aadde569dcef7.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/memchr/0f85bff0ffcf459c/out/libmemchr-0f85bff0ffcf459c.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/itoa/9f7e8005011ab186/out/libitoa-9f7e8005011ab186.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/foldhash/d86733beef6232c3/out/libfoldhash-d86733beef6232c3.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/zmij/4d6e97d3895d68f3/out/libzmij-4d6e97d3895d68f3.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/indexmap/dfc4994ff0a2cc8c/out/libindexmap-dfc4994ff0a2cc8c.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/equivalent/b729be38efa6ad13/out/libequivalent-b729be38efa6ad13.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/hashbrown/407c03e139bf8bf2/out/libhashbrown-407c03e139bf8bf2.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/hex/3cd1cd5bb250dccf/out/libhex-3cd1cd5bb250dccf.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/base64/7a110938be6f51ef/out/libbase64-7a110938be6f51ef.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-schema-checker-lib/5ad761f15d7f1e3f/out/libnear_schema_checker_lib-5ad761f15d7f1e3f.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-schema-checker-core/68be6620dad5ebe3/out/libnear_schema_checker_core-68be6620dad5ebe3.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/num-rational/6535312fc7c3bc9c/out/libnum_rational-6535312fc7c3bc9c.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/num-bigint/acdef5457268956e/out/libnum_bigint-acdef5457268956e.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/num-integer/50b7f51ef130c7a7/out/libnum_integer-50b7f51ef130c7a7.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/num-traits/4c799acc00a7b809/out/libnum_traits-4c799acc00a7b809.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-account-id/810552267e682662/out/libnear_account_id-810552267e682662.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/serde/887e296f17c755d1/out/libserde-887e296f17c755d1.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/serde_core/2fe25eeab422a632/out/libserde_core-2fe25eeab422a632.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-sdk-env/acd85e796522a3c5/out/libnear_sdk_env-acd85e796522a3c5.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-sys/d77cc70db93ee1ea/out/libnear_sys-d77cc70db93ee1ea.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/once_cell/2d4a735bcdb81f36/out/libonce_cell-2d4a735bcdb81f36.rlib /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/borsh/cbd0d721d08665c4/out/libborsh-cbd0d721d08665c4.rlib /Users/Admin/.kani/kani-0.68.0/lib/libstd.rlib /Users/Admin/.kani/kani-0.68.0/lib/libkani.rlib /Users/Admin/.kani/kani-0.68.0/lib/libkani_core-efb13c49af90e259.rlib /Users/Admin/.kani/kani-0.68.0/lib/rustlib/aarch64-apple-darwin/lib/libstd-63d60d964c23bb10.rlib /Users/Admin/.kani/kani-0.68.0/lib/rustlib/aarch64-apple-darwin/lib/libobject-a52db044b41474d7.rlib /Users/Admin/.kani/kani-0.68.0/lib/rustlib/aarch64-apple-darwin/lib/libmemchr-4047fcd724e66a53.rlib /Users/Admin/.kani/kani-0.68.0/lib/rustlib/aarch64-apple-darwin/lib/libaddr2line-cebd1a496c4f45de.rlib /Users/Admin/.kani/kani-0.68.0/lib/rustlib/aarch64-apple-darwin/lib/libgimli-b64c0a35ba4b9d7c.rlib /Users/Admin/.kani/kani-0.68.0/lib/rustlib/aarch64-apple-darwin/lib/libcfg_if-cb173a5fe0e64274.rlib /Users/Admin/.kani/kani-0.68.0/lib/rustlib/aarch64-apple-darwin/lib/librustc_demangle-b65799793abf550d.rlib /Users/Admin/.kani/kani-0.68.0/lib/rustlib/aarch64-apple-darwin/lib/libstd_detect-7f2d215bbe3e5251.rlib /Users/Admin/.kani/kani-0.68.0/lib/rustlib/aarch64-apple-darwin/lib/libhashbrown-333835371d45a7b2.rlib /Users/Admin/.kani/kani-0.68.0/lib/rustlib/aarch64-apple-darwin/lib/librustc_std_workspace_alloc-b31f504bd966906e.rlib /Users/Admin/.kani/kani-0.68.0/lib/rustlib/aarch64-apple-darwin/lib/libminiz_oxide-8b4dfd4ed7157102.rlib /Users/Admin/.kani/kani-0.68.0/lib/rustlib/aarch64-apple-darwin/lib/libadler2-9dd0869c98311236.rlib /Users/Admin/.kani/kani-0.68.0/lib/rustlib/aarch64-apple-darwin/lib/libunwind-b5bbab1b8be5d2df.rlib /Users/Admin/.kani/kani-0.68.0/lib/rustlib/aarch64-apple-darwin/lib/liblibc-7654b8caa5371697.rlib /Users/Admin/.kani/kani-0.68.0/lib/rustlib/aarch64-apple-darwin/lib/librustc_std_workspace_core-9796b2b0f7fb1004.rlib /Users/Admin/.kani/kani-0.68.0/lib/rustlib/aarch64-apple-darwin/lib/liballoc-1bf6213988893eaa.rlib /Users/Admin/.kani/kani-0.68.0/lib/rustlib/aarch64-apple-darwin/lib/libcore-0b10416cf9e530e3.rlib /Users/Admin/.kani/kani-0.68.0/lib/rustlib/aarch64-apple-darwin/lib/libcompiler_builtins-98b6766e30ab35dd.rlib -liconv -framework CoreFoundation -lSystem -lc -lm -arch arm64 -mmacosx-version-min=11.0.0 -L /Users/Admin/.kani/kani-0.68.0/lib -L /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/secp256k1-sys/974cb0c205894933/out -L /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/zstd-sys/e94bbd6e17bd13af/out -L /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/blst/aa0f0936d60c5e4b/out -L /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmtime/83fdbfde6550da61/out -o /Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/guard/f04a428e1f5500e7/out/libguard.dylib -Wl,-dead_strip -dynamiclib -nodefaultlibs
+  |
+  = note: `#[warn(linker_messages)]` on by default
+
+   Compiling guard-proofs v0.1.0 (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani)
+warning: use of an unstable feature
+ --> <crate attribute>:1:12
+  |
+1 | #![feature(register_tool)]
+  |            ^^^^^^^^^^^^^
+  |
+  = note: requested on the command line with `--force-warn unstable-features`
+
+
+thread 'rustc' (24327280) panicked at kani-compiler/src/intrinsics.rs:243:17:
+assertion failed: matches!(output.kind(), TyKind :: RigidTy(RigidTy::Int(IntTy::I32)))
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+Kani unexpectedly panicked during compilation.
+Please file an issue here: https://github.com/model-checking/kani/issues/new?labels=bug&template=bug_report.md
+
+[Kani] no current codegen item.
+error: internal compiler error: Kani unexpectedly panicked at panicked at kani-compiler/src/intrinsics.rs:243:17:
+                                assertion failed: matches!(output.kind(), TyKind :: RigidTy(RigidTy::Int(IntTy::I32))).
+
+[Kani] no current codegen location.
+error: could not compile `guard-proofs` (lib); 1 warning emitted
+
+Caused by:
+  process didn't exit successfully: `/Users/Admin/.kani/kani-0.68.0/bin/kani-compiler --crate-name guard_proofs --edition=2021 src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -Z embed-metadata=no -C embed-bitcode=no -C debuginfo=2 -C split-debuginfo=unpacked --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values())' -C metadata=c4957e0b3c3551a1 -C extra-filename=-6a00655fe66ba0ee --out-dir '/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/guard-proofs/6a00655fe66ba0ee/out' --target aarch64-apple-darwin -C 'incremental=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/incremental' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/allocator-api2/27dbdaf8b40fa6e1/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/anstream/d60d305d0e6bdfa3/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/anstyle/e182d124124aefe2/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/anstyle-parse/3230f134f526dce8/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/anstyle-query/efa2bef42301b08c/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/anyhow/9ee7ed159ede7fe2/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/arbitrary/a0b08756ed09bced/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/atomic-waker/477a78803ec453a4/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/base64/7a110938be6f51ef/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/base64/d39cb77c7380f6d9/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/bitflags/d3e024902cf3c162/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/bitvec/c3b5bd91d6522997/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/blake2/c62a4e2f85297c90/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/block-buffer/ce61c088295c0d4f/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/blst/9d7eafe48823bcd5/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/borsh/cbd0d721d08665c4/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/bs58/b3eeddb282263e62/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/bs58/bf21bce7de6c4f77/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/bumpalo/8b352dc8ee4e733e/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/byteorder/4d5b7c1cdb67f62b/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/bytes/5ee834b1bc40c815/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/bytesize/7d12b2fabb682aff/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/cfg-if/10a28549b38759c6/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/chrono/ebeae468ee4c9208/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/clap/70e1685e99722131/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/clap_builder/61c8625450dd71e1/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/clap_lex/02f1d13aba1ddc70/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/cobs/df229f9b59f7bb84/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/colorchoice/9b7282b00672e661/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/core-foundation-sys/a0ed1d6c5f131e32/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/cpufeatures/f3e7370374370df3/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/cranelift-assembler-x64/03edab760ad17d60/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/cranelift-bforest/4acaab003bbb62c7/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/cranelift-bitset/64a084d11b9bbb29/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/cranelift-codegen/376863df33f3f6fe/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/cranelift-codegen-shared/6e730b6eedb51c86/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/cranelift-control/67d076b5ad7010a5/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/cranelift-entity/d38f2e076a29d570/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/cranelift-frontend/3052ac102062ac54/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/cranelift-native/f33134f926fba5b9/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/crc32fast/26ea3264af262c4d/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/crossbeam-channel/79165420ca28ab91/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/crossbeam-deque/2d482466eb4d942e/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/crossbeam-epoch/800e691d65e0464b/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/crossbeam-utils/32801cfb14949bb5/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/crunchy/c568212127baa18e/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/crypto-common/f0ba553412bf626d/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/curve25519-dalek/e38009fc965d1baa/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/deranged/2d7eb5b346c357da/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/derive_builder/c1df179ecc3fda99/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/derive_more/5b946ad65bd4f30a/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/digest/4962a5dd844060ff/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/dissimilar/c1e4fc34d8c533ac/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/ed25519/3efbe3012cebc77d/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/ed25519-dalek/d740a70e8c3b6a54/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/either/ba6bc6e78fc806b2/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/enum-map/42cb06b32dbd39e4/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/equivalent/b729be38efa6ad13/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/errno/1db6a501ecce8ff6/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/fastrand/f2adba876050e6fe/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/finite-wasm/635dd95fe86bce4a/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/finite-wasm/d1906b2a45119045/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/fixed-hash/a81cee9ad0c78f49/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/fnv/ac522ce2d6fbe0bc/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/foldhash/d86733beef6232c3/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/foldhash/fb7cd851dc10e75e/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/form_urlencoded/ec41678ec13059dc/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/funty/907c2f5b7728eca5/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/futures-channel/fb1a4525a55cf3a7/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/futures-core/b5848769fb0d3542/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/futures-executor/652d4dc167e1130d/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/futures-sink/bf29ed705ebde537/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/futures-task/b05294c6224bb487/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/futures-util/4df74fe5d6e11e97/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/generic-array/f06d85ebb396c5e9/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/getrandom/09d7702182ceffa2/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/getrandom/576c9f8ef3355e94/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/getrandom/72b8afaf03a31319/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/gimli/96c26b76f5b363b7/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/guard/f04a428e1f5500e7/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/h2/b001c7b504769081/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/hashbrown/407c03e139bf8bf2/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/hashbrown/a3a50f166009f22b/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/hashbrown/a6e7a2a625937a2b/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/hashbrown/c463562768a60005/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/hex/3cd1cd5bb250dccf/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/http/72f0cace00ba2ae1/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/http-body/12678f395afd193c/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/http-body-util/6505fd6765640b3f/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/httparse/4ef7133bd53d8c1f/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/hyper/ff9b38476aa18edb/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/hyper-timeout/31505f9cb56bfbe2/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/hyper-util/913a4517125ff3a6/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/iana-time-zone/ac531c48d314fd97/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/icu_collections/36d079195d8afdac/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/icu_locale_core/384240e85fd889c3/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/icu_normalizer/de61f48bdeadd979/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/icu_normalizer_data/eeba19d42d4c0d48/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/icu_properties/e478fee757f30a32/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/icu_properties_data/d347fb7fa70da89d/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/icu_provider/2f518b4be15a3f2a/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/idna/397c08a12f263f06/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/idna_adapter/96d731b9aa455fe2/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/indexmap/3019c94b2ed1c0a9/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/indexmap/dfc4994ff0a2cc8c/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/is_terminal_polyfill/e346a4937e1e22ff/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/itertools/5ca6d19c15cb1810/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/itoa/9f7e8005011ab186/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/json_comments/cb8aa7d2a4d6c517/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/keccak/a64b06f4ac2dba61/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/lazy_static/f0975e33450d83bf/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/leb128/2a864da66317d1d8/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/leb128fmt/0d6093b9ce230f33/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/libc/57ecd96d18c2bc37/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/libm/f57dd673a0078bf8/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/litemap/293b896c3498736f/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/lock_api/02efe4c2cc69c69d/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/log/481d708c1735ca28/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/lru/f01d5348b56367bf/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/mach2/1889be6a586dfad0/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/matchers/1055f4c49cbd37db/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/memchr/0f85bff0ffcf459c/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/mio/fd62232459bb5597/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-account-id/810552267e682662/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-config-utils/d2786ada12abb578/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-crypto/d999da3605aca028/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-crypto-hash/d9aa9e858b916d94/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-fmt/c83cbc729d7dd5d7/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-gas/41de723c758cd2f1/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-global-contracts/24a8023b1bf67692/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-o11y/2196fbc0d02e4ec8/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-parameters/b00919ca27b56f28/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-primitives/a53ef21280f6a106/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-primitives-core/880be8aee178940b/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-schema-checker-core/68be6620dad5ebe3/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-schema-checker-lib/5ad761f15d7f1e3f/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-sdk/3b7392ed4146d5f3/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-sdk-core/9e79504981c5c23c/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-sdk-env/acd85e796522a3c5/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-stdx/654bb902c19e67ac/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-sys/d77cc70db93ee1ea/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-time/545ee4100edceeaa/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-token/7fe6f3d266b2f62e/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-vm-runner/4144d6638f0d8221/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/nu-ansi-term/cd1ea22d9f7fc4cb/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/num-bigint/acdef5457268956e/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/num-conv/bab576e4dbd168e8/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/num-integer/50b7f51ef130c7a7/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/num-rational/6535312fc7c3bc9c/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/num-traits/4c799acc00a7b809/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/num_cpus/1ecb3e867a4acca4/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/object/a174dddf4b4aa5bd/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/once_cell/2d4a735bcdb81f36/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/opentelemetry/7879b21d39f7d37b/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/opentelemetry-otlp/f81f3a802a6cb2dd/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/opentelemetry-proto/cadf36bd756517f4/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/opentelemetry-semantic-conventions/5e993072882aef80/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/opentelemetry_sdk/18ddea3796aaa03b/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/ordered-float/33772aea2bd9ba62/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/parking_lot/4199947d0440c883/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/parking_lot_core/0645426a3b676352/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/percent-encoding/e4678b9d177b7720/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/pin-project/59c8a73d25c37d88/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/pin-project-lite/c4fdac95f97419b9/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/postcard/333f0a809e1c37e9/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/potential_utf/580cadec4a154311/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/powerfmt/235c703bfbfd0919/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/ppv-lite86/2b82e7832b523db9/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/prefix-sum-vec/e39a225304fafc07/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/primitive-types/e1a99104cd06fa6c/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/prometheus/7c20d6891a9773b5/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/prost/588cdd95ccbd49b5/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/pulley-interpreter/290029d44758667b/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/radium/1050b823edf82254/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/rand/49ab73d659169444/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/rand/557b3540ebd5eb1b/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/rand_chacha/00cfe9a46fe70f94/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/rand_chacha/9d130e18765f0bb7/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/rand_core/ab647c2683cf2f1b/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/rand_core/fd65203a8d3ea100/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/rayon/ab31201efedd0ebf/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/rayon-core/13d1401423494e36/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/regalloc2/d4118b60e9a16385/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/regex-automata/d005da9d7fbd1db6/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/regex-syntax/bdb5a1998ea3fa38/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/ripemd/78e223e64ad3be50/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/rustc-hash/060d715944c51ef7/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/rustc-hex/f28f19ccae172337/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/rustix/2e6e7cabe341c991/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/ryu/93686c4ae126a5e8/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/scopeguard/2cb8640f0a281c7c/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/secp256k1/f422437e479da18e/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/secp256k1-sys/fb7814111788dbd8/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/semver/662f35df6c631092/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/serde/887e296f17c755d1/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/serde_core/2fe25eeab422a632/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/serde_json/525aadde569dcef7/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/serde_with/9ffe5a489728f7e9/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/serde_yaml/393d160998751ec2/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/sha2/00b0b284969456d4/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/sha3/612475d4fc0c30f0/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/sharded-slab/c2eaea544e7bfe11/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/signature/b194715dd57dc0d4/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/slab/af4a4679ceb4ebca/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/smallvec/13148e93e60967f0/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/socket2/99d509ea30494e11/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/spin/fdd076f917fd8a76/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/stable_deref_trait/77f9771157a0a8ff/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/static_assertions/164e3ddf4340f632/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/strsim/b9c11f2c2ad96c6d/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/strum/7e2c9e136f17020f/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/subtle/1d507d90fb8e91c1/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/symlink/1add7c6297b9dfe3/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/sync_wrapper/51bd2524cf4ef771/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tap/15ba77bb6cc99895/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/target-lexicon/77f626c7e7c65a38/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tempfile/da4554ba52fbe791/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/termcolor/5640bfa283ec88fc/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/thiserror/3149b6b6208f5a42/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/thiserror/8c6d676b92266d3d/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/thread_local/5092cdae572c88c7/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/threadpool/6cf28e0517cc5c5c/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/time/8358ec182f58a823/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/time-core/8353e29d94ca6f54/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tinystr/f7592b1cbadfbad0/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tokio/319e5045ec44dc48/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tokio-stream/af6cfb173a892def/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tokio-util/7008cb6b56275afb/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tonic/6e8168b0efae9a71/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tower/4daffc5c40af82cd/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tower-layer/6dd56e90d39e9f95/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tower-service/27d7227332481832/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tracing/8b43ed510d8f14e7/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tracing-appender/0d5a9b898e962a55/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tracing-core/fd94708b7bb12463/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tracing-log/bfaa68a32d06cae0/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tracing-opentelemetry/02ed215a302db89b/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/tracing-subscriber/618039b3f4e24f83/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/try-lock/a2d6fddd7760319d/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/typenum/2337126ef67f4ebd/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/uint/7328f9274db07bbc/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/unicode-segmentation/0bc475dff54e0e28/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/unsafe-libyaml/280207bf2666b1a7/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/url/90ccd09d8576b1d7/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/utf8_iter/a19db865e7751a56/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/utf8parse/b515a4fc62a4ec17/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/utf_types/a35a1781a4543b59/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/want/b00bdb2e90c9f263/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasm-encoder/18cd2fa5af108d6f/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasm-encoder/efd58139f31dc0dd/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmparser/69cd9ca1352ba0b6/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmparser/d0f0bff95ea1178c/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmparser/d373c9301a3552db/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmparser/e9ac6e905e005402/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmprinter/47c889505be774e3/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmprinter/98f1aacc68ea5bd0/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmtime/160c4d362ecd8e64/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmtime-environ/9bf6fdb39e7699eb/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmtime-internal-asm-macros/640be8c500f38ac6/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmtime-internal-cranelift/68a4d62cca6f8b80/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmtime-internal-jit-icache-coherence/9b1c283ec9b0f85f/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmtime-internal-math/51c0446f763865de/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmtime-internal-slab/138af36c17afba91/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmtime-internal-unwinder/34fb783506b4fe97/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/writeable/53badf3d1a5eca19/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wyz/719bbd054718a578/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/yoke/1ae98fbe9f877976/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/zerocopy/018a4dc59aa11a68/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/zerofrom/a8e5364cb45e8b22/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/zeroize/56bf3e3cc9c67271/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/zeropool-bn/9693a490ce440be9/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/zerotrie/2ad0234076bbbb15/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/zerovec/2f1c5ec73e8a11eb/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/zmij/4d6e97d3895d68f3/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/zstd/06847db33049e212/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/zstd-safe/a8f2b43eb17bdc09/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/zstd-sys/3d9839f10abf037a/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/async-trait/d9cec89a0b45301b/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/borsh-derive/256e734e0dd93812/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/cfg_eval/865cee5bf3b6ebe0/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/clap_derive/b3171ac3e4a036c7/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/derive_arbitrary/27c777f3a1498a68/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/derive_builder_macro/9aaf26f430828fef/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/derive_more-impl/5d706ea2a34d7a89/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/displaydoc/b6c74c65c4435d92/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/easy-ext/8248342ce8caea61/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/enum-map-derive/a5ec0ee7e021a6f9/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/futures-macro/f6bd57b8124e7fad/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/near-schema-checker-macro/e772194c70891d27/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/near-sdk-macros/a92fd6337f0c7b42/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/pin-project-internal/bffebfcd5b7b658d/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/prost-derive/ea21024f9b1cef51/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/pulley-macros/1682049c2c5570ad/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/serde_derive/2179094b335d4beb/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/serde_repr/a011ac721910ac4e/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/serde_with_macros/e9f44ca928b350d2/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/smart-default/708afb3b053a2ee6/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/strum_macros/e44ebf21f020ab5e/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/thiserror-impl/037967d386d5b24e/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/thiserror-impl/b9b08ca077fae399/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/tracing-attributes/77868b5f98079eb3/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/wasmtime-internal-versioned-export-macros/96ba3936a959418f/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/yoke-derive/0b2a0d55f1434836/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/zerofrom-derive/b9eb85d23bea10db/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/zeroize_derive/b6b09aaede9eada7/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/zerovec-derive/7d997267d1c07512/out' -L 'dependency=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/debug/build/guard-proofs/6a00655fe66ba0ee/out' --extern 'guard=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/guard/f04a428e1f5500e7/out/libguard.rlib' --extern 'guard=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/guard/f04a428e1f5500e7/out/libguard.rmeta' --extern 'near_parameters=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-parameters/b00919ca27b56f28/out/libnear_parameters-b00919ca27b56f28.rmeta' --extern 'near_sdk=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/near-sdk/3b7392ed4146d5f3/out/libnear_sdk-3b7392ed4146d5f3.rmeta' '-Cllvm-args=--reachability=harnesses --log-level=warn --assertion-reach-checks --harness probe_one_pay' -C overflow-checks=on -Z unstable-options -Z trim-diagnostic-paths=no -Z human_readable_cgu_names -Z always-encode-mir --cfg=kani -Z 'crate-attr=feature(register_tool)' -Z 'crate-attr=register_tool(kanitool)' --force-warn unstable_features --sysroot /Users/Admin/.kani/kani-0.68.0 -L /Users/Admin/.kani/kani-0.68.0/lib --extern 'force:kani' --extern 'noprelude,nounused:std=/Users/Admin/.kani/kani-0.68.0/lib/libstd.rlib' -C panic=abort -C symbol-mangling-version=v0 -Z panic_abort_tests=yes -Z mir-enable-passes=-RemoveStorageMarkers '--check-cfg=cfg(kani)' -Clinker=echo --kani-compiler -Cllvm-args=--check-version=0.68.0 -L 'native=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/secp256k1-sys/974cb0c205894933/out' -L 'native=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/zstd-sys/e94bbd6e17bd13af/out' -L 'native=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/blst/aa0f0936d60c5e4b/out' -L 'native=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/proofs/guard-kani/target/kani/aarch64-apple-darwin/debug/build/wasmtime/83fdbfde6550da61/out'` (exit status: 101)
+error: Failed to compile `guard_proofs` due to an internal compiler error.: error: internal compiler error: Kani unexpectedly panicked at panicked at kani-compiler/src/intrinsics.rs:243:17:
+                                assertion failed: matches!(output.kind(), TyKind :: RigidTy(RigidTy::Int(IntTy::I32))).
+
+
+cargo kani --harness probe_one_pay 2>&1  133.55s user 14.67s system 236% cpu 1:02.72 total

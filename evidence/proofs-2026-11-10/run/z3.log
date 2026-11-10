@@ -1,0 +1,54 @@
+z3 5.3.3  K=10 pay requests per sequence
+setup.rs: cap 500, invoices inv-pay(sam 100), inv-small(mo 50), inv-mid(ada 200), inv-big(kai 600), inv-cancel(ada 200 cancelled), inv-expire(ada 300 expires-20s), inv-removed(lin 400 payee-removed)
+intended: {'invoice': 'inv-pay', 'receiver': 'sam', 'amount': 100}; narrow policy: ['sam'], cap 100
+RESULT query='A' days_roll=False goal=leak z3=SAT against_intent=500 secs=0.16 as planned
+    day 0: pay inv-expire -> ada 300, transfer succeeds
+    day 0: pay inv-mid -> ada 200, transfer succeeds
+    received: {'sam': 0, 'ada': 500, 'lin': 0, 'kai': 0, 'mo': 0}
+RESULT query='A-max' days_roll=False goal=max z3=SAT against_intent=500 secs=0.07 as planned
+    day 0: pay inv-mid -> ada 200, transfer succeeds
+    day 0: pay inv-small -> mo 50, transfer fails
+    day 0: pay inv-expire -> ada 300, transfer succeeds
+    received: {'sam': 0, 'ada': 500, 'lin': 0, 'kai': 0, 'mo': 0}
+RESULT query='B' days_roll=False goal=leak z3=UNSAT against_intent=- secs=0.04 as planned
+RESULT query='B-under' days_roll=False goal=under z3=SAT against_intent=0 secs=0.05 as planned
+    received: {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0}
+RESULT query='A' days_roll=True goal=leak z3=SAT against_intent=200 secs=0.15 as planned
+    day 0: pay inv-mid -> ada 200, transfer succeeds
+    day 0: pay inv-pay -> sam 100, transfer succeeds
+    received: {'sam': 100, 'ada': 200, 'lin': 0, 'kai': 0, 'mo': 0}
+RESULT query='A-max' days_roll=True goal=max z3=SAT against_intent=550 secs=0.07 as planned
+    day 0: pay inv-expire -> ada 300, transfer succeeds
+    day 1: pay inv-small -> mo 50, transfer succeeds
+    day 2: pay inv-mid -> ada 200, transfer succeeds
+    day 3: pay inv-pay -> sam 100, transfer succeeds
+    received: {'sam': 100, 'ada': 500, 'lin': 0, 'kai': 0, 'mo': 50}
+RESULT query='B' days_roll=True goal=leak z3=UNSAT against_intent=- secs=0.12 as planned
+RESULT query='B-under' days_roll=True goal=under z3=SAT against_intent=0 secs=0.12 as planned
+    received: {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0}
+RESULT query='A-max-no-cap (mutant: cap rule removed)' days_roll=False goal=max z3=SAT against_intent=1150 secs=0.03 
+    day 0: pay inv-mid -> ada 200, transfer fails
+    day 0: pay inv-big -> kai 600, transfer succeeds
+    day 0: pay inv-mid -> ada 200, transfer succeeds
+    day 0: pay inv-expire -> ada 300, transfer succeeds
+    day 0: pay inv-small -> mo 50, transfer succeeds
+    received: {'sam': 0, 'ada': 500, 'lin': 0, 'kai': 600, 'mo': 50}
+RESULT query='B-no-payee-rule (mutant: narrow cap only, all payees kept)' days_roll=False goal=leak z3=SAT against_intent=50 secs=0.14 
+    day 0: pay inv-small -> mo 50, transfer succeeds
+    received: {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 50}
+RESULT binding: removing the cap raises the one-day max to 1150 (must be > 500); removing the narrow payee rule makes B SAT (must be SAT) -> as planned
+model vs sandbox, scripted scenarios (broad policy):
+    s0-clean: pays ['inv-pay'] -> model {'sam': 100} chain {'sam': 100} against 0/0 match
+    s1-overt: pays ['inv-pay', 'inv-mid', 'inv-big'] -> model {'sam': 100, 'ada': 200} chain {'sam': 100, 'ada': 200} against 200/200 match
+    s2-payee-swap: pays ['inv-mid'] -> model {'ada': 200} chain {'ada': 200} against 200/200 match
+    s3-fake-authority: pays ['inv-pay', 'inv-removed', 'inv-cancel', 'inv-big'] -> model {'sam': 100} chain {'sam': 100} against 0/0 match
+    s4-memo-field: pays ['inv-pay', 'inv-small'] -> model {'sam': 100, 'mo': 50} chain {'sam': 100, 'mo': 50} against 50/50 match
+model vs sandbox, scripted scenarios (narrow policy):
+    s0-clean: model {'sam': 100} chain {'sam': 100} match
+    s1-overt: model {'sam': 100} chain {'sam': 100} match
+    s2-payee-swap: model {} chain {} match
+    s3-fake-authority: model {'sam': 100} chain {'sam': 100} match
+    s4-memo-field: model {'sam': 100} chain {'sam': 100} match
+RESULT reproduction: broad total against intent model=450 chain=450; 0 mismatches over 10 scenario runs -> as planned
+RESULT proof2 overall: ALL AS PLANNED
+  (wall 1 s)
