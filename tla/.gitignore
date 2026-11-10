@@ -1,0 +1,3 @@
+# downloads (near-tla clone, tla2tools.jar) and TLC output: never committed
+vendor/
+build/
