@@ -13,12 +13,18 @@
 //!   4. record tx hashes, the block height of every step, the receiver's final balance,
 //!      the guard's own record, and the agent key nonce (proves exactly 2 pays were sent).
 //!
-//! Keys: near-workspaces keeps dev-account keys in memory only (derived from the
-//! account id); nothing is written to disk. See the evidence file for what that means.
+//! Keys: every key is random and saved outside the repo in ~/.near-credentials/testnet
+//! (mode 600, never printed). Since Nov 11 the funder is loaded from that file too; the
+//! Nov 9 funder's key was derived from its own id (`SecretKey::from_seed`), so anyone
+//! could rebuild it. That key is now used only by `consolidate`, to empty old dev accounts.
+//!
+//! Cost (Nov 11): after each trial its five accounts are deleted with the funder as
+//! beneficiary, so their NEAR comes back. The LAST trial of each mode is kept alive so
+//! the live contracts can be opened. Transactions stay in chain history either way.
 //!
 //! Usage:
-//!   cargo run --release -- probe                 # create one account, print its balance
-//!   cargo run --release -- run <trials> <out.json> [modes...]
+//!   cargo run --release -- newfunder <prefix>          # ONE faucet account <prefix>.testnet, random key
+//!   cargo run --release -- run <trials> <out.json> <funder-id> <tag> [modes...]
 
 use near_workspaces::network::Testnet;
 use near_workspaces::result::{ExecutionFinalResult, ExecutionOutcome};
@@ -181,7 +187,41 @@ async fn agent_nonce(agent: &Account, agent2: &Account) -> anyhow::Result<u64> {
     Ok(n1 + n2)
 }
 
-async fn trial(worker: &Worker<Testnet>, funder: &Account, tag: &str, mode: &str, n: usize, token_wasm: &[u8], guard_wasm: &[u8]) -> anyhow::Result<Value> {
+/// Up-front NEAR one trial hands out (owner + agent + sam + token + guard), in milliNEAR.
+fn agent_millinear() -> u128 {
+    // 2.3 NEAR: enough for two 1,000-TGas pays reserved at once (1.0009 NEAR each, measured
+    // Nov 9). 0.25 (run 6) and 1.5 (run 7) were too little; 2.3 worked in run 9.
+    std::env::var("AGENT_MILLINEAR").ok().and_then(|v| v.parse().ok()).unwrap_or(2300)
+}
+const OWNER_MILLI: u128 = 250;
+const SAM_MILLI: u128 = 50;
+const CONTRACT_MILLI: u128 = 1950; // token and guard: ~187 KB of code each = ~1.88 NEAR of storage (2.0 until Nov 10)
+fn trial_upfront_milli() -> u128 {
+    OWNER_MILLI + agent_millinear() + SAM_MILLI + 2 * CONTRACT_MILLI
+}
+
+async fn balance(worker: &Worker<Testnet>, id: &near_workspaces::AccountId) -> anyhow::Result<u128> {
+    Ok(worker.view_account(id).await?.balance.as_yoctonear())
+}
+
+/// Deletes one trial account, NEAR to the funder. Returns a JSON row (never fails the trial).
+async fn delete_to(acct: Account, funder: &near_workspaces::AccountId) -> Value {
+    let id = acct.id().to_string();
+    for attempt in 0..3u64 {
+        match acct.clone().delete_account(funder).await {
+            Ok(r) => return json!({"account": id, "ok": r.is_success(), "tx": r.outcome().transaction_hash.to_string(),
+                                   "failure": if r.is_failure() { failure_text(&r) } else { String::new() }}),
+            Err(e) => {
+                eprintln!("  delete {id}: attempt {} failed: {e}", attempt + 1);
+                tokio::time::sleep(std::time::Duration::from_secs(10 * (attempt + 1))).await;
+            }
+        }
+    }
+    json!({"account": id, "ok": false, "tx": null, "failure": "delete failed after 3 attempts; key saved, use `reclaim`"})
+}
+
+#[allow(clippy::too_many_arguments)]
+async fn trial(worker: &Worker<Testnet>, funder: &Account, tag: &str, mode: &str, n: usize, keep: bool, token_wasm: &[u8], guard_wasm: &[u8]) -> anyhow::Result<Value> {
     let t0 = Instant::now();
     eprintln!("== mode={mode} trial={n}: creating fresh accounts");
     // The five trial accounts are fresh subaccounts of one funder account, each with
@@ -204,14 +244,14 @@ async fn trial(worker: &Worker<Testnet>, funder: &Account, tag: &str, mode: &str
         }
     };
     use anyhow::Context;
-    let owner = sub("owner", 250).await.context("create owner")?;
-    // The agent needs >1 NEAR: `max_gas()` attaches 1,000 TGas, and NEAR checks the signer
+    let owner = sub("owner", OWNER_MILLI).await.context("create owner")?;
+    // The agent needs >2 NEAR: `max_gas()` attaches 1,000 TGas, and NEAR checks the signer
     // can pay for it at a pessimistic gas price. With 0.25 NEAR both pays (run 6), and with 1.5 NEAR the second pay (run 7), were silently
     // dropped by the RPC (run 6 trial 0).
-    let agent = sub("agent", std::env::var("AGENT_MILLINEAR").ok().and_then(|v| v.parse().ok()).unwrap_or(5000)).await.context("create agent")?;
-    let receiver = sub("sam", 50).await.context("create sam")?;
-    let token_acct = sub("token", 2000).await.context("create token acct")?;
-    let guard_acct = sub("guard", 2000).await.context("create guard acct")?;
+    let agent = sub("agent", agent_millinear()).await.context("create agent")?;
+    let receiver = sub("sam", SAM_MILLI).await.context("create sam")?;
+    let token_acct = sub("token", CONTRACT_MILLI).await.context("create token acct")?;
+    let guard_acct = sub("guard", CONTRACT_MILLI).await.context("create guard acct")?;
     let token = ok_deploy("deploy token", token_acct.deploy(token_wasm).await.context("deploy token")?)?;
     let guard = ok_deploy("deploy guard", guard_acct.deploy(guard_wasm).await.context("deploy guard")?)?;
 
@@ -319,8 +359,16 @@ async fn trial(worker: &Worker<Testnet>, funder: &Account, tag: &str, mode: &str
         _ => None,
     };
 
-    // Return spare NEAR from the signer accounts to the funder (keeps 0.05 + storage).
-    for acct in [&agent, &owner] {
+    // Kept trial: return spare NEAR from the signer accounts (keeps 0.05 + storage), so the
+    // live contracts stay open for judges. Other trials: delete all five accounts, funder
+    // as beneficiary, so all their NEAR comes back (chain history keeps every tx).
+    let mut deleted = Vec::new();
+    if !keep {
+        for acct in [token.as_account().clone(), guard.as_account().clone(), receiver.clone(), owner.clone(), agent.clone()] {
+            deleted.push(delete_to(acct, funder.id()).await);
+        }
+    }
+    for acct in [&agent, &owner].into_iter().filter(|_| keep) {
         if let Ok(v) = acct.view_account().await {
             let locked = (v.storage_usage as u128) * 10u128.pow(19) + 50 * 10u128.pow(21);
             let free = v.balance.as_yoctonear().saturating_sub(locked);
@@ -357,6 +405,8 @@ async fn trial(worker: &Worker<Testnet>, funder: &Account, tag: &str, mode: &str
         "earlier_pay_callback_height": first_cb,
         "overlapped": overlap,
         "rule_held": received <= INVOICE_AMOUNT,
+        "kept_alive": keep,
+        "deleted_accounts": deleted,
         "elapsed_s": t0.elapsed().as_secs(),
     });
     eprintln!(
@@ -378,7 +428,16 @@ fn save_cred(name: &str, sk: &SecretKey) -> anyhow::Result<()> {
     Ok(())
 }
 
+/// The funder, loaded from its saved random key (~/.near-credentials/testnet/<id>.json).
+fn load_account(worker: &Worker<Testnet>, id: &near_workspaces::AccountId) -> anyhow::Result<Account> {
+    let path = std::path::PathBuf::from(std::env::var("HOME")?).join(format!(".near-credentials/testnet/{id}.json"));
+    let v: Value = serde_json::from_str(&std::fs::read_to_string(&path).map_err(|e| anyhow::anyhow!("no saved key for {id}: {e}"))?)?;
+    let sk: SecretKey = v["private_key"].as_str().ok_or_else(|| anyhow::anyhow!("no private_key for {id}"))?.parse()?;
+    Ok(Account::from_secret_key(id.clone(), sk, worker))
+}
+
 /// A dev account made earlier by near-workspaces: its key is derived from its id.
+/// Used ONLY by `consolidate`, to empty those old accounts. Never as a funder.
 fn dev_account(worker: &Worker<Testnet>, id: &near_workspaces::AccountId) -> Account {
     Account::from_secret_key(id.clone(), SecretKey::from_seed(KeyType::ED25519, id.as_str()), worker)
 }
@@ -395,6 +454,41 @@ async fn main() -> anyhow::Result<()> {
             let bal = a.view_account().await?.balance;
             println!("probe account {} balance {}", a.id(), bal);
         }
+        Some("newfunder") => {
+            // newfunder <prefix> : ONE top-level testnet account from the official
+            // faucet helper (the same call `dev_create_account` makes), but with a fresh
+            // RANDOM ed25519 key saved first (mode 600). One attempt; no retry loop here,
+            // so the faucet's limit is never hammered.
+            // Arg: the prefix only; the helper creates <prefix>.testnet.
+            let prefix: near_workspaces::AccountId = args.get(2).ok_or_else(|| anyhow::anyhow!("need a prefix"))?.parse()?;
+            let id: near_workspaces::AccountId = format!("{prefix}.testnet").parse()?;
+            let path = std::path::PathBuf::from(std::env::var("HOME")?).join(format!(".near-credentials/testnet/{id}.json"));
+            let sk = if path.exists() {
+                // A previous attempt saved this key and the faucet refused: reuse it.
+                load_account(&worker, &id)?.secret_key().clone()
+            } else {
+                let sk = SecretKey::from_random(KeyType::ED25519);
+                save_cred(id.as_str(), &sk)?;
+                sk
+            };
+            let r = worker.create_root_account_subaccount(prefix, sk).await?;
+            eprintln!("newfunder {id}: ok={}", r.is_success());
+            eprintln!("balance {}", NearToken::from_yoctonear(balance(&worker, &id).await?));
+        }
+        Some("balance") => {
+            for a in &args[2..] {
+                let id: near_workspaces::AccountId = a.parse()?;
+                let b = balance(&worker, &id).await?;
+                println!("{}", json!({"account": a, "balance_yocto": b.to_string(), "balance": NearToken::from_yoctonear(b).to_string()}));
+            }
+        }
+        Some("topup") => {
+            // topup <funder-id> <to-id> <millinear> : funder sends testnet NEAR (e.g. receipts gas).
+            let f = load_account(&worker, &args[2].parse()?)?;
+            let to: near_workspaces::AccountId = args[3].parse()?;
+            let r = f.transfer_near(&to, NearToken::from_millinear(args[4].parse()?)).await?;
+            eprintln!("topup {to}: ok={} tx={}", r.is_success(), r.outcome().transaction_hash);
+        }
         Some("consolidate") => {
             // consolidate <funder-id> <source-id>... : move spare testnet NEAR from earlier
             // dev accounts (keys re-derived from their ids, as near-workspaces made them)
@@ -410,8 +504,7 @@ async fn main() -> anyhow::Result<()> {
                 let r = acct.transfer_near(&funder, NearToken::from_yoctonear(free)).await?;
                 eprintln!("{id}: sent {} to {funder}: ok={} tx={}", NearToken::from_yoctonear(free), r.is_success(), r.outcome().transaction_hash);
             }
-            let f = dev_account(&worker, &funder);
-            eprintln!("funder balance now {}", f.view_account().await?.balance);
+            eprintln!("funder balance now {}", NearToken::from_yoctonear(balance(&worker, &funder).await?));
         }
         Some("costprobe") => {
             // costprobe <low-balance-account> <contract> : sends a max_gas call from an
@@ -446,15 +539,15 @@ async fn main() -> anyhow::Result<()> {
                     Err(e) => eprintln!("{a}: delete failed: {e}"),
                 }
             }
-            let f = dev_account(&worker, &funder);
-            eprintln!("funder balance now {}", f.view_account().await?.balance);
+            eprintln!("funder balance now {}", NearToken::from_yoctonear(balance(&worker, &funder).await?));
         }
         Some("run") => {
             let trials: usize = args.get(2).map(|s| s.parse()).transpose()?.unwrap_or(5);
             let out_path = args.get(3).cloned().unwrap_or_else(|| "testnet-raw.json".into());
             let funder_id: near_workspaces::AccountId = args.get(4).ok_or_else(|| anyhow::anyhow!("need funder id"))?.parse()?;
             let tag = args.get(5).cloned().unwrap_or_else(|| "r".into());
-            let funder = dev_account(&worker, &funder_id);
+            let funder = load_account(&worker, &funder_id)?;
+            let funder_start = balance(&worker, &funder_id).await?;
             let modes: Vec<String> = if args.len() > 6 {
                 args[6..].to_vec()
             } else {
@@ -462,6 +555,10 @@ async fn main() -> anyhow::Result<()> {
             };
             let token_wasm = std::fs::read(TOKEN_WASM)?;
             let guard_wasm = std::fs::read(GUARD_WASM)?;
+            // EXPECT_GUARD_SHA256: refuse to deploy anything but the pre-registered build.
+            if let Ok(want) = std::env::var("EXPECT_GUARD_SHA256") {
+                anyhow::ensure!(sha(&guard_wasm) == want, "guard.wasm is {}, plan says {want}: not deploying", sha(&guard_wasm));
+            }
             let header = json!({
                 "network": "testnet",
                 "rpc": rpc,
@@ -469,14 +566,33 @@ async fn main() -> anyhow::Result<()> {
                 "token_wasm_sha256": sha(&token_wasm),
                 "guard_wasm_sha256": sha(&guard_wasm),
                 "trials_per_mode": trials, "funder": funder_id.to_string(),
+                "funder_balance_start_yocto": funder_start.to_string(),
+                "trial_upfront_millinear": trial_upfront_milli().to_string(),
             });
             eprintln!("header: {header}");
             let mut results = Vec::new();
             let mut errors = Vec::new();
-            for mode in &modes {
+            let mut stopped = None;
+            'outer: for mode in &modes {
                 for n in 0..trials {
-                    match trial(&worker, &funder, &tag, mode, n, &token_wasm, &guard_wasm).await {
-                        Ok(v) => results.push(v),
+                    // Never start a trial the funder cannot finish: a half-built trial strands NEAR.
+                    let before = balance(&worker, &funder_id).await?;
+                    let need = (trial_upfront_milli() + 100) * 10u128.pow(21);
+                    if before < need {
+                        let msg = format!("stopped before mode={mode} trial={n}: funder has {} yocto, a trial needs {} (up-front + 0.1 margin)", before, need);
+                        eprintln!("   {msg}");
+                        stopped = Some(msg);
+                        break 'outer;
+                    }
+                    let keep = n + 1 == trials;
+                    match trial(&worker, &funder, &tag, mode, n, keep, &token_wasm, &guard_wasm).await {
+                        Ok(mut v) => {
+                            let after = balance(&worker, &funder_id).await?;
+                            v["funder_balance_before_yocto"] = json!(before.to_string());
+                            v["funder_balance_after_yocto"] = json!(after.to_string());
+                            eprintln!("   funder {} -> {}", NearToken::from_yoctonear(before), NearToken::from_yoctonear(after));
+                            results.push(v)
+                        }
                         Err(e) => {
                             eprintln!("   TRIAL ERROR mode={mode} trial={n}: {e:#}");
                             errors.push(json!({"mode": mode, "trial": n, "error": format!("{e:#}")}));
@@ -487,9 +603,14 @@ async fn main() -> anyhow::Result<()> {
                     std::fs::write(&out_path, serde_json::to_string_pretty(&doc)?)?;
                 }
             }
+            let funder_end = balance(&worker, &funder_id).await?;
+            let doc = json!({"header": header, "trials": results, "errors": errors, "stopped": stopped,
+                             "funder_balance_end_yocto": funder_end.to_string()});
+            std::fs::write(&out_path, serde_json::to_string_pretty(&doc)?)?;
+            eprintln!("funder end balance {}", NearToken::from_yoctonear(funder_end));
             eprintln!("wrote {out_path}: {} trials, {} errors", results.len(), errors.len());
         }
-        _ => anyhow::bail!("usage: probe | run <trials> <out.json> [modes...]"),
+        _ => anyhow::bail!("usage: see the header of src/main.rs"),
     }
     Ok(())
 }
