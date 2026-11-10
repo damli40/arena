@@ -1,0 +1,5 @@
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+     Running tests/sandbox.rs (target/release/deps/sandbox-7b076631988baea8)
+test rejects_malformed_receipts ... ok
+test receipts_end_to_end ... ok
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.12s

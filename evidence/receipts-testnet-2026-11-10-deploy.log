@@ -1,0 +1,4 @@
+{"account":"receipts.dev-20261109195231-98743803426969.testnet","ok":true,"step":"create","tx":"https://testnet.nearblocks.io/txns/A7YJc54ojRUY4xCJhGS19w79VZZv1NSVsXuEvTKnc4s4"}
+{"ok":true,"step":"deploy","tx":"https://testnet.nearblocks.io/txns/HeXGRNVAYXJ1L98sNxdDxPydgsWazpQh7CSTuze3T5gA"}
+{"failures":"[]","ok":true,"step":"new","tx":"https://testnet.nearblocks.io/txns/2Vnfmmx8JRnsrHp1kZoap24zJriXkZZFB2EYpH3zuEm2"}
+{"ok":true,"step":"redeploy","tx":"https://testnet.nearblocks.io/txns/6WtrxToRDZJLs49h6cuAZ8pBxtC8FtQb5VPQoHjbFeUi"}

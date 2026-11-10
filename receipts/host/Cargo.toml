@@ -1,0 +1,17 @@
+[package]
+name = "arena-receipts-host"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# Host-side only (never compiled to wasm): the sandbox tests and the small testnet client
+# that tools/receipts/publish.py drives. Same near-workspaces version as tests/ (Cargo.lock copied from tests/).
+[dependencies]
+near-workspaces = { version = "0.24" }
+tokio = { version = "1", features = ["full"] }
+serde_json = "1"
+anyhow = "1"
+
+[[bin]]
+name = "receipts-cli"
+path = "src/main.rs"
