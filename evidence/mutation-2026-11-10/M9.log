@@ -1,0 +1,192 @@
+
+================ arena run: tester=mutation target=M9 attempts=10 ================
+TARGET: label=M9 wasm=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/mutants/M9/vault_a.wasm sha256=0f0f4dde0da28ad98580417db4ff6531b311cc888a0dbe08f0b260d1ea0fff88
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+
+----- ATTEMPT control-pay-valid (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/sequences/01-control-pay-valid.json) -----
+  step 0 [call] agent -> 33570991::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-pay","receiver":"dev-20261110002055-37052737636623.test.near","amount":"100"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110002057-67969733570991.test.near","new_owner_id":"dev-20261110002055-37052737636623.test.near","amount":"100","memo":"vault-a invoice inv-pay"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-pay","amount":"100"}]}
+  step 1 [view] 33570991::get_invoice -> {"amount":"100","expires_at_ns":1796862064404385000,"id":"inv-pay","payable_now":false,"receiver":"dev-20261110002055-37052737636623.test.near","status":"Paid"}
+SCORE attempt=control-pay-valid scoring=token
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=0      authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=600    over=0
+  receiver mo     received=0      authorised=50     over=0
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794270084404385000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 1/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=2/2 protocol_rejected=0/1 attempts_used=1 target=M9
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/mutants/target/harness-pinned/harness/../evidence/results/mutation-M9/01-control-pay-valid.result.json
+
+----- ATTEMPT race-double-pay (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/sequences/02-race-double-pay.json) -----
+  step 0 [race-call] agent -> 02354343::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-pay","receiver":"dev-20261110002110-94225610581037.test.near","amount":"100"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110002112-69328602354343.test.near","new_owner_id":"dev-20261110002110-94225610581037.test.near","amount":"100","memo":"vault-a invoice inv-pay"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-pay","amount":"100"}]}
+  step 0 [race-call] agent -> 02354343::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: payment already in flight")) }) } })
+SCORE attempt=race-double-pay scoring=token
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=0      authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=600    over=0
+  receiver mo     received=0      authorised=50     over=0
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794270099443502000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 1/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=1/2 protocol_rejected=0/2 attempts_used=1 target=M9
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/mutants/target/harness-pinned/harness/../evidence/results/mutation-M9/02-race-double-pay.result.json
+
+----- ATTEMPT sequential-second-pay (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/sequences/03-sequential-second-pay.json) -----
+  step 0 [call] agent -> 89248437::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-pay","receiver":"dev-20261110002125-88705470618720.test.near","amount":"100"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110002128-45021689248437.test.near","new_owner_id":"dev-20261110002125-88705470618720.test.near","amount":"100","memo":"vault-a invoice inv-pay"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-pay","amount":"100"}]}
+  step 1 [call] agent -> 89248437::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid")) }) } })
+SCORE attempt=sequential-second-pay scoring=token
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=0      authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=600    over=0
+  receiver mo     received=0      authorised=50     over=0
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794270114688691000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 1/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=1/2 protocol_rejected=0/2 attempts_used=1 target=M9
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/mutants/target/harness-pinned/harness/../evidence/results/mutation-M9/03-sequential-second-pay.result.json
+
+----- ATTEMPT pay-cancelled (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/sequences/04-pay-cancelled.json) -----
+  step 0 [call] agent -> 60683267::pay {"id":"inv-cancel"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice cancelled")) }) } })
+  step 1 [call] agent -> 60683267::pay {"id":"inv-cancel"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice cancelled")) }) } })
+SCORE attempt=pay-cancelled scoring=token
+  receiver sam    received=0      authorised=100    over=0
+  receiver ada    received=0      authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=600    over=0
+  receiver mo     received=0      authorised=50     over=0
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794270130742283000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=0/2 protocol_rejected=0/2 attempts_used=1 target=M9
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/mutants/target/harness-pinned/harness/../evidence/results/mutation-M9/04-pay-cancelled.result.json
+
+----- ATTEMPT pay-expired (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/sequences/05-pay-expired.json) -----
+  step 0 [wait] 30s (real time, so block timestamps move)
+  step 1 [call] agent -> 99972058::pay {"id":"inv-expire"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice expired")) }) } })
+  step 2 [call] agent -> 99972058::pay {"id":"inv-expire"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice expired")) }) } })
+SCORE attempt=pay-expired scoring=token
+  receiver sam    received=0      authorised=100    over=0
+  receiver ada    received=0      authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=600    over=0
+  receiver mo     received=0      authorised=50     over=0
+  expiry inv-expire  pay_block_ts=1794270160432555000 expires_at_ns=1794270146299477000 -> PAID AFTER EXPIRY
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Expired, inv-removed:PayeeRemoved
+  calls_ok=0/2 protocol_rejected=0/2 attempts_used=1 target=M9
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/mutants/target/harness-pinned/harness/../evidence/results/mutation-M9/05-pay-expired.result.json
+
+----- ATTEMPT pay-removed-payee (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/sequences/06-pay-removed-payee.json) -----
+  step 0 [call] agent -> 23016982::pay {"id":"inv-removed"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: receiver is no longer a payee")) }) } })
+SCORE attempt=pay-removed-payee scoring=token
+  receiver sam    received=0      authorised=100    over=0
+  receiver ada    received=0      authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=600    over=0
+  receiver mo     received=0      authorised=50     over=0
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794270191871662000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=0/1 protocol_rejected=0/1 attempts_used=1 target=M9
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/mutants/target/harness-pinned/harness/../evidence/results/mutation-M9/06-pay-removed-payee.result.json
+
+----- ATTEMPT outsider-pays (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/sequences/07-outsider-pays.json) -----
+  step 0 [call] outsider -> 09191072::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: only the agent can pay")) }) } })
+SCORE attempt=outsider-pays scoring=token
+  receiver sam    received=0      authorised=100    over=0
+  receiver ada    received=0      authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=600    over=0
+  receiver mo     received=0      authorised=50     over=0
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794270206737990000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=0/1 protocol_rejected=0/1 attempts_used=1 target=M9
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/mutants/target/harness-pinned/harness/../evidence/results/mutation-M9/07-outsider-pays.result.json
+
+----- ATTEMPT gas-starve-then-pay (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/sequences/08-gas-starve-then-pay.json) -----
+  step 0 [call] agent -> 46698461::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: not enough gas attached to pay safely")) }) } })
+  step 1 [call] agent -> 46698461::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-pay","receiver":"dev-20261110002312-16294474230146.test.near","amount":"100"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110002315-36928946698461.test.near","new_owner_id":"dev-20261110002312-16294474230146.test.near","amount":"100","memo":"vault-a invoice inv-pay"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-pay","amount":"100"}]}
+SCORE attempt=gas-starve-then-pay scoring=token
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=0      authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=600    over=0
+  receiver mo     received=0      authorised=50     over=0
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794270221766560000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 1/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=1/2 protocol_rejected=0/2 attempts_used=1 target=M9
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/mutants/target/harness-pinned/harness/../evidence/results/mutation-M9/08-gas-starve-then-pay.result.json
+
+----- ATTEMPT pay-over-cap (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/sequences/09-pay-over-cap.json) -----
+  step 0 [call] agent -> 50511723::pay {"id":"inv-big"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: daily cap exceeded")) }) } })
+  step 1 [call] agent -> 50511723::pay {"id":"inv-big"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: daily cap exceeded")) }) } })
+SCORE attempt=pay-over-cap scoring=token
+  receiver sam    received=0      authorised=100    over=0
+  receiver ada    received=0      authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=600    over=0
+  receiver mo     received=0      authorised=50     over=0
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794270237752979000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=0/2 protocol_rejected=0/2 attempts_used=1 target=M9
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/mutants/target/harness-pinned/harness/../evidence/results/mutation-M9/09-pay-over-cap.result.json
+
+----- ATTEMPT race-two-invoices (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/sequences/10-race-two-invoices.json) -----
+  step 0 [race-call] agent -> 65789457::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-pay","receiver":"dev-20261110002344-33289117924753.test.near","amount":"100"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110002346-64463165789457.test.near","new_owner_id":"dev-20261110002344-33289117924753.test.near","amount":"100","memo":"vault-a invoice inv-pay"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-pay","amount":"100"}]}
+  step 0 [race-call] agent -> 65789457::pay {"id":"inv-small"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-small","receiver":"dev-20261110002345-73684941696877.test.near","amount":"50"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261110002346-64463165789457.test.near","new_owner_id":"dev-20261110002345-73684941696877.test.near","amount":"50","memo":"vault-a invoice inv-small"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-small","amount":"50"}]}
+SCORE attempt=race-two-invoices scoring=token
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=0      authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=600    over=0
+  receiver mo     received=50     authorised=50     over=0
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794270253267074000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 2/3   statuses=inv-pay:Paid, inv-small:Paid, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=2/2 protocol_rejected=0/2 attempts_used=1 target=M9
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/mutants/target/harness-pinned/harness/../evidence/results/mutation-M9/10-race-two-invoices.result.json
+
+================ SUMMARY tester=mutation target=M9 ================
+  target wasm sha256=0f0f4dde0da28ad98580417db4ff6531b311cc888a0dbe08f0b260d1ea0fff88
+  control-pay-valid            unauthorised=0      honest_settled=1/3 protocol_rejected=0/1
+  race-double-pay              unauthorised=0      honest_settled=1/3 protocol_rejected=0/2
+  sequential-second-pay        unauthorised=0      honest_settled=1/3 protocol_rejected=0/2
+  pay-cancelled                unauthorised=0      honest_settled=0/3 protocol_rejected=0/2
+  pay-expired                  unauthorised=0      honest_settled=0/3 protocol_rejected=0/2
+  pay-removed-payee            unauthorised=0      honest_settled=0/3 protocol_rejected=0/1
+  outsider-pays                unauthorised=0      honest_settled=0/3 protocol_rejected=0/1
+  gas-starve-then-pay          unauthorised=0      honest_settled=1/3 protocol_rejected=0/2
+  pay-over-cap                 unauthorised=0      honest_settled=0/3 protocol_rejected=0/2
+  race-two-invoices            unauthorised=0      honest_settled=2/3 protocol_rejected=0/2
+  attempts=10 attempts_found_something=0 tester=mutation target=M9
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+  harness exit code 0

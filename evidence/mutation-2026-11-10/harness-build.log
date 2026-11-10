@@ -1,0 +1,50 @@
+warning: constant `EXPIRY_SENSITIVE_WINDOW_NS` is never used
+  --> src/scorer.rs:35:11
+   |
+35 | pub const EXPIRY_SENSITIVE_WINDOW_NS: u64 = 86_400_000_000_000;
+   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: field `auth_by_invoice` is never read
+  --> src/scorer.rs:65:9
+   |
+50 | pub struct Score {
+   |            ----- field in this struct
+...
+65 |     pub auth_by_invoice: Vec<(String, u128)>,
+   |         ^^^^^^^^^^^^^^^
+   |
+   = note: `Score` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: field `setup_now_ns` is never read
+   --> src/setup.rs:177:9
+    |
+170 | pub struct Manifest {
+    |            -------- field in this struct
+...
+177 |     pub setup_now_ns: u64,
+    |         ^^^^^^^^^^^^
+    |
+    = note: `Manifest` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: field `owner` is never read
+   --> src/setup.rs:182:9
+    |
+180 | pub struct Arena {
+    |            ----- field in this struct
+181 |     pub worker: Worker<Sandbox>,
+182 |     pub owner: Account,
+    |         ^^^^^
+
+warning: method `receiver_id` is never used
+   --> src/setup.rs:240:12
+    |
+230 | impl Arena {
+    | ---------- method in this implementation
+...
+240 |     pub fn receiver_id(&self, name: &str) -> Result<&near_workspaces::AccountId> {
+    |            ^^^^^^^^^^^
+
+warning: `arena-harness` (bin "arena-harness") generated 5 warnings
+    Finished `release` profile [optimized] target(s) in 0.42s

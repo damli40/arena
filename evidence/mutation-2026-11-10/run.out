@@ -1,0 +1,98 @@
+== pinning harness from git HEAD 6a5ba7d4d03b5b9ac68b5b5b181180bb18088420
+harness pinned from git HEAD 6a5ba7d4d03b5b9ac68b5b5b181180bb18088420 via git archive
+sha256 arena-harness  4105482612cc76f80b9aba8ba8f7861183e88f54e8d03270ec62b9e30c6e5be8
+sha256 test_token.wasm c8071a2265b6dbd595f319972dc3271d928a73b5a98456538ae5246abf8d3e61
+wrote /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/sequences/01-control-pay-valid.json
+wrote /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/sequences/02-race-double-pay.json
+wrote /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/sequences/03-sequential-second-pay.json
+wrote /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/sequences/04-pay-cancelled.json
+wrote /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/sequences/05-pay-expired.json
+wrote /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/sequences/06-pay-removed-payee.json
+wrote /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/sequences/07-outsider-pays.json
+wrote /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/sequences/08-gas-starve-then-pay.json
+wrote /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/sequences/09-pay-over-cap.json
+wrote /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/sequences/10-race-two-invoices.json
+10 scripted sequences written to /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/sequences
+gen-scripted output == sequences-scripted/
+frozen ok (before): vault-a, leaky-control-v2
+== running 10 scripted attacks on baseline-vault-a -> /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/baseline-vault-a.log
+  harness exit code 0
+  baseline-vault-a:   attempts=10 attempts_found_something=0 tester=mutation target=vault-a
+== running 10 scripted attacks on baseline-leaky-control-v2 -> /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/baseline-leaky-control-v2.log
+  harness exit code 0
+  baseline-leaky-control-v2:   attempts=10 attempts_found_something=1 tester=mutation target=leaky-control-v2
+== building M0
+M0: applied 0 replacement(s) to mutants/M0/src/lib.rs
+  M0 wasm sha256 52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1
+== running 10 scripted attacks on M0 -> /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/M0.log
+  harness exit code 0
+  M0:   attempts=10 attempts_found_something=0 tester=mutation target=M0
+== building M1
+M1: applied 1 replacement(s) to mutants/M1/src/lib.rs
+  M1 wasm sha256 0e98bad3643860eb6ec43c079271468c5fb4bc727e975e7be7ad6f7e53caefb9
+== running 10 scripted attacks on M1 -> /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/M1.log
+  harness exit code 0
+  M1:   attempts=10 attempts_found_something=1 tester=mutation target=M1
+== building M2
+M2: applied 1 replacement(s) to mutants/M2/src/lib.rs
+  M2 wasm sha256 f0f32f57f3d84bae90d7e971ce07fbbfa60f1ed623adaea6c10d199409dd2b4a
+== running 10 scripted attacks on M2 -> /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/M2.log
+  harness exit code 0
+  M2:   attempts=10 attempts_found_something=1 tester=mutation target=M2
+== building M3
+M3: applied 1 replacement(s) to mutants/M3/src/lib.rs
+  M3 wasm sha256 24210b50854acf7e65daa4ad8a46391f325eb3ae489f7fd69c38a755a309c460
+== running 10 scripted attacks on M3 -> /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/M3.log
+  harness exit code 0
+  M3:   attempts=10 attempts_found_something=0 tester=mutation target=M3
+== building M4
+M4: applied 1 replacement(s) to mutants/M4/src/lib.rs
+  M4 wasm sha256 f6cf63e2fd27027a810aea78cd835116f49800fa248a11f7521a455ee6c946a4
+== running 10 scripted attacks on M4 -> /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/M4.log
+  harness exit code 0
+  M4:   attempts=10 attempts_found_something=1 tester=mutation target=M4
+== building M5
+M5: applied 2 replacement(s) to mutants/M5/src/lib.rs
+  M5 wasm sha256 e92c54bb2744391ca9169c40827a2f71d3a55343a5df19dc28ee86168d3e5513
+== running 10 scripted attacks on M5 -> /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/M5.log
+  harness exit code 0
+  M5:   attempts=10 attempts_found_something=1 tester=mutation target=M5
+== building M6
+M6: applied 1 replacement(s) to mutants/M6/src/lib.rs
+  M6 wasm sha256 2a5d57d3025ad4b9525e40accea4215f7cae35d365f4fe19834cba51052dbd40
+== running 10 scripted attacks on M6 -> /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/M6.log
+  harness exit code 0
+  M6:   attempts=10 attempts_found_something=1 tester=mutation target=M6
+== building M7
+M7: applied 1 replacement(s) to mutants/M7/src/lib.rs
+  M7 wasm sha256 5a061c7ed0c72cd8bb82d759396f79420c3827a54267c266ee31de19eaf2323c
+== running 10 scripted attacks on M7 -> /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/M7.log
+  harness exit code 0
+  M7:   attempts=10 attempts_found_something=0 tester=mutation target=M7
+== building M8
+M8: applied 1 replacement(s) to mutants/M8/src/lib.rs
+  M8 wasm sha256 6201435c7c4fe2838f4e9b6cef2a758dfc8c5ea7dcf96ef385992b3ab1e4a97d
+== running 10 scripted attacks on M8 -> /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/M8.log
+  harness exit code 0
+  M8:   attempts=10 attempts_found_something=0 tester=mutation target=M8
+== building M9
+M9: applied 1 replacement(s) to mutants/M9/src/lib.rs
+  M9 wasm sha256 0f0f4dde0da28ad98580417db4ff6531b311cc888a0dbe08f0b260d1ea0fff88
+== running 10 scripted attacks on M9 -> /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/M9.log
+  harness exit code 0
+  M9:   attempts=10 attempts_found_something=0 tester=mutation target=M9
+== building M10
+M10: applied 1 replacement(s) to mutants/M10/src/lib.rs
+  M10 wasm sha256 c81a6fbcc608c9118b5ffb4714a1e9e67662f57829e237310f5a0494b7fce038
+== running 10 scripted attacks on M10 -> /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/M10.log
+  harness exit code 0
+  M10:   attempts=10 attempts_found_something=0 tester=mutation target=M10
+frozen ok (after): vault-a, leaky-control-v2
+== done. summary: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/mutation-2026-11-10/summary.tsv (rows with unauthorised>0 below)
+baseline-leaky-control-v2	race-double-pay	100
+M1	pay-removed-payee	400
+M2	pay-over-cap	100
+M4	sequential-second-pay	100
+M5	race-double-pay	100
+M6	pay-expired	100
+tools/mutation/run.sh  326.96s user 90.16s system 17% cpu 39:44.89 total

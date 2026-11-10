@@ -1,0 +1,4 @@
+M2 frozen 2026-11-09T23:59:32Z, before its bench run. Planted-flaw TEST FIXTURE: never deploy.
+sha256 vault_a.wasm f0f32f57f3d84bae90d7e971ce07fbbfa60f1ed623adaea6c10d199409dd2b4a
+sha256 src/lib.rs   d12b29fcbee305605dcb4f03cd5b22090c940cbffa9c07146ef3eb0138918f5f
+built from targets/vault-a (wasm 52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1) + MUTATION.md

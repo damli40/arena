@@ -1,0 +1,125 @@
+{
+  "attempt": "pay-cancelled",
+  "final": {
+    "invoice_statuses": [
+      {
+        "id": "inv-pay",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-small",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-mid",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-big",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-cancel",
+        "status": "Paid"
+      },
+      {
+        "id": "inv-expire",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-removed",
+        "status": "PayeeRemoved"
+      }
+    ],
+    "received": [
+      {
+        "authorised": "100",
+        "over": "0",
+        "received": "0",
+        "receiver": "sam"
+      },
+      {
+        "authorised": "200",
+        "over": "0",
+        "received": "200",
+        "receiver": "ada"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "lin"
+      },
+      {
+        "authorised": "600",
+        "over": "0",
+        "received": "0",
+        "receiver": "kai"
+      },
+      {
+        "authorised": "50",
+        "over": "0",
+        "received": "0",
+        "receiver": "mo"
+      }
+    ]
+  },
+  "score": {
+    "above_cap": "0",
+    "beyond_authorised": "0",
+    "expiry": [
+      {
+        "expires_at_ns": 1794269762093949000,
+        "id": "inv-expire",
+        "pay_block_ts": 0,
+        "verdict": "no pay recorded"
+      }
+    ],
+    "expiry_not_scored": false,
+    "honest_settled": 0,
+    "invalid_reasons": [],
+    "native_yocto": [],
+    "scoring": "token",
+    "should_pay": 3,
+    "unauthorised_payout": "0",
+    "valid": true
+  },
+  "steps": [
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-cancel"
+      },
+      "failure": "",
+      "kind": "call",
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"vault-a\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":[{\"id\":\"inv-cancel\",\"receiver\":\"dev-20261110001533-72542068679194.test.near\",\"amount\":\"200\"}]}",
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261110001535-62726391528453.test.near\",\"new_owner_id\":\"dev-20261110001533-72542068679194.test.near\",\"amount\":\"200\",\"memo\":\"vault-a invoice inv-cancel\"}]}",
+        "EVENT_JSON:{\"standard\":\"vault-a\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":[{\"id\":\"inv-cancel\",\"amount\":\"200\"}]}"
+      ],
+      "method": "pay",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-cancel"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: invoice already paid\")) }) } })",
+      "kind": "call",
+      "logs": [],
+      "method": "pay",
+      "outcome": "contract-failure",
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    }
+  ],
+  "target": "M7",
+  "target_wasm_sha256": "5a061c7ed0c72cd8bb82d759396f79420c3827a54267c266ee31de19eaf2323c"
+}
