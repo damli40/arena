@@ -40,7 +40,7 @@ harness does not apply renames yet, so any mapping other than the identity is re
      "name": "YourTeam guard v1",
      "role": "subject",
      "owner": "YourTeam (contact)",
-     "opt_in": "We, YourTeam, opt in to the Arena bench attacking this guard and publishing the results. - Name, 2026-11-11",
+     "opt_in": "We, YourTeam, opt in to the Arena bench attacking this guard and publishing the results. - Name, 2026-11-10",
      "policy": "What your guard promises, in one plain sentence.",
      "interface": "vault-a",
      "scoring": "token",

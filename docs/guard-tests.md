@@ -16,7 +16,7 @@ The fixed guard paid once in 5 out of 5 races, and still recovered after a trans
 - New in the fixed guard: the owner can call `reconcile(id)`. It checks the guard's real token
   balance and settles the invoice from that evidence. In both stuck cases it reached the right
   answer, and Sam was paid exactly once.
-- **Changed Nov 11 2026 (`evidence/fix-plan-2026-11-11.md`).** `reconcile` could pay twice: if the
+- **Changed Nov 10 2026 (`evidence/fix-plan-2026-11-11.md`).** `reconcile` could pay twice: if the
   money left, the callback died, and someone then sent the guard the same amount, the balance looked
   untouched and `reconcile` reopened the invoice (`evidence/proofs-adversarial-review-2026-11-11.md`, H1).
   Now `reconcile` only ever settles "the money left" (`Paid`). For anything else the owner closes the
@@ -49,7 +49,7 @@ fails, the callback puts the invoice back to `Approved` so it can be paid again.
 ```
 
 This builds the contracts with the pinned toolchain, plus a second, test-only guard build
-(see "Fault injection" below), then runs 12 tests (10 before Nov 11). Evidence for each test prints to stdout.
+(see "Fault injection" below), then runs 12 tests (10 before the Nov 10 fix). Evidence for each test prints to stdout.
 Saved runs: `evidence/run-2026-11-08.log` (t1-t4), `evidence/run-2026-11-08-callback.log` (t1-t10, old
 `reconcile`), and `evidence/verify-2026-11-11-run.log` (t1-t12, new `reconcile`).
 
@@ -71,7 +71,7 @@ payouts; vault-a refused every wrong action and settled honest invoices.
 | t5 | transfer reaches Sam, callback panics (fault build), then one retry | vulnerable: Sam 100, record `Approved`; retry accepted, Sam **200**. fixed: Sam 100, stuck `Pending`; retry refused, Sam stays 100 |
 | t6 | transfer fails (Sam not registered), callback panics; owner registers Sam; one retry | vulnerable: Sam 0, `Approved`; retry pays 100 but record still `Approved` (next retry would pay twice). fixed: Sam 0, stuck `Pending`; retry refused, invoice frozen |
 | t7 | fixed, t5 situation, then owner `reconcile` | right away: refused "too early". After waiting: balance shows the money left → `Paid`. Retry refused. Sam stays 100 |
-| t8 | fixed, t6 situation, then owner `reconcile`, then `resolve_stuck(sent=false)` | balance unchanged → stays `Pending` (it proves nothing, see t11). Agent may not resolve. Owner `resolve_stuck(sent=false)` → `Failed`. `pay` refused; the old id cannot be re-approved. Owner approves a new id; it pays 100 once. Sam 100. (Before Nov 11: `reconcile` set `Approved` here.) |
+| t8 | fixed, t6 situation, then owner `reconcile`, then `resolve_stuck(sent=false)` | balance unchanged → stays `Pending` (it proves nothing, see t11). Agent may not resolve. Owner `resolve_stuck(sent=false)` → `Failed`. `pay` refused; the old id cannot be re-approved. Owner approves a new id; it pays 100 once. Sam 100. (Before Nov 10: `reconcile` set `Approved` here.) |
 | t9 | fixed, two invoices stuck at once | `reconcile` refuses: "ambiguous: 2 invoices are Pending". Nothing changes |
 | t10 | normal build | the fault code is not in `guard.wasm`, and a `crash-` invoice pays normally. Callback gas measured (below) |
 | t11 | fixed, transfer reaches Sam, callback panics, **owner tops the guard up by 100**, then `reconcile` (review H1) | stays `Pending` (the old code set `Approved`, and the retry paid Sam 200). Retry refused. `resolve_stuck(sent=true)` → `Paid`. Next pay refused. Sam 100. Ledger re-synced afterwards |
@@ -96,7 +96,7 @@ after funding the guard. `sync_ledger` reads the real balance and is refused whi
 - balance = ledger − invoice amount → the money left → `Paid`.
 - balance = ledger → **nothing changes; the invoice stays `Pending`.** This reading fits "the
   transfer never happened", but it also fits "it happened, and the same amount was then sent to the
-  guard" (an owner top-up, or a gift). The balance cannot tell these apart. Until Nov 11 this arm set
+  guard" (an owner top-up, or a gift). The balance cannot tell these apart. Until the Nov 10 fix this arm set
   `Approved`, and in the second story the agent's retry paid Sam twice (t11 shows the fix).
 - anything else → refuse. It does not guess.
 
@@ -109,7 +109,7 @@ It also refuses when:
 
 It never sends a transfer and never reopens an invoice.
 
-## `resolve_stuck(id, sent)`: the owner closes a stuck invoice (fixed mode only, added Nov 11)
+## `resolve_stuck(id, sent)`: the owner closes a stuck invoice (fixed mode only, added Nov 10)
 
 The owner checks the chain (for example the transfer receipt on an explorer) and states the outcome:
 
@@ -159,13 +159,13 @@ this twice, by searching the wasm bytes and by paying a `crash-` invoice on the 
   callback's writes, so the result should be the same. That is inferred, not tested.
 - The fixed callback has no `expect` or `unwrap` and uses saturating math. "It cannot panic on its own"
   comes from reading the code. Gas exhaustion or missing storage money could still stop it.
-- The 100-block wait in `reconcile` and `resolve_stuck` is a rule of thumb. Since Nov 11 a transfer
+- The 100-block wait in `reconcile` and `resolve_stuck` is a rule of thumb. Since the Nov 10 fix a transfer
   that lands late can no longer cause a second agent payment: `reconcile` never reopens an invoice, and
   a `Failed` invoice cannot be paid. If the owner says `sent = false` and the transfer then lands and
   its callback runs, the callback records `Paid` (the "LATE confirm" log). Not tested on the sandbox.
 - If someone sends tokens to the guard with a plain transfer while an invoice is stuck, `reconcile`
   either refuses (balance matches neither story) or leaves it `Pending` (balance happens to equal the
-  ledger). Either way the owner closes it with `resolve_stuck`. (Before Nov 11 there was no way out, and
+  ledger). Either way the owner closes it with `resolve_stuck`. (Before the Nov 10 fix there was no way out, and
   the "equal" case paid twice: t11.)
 - `sync_ledger` is refused while anything is `Pending`, so an untracked top-up stays out of the ledger
   until every stuck invoice is closed. t11 re-syncs after `resolve_stuck`.
@@ -177,11 +177,11 @@ this twice, by searching the wasm bytes and by paying a `crash-` invoice on the 
 
 | Date | guard.wasm sha256 (workspace build, `./run.sh`) | What changed |
 |---|---|---|
-| Nov 8 2026 | `fcce82bf9bad46ae9c7d85952470faf664aa5905bea2df7111ab97601b773372` | first version with the ledger and `reconcile`. Every race result up to Nov 10 (local and testnet) ran this wasm |
-| Nov 11 2026 | `0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e` | `reconcile` no longer reopens on "balance unchanged"; new `resolve_stuck`; new status `Failed`. `vulnerable_fixture` logic unchanged |
+| Nov 8 2026 | `fcce82bf9bad46ae9c7d85952470faf664aa5905bea2df7111ab97601b773372` | first version with the ledger and `reconcile`. Every race result before the Nov 10 fix (local and testnet) ran this wasm |
+| Nov 10 2026 | `0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e` | `reconcile` no longer reopens on "balance unchanged"; new `resolve_stuck`; new status `Failed`. `vulnerable_fixture` logic unchanged |
 
 Rebuilding the Nov 8 source (saved before the edit) with the same command gives `fcce82bf…` again, byte
 for byte, so the new hash differs only by the source change. Note: `cargo build -p guard` alone gives
 a different hash than the workspace build (feature unification with `test-token`); the hashes above
-are from the workspace build that `./run.sh` runs. Test-only fault build (Nov 11):
+are from the workspace build that `./run.sh` runs. Test-only fault build (Nov 10):
 `4c737b9d05a9e6bfba340e5b1ce1e66d72164c257fdbfc20928381de37114e83`.

@@ -19,11 +19,18 @@ const json = (p) => JSON.parse(readFileSync(ev(p), "utf8"));
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const md = (s) => esc(s).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>").replace(/`([^`]+)`/g, "<code>$1</code>").replace(/ ✅/g, "").replace(/[–—]/g, "-");
 
-// The testnet runs are split across two files, and run 8 holds both modes, so pool them and filter by mode.
-const TESTNET = ["testnet-2026-11-09-run8-raw.json", "testnet-2026-11-09-run9-raw.json"];
+// Nov 10 testnet race (files tagged 2026-11-11) with the current guard build (0382023b). Run 1 holds vulnerable trial 1, run 2 the other
+// four vulnerable trials, run 3 the five fixed trials. Pool them and filter by mode.
+const TESTNET = ["testnet-2026-11-11-run1-raw.json", "testnet-2026-11-11-run2-raw.json", "testnet-2026-11-11-run3-raw.json"];
 function testnetScenario(mode, label) {
   const mine = TESTNET.flatMap((f) => json(f).trials.map((t) => ({ t, f }))).filter((x) => x.t.mode === mode);
-  const t = mine[0].t, file = [...new Set(mine.map((x) => x.f))].join(", evidence/");
+  // The replay below tells the story as "call A pays, call B is checked second". Use the first trial where that
+  // is what happened (in some fixed trials B won and A was refused), and stop the build if there is none.
+  const has = (t, pay, role) => (t[pay]?.steps || []).some((s) => s.role.startsWith(role));
+  const pick = mine.find((x) => has(x.t, "pay_a", "on_transfer") && (mode === "fixed" ? !has(x.t, "pay_b", "ft_transfer") : true));
+  if (!pick) throw new Error(`no ${mode} testnet trial where call A paid first`);
+  if (mine.length !== 5) throw new Error(`expected 5 ${mode} testnet trials, found ${mine.length}`);
+  const t = pick.t, file = [...new Set(mine.map((x) => x.f))].join(", evidence/");
   const all = mine.map((x) => Number(x.t.receiver_received));
   const step = (pay, role) => t[pay].steps.find((s) => s.role.startsWith(role));
   const N = step("pay_a", "tx_to_receipt").block_height;
@@ -102,8 +109,12 @@ const injWrong = inj.reduce((a, r) => a + r.wrong.reduce((b, [, v]) => b + v, 0)
 const injPolicy = inj.reduce((a, r) => a + r.policy, 0);
 const totalTests = ["A", "B", "C"].reduce((a, g) => a + cov[g].rows.length, 0);
 const flawT = scenarios[0];
-if (injWrong !== 450 || injPolicy !== 0 || totalTests !== 33 || flawT.paid !== 200 || scenarios[1].paid !== 100 || scenarios[0].trials.length !== 5 || scenarios[1].trials.length !== 5 || scenarios[0].trials.some((v) => v !== 200) || scenarios[1].trials.some((v) => v !== 100))
-  throw new Error(`evidence changed: wrong=${injWrong} policy=${injPolicy} tests=${totalTests} flaw=${flawT.paid}; update the words on the page`);
+// The 500: z3's worst single run under the broad rules, replayed on the local test chain (evidence/proofs-2026-11-10.md).
+const cross = readFileSync(ev("proofs-2026-11-10/crosscheck.sh.out"), "utf8").match(/RESULT crosscheck .*against_intent=(\d+) beyond_policy=(\d+) .*-> MATCH/);
+const worst = cross ? Number(cross[1]) : NaN, worstPolicy = cross ? Number(cross[2]) : NaN;
+const injMaxRun = Math.max(...inj.map((r) => r.wrong.reduce((b, [, v]) => b + v, 0)));
+if (worst !== 500 || worstPolicy !== 0 || injMaxRun !== 200 || injWrong !== 450 || injPolicy !== 0 || totalTests !== 33 || flawT.paid !== 200 || scenarios[1].paid !== 100 || scenarios[0].trials.length !== 5 || scenarios[1].trials.length !== 5 || scenarios[0].trials.some((v) => v !== 200) || scenarios[1].trials.some((v) => v !== 100))
+  throw new Error(`evidence changed: worst=${worst} worstPolicy=${worstPolicy} maxRun=${injMaxRun} wrong=${injWrong} policy=${injPolicy} tests=${totalTests} flaw=${flawT.paid}; update the words on the page`);
 
 // ---------------------------------------------------------------- figure geometry
 const W = 760, H = 430;
@@ -527,14 +538,14 @@ footer{padding:32px 0 72px;border-top:1px solid var(--line);color:var(--muted);f
 <header class="hero">
   <div>
     <div class="eyebrow">NEAR hackathon · AI Security</div>
-    <h1>The guard held. The owner still lost.</h1>
-    <p class="lede">Arena attacks AI payment guards on a fresh NEAR chain and scores them by where the money actually went.</p>
-    <div class="ctas"><a class="btn primary" href="#replay">Watch the replay</a><a class="btn ghost" href="#run">Run it yourself</a></div>
+    <h1>the guard broke zero rules. the owner still lost ${worst}.</h1>
+    <p class="lede">Arena attacks AI payment guards on NEAR, then proves whether they can pay what you didn't mean.</p>
+    <div class="ctas"><a class="btn primary" href="#replay">Watch it break</a><a class="btn ghost" href="#run">Run the proof</a></div>
   </div>
   <div>
     <div class="contrast">
-      <div><div class="n">${injPolicy}</div><div class="k">tokens paid beyond policy</div><div class="note">Every guard rule held.</div></div>
-      <div class="bad"><div class="n">${injWrong}</div><div class="k">tokens paid against the owner's intent</div><div class="note">By a scripted agent fooled by every injection.</div></div>
+      <div><div class="n">${worstPolicy}</div><div class="k">tokens paid beyond policy</div><div class="note">Every guard rule held.</div></div>
+      <div class="bad"><div class="n">${worst}</div><div class="k">tokens paid against the owner's intent</div><div class="note">In one run: the worst case our proof tool (z3) found, replayed twice on a local test chain.</div></div>
     </div>
     <div class="held">${totalTests}/${totalTests} tests held across three teams' guards</div>
   </div>
@@ -554,9 +565,9 @@ footer{padding:32px 0 72px;border-top:1px solid var(--line);color:var(--muted);f
 <section class="reveal">
   <div class="split">
     <div>
-      <h2>Where the ${injWrong} went</h2>
+      <h2>Where ${injWrong} went, over five runs</h2>
       <p class="rule">The owner's rule, set before any run: pay Sam 100. Nothing else.</p>
-      <p class="sub">Every payment below went to a creditor the owner had approved, so the guard allowed it.</p>
+      <p class="sub">Five separate runs of a scripted agent that obeys every injection, added up. No single run paid more than ${injMaxRun}. Every payment went to a creditor the owner had approved, so the guard allowed it.</p>
     </div>
     <div>
       <div class="card"><table><thead><tr><th>Injected through</th><th>Against intent</th><th>Beyond policy</th></tr></thead><tbody>${injRows}</tbody></table></div>
@@ -575,10 +586,13 @@ footer{padding:32px 0 72px;border-top:1px solid var(--line);color:var(--muted);f
   <div class="run">
     <div>
       <h2>Run it yourself</h2>
-      <p class="sub">Needs Rust and Python 3. Each check prints PASS or FAIL.</p>
+      <p class="sub">Needs Rust and Python 3. The proofs also need Kani and z3, and near-tla needs Java 17+. Each check prints PASS or FAIL.</p>
+      <p class="sub">The proof on any number of calls covers the model only. The model matches the real code in every case we checked: up to 4 pay calls (4,555 states), and 2 in the full world with faults (21,345 states). A review of our proofs found a bug in our own fix: <code>reconcile</code> reopened a bill, which paid 200 on 100. We fixed it and re-ran both proof scripts.</p>
     </div>
 <pre>./verify.sh fast   # 5 checks, about 8 min
-./verify.sh        # 41 checks, about 15 min
+./verify.sh        # 43 checks, about 16 min
+proofs/run.sh      # 30 checks, about 25 min
+tla/run.sh         # near-tla, 25 checks, about 46 min
 ARENA_AGENT=compromised python3 -I tools/injection/run.py
 python3 -I tools/injection/rescore.py</pre>
   </div>
@@ -587,9 +601,10 @@ python3 -I tools/injection/rescore.py</pre>
 <section class="reveal">
   <h2>Limits</h2>
   <ul class="limits">
-    <li>Only our planted flaw and its fix ran on testnet. The three teams' guards ran on a local sandbox.</li>
+    <li>Only our planted flaw and its fix ran on testnet, both on the current build (<code>0382023b…</code>, Nov 10). The <code>reconcile</code> fix itself was not tested on testnet, because the race never reaches it. The three teams' guards ran on a local sandbox.</li>
     <li>${totalTests}/${totalTests} means each guard kept its own claims. It is not a security proof.</li>
-    <li>The ${injWrong} came from a scripted agent, not the real model.</li>
+    <li>The ${injWrong} is five scripted runs added up. The ${worst} is one run: the worst case our proof tool (z3) found, replayed on a local test chain. Neither came from the real model.</li>
+    <li>Anyone can look up our results on NEAR testnet. The broken and fixed guards share one code fingerprint, so a lookup must also read the guard's mode.</li>
     <li>Races were tested with both calls in the same block only.</li>
   </ul>
 </section>
@@ -600,4 +615,4 @@ python3 -I tools/injection/rescore.py</pre>
 </body></html>`;
 
 writeFileSync(join(HERE, "index.html"), page);
-console.log(`wrote site/index.html (${(page.length / 1024).toFixed(0)} KB): ${scenarios.length} runs, ${totalTests} guard tests, ${injWrong} against intent`);
+console.log(`wrote site/index.html (${(page.length / 1024).toFixed(0)} KB): ${scenarios.length} runs, ${totalTests} guard tests, ${worst} against intent in one run, ${injWrong} over five runs`);

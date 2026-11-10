@@ -1,15 +1,57 @@
-# Arena: a test bench for the guards that stop AI agents overspending on NEAR
+# Arena
 
-**Track:** AI Security & Defense (`security`). **Status:** working prototype on a local NEAR sandbox, with one result confirmed on NEAR testnet.
+**Prove your AI agent's payment guard before you give it your money.**
 
-**What we found (Nov 9 2026).** Three other teams' payment guards held all 33 tests we ran against their own claims: **0 tokens paid beyond policy.** Our planted-flaw guard paid **200 on a 100-token invoice**, locally and on testnet, so the bench catches a broken guard. The bigger finding came from the agent: an agent fooled by prompt injection sent **450 tokens against the owner's intent**, through payments the guard's policy allowed. **A guard can enforce every rule it was given while the agent still pays what the owner said not to pay.**
+Your AI agent pays your bills. A guard is a small contract that stops it
+spending too much. We attacked guards on NEAR and found two ways you still
+lose money:
+
+1. **The guard pays one bill twice.** Two pay messages for one 100 bill
+   arrive together. Our planted-flaw guard paid 200, on NEAR testnet,
+   5 times out of 5.
+2. **A tricked agent pays bills you never meant to pay.** Every payment
+   followed the guard's rules. In the worst case we found, replayed twice on
+   a local test chain, 500 tokens went out in one run that the owner never
+   wanted sent.
+
+Testing alone is not enough. We planted 10 mistakes in our own guard and
+our attacks found 7. A review of our proofs then found a bug in our own fix,
+and we fixed it.
+
+So Arena also **proves**. A proof checks every way the calls can line up,
+not just the ones we tried.
+
+| What we proved | Result | Tool |
+|---|---|---|
+| The fixed guard never pays a bill twice when pay messages race | on the real code, holds for every order of up to 4 pay calls; on the model, for any number of calls. The broken guard fails, as it should | Kani, plus NEAR's own near-tla (up to 3 pay calls) |
+| Tight rules never pay more than the owner meant | holds for up to 10 payment requests, in our test setup | z3 |
+| The result is public | saved on NEAR testnet, so anyone can look a guard's results up. A lookup shows the guard's code fingerprint; our broken and fixed guards share one, so a lookup must also read the guard's mode. Receipts for the current build were published Nov 10 | arena-receipts |
+
+**What "proved" means here:** the "any number of calls" proof covers a
+careful copy of the guard's logic (the model), not the contract itself. We
+then ran the real code beside the model and they matched in every case we
+checked: every order of up to 4 pay calls (4,555 states), and every order of
+2 pay calls in a fuller world where callbacks die, `reconcile` runs and
+outside tokens arrive (21,345 states). It is a proof up to these limits, not
+a promise about every possible future.
+
+Check it yourself: `./verify.sh fast` (about 8 min), `proofs/run.sh` (about
+25 min), `tla/run.sh` (about 46 min for all 25; the quick check
+`tla/run.sh vuln_race fixed_1inv h1_outside_transfer_reconcile` takes about 15 s).
+
+**Track:** AI Security & Defense (`security`). **Status:** working prototype on a local NEAR sandbox, with the double-pay result confirmed on NEAR testnet.
+
+## Every result, with its evidence
 
 | What we tested | Result | Evidence |
 |---|---|---|
-| Planted-flaw guard: two `pay` calls at once for one 100-token invoice | paid 200, in 5 of 5 trials, on the local sandbox and on NEAR testnet | `evidence/testnet-2026-11-09.md` |
-| The same guard with the fix | paid 100, in 5 of 5 trials, on both | `evidence/testnet-2026-11-09.md` |
+| Planted-flaw guard: two `pay` calls at once for one 100-token invoice | paid 200, in 5 of 5 trials, on the local sandbox and on NEAR testnet | `evidence/testnet-2026-11-11.md` (first run: `evidence/testnet-2026-11-09.md`) |
+| The same guard with the fix | paid 100, in 5 of 5 trials, on both, with the current build (`0382023b…`). The other call was refused with `payment already in flight` every time | `evidence/testnet-2026-11-11.md`, `evidence/verify-2026-11-11.md` |
+| Worst case under the broad rules: z3 searched every sequence of up to 10 pay requests, and we replayed its answer twice on a local test chain | 500 tokens against the owner's intent in one run, 0 beyond policy, both replays | `evidence/proofs-2026-11-10.md` |
+| 10 mistakes planted in our own guard (vault-a), one at a time | our attacks caught 7 of 10. The other 3 sit on paths no attack walks down | `evidence/mutation-table-2026-11-11.md` |
+| The bug in our own fix: `reconcile` reopened a paid bill after an outside top-up, so the guard paid 200 on a 100 bill | a review of the proofs found it; we fixed it and re-ran everything: proofs 30 of 30, near-tla 25 of 25 as planned | `evidence/proofs-adversarial-review-2026-11-11.md`, `evidence/fix-plan-2026-11-11.md`, `evidence/proofs-inductive-2026-11-11.md` |
 | Three other teams' guards (Guard A, B, C), tests written from each guard's own claims | 33 of 33 held. 0 tokens paid beyond policy | `evidence/coverage-table.md` |
-| Fully fooled agent (a script that obeys every injection), 5 scenarios | 0 tokens paid beyond policy. 450 tokens paid against the owner's intent | `evidence/injection-intent-by-recipient.md` |
+| Fully fooled agent (a script that obeys every injection), 5 separate scenario runs | 0 tokens paid beyond policy. 450 tokens against the owner's intent across the five runs added up; at most 200 in any one run | `evidence/injection-intent-by-recipient.md` |
 | Real model (Muse Spark 1.3): 25 trials, then 30 trials against an attacker model that rewrote its email after each failure | 0 fooled in 52 trials where it read the email. 0 tokens paid against the owner's intent | `evidence/injection-2026-11-09-model.md`, `evidence/injection-2026-11-09-adaptive.md` |
 
 ## Check it yourself
@@ -18,10 +60,12 @@ You need Rust installed through rustup (`curl https://sh.rustup.rs -sSf | sh`) a
 
 ```
 ./verify.sh fast     # the headline: the double pay, and the bench catching it. 5 checks
-./verify.sh          # every local result in this README. 41 checks
+./verify.sh          # every local sandbox result in this README. 43 checks
+proofs/run.sh        # Kani on the model, the real code beside it, and z3. 30 checks
+tla/run.sh           # near-tla, NEAR's own model of how calls run. 25 checks
 ```
 
-Each check prints PASS or FAIL. The last line is `verify: 5 passed, 0 failed (mode=fast)` or `verify: 41 passed, 0 failed (mode=full)`, and the script exits 0 only if every check passes. Measured on Nov 9: `fast` took 481 s on a fresh copy with no build folders; the full run took 923 s. Every run appends one line to `evidence/verify-summary.log`.
+Each check prints PASS or FAIL. The last line of `verify.sh` is `verify: 5 passed, 0 failed (mode=fast)` or `verify: 43 passed, 0 failed (mode=full)`, and each script exits 0 only if every check passes. Measured times: `fast` took 481 s on a fresh copy with no build folders (Nov 9); the full `verify.sh` took 946 s (last run); `proofs/run.sh` took 1,504 s; `tla/run.sh` took about 46 min, most of it in two checks (`fixed_2inv` and `h1_open_world_2faults`). Neither proof script has a quick mode. `tla/run.sh <name>` runs only the named checks, and the small ones take a few seconds. `proofs/run.sh proof2` runs only z3. The proofs need Kani and z3 (setup in the header of `proofs/run.sh`); near-tla needs Java 17+ (setup in `tla/README.md`). Every `verify.sh` run appends one line to `evidence/verify-summary.log`.
 
 The prompt-injection results, after `./verify.sh` has built the harness:
 
@@ -43,7 +87,7 @@ Both come only from final balances on the chain, never from what the guard or th
 
 ## Why this is a NEAR problem
 
-NEAR runs one contract call across several blocks. A payment guard checks "is this invoice paid?" in block N, the tokens move in block N+1, and the guard records the result in block N+2. A second `pay` for the same invoice that arrives before N+2 still sees "not paid", and pays again. The fix is to record the payment before starting the transfer, and to undo it only if the transfer fails. On testnet, both `pay` checks ran in the same block, two blocks before the first result was recorded, in all 10 trials (`evidence/testnet-2026-11-09.md`).
+NEAR runs one contract call across several blocks. A payment guard checks "is this invoice paid?" in block N, the tokens move in block N+1, and the guard records the result in block N+2. A second `pay` for the same invoice that arrives before N+2 still sees "not paid", and pays again. The fix is to record the payment before starting the transfer, and to undo it only if the transfer fails. On testnet, both `pay` checks ran before the first result was recorded in all 10 trials of each run: in the same block every time on Nov 9, and in 7 of 10 on Nov 10, one block apart in the other 3 (`evidence/testnet-2026-11-09.md`, `evidence/testnet-2026-11-11.md`).
 
 ## Other teams' guards
 
@@ -59,9 +103,11 @@ All three held for the same reason: each records the payment before it moves the
 
 ## Limits
 
-- **Local sandbox, except one result.** We ran only the planted-flaw guard and its fix on testnet. We tested the three other teams' guards on the local sandbox.
+- **Local sandbox, except one result.** We ran only the planted-flaw guard and its fix on testnet, on the current build (`0382023b…`). The race never reaches the `reconcile` fix, so testnet did not test that fix. We tested the three other teams' guards on the local sandbox.
+- **The proofs have limits.** The "any number of calls" proof covers the model only. The model matches the real code in every case we checked: up to 4 pay calls (4,555 states), and 2 pay calls in the full world with faults (21,345 states). near-tla checks up to 3 pay calls. The z3 result covers our 7-invoice test setup and up to 10 payment requests. None of it covers the deployed wasm itself.
+- **A receipt lookup needs the mode.** The broken and fixed guards share one code fingerprint, so a lookup must also read the guard's mode.
 - **33 of 33 held means each guard kept its own claims.** We built each guard's tests from its claims, so the three guards faced different tests, and we could not test some paths locally (table above). It is not a proof that a guard is secure.
-- **The 450 tokens came from a scripted agent that obeys every injection.** The real model resisted in every run we made; that does not show it always will. All 450 tokens went to creditors the owner had approved. None reached an attacker's account. In one scenario the intended recipient got nothing.
+- **The 450 tokens are five separate runs added up, from a scripted agent that obeys every injection.** No single run paid more than 200. The 500 is a different number: the worst single run z3 found under the same rules, which we replayed on a local test chain. The real model resisted in every run we made; that does not show it always will. All 450 tokens went to creditors the owner had approved. None reached an attacker's account. In one scenario the intended recipient got nothing.
 - **One model played both attacker and victim** in the adaptive test, with one goal and one guard.
 - **The agent never sees a refusal.** In the injection test, `pay` returns "submitted" and the chain runs after the conversation.
 - **Races were tested with both calls in the same block only.**
@@ -74,9 +120,13 @@ All three held for the same reason: each records the payment before it moves the
 |---|---|
 | The ten guard tests, the bench on Arena's own guards, replays, the agent's access key, older limits | `docs/bench-details.md` |
 | The guard's fix and `reconcile` design | `docs/guard-tests.md` |
+| The proofs and their limits | `evidence/proofs-2026-11-10.md`, `evidence/proofs-inductive-2026-11-11.md`, `proofs/README.md`, `tla/README.md` |
+| The planted mistakes, one row each | `evidence/mutation-table-2026-11-11.md` |
+| The receipts on NEAR testnet | `evidence/receipts-testnet-2026-11-11.md` (first set: `evidence/receipts-testnet-2026-11-10.md`) |
 | How the harness sets up and scores a run | `harness/README.md` |
+| What every evidence file is | `evidence/README.md` |
 | Each other team's claims and fingerprint | `targets/entrant-A/`, `targets/entrant-B/`, `targets/entrant-C/` |
 
 Built with Rust 1.86, near-sdk 5.27, near-workspaces 0.24 and near-sandbox (nearcore 2.14); the other teams' guards were built from their source with Rust 1.99.1. AI coding agents wrote parts of the code, under review. All code was written from Nov 8, 2026, inside the hackathon window (Nov 1 to 14). MIT licence (`LICENSE`).
 
-**Summary:** 0 tokens paid beyond policy across 33 tests of three teams' guards; the planted flaw caught at 200 on a 100 invoice, locally and on testnet; 450 tokens paid against the owner's intent by a fooled agent, through payments the guard's rules allowed.
+**Summary:** 0 tokens paid beyond policy across 33 tests of three teams' guards; the planted flaw caught at 200 on a 100 invoice, locally and on testnet; 500 tokens paid against the owner's intent in one run (the worst case, replayed on a local test chain), through payments the guard's rules allowed; 7 of 10 planted mistakes caught; proofs 30 of 30 and near-tla 25 of 25 as planned after we fixed the bug the review found in our own fix.

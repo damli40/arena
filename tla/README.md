@@ -13,7 +13,7 @@ Plan (written before running): `../evidence/tla-plan.md`. Results: `../evidence/
 ## Run
 
 ```sh
-./run.sh                 # all 19 checks (17 original + 2 added Nov 11); exits 0 only if every one matches the plan
+./run.sh                 # all 19 checks (17 original + 2 added Nov 10); exits 0 only if every one matches the plan
 ./run.sh vuln_race       # one check by name
 python3 -I trace.py build/vuln_race/tlc.out   # a counterexample as one line per step
 ```
@@ -25,10 +25,11 @@ python3 -I trace.py build/vuln_race/tlc.out   # a counterexample as one line per
 | `./run.sh fixed_1inv` | `fixed`, 1 invoice, 3 pays, 1 reconcile, 1 forced failure | pass | ~2 s |
 | `./run.sh fixed_2inv` | `fixed`, 2 invoices, 3 pays, 1 reconcile, 1 forced failure | pass | ~10 s |
 | `./run.sh fixed_1inv_2faults` | `fixed`, 1 invoice, 3 pays, 1 reconcile, 2 forced failures | pass | ~2 s |
-| `./run.sh wit_<id>` (9 checks) | anti-vacuity witnesses: situations that must be reachable (`wit_repaid_after_reconcile` added Nov 11) | reached | ~1 s each |
+| `./run.sh wit_<id>` (9 checks) | anti-vacuity witnesses: situations that must be reachable (`wit_repaid_after_reconcile` added Nov 10) | reached | ~1 s each |
 | `./run.sh mut_<id>` (3 checks) | mutants: deliberate breaks that must be caught | violation | ~1-2 s each |
-| `./run.sh h1_outside_transfer_reconcile` | **added Nov 11 as must-fail (review H1); PASS since the reconcile fix the same day**: `fixed`, waiting rule ON, 1 invoice, 2 pays, 1 reconcile, 1 forced callback failure, plus one outside account sending 100 tokens to the guard (`Donate = TRUE`) | was a violation of NoOverpay (200 on 100) on the old guard; `pass` now. The old arm is kept as the must-fail `mut_reopen_on_balance` | ~1 s |
-| `./run.sh` | everything | exit 0 | ~30 s wall |
+| `./run.sh h1_outside_transfer_reconcile` | **added Nov 10 as must-fail (review H1); PASS since the reconcile fix the same day**: `fixed`, waiting rule ON, 1 invoice, 2 pays, 1 reconcile, 1 forced callback failure, plus one outside account sending 100 tokens to the guard (`Donate = TRUE`) | was a violation of NoOverpay (200 on 100) on the old guard; `pass` now. The old arm is kept as the must-fail `mut_reopen_on_balance` | ~1 s |
+| `./run.sh vuln_race fixed_1inv h1_outside_transfer_reconcile` | quick check: the planted flaw pays twice, the fix holds, the reconcile bug stays fixed | exit 0 | ~15 s wall (Nov 10) |
+| `./run.sh` | everything (25 checks) | exit 0 | ~46 min wall (Nov 10; two big checks take 39 min) |
 
 TLC output for each check lands in `build/<check>/tlc.out`, and a one-line-per-check table in
 `build/summary.tsv`. `build/` is not committed.
@@ -68,7 +69,7 @@ blocks, not settlement. Drop the first assumption and `fixed` pays 200 on 100
 a statement about this model of the Rust code, under near-tla's rules for nearcore 2.14.0
 (protocol 88), and nothing beyond those bounds. The limits are in the evidence file.
 
-## Corrections after adversarial review (2026-11-11)
+## Corrections after adversarial review (2026-11-10)
 
 Source: `../evidence/proofs-adversarial-review-2026-11-11.md` (H1, H2).
 
@@ -81,7 +82,7 @@ Source: `../evidence/proofs-adversarial-review-2026-11-11.md` (H1, H2).
 - Two checks added: `h1_outside_transfer_reconcile` (must-fail) and
   `wit_repaid_after_reconcile` (witness). The suite is now 19 checks, not 17.
 
-## Nov 11, after the reconcile fix
+## Nov 10, after the reconcile fix
 
 - `reconcile` on an unchanged balance changes nothing (stays `Pending`); new owner-only `resolve_stuck`
   (constant `MaxRes`, default 1), new status `Failed` that `pay` refuses.

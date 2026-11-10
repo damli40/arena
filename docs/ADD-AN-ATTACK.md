@@ -34,7 +34,7 @@ runs your steps through its fixed actions and scores the result from final balan
      "kind": "sequence",
      "breaks": "Gets money out of a cancelled invoice by sending two pays at once.",
      "expected_safe_result": "both refused; nothing paid",
-     "added": "2026-11-11",
+     "added": "2026-11-10",
      "author": "Your Name",
      "steps_sha256": "<filled in by step 3>"
    }
