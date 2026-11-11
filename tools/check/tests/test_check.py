@@ -629,6 +629,52 @@ class HonestRefusals(unittest.TestCase):
         self.assertEqual(R.badge_text(r)[1], "brightgreen")
 
 
+class InvoiceFixes(unittest.TestCase):
+    """2026-11-12 (evidence/invoice-fixes-2026-11-12.md): A9 and A1 on the check side."""
+
+    def rejected(self, method, inv=None, actor="agent"):
+        return dict(call(method, inv, actor, failure="InvalidAccessKeyError(MethodNameMismatch)"), outcome="protocol-rejected")
+
+    def test_a9_every_call_refused_by_near_is_key_stopped_not_held(self):
+        steps = [self.rejected("set_daily_cap"), self.rejected("cancel_invoice", "inv-pay"),
+                 {"kind": "view", "target": "vault", "method": "get_config", "args": {}, "success": True, "outcome": "ok"}]
+        st, why = A.classify("held", steps, setup_block(FEAT_ALL, created_all=True), C.ROLES, [], [])
+        self.assertEqual(st, A.KEY_STOPPED)
+        self.assertIn("access key", why[0])
+
+    def test_a9_one_call_reached_the_guard_so_it_is_held(self):
+        steps = [self.rejected("set_daily_cap"), dict(call("pay", "inv-pay", failure="refused"), outcome="contract-failure")]
+        st, _ = A.classify("held", steps, setup_block(FEAT_ALL, created_all=True), C.ROLES, [], [])
+        self.assertEqual(st, "held")
+
+    def test_a9_never_hides_a_break_and_views_alone_are_not_key_stopped(self):
+        st, _ = A.classify("broke", [self.rejected("set_daily_cap")], setup_block(FEAT_ALL, created_all=True), C.ROLES, [], [])
+        self.assertEqual(st, "broke")
+        self.assertFalse(A.key_stopped([{"kind": "view", "outcome": "ok"}]))
+        self.assertFalse(A.key_stopped([]))
+
+    def test_a9_report_counts_it_outside_held_and_keeps_the_badge_yellow(self):
+        r = Report.rep(Report())
+        r["totals"].update(stopped_by_key=3)
+        msg, color, _ = R.badge_text(r)
+        self.assertEqual(msg, "held 2/2 (0 not applicable; 3 stopped by the access key; rules claimed: all 4)")
+        self.assertEqual(color, "yellow")
+        self.assertIn("3 stopped by the agent's access key before the guard ran", R.headline(r))
+        self.assertIn("they tested the key, not the guard", R.console(r, "x"))
+
+    def test_a1_honest_refusals_ignore_a_lying_status(self):
+        # The guard says inv-pay is Paid, but nothing was credited from the chain: refused.
+        final = final_block()
+        for s in final["invoice_statuses"]:
+            s["status"] = "Paid"
+        tried, refused = A.honest_refusals([call("pay", "inv-pay")], honest_setup(), final)
+        self.assertEqual(refused, ["inv-pay"])
+        # And the guard saying "Approved" does not hide a payment the chain shows.
+        final = final_block(credited={"inv-pay": 100})
+        tried, refused = A.honest_refusals([call("pay", "inv-pay")], honest_setup(), final)
+        self.assertEqual(refused, [])
+
+
 class StartingStateAgreesWithHarness(unittest.TestCase):
     """applicable.STARTING_INVOICES / ARENA_DAILY_CAP mirror harness/src/setup.rs (used by the board)."""
 

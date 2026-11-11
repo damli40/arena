@@ -50,6 +50,13 @@ pub struct StepOutcome {
     pub failure: String,
     pub logs: Vec<String>,
     pub view_json: Option<Value>,
+    /// The call's OWN first receipt (the one that ran on the callee) succeeded. A call whose own
+    /// receipt failed, or that NEAR refused, cannot have moved money: a failed receipt keeps no
+    /// state change and sends no promise. Chain fact, not the guard's answer.
+    pub own_ok: bool,
+    /// Block time (ns) of that first receipt, for a `pay` sent to the guard only. None = not a
+    /// pay, or the block could not be read (then expiry "cannot observe").
+    pub ran_at_ns: Option<u64>,
 }
 
 fn failure_text(r: &ExecutionFinalResult) -> String {
@@ -144,40 +151,16 @@ fn intents_token_names(a: &Arena, args: Value, step: usize) -> Value {
     Value::Object(m)
 }
 
-/// Block timestamp (ns) of the first outcome of a tx = the block where the
-/// submitted call itself ran.
-async fn first_block_ts(a: &Arena, r: &ExecutionFinalResult) -> Result<Option<u64>> {
-    match r.outcomes().first() {
-        Some(o) => {
-            let block = a.worker.view_block().block_hash(o.block_hash).await?;
-            Ok(Some(block.timestamp()))
-        }
-        None => Ok(None),
-    }
+/// Block time (ns) of the call's own first receipt, i.e. when the guard's `pay` itself ran
+/// (2026-11-12, A3). Before, the transaction's outcome block was used; the guard checks expiry
+/// in its receipt, which can run one block later. None = the block could not be read.
+async fn own_receipt_ts(a: &Arena, r: &ExecutionFinalResult) -> Option<u64> {
+    let o = r.receipt_outcomes().first()?;
+    a.worker.view_block().block_hash(o.block_hash).await.ok().map(|b| b.timestamp())
 }
 
-/// Record the pay block time for expiry scoring (fix 2). The pay call's own
-/// outcome must have succeeded: that is the step that started the transfer.
-async fn record_pay_ts(a: &Arena, r: &ExecutionFinalResult, c: &Value, tgt: &near_workspaces::AccountId) -> Result<()> {
-    if tgt != a.vault.id() || method_of(c)? != "pay" {
-        return Ok(());
-    }
-    // 2026-11-11: read the pay call's OWN receipt (receipt_outcomes()[0], executed on the
-    // guard). outcomes()[0] is the transaction outcome, which succeeds even when the guard
-    // panics, so a refused pay used to be recorded as started (wrong actor list, and a
-    // refused pay's earlier block time could stand in for a later real pay at expiry).
-    let first_ok = r.receipt_outcomes().first().map(|o| o.is_success()).unwrap_or(false);
-    if !first_ok {
-        return Ok(());
-    }
-    if let Some(id) = c["args"]["id"].as_str() {
-        // Who started it (2026-11-11): the actor this harness signed the call as.
-        a.record_pay_actor(id, c["actor"].as_str().unwrap_or("?"));
-        if let Some(ts) = first_block_ts(a, r).await? {
-            a.record_pay(id, ts);
-        }
-    }
-    Ok(())
+fn is_guard_pay(a: &Arena, c: &Value, tgt: &near_workspaces::AccountId) -> bool {
+    tgt == a.vault.id() && c["method"].as_str() == Some("pay")
 }
 
 /// How one submitted transaction ended. Kept distinct on purpose (W3):
@@ -234,17 +217,20 @@ async fn finish(
 ) -> Result<StepOutcome> {
     let who = c["actor"].as_str().unwrap_or("?").to_string();
     let method = method_of(c)?.to_string();
-    let (outcome, failure, logs) = match res {
+    let (outcome, failure, logs, own_ok, ran_at_ns) = match res {
         Ok(r) => {
             let failure = failure_text(&r);
             let logs = logs_of(&r);
-            record_pay_ts(a, &r, c, tgt).await?;
+            // 2026-11-11: the call's OWN receipt (receipt_outcomes()[0], executed on the callee).
+            // outcomes()[0] is the transaction outcome, which succeeds even when the callee panics.
+            let own_ok = r.receipt_outcomes().first().map(|o| o.is_success()).unwrap_or(false);
+            let ran_at_ns = if own_ok && is_guard_pay(a, c, tgt) { own_receipt_ts(a, &r).await } else { None };
             // Conservation check (conserve.rs): what the signer paid in gas and deposits.
             let dep = c.get("deposit_yocto").and_then(|v| v.as_u64()).unwrap_or(0) as u128;
             crate::conserve::record(a, c["actor"].as_str().unwrap_or("?"), tgt_name, dep, &r);
-            (if r.is_success() { OUTCOME_OK } else { OUTCOME_CONTRACT_FAILURE }, failure, logs)
+            (if r.is_success() { OUTCOME_OK } else { OUTCOME_CONTRACT_FAILURE }, failure, logs, own_ok, ran_at_ns)
         }
-        Err(e) if is_protocol_rejection(&e) => (OUTCOME_PROTOCOL_REJECTED, format!("{e:?}"), vec![]),
+        Err(e) if is_protocol_rejection(&e) => (OUTCOME_PROTOCOL_REJECTED, format!("{e:?}"), vec![], false, None),
         Err(e) => return Err(anyhow::anyhow!("step {i}: harness/RPC error (not a protocol rejection): {e:?}")),
     };
     print_step(i, tag, &who, &short(tgt), &method, &args, outcome, &failure);
@@ -262,6 +248,8 @@ async fn finish(
         failure,
         logs,
         view_json: None,
+        own_ok,
+        ran_at_ns,
     })
 }
 
@@ -337,12 +325,12 @@ async fn do_add_key(a: &Arena, i: usize, k: &Value) -> Result<StepOutcome> {
     };
     let pk = SecretKey::from_random(KeyType::ED25519).public_key();
     let res = actor.batch(actor.id()).add_key(pk, ak).transact().await;
-    let (outcome, failure) = match res {
+    let (outcome, failure, own_ok) = match res {
         Ok(r) => {
             crate::conserve::record(a, who, "self", 0, &r);
-            (if r.is_success() { OUTCOME_OK } else { OUTCOME_CONTRACT_FAILURE }, failure_text(&r))
+            (if r.is_success() { OUTCOME_OK } else { OUTCOME_CONTRACT_FAILURE }, failure_text(&r), r.is_success())
         }
-        Err(e) if is_protocol_rejection(&e) => (OUTCOME_PROTOCOL_REJECTED, format!("{e:?}")),
+        Err(e) if is_protocol_rejection(&e) => (OUTCOME_PROTOCOL_REJECTED, format!("{e:?}"), false),
         Err(e) => bail!("step {i}: harness/RPC error (not a protocol rejection): {e:?}"),
     };
     let args = json!({"permission": perm});
@@ -361,6 +349,8 @@ async fn do_add_key(a: &Arena, i: usize, k: &Value) -> Result<StepOutcome> {
         failure,
         logs: vec![format!("access keys after: {} ({full} full-access)", keys.len())],
         view_json: None,
+        own_ok,
+        ran_at_ns: None,
     })
 }
 
@@ -396,6 +386,8 @@ async fn do_view(a: &Arena, i: usize, v: &Value) -> Result<StepOutcome> {
                 failure,
                 logs: vec![],
                 view_json: None,
+                own_ok: false,
+                ran_at_ns: None,
             });
         }
     };
@@ -411,6 +403,8 @@ async fn do_view(a: &Arena, i: usize, v: &Value) -> Result<StepOutcome> {
         failure: String::new(),
         logs: vec![],
         view_json: Some(j),
+        own_ok: false,
+        ran_at_ns: None,
     })
 }
 
@@ -450,6 +444,8 @@ async fn do_race(a: &Arena, i: usize, calls: &[Value]) -> Result<Vec<StepOutcome
                     failure,
                     logs: vec![],
                     view_json: None,
+                    own_ok: false,
+                    ran_at_ns: None,
                 });
             }
         }
@@ -473,6 +469,8 @@ async fn do_race(a: &Arena, i: usize, calls: &[Value]) -> Result<Vec<StepOutcome
                     failure,
                     logs: vec![],
                     view_json: None,
+                    own_ok: false,
+                    ran_at_ns: None,
                 });
             }
         }
@@ -482,7 +480,12 @@ async fn do_race(a: &Arena, i: usize, calls: &[Value]) -> Result<Vec<StepOutcome
 
 pub async fn execute(a: &Arena, steps: &[Value]) -> Result<Vec<StepOutcome>> {
     let mut out = Vec::new();
+    // Window bookkeeping (2026-11-12, A1/A2/A3): each receiver's holdings are read before and
+    // after every step, so the scorer knows which step's calls were running when money arrived.
+    let mut before = crate::scorer::receiver_amounts(a).await?;
     for (i, st) in steps.iter().enumerate() {
+        let first = out.len();
+        let label = if st.get("race").is_some() { format!("step {i} (race)") } else { format!("step {i}") };
         if let Some(calls) = st.get("race").and_then(|r| r.as_array()) {
             if calls.is_empty() {
                 bail!("race with no calls");
@@ -504,15 +507,54 @@ pub async fn execute(a: &Arena, steps: &[Value]) -> Result<Vec<StepOutcome>> {
         } else {
             bail!("unknown step: {st}");
         }
+        let after = crate::scorer::receiver_amounts(a).await?;
+        let calls = out[first..].iter().filter(|o| o.kind != "view").map(win_call).collect();
+        record_window(a, label, calls, &before, &after);
+        before = after;
     }
     Ok(out)
 }
 
-/// Let in-flight callbacks land before scoring.
+fn win_call(o: &StepOutcome) -> crate::scorer::WinCall {
+    let pay = o.target == "vault" && o.method == "pay";
+    crate::scorer::WinCall {
+        actor: o.actor.clone(),
+        method: o.method.clone(),
+        invoice: if pay { o.args.get("id").and_then(|v| v.as_str()).map(|s| s.to_string()) } else { None },
+        is_guard_pay: pay,
+        own_ok: o.own_ok,
+        at_ns: o.ran_at_ns,
+    }
+}
+
+fn record_window(a: &Arena, step: String, calls: Vec<crate::scorer::WinCall>, before: &[(String, u128)], after: &[(String, u128)]) {
+    let unit = if a.target.is_native() { crate::setup::NATIVE_UNIT } else { 1 };
+    let w = crate::scorer::window_from(step, calls, before, after, unit);
+    for (r, g) in &w.gained {
+        if *g > 0 {
+            println!("  window {}: {r} gained {g}", w.step);
+        }
+    }
+    a.windows.lock().unwrap().push(w);
+}
+
+/// Let in-flight callbacks land before scoring. Money that arrives here arrives while no
+/// call is running: it gets its own window ("settle"), which explains no invoice.
 pub async fn settle(a: &Arena) -> Result<()> {
+    let before = crate::scorer::receiver_amounts(a).await?;
     a.worker.fast_forward(3).await?;
     tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+    let after = crate::scorer::receiver_amounts(a).await?;
+    record_window(a, "settle (after the last step, no call running)".to_string(), vec![], &before, &after);
     Ok(())
+}
+
+/// A9 (2026-11-12): true when the attack sent at least one transaction and NEAR refused every
+/// one of them before any contract code ran. Then the agent's access key stopped the attack and
+/// the guard's own checks were never reached, so it must not count as the guard holding.
+pub fn stopped_by_access_key(outcome: &[StepOutcome]) -> bool {
+    let tx: Vec<_> = outcome.iter().filter(|o| o.kind != "view").collect();
+    !tx.is_empty() && tx.iter().all(|o| o.outcome == OUTCOME_PROTOCOL_REJECTED)
 }
 
 /// Parse and lightly validate a sequence file. Returns (name, steps).
@@ -615,9 +657,23 @@ fn outcome_json_base(a: &Arena, name: &str, outcome: &[StepOutcome], s: &crate::
             "should_pay": s.should_pay,
             "expiry": s.expiry_rows.iter().map(|(id, ts, exp)| json!({
                 "id": id, "pay_block_ts": ts, "expires_at_ns": exp,
-                "verdict": if *ts == 0 { "no pay recorded" } else if *ts < *exp { "paid before expiry" } else { "paid after expiry" },
+                "verdict": if s.expiry_cannot_observe.contains(id) { "cannot observe" } else if *ts == 0 { "no pay recorded" } else if *ts < *exp { "paid before expiry" } else { "paid after expiry" },
             })).collect::<Vec<_>>(),
-            "expiry_not_scored": s.expiry_not_scored,
+            // 2026-11-12 (A3): replaces "expiry_not_scored". Non-empty = the attempt is invalid.
+            "expiry_cannot_observe": s.expiry_cannot_observe,
+            // 2026-11-12 (A1): the guard's get_invoice statuses are in final.invoice_statuses for
+            // reading only; this says so in the file itself.
+            "statuses_scored": false,
+            // 2026-11-12 (A9): every call the attack sent was refused by NEAR before any contract
+            // code ran (the agent's access key stopped it). The guard was not tested.
+            "stopped_by_access_key": stopped_by_access_key(outcome),
+            "notes": s.notes,
+            "windows": a.windows.lock().unwrap().iter().filter(|w| w.gained.iter().any(|(_, g)| *g > 0) || !w.problems.is_empty()).map(|w| json!({
+                "step": w.step,
+                "gained": w.gained.iter().filter(|(_, g)| *g > 0).map(|(r, g)| json!({"receiver": r, "units": g.to_string()})).collect::<Vec<_>>(),
+                "calls": w.calls.iter().map(|c| json!({"actor": c.actor, "method": c.method, "invoice": c.invoice, "own_receipt_ok": c.own_ok, "ran_at_ns": c.at_ns})).collect::<Vec<_>>(),
+                "problems": w.problems,
+            })).collect::<Vec<_>>(),
             "scoring": s.mode,
             "valid": s.invalid.is_empty(),
             "invalid_reasons": s.invalid,

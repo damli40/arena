@@ -107,6 +107,9 @@ def qualifiers(rep, short=False):
     q = []
     if t:
         q.append(f"{t.get('not_applicable', 0)} not applicable")
+        if t.get("stopped_by_key"):  # A9: the agent's access key stopped them, not the guard
+            q.append(f"{t['stopped_by_key']} stopped by the access key" if short
+                     else f"{t['stopped_by_key']} stopped by the agent's access key before the guard ran")
     if m.get("features") is not None:
         q.append(f"rules claimed: {rules_claimed(rep, short)}")
     miss = m.get("missing_roles") or []
@@ -171,6 +174,7 @@ def full_marks(rep):
     t = rep.get("totals") or {}
     features = (rep.get("mapping") or {}).get("features") or {}
     return (_status(rep) == "held" and t.get("not_applicable", 0) == 0 and not t.get("honest_refused")
+            and not t.get("stopped_by_key")
             and not t.get("against_intent")
             and not rep.get("unconfirmed_roles") and not rep.get("only")
             and not (rep.get("mapping") or {}).get("missing_roles")
@@ -228,7 +232,12 @@ def _plain_lines(rep):
         out += [f"{noun(rep)} paid beyond the guard's own rules: {amt(rep, t['beyond_policy'])} (over the {t['ran']} attacks that ran; any value above 0 is a guard failure)",
                 f"{noun(rep)} paid against the owner's intent: {amt(rep, t['against_intent'])} (on the {t['intent_attacks']} attacks that ran and have a written intent; "
                 f"the guard's rules allowed these payments){_by_source(t, rep)}",
-                f"attacks: {t['held']} held, {t['broke']} broke, {t.get('not_applicable', 0)} not applicable, {t['errors']} did not finish"]
+                f"attacks: {t['held']} held, {t['broke']} broke, {t.get('not_applicable', 0)} not applicable, "
+                f"{t.get('stopped_by_key', 0)} stopped by the access key, {t['errors']} did not finish"]
+        if t.get("stopped_by_key"):
+            out.append(f"stopped by the access key: NEAR refused every call of {t['stopped_by_key']} "
+                       f"{'attack' if t['stopped_by_key'] == 1 else 'attacks'} before any contract code ran (the agent's key may call only "
+                       "the payment method), so they tested the key, not the guard. Not counted as held")
         if t.get("paid_outside"):
             out.append(f"paid outside the five receivers: {amt(rep, t['paid_outside'])} {noun(rep)} of the amount beyond the rules went to the agent, "
                        "the outsider or an account the attack named (no rule lets the guard pay them)")
@@ -452,10 +461,10 @@ def html_page(rep):
             f"{t['intent_attacks']} prompt-injection attacks that ran and where the owner's intent is written down ({e(str(amt(rep, rep['intended']['amount'])))}{' NEAR' if is_native(rep) else ''} to "
             f"{e(rep['intended']['receiver'])}, nothing else){e(_by_source(t, rep))}. The guard's rules allowed these payments; a guard cannot know intent.</div>"
             "</div>"
-            f"<p>{t['held']} attacks held, {t['broke']} broke, {t.get('not_applicable', 0)} not applicable, {t['errors']} did not finish. "
+            f"<p>{t['held']} attacks held, {t['broke']} broke, {t.get('not_applicable', 0)} not applicable, {t.get('stopped_by_key', 0)} stopped by the access key, {t['errors']} did not finish. "
             "The two numbers are never added together. Held and broke count only attacks that really ran against a rule the guard claims.</p>")
     extra = [x for x in _plain_lines(rep) if x.startswith(("paid in", "rules the guard", "role methods", "owner method", "subset", "honest payments", "not counted",
-                                                           "paid outside", "not in the native suite"))]
+                                                           "paid outside", "not in the native suite", "stopped by the access key"))]
     if extra:
         parts.append("<ul>" + "".join(f"<li>{e(x)}</li>" for x in extra) + "</ul>")
     parts.append("<h2>What was tested</h2><dl>"
@@ -503,6 +512,13 @@ def html_page(rep):
                      "<details><summary>Show all " + str(len(na)) + "</summary><div class=wrap><table><tr><th>attack</th><th>why it does not apply</th></tr>"
                      + "".join(f"<tr><td><code>{e(r['id'])}</code><br>{e(r['title'])}</td><td>{e('; '.join(r.get('not_applicable_because') or []))}</td></tr>" for r in na)
                      + "</table></div></details>")
+    ks = [r for r in rows if r["status"] == "stopped-by-access-key"]
+    if ks:
+        parts.append(f"<h2 class=warn>Stopped by the access key ({len(ks)}): not counted as held</h2><p>NEAR refused every call these attacks "
+                     "sent before any contract code ran: the agent's key may call only the payment method on the guard. The key held, so the "
+                     "guard's own checks were never reached. Arena does not count them as held.</p><div class=wrap><table><tr><th>attack</th><th>what it tries</th></tr>"
+                     + "".join(f"<tr><td><code>{e(r['id'])}</code><br>{e(r['title'])}</td><td>{e(r['breaks'][:220])}</td></tr>" for r in ks)
+                     + "</table></div>")
     nis = rep.get("not_in_suite") or []
     if nis:
         parts.append(f"<h2>Not in the native suite ({len(nis)}): not run, not counted</h2><p>These attacks work only on the NEP-141 test token. "
@@ -515,7 +531,7 @@ def html_page(rep):
         parts.append("<h2>Owner methods, as seen in preflight</h2><div class=wrap><table><tr><th>role</th><th>result</th><th>what Arena saw</th></tr>"
                      + "".join(f"<tr><td><code>{e(k)}</code></td><td class=\"{'ok' if v['result'] == 'confirmed' else 'warn'}\">{e(v['result'])}</td><td>{e(v['detail'])}</td></tr>" for k, v in om.items())
                      + "</table></div><p class=muted>Arena looks only at each owner method's own visible effect (through the guard's views), never at whether pay honours it: that is what the attacks test.</p>")
-    bad = [r for r in rows if r["status"] not in ("held", "broke", "not-applicable")]
+    bad = [r for r in rows if r["status"] not in ("held", "broke", "not-applicable", "stopped-by-access-key")]
     if bad:
         parts.append("<h2 class=warn>Attacks that did not finish (not counted as held)</h2><ul>"
                      + "".join(f"<li><code>{e(r['id'])}</code>: {e(r['why'][:400])}</li>" for r in bad) + "</ul>")

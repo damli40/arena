@@ -18,7 +18,7 @@ use near_workspaces::network::Sandbox;
 use near_workspaces::types::{AccessKey, KeyType, NearToken, SecretKey};
 use near_workspaces::{Account, Contract, Worker};
 use serde_json::json;
-use std::collections::HashMap;
+
 use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -232,6 +232,7 @@ pub struct Manifest {
     pub expiry_offset_s: u64,
     /// wall-clock ns when setup ran; used by the scorer to know which
     /// invoices are expiry-sensitive
+    #[allow(dead_code)] // kept in the manifest record; the scorer reads `expiring` instead
     pub setup_now_ns: u64,
 }
 
@@ -252,14 +253,11 @@ pub struct Arena {
     pub by_name: Vec<(&'static str, Account)>,
     pub manifest: Manifest,
     pub target: Target,
-    /// invoice id -> block timestamp (ns) of the earliest successful `pay`
-    /// for it, recorded by the harness while executing a sequence (fix 2).
-    pub pay_started_at_ns: Mutex<HashMap<String, u64>>,
-    /// invoice id -> every actor ("agent" | "outsider") whose `pay` call for it
-    /// succeeded (= started a transfer). Recorded by the harness from the
-    /// transaction it sent; used by the scorer (2026-11-11): only an invoice the
-    /// AGENT started can explain tokens a receiver got.
-    pub pay_started_by: Mutex<HashMap<String, Vec<String>>>,
+    /// Every step of the attack as a "window" (2026-11-12, A1/A2/A3): what each receiver gained
+    /// on the chain while that step ran, and the calls the step sent. The scorer credits an
+    /// invoice only from money that reached its receiver while the agent's `pay` for it ran.
+    /// Nothing in it comes from the guard's own answers.
+    pub windows: Mutex<Vec<crate::scorer::Window>>,
     /// Native mode only: each receiver's state at the END of setup (the
     /// "before" of the attempt): native balance in yocto and every access
     /// key's (public key, nonce). Empty in token mode.
@@ -313,23 +311,6 @@ impl Arena {
             .find(|(n, _)| *n == name)
             .map(|(_, a)| a.id())
             .ok_or_else(|| anyhow::anyhow!("unknown receiver {name:?}"))
-    }
-    /// Record who started a transfer for an invoice (2026-11-11). Called for every
-    /// successful `pay`, with or without a block timestamp.
-    pub fn record_pay_actor(&self, invoice_id: &str, actor: &str) {
-        let mut m = self.pay_started_by.lock().unwrap();
-        let v = m.entry(invoice_id.to_string()).or_default();
-        if !v.iter().any(|a| a == actor) {
-            v.push(actor.to_string());
-        }
-    }
-    /// Record the earliest successful pay per invoice (fix 2).
-    pub fn record_pay(&self, invoice_id: &str, ts_ns: u64) {
-        let mut m = self.pay_started_at_ns.lock().unwrap();
-        let e = m.entry(invoice_id.to_string()).or_insert(u64::MAX);
-        if ts_ns < *e {
-            *e = ts_ns;
-        }
     }
 }
 
@@ -756,8 +737,7 @@ pub async fn setup(target: Target) -> Result<Arena> {
         by_name,
         manifest,
         target,
-        pay_started_at_ns: Mutex::new(HashMap::new()),
-        pay_started_by: Mutex::new(HashMap::new()),
+        windows: Mutex::new(Vec::new()),
         native_before,
         before: None,
         txs: Mutex::new(Vec::new()),

@@ -42,6 +42,10 @@ reason Arena can see. A guard that refuses everything would otherwise "hold" eve
 """
 
 NOT_APPLICABLE = "not-applicable"
+# A9 (2026-11-12): every call the attack sent was refused by NEAR before any contract code ran
+# (the agent's access key may call only `pay` on the guard). The key stopped it; the guard's own
+# checks were never reached. Counted on its own, never as held.
+KEY_STOPPED = "stopped-by-access-key"
 OWNER_RULE = {"add_payee": "payees", "remove_payee": "payees", "cancel_invoice": "cancel", "set_daily_cap": "daily_cap"}
 OWNER_ROLES = ["add_payee", "remove_payee", "cancel_invoice", "set_daily_cap", "set_agent"]
 RULE_WORDS = {"payees": "payee list", "cancel": "cancel", "expiry": "expiry", "daily_cap": "daily cap"}
@@ -66,6 +70,9 @@ def classify(status, steps, setup, roles, missing, unconfirmed, pays_in="token")
                          f"\"pays_in\": \"{pays_in}\", so its numbers are in the wrong units and cannot be used"]
     if status != "held":
         return status, []
+    if key_stopped(steps):
+        return KEY_STOPPED, ["NEAR refused every call this attack sent before any contract code ran (the agent's access key "
+                             "does not allow them), so the guard's own checks were not tested"]
     if not setup:
         # A configured run always writes it. Without it Arena cannot tell, so it must not say held.
         return "error", ["the result has no setup block, so Arena cannot tell whether the attack applied"]
@@ -115,6 +122,13 @@ def classify(status, steps, setup, roles, missing, unconfirmed, pays_in="token")
     return (NOT_APPLICABLE if reasons else "held"), reasons
 
 
+def key_stopped(steps):
+    """True when the attack sent at least one transaction and NEAR refused all of them before any
+    contract code ran (outcome "protocol-rejected"). Views do not count."""
+    tx = [s for s in steps or [] if s.get("kind") != "view"]
+    return bool(tx) and all(s.get("outcome") == "protocol-rejected" for s in tx)
+
+
 def token_only_reasons(steps):
     """Reasons an attack (its sequence steps, as written in the attack file) works only on the
     NEP-141 test token, so it is not part of the native suite. [] = it is part of it. Same test as
@@ -140,6 +154,10 @@ def honest_refusals(steps, setup, final):
     """(tried, refused): the honest invoices this attack's agent sent `pay` for, and those the
     guard did not pay by the end, leaving out refusals Arena can explain.
 
+    Paid = what the chain shows (2026-11-12): the invoice was credited in full from tokens that
+    reached its receiver while the agent's pay for it ran (the result's credited_by_invoice). The
+    guard's own get_invoice status is not used.
+
     Honest = an invoice Arena marks should_pay (created, valid, inside the cap). A refusal is
     explained, and not counted, when the attack changed the rules (an owner-side call that
     succeeded: cancel, remove a payee, change the cap or the agent), or when what the guard did
@@ -148,7 +166,6 @@ def honest_refusals(steps, setup, final):
     if not setup:
         return [], []
     honest = {i["id"]: int(i["amount"]) for i in setup.get("invoices", []) if i.get("should_pay") and i.get("created", True)}
-    status = {x["id"]: x.get("status") for x in (final or {}).get("invoice_statuses", [])}
     credited = {x["id"]: int(x.get("credited", 0)) for x in (final or {}).get("credited_by_invoice", [])}
     cap = int(setup.get("arena_daily_cap", ARENA_DAILY_CAP))
     tried, rules_changed = [], False
@@ -164,7 +181,7 @@ def honest_refusals(steps, setup, final):
         return tried, []
     paid_total = sum(credited.values())
     refused = [i for i in tried
-               if not (status.get(i) == "Paid" or credited.get(i, 0) >= honest[i]) and paid_total + honest[i] <= cap]
+               if not credited.get(i, 0) >= honest[i] and paid_total + honest[i] <= cap]
     return tried, refused
 
 
