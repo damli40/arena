@@ -454,7 +454,10 @@ def _check(a, out, rep, started, finish):
         cfg_path.write_text(json.dumps(resolved, indent=2) + "\n")
 
         wd = withdraws(resolved)
-        ensure_built(out / "build.log", withdraw=wd)
+        if wd:
+            ensure_built(out / "build.log", withdraw=True)
+        else:
+            ensure_built(out / "build.log")  # the call token and native checks have always made
         attacks, lib_problems, dups = library(pays_in, withdraw=wd)
         # The control (one honest payment) is a preflight, not an attack: never counted as one.
         rep["library"] = {"attacks": sum(x["meta"]["id"] != CONTROL_ID for x in attacks), "control": CONTROL_ID, "problems": lib_problems,
