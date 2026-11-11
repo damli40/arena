@@ -100,7 +100,7 @@ def _check_args(args, where, depth=0):
     if isinstance(args, dict):
         _need(depth <= MAX_ARG_DEPTH, f"{where}: args nested deeper than {MAX_ARG_DEPTH}")
         for k, v in args.items():
-            _need(isinstance(k, str) and ARG_KEY_RE.match(k), f"{where}: bad arg name {k!r}")
+            _need(isinstance(k, str) and ARG_KEY_RE.fullmatch(k), f"{where}: bad arg name {k!r}")
             _check_args(v, where, depth + 1)
     elif isinstance(args, list):
         _need(depth <= MAX_ARG_DEPTH, f"{where}: args nested deeper than {MAX_ARG_DEPTH}")
@@ -124,7 +124,7 @@ def _check_call(c, where, targets=TARGETS):
     _need(not extra, f"{where}: unknown call keys {sorted(extra)}")
     _need(c.get("actor") in ACTORS, f"{where}: actor must be one of {ACTORS} (the owner is never available)")
     _need(c.get("target", "vault") in targets, f"{where}: target must be one of {targets}")
-    _need(isinstance(c.get("method"), str) and METHOD_RE.match(c["method"]), f"{where}: bad method name {c.get('method')!r}")
+    _need(isinstance(c.get("method"), str) and METHOD_RE.fullmatch(c["method"]), f"{where}: bad method name {c.get('method')!r}")
     _check_args(c.get("args", {}), where)
     if "gas_tgas" in c:
         _need(_is_int(c["gas_tgas"]) and GAS_MIN <= c["gas_tgas"] <= GAS_MAX, f"{where}: gas_tgas must be {GAS_MIN}-{GAS_MAX}")
@@ -151,7 +151,7 @@ def check_steps(steps, targets=TARGETS):
             extra = set(v) - set(VIEW_KEYS)
             _need(not extra, f"{w}: unknown view keys {sorted(extra)}")
             _need(v.get("target", "vault") in targets, f"{w}: target must be one of {targets}")
-            _need(isinstance(v.get("method"), str) and METHOD_RE.match(v["method"]), f"{w}: bad view method {v.get('method')!r}")
+            _need(isinstance(v.get("method"), str) and METHOD_RE.fullmatch(v["method"]), f"{w}: bad view method {v.get('method')!r}")
             _check_args(v.get("args", {}), w)
         elif k == "race":
             _need(isinstance(v, list) and RACE_MIN <= len(v) <= RACE_MAX, f"{w}: race must list {RACE_MIN}-{RACE_MAX} calls")
@@ -219,19 +219,19 @@ def check_meta(meta, steps):
     _need(not extra, f"unknown meta keys {sorted(extra)}")
     for k in META_REQUIRED:
         _need(k in meta, f"meta.{k} is required")
-    _need(isinstance(meta["id"], str) and ID_RE.match(meta["id"]), f"meta.id must match {ID_RE.pattern}")
+    _need(isinstance(meta["id"], str) and ID_RE.fullmatch(meta["id"]), f"meta.id must match {ID_RE.pattern}")
     for k, lim in TEXT_LIMITS.items():
         _text(meta[k], f"meta.{k}", lim)
     _need(meta["source"] in SOURCES, f"meta.source must be one of {SOURCES}")
     _need(meta["kind"] in KINDS, f"meta.kind must be one of {KINDS}")
-    _need(isinstance(meta["added"], str) and DATE_RE.match(meta["added"]), "meta.added must be YYYY-MM-DD")
-    _need(isinstance(meta["steps_sha256"], str) and HEX64_RE.match(meta["steps_sha256"]), "meta.steps_sha256 must be 64 hex chars")
+    _need(isinstance(meta["added"], str) and DATE_RE.fullmatch(meta["added"]), "meta.added must be YYYY-MM-DD")
+    _need(isinstance(meta["steps_sha256"], str) and HEX64_RE.fullmatch(meta["steps_sha256"]), "meta.steps_sha256 must be 64 hex chars")
     _need(meta["steps_sha256"] == steps_hash(steps), "meta.steps_sha256 does not match the steps (steps changed?)")
     if meta["source"] == "paper":
         p = meta.get("paper")
         _need(isinstance(p, dict), "meta.paper is required when source is paper")
         _need(not (set(p) - set(PAPER_KEYS)) and all(k in p for k in PAPER_KEYS), f"meta.paper needs exactly {PAPER_KEYS}")
-        _need(isinstance(p["arxiv_id"], str) and ARXIV_RE.match(p["arxiv_id"]), "meta.paper.arxiv_id is not an arXiv id")
+        _need(isinstance(p["arxiv_id"], str) and ARXIV_RE.fullmatch(p["arxiv_id"]), "meta.paper.arxiv_id is not an arXiv id")
         _text(p["title"], "meta.paper.title", 300)
         base = p["arxiv_id"].split("v")[0]
         _need(p["url"] in (f"https://arxiv.org/abs/{p['arxiv_id']}", f"https://arxiv.org/abs/{base}"),
@@ -242,17 +242,17 @@ def check_meta(meta, steps):
         n = meta.get("news")
         _need(isinstance(n, dict), "meta.news is required when source is news")
         _need(not (set(n) - set(NEWS_KEYS)) and all(k in n for k in NEWS_KEYS), f"meta.news needs exactly {NEWS_KEYS}")
-        _need(isinstance(n["item_id"], str) and NEWS_ID_RE.match(n["item_id"]), "meta.news.item_id must look like n-<10 hex>")
-        _need(isinstance(n["date"], str) and DATE_RE.match(n["date"]), "meta.news.date must be YYYY-MM-DD")
+        _need(isinstance(n["item_id"], str) and NEWS_ID_RE.fullmatch(n["item_id"]), "meta.news.item_id must look like n-<10 hex>")
+        _need(isinstance(n["date"], str) and DATE_RE.fullmatch(n["date"]), "meta.news.date must be YYYY-MM-DD")
         _need(isinstance(n["links"], list) and len(n["links"]) <= MAX_NEWS_LINKS
-              and all(isinstance(x, str) and NEWS_LINK_RE.match(x) for x in n["links"]),
+              and all(isinstance(x, str) and NEWS_LINK_RE.fullmatch(x) for x in n["links"]),
               f"meta.news.links must be at most {MAX_NEWS_LINKS} https post links (x.com, twitter.com, t.me)")
     else:
         _need("news" not in meta, "meta.news only belongs on source=news")
     if meta["source"] == "combined":
         par = meta.get("parents")
         _need(isinstance(par, list) and 2 <= len(par) <= 4 and len(set(par)) == len(par)
-              and all(isinstance(x, str) and ID_RE.match(x) for x in par),
+              and all(isinstance(x, str) and ID_RE.fullmatch(x) for x in par),
               "meta.parents must list 2-4 distinct library attack ids when source is combined")
     else:
         _need("parents" not in meta, "meta.parents only belongs on source=combined")
@@ -265,15 +265,15 @@ def check_meta(meta, steps):
         _text(inj.get("email"), "meta.injection.email", MAX_EMAIL, allow_newlines=True)
         pays = inj.get("injected_pays")
         _need(isinstance(pays, list) and 1 <= len(pays) <= MAX_INJECTED_PAYS
-              and all(isinstance(x, str) and INVOICE_RE.match(x) for x in pays),
+              and all(isinstance(x, str) and INVOICE_RE.fullmatch(x) for x in pays),
               f"meta.injection.injected_pays must list 1-{MAX_INJECTED_PAYS} invoice ids")
         _need(canonical_steps(steps) == canonical_steps(injection_steps(pays)),
               "an injection attack's steps must be exactly one agent pay per injected_pays entry")
     for k in ("broke_guards", "held_guards"):
         if k in meta:
-            _need(isinstance(meta[k], list) and all(isinstance(x, str) and ID_RE.match(x) for x in meta[k]), f"meta.{k} must list guard ids")
+            _need(isinstance(meta[k], list) and all(isinstance(x, str) and ID_RE.fullmatch(x) for x in meta[k]), f"meta.{k} must list guard ids")
     if "found_in_hunt" in meta:
-        _need(isinstance(meta["found_in_hunt"], str) and ID_RE.match(meta["found_in_hunt"]), "meta.found_in_hunt must be a hunt id")
+        _need(isinstance(meta["found_in_hunt"], str) and ID_RE.fullmatch(meta["found_in_hunt"]), "meta.found_in_hunt must be a hunt id")
 
 
 def check_attack(doc, require_meta=True, intents_suite=False):
@@ -281,7 +281,7 @@ def check_attack(doc, require_meta=True, intents_suite=False):
     _need(isinstance(doc, dict), "an attack file is a JSON object")
     extra = set(doc) - {"name", "steps", "meta"}
     _need(not extra, f"unknown top-level keys {sorted(extra)}")
-    _need(isinstance(doc.get("name"), str) and NAME_RE.match(doc["name"]), f"name must match {NAME_RE.pattern}")
+    _need(isinstance(doc.get("name"), str) and NAME_RE.fullmatch(doc["name"]), f"name must match {NAME_RE.pattern}")
     check_steps(doc.get("steps"), INTENTS_TARGETS if intents_suite else TARGETS)
     if require_meta or "meta" in doc:
         _need("meta" in doc, "meta block missing")

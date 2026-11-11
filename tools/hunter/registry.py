@@ -55,7 +55,7 @@ def check_guard(g):
     need(not (set(g) - GUARD_KEYS), f"unknown keys {sorted(set(g) - GUARD_KEYS)}")
     for k in GUARD_KEYS - {"not_runnable_reason"}:
         need(k in g, f"missing {k}")
-    need(ID_RE.match(g["id"]) is not None, "bad id")
+    need(ID_RE.fullmatch(g["id"]) is not None, "bad id")
     need(not g["id"].startswith("entrant"), "entrant-* guards are never in the registry")
     need(g["role"] in ROLES, f"role must be one of {sorted(ROLES)}")
     need(g["interface"] in INTERFACES, f"interface must be one of {sorted(INTERFACES)}")
@@ -228,7 +228,7 @@ def outside_guards(local_guards, rpc=rpc_query, contract=OPT_IN_CONTRACT, now_ns
     for o in opts:
         try:
             guard, want = o["guard"], o["code_hash"]
-            ok_shape = (isinstance(guard, str) and isinstance(want, str) and HEX64.match(want)
+            ok_shape = (isinstance(guard, str) and isinstance(want, str) and HEX64.fullmatch(want)
                         and isinstance(o.get("active"), bool) and o.get("pays_in") in (None, "token", "native"))
         except (KeyError, TypeError):
             ok_shape = False

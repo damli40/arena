@@ -63,7 +63,7 @@ def parse_feed(body):
     papers = []
     for e in root.findall(ATOM + "entry"):
         raw_id = (e.findtext(ATOM + "id") or "").rsplit("/abs/", 1)[-1].strip()
-        if not ARXIV_ID_RE.match(raw_id):
+        if not ARXIV_ID_RE.fullmatch(raw_id):
             continue  # old-style ids (cs/0101001) and error entries are skipped
         cats = sorted({c.get("term", "") for c in e.findall(ATOM + "category")})
         papers.append({
@@ -108,7 +108,7 @@ def search_recent(days, max_results=100):
 
 
 def fetch_by_id(arxiv_id):
-    if not ARXIV_ID_RE.match(arxiv_id):
+    if not ARXIV_ID_RE.fullmatch(arxiv_id):
         raise ArxivError(f"not an arXiv id: {arxiv_id!r}")
     papers = parse_feed(_get({"id_list": arxiv_id, "max_results": 1}))
     if not papers:

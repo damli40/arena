@@ -120,7 +120,7 @@ def clean_links(links):
     """Keep at most 3 plain https post links; count the rest. Nothing here is ever fetched."""
     kept, dropped = [], 0
     for x in links if isinstance(links, list) else []:
-        if isinstance(x, str) and V.NEWS_LINK_RE.match(x.strip()) and x.strip() not in kept:
+        if isinstance(x, str) and V.NEWS_LINK_RE.fullmatch(x.strip()) and x.strip() not in kept:
             if len(kept) < V.MAX_NEWS_LINKS:
                 kept.append(x.strip())
             continue

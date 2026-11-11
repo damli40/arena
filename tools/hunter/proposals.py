@@ -96,7 +96,7 @@ def build(reply, paper, today, author, allowed_parents=None, news=None):
                 V._need("steps" not in a, "an injection attack has email + injected_pays, not steps")
                 pays = a.get("injected_pays")
                 V._need(isinstance(pays, list) and 1 <= len(pays) <= V.MAX_INJECTED_PAYS
-                        and all(isinstance(x, str) and V.INVOICE_RE.match(x) for x in pays),
+                        and all(isinstance(x, str) and V.INVOICE_RE.fullmatch(x) for x in pays),
                         f"injected_pays must list 1-{V.MAX_INJECTED_PAYS} invoice ids")
                 V._text(a.get("email"), "email", V.MAX_EMAIL, allow_newlines=True)
                 steps = V.injection_steps(pays)

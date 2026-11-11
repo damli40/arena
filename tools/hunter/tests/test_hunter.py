@@ -10,6 +10,15 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 import arxiv, board, catalog, hunt, memory, muse, proposals, registry  # noqa: E402
 import validate as V  # noqa: E402
+import fresh_clone  # noqa: E402  missing guard.wasm on a fresh clone: see fresh_clone.py
+
+
+def setUpModule():
+    fresh_clone.start()
+
+
+def tearDownModule():
+    fresh_clone.stop()
 
 PAPER = {"arxiv_id": "2104.08638v1", "base_id": "2104.08638", "title": "SAILFISH: state inconsistency",
          "abstract": "We find state-inconsistency bugs (reentrancy, transaction order).", "url": "https://arxiv.org/abs/2104.08638v1",
@@ -65,6 +74,29 @@ class Validator(unittest.TestCase):
         for steps in bad:
             with self.assertRaises(V.Invalid, msg=json.dumps(steps)[:120]):
                 V.check_steps(steps)
+
+    def test_trailing_newline_rejected(self):
+        # `^...$` with re.match lets a trailing "\n" through; every name check uses fullmatch.
+        for steps in ([{"call": {"actor": "agent", "method": "pay\n", "args": {"id": "inv-pay"}}}],
+                      [{"call": {"actor": "agent", "method": "pay", "args": {"id\n": "inv-pay"}}}],
+                      [{"view": {"method": "get_invoice\n"}}, {"call": {"actor": "agent", "method": "pay"}}]):
+            with self.assertRaises(V.Invalid, msg=repr(steps)):
+                V.check_steps(steps)
+        for rx, good in ((V.NAME_RE, "late-callback"), (V.ID_RE, "scripted-02"), (V.METHOD_RE, "pay"), (V.ARG_KEY_RE, "id"),
+                         (V.ARXIV_RE, "2104.08638v1"), (V.DATE_RE, "2026-11-11"), (V.HEX64_RE, "a" * 64),
+                         (V.INVOICE_RE, "inv-pay"), (V.NEWS_ID_RE, "n-0123456789"), (arxiv.ARXIV_ID_RE, "2104.08638"),
+                         (registry.ID_RE, "vault-a"), (registry.HEX64, "b" * 64)):
+            self.assertIsNotNone(rx.fullmatch(good), rx.pattern)
+            self.assertIsNone(rx.fullmatch(good + "\n"), rx.pattern)
+        g = json.loads(json.dumps(registry.load()[0]))
+        with self.assertRaises(registry.RegistryError):
+            registry.check_guard(dict(g, id="vault-a\n"))
+
+    def test_fresh_clone_stub_still_checks_a_wasm_that_exists(self):
+        # fresh_clone.py only excuses a MISSING wasm; a wasm whose bytes differ still fails.
+        g = json.loads(json.dumps(registry.load()[0]))
+        g["fingerprint"] = dict(g["fingerprint"], kind="frozen-wasm", wasm_sha256="0" * 64)
+        self.assertFalse(registry.fingerprint(g)["ok"])
 
     def test_canonical_dedupe_ignores_views_and_defaults(self):
         a = [{"race": [{"actor": "agent", "method": "pay", "args": {"id": "inv-pay"}}, {"actor": "agent", "method": "pay", "args": {"id": "inv-pay"}}]}]

@@ -117,7 +117,7 @@ def to_summer(stamp, winter_monday=datetime.date(2026, 11, 9), summer_monday=dat
 
 def post_time(link):
     """The time an X post was made, read from the id in its link. None for any other link."""
-    m = re.match(r"^https://(?:x|twitter)\.com/[A-Za-z0-9_]{1,20}/status/(\d{15,20})$", link)
+    m = re.fullmatch(r"^https://(?:x|twitter)\.com/[A-Za-z0-9_]{1,20}/status/(\d{15,20})$", link)
     if not m:
         return None
     ms = (int(m.group(1)) >> 22) + X_EPOCH_MS
@@ -254,7 +254,7 @@ def main():
     ap.add_argument("--fetch-arxiv", action="store_true", help="ask arXiv once for this week's papers and save their stamps")
     ap.add_argument("--date", default=os.environ.get("ARENA_DATE") or datetime.datetime.now(UTC).strftime("%Y-%m-%d"))
     a = ap.parse_args()
-    if not re.match(r"^\d{4}-\d{2}-\d{2}$", a.date):
+    if not re.fullmatch(r"^\d{4}-\d{2}-\d{2}$", a.date):
         sys.exit("response_time: --date must look like 2026-11-11")
     self_checks()
 

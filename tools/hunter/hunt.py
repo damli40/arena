@@ -132,7 +132,7 @@ def parse_args(argv):
         ap.error("--days must be 1-365")
     if a.max_papers < 1 or a.max_muse_calls < 0 or a.jobs < 1 or a.timeout_min <= 0:
         ap.error("--max-papers >= 1, --max-muse-calls >= 0, --jobs >= 1, --timeout-min > 0")
-    if a.paper and not arxiv.ARXIV_ID_RE.match(a.paper):
+    if a.paper and not arxiv.ARXIV_ID_RE.fullmatch(a.paper):
         ap.error(f"--paper must be an arXiv id like 2104.08638, got {a.paper!r}")
     if a.library and (a.paper or a.offline_replies or a.papers_file):
         ap.error("--library runs the library only; it takes no paper flags")
