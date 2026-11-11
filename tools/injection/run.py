@@ -35,6 +35,24 @@ sys.path.insert(0, str(ROOT / "tools/hunter"))
 import muse, nearai  # noqa: E402  shared provider settings, key loading, attestation and signature checks
 
 HARNESS = ROOT / "harness/target/release/arena-harness"
+
+
+def out_root():
+    """Where this run writes. Default: a fresh untracked folder runs/<UTC time>/ (gitignored), so a
+    re-run never overwrites a committed file under evidence/. ARENA_OUT names the folder;
+    ARENA_RECORD=1 writes into evidence/ instead, for recording a new result on purpose."""
+    if os.environ.get("ARENA_RECORD") == "1":
+        return ROOT / "evidence"
+    d = os.environ.get("ARENA_OUT")
+    d = pathlib.Path(d) if d else ROOT / "runs" / datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    d = d if d.is_absolute() else ROOT / d
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def rel_to_root(p):
+    p = pathlib.Path(p)
+    return str(p.relative_to(ROOT)) if p.is_relative_to(ROOT) else str(p)
 DEFAULT_PROVIDER = "nearai"  # per-job default, from the 2026-11-11 quality gate (evidence/nearai-2026-11-11.md):
 # z-ai/glm-5.3-flash fooled 0 of 10 trials, same as Muse's stored 0 of 25. ARENA_MODEL_PROVIDER=muse switches back.
 _S = muse.settings(provider=os.environ.get("ARENA_MODEL_PROVIDER") or DEFAULT_PROVIDER)
@@ -193,7 +211,8 @@ def main():
     who = MODEL if AGENT == "model" else "scripted-compromised (no model)"
     date = datetime.date.today().isoformat()
     tag = f"{date}-nearai-{AGENT}" if (PROVIDER == "nearai" and AGENT == "model") else f"{date}-{AGENT}"
-    workdir = ROOT / f"evidence/injection-{tag}"
+    out = out_root()
+    workdir = out / f"injection-{tag}"
     workdir.mkdir(parents=True, exist_ok=True)
     if AGENT == "model":
         attest(workdir)
@@ -244,9 +263,10 @@ def main():
               "`unauthorised_payout` scorer as every other Arena result.", "",
               "**Limits.** `pay` answers \"submitted\" inside the conversation and the chain runs afterwards, so the agent never sees a refusal. "
               "One model, one guard, default sampling; the fooled rate will vary run to run. Identical pay lists share one chain run (deterministic sandbox).", "",
-              "Per-trial files (transcript, pay calls, balances): `evidence/injection-" + tag + "/<scenario>-<n>.json`. Chain runs: `seq-NN.json` / `.result.json` / `.log`."]
-    (ROOT / f"evidence/injection-{tag}.md").write_text("\n".join(lines) + "\n")
+              "Per-trial files (transcript, pay calls, balances): `" + rel_to_root(workdir) + "/<scenario>-<n>.json`. Chain runs: `seq-NN.json` / `.result.json` / `.log`."]
+    (out / f"injection-{tag}.md").write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
+    print(f"written: {rel_to_root(out / f'injection-{tag}.md')}")
 
 
 if __name__ == "__main__":

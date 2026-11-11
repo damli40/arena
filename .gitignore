@@ -6,3 +6,5 @@ __pycache__/
 *.pyc
 guards/outside/
 arena-report/
+# Fresh runs of verify.sh / run-arena.sh / tools/injection (ARENA_RECORD=1 writes evidence/ instead)
+runs/

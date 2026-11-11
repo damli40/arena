@@ -68,7 +68,7 @@ proofs/run.sh        # Kani on the model, the real code beside it, and z3. 30 ch
 tla/run.sh           # near-tla, NEAR's own model of how calls run. 25 checks
 ```
 
-Each check prints PASS or FAIL. The last line of `verify.sh` is `verify: 5 passed, 0 failed (mode=fast)` or `verify: 43 passed, 0 failed (mode=full)`, and each script exits 0 only if every check passes. Measured times: `fast` took 481 s on a fresh copy with no build folders (Nov 9) and 196 s with the builds already there; the full `verify.sh` took 943 to 965 s (four runs); `proofs/run.sh` took 1,504 s; `tla/run.sh` took about 46 min, most of it in two checks (`fixed_2inv` and `h1_open_world_2faults`). Neither proof script has a quick mode. `tla/run.sh <name>` runs only the named checks, and the small ones take a few seconds. `proofs/run.sh proof2` runs only z3. The proofs need Kani and z3 (setup in the header of `proofs/run.sh`); near-tla needs Java 17+ (setup in `tla/README.md`). Every `verify.sh` run appends one line to `evidence/verify-summary.log`.
+Each check prints PASS or FAIL. The last line of `verify.sh` is `verify: 5 passed, 0 failed (mode=fast)` or `verify: 43 passed, 0 failed (mode=full)`, and each script exits 0 only if every check passes. Measured times: `fast` took 481 s on a fresh copy with no build folders (Nov 9) and 196 s with the builds already there; the full `verify.sh` took 943 to 965 s (four runs); `proofs/run.sh` took 1,504 s; `tla/run.sh` took about 46 min, most of it in two checks (`fixed_2inv` and `h1_open_world_2faults`). Neither proof script has a quick mode. `tla/run.sh <name>` runs only the named checks, and the small ones take a few seconds. `proofs/run.sh proof2` runs only z3. The proofs need Kani and z3 (setup in the header of `proofs/run.sh`); near-tla needs Java 17+ (setup in `tla/README.md`). Each run writes its logs to a new folder `runs/<UTC time>/` (not tracked by git), so running the checks never changes a committed file; set `ARENA_RECORD=1` to write into `evidence/` instead. Every `verify.sh` run appends one line to `verify-summary.log` in its run folder.
 
 The prompt-injection results, after `./verify.sh` has built the harness:
 
@@ -77,7 +77,7 @@ ARENA_AGENT=compromised python3 -I tools/injection/run.py    # fully fooled agen
 python3 -I tools/injection/rescore.py                        # tokens by recipient vs the owner's intent
 ```
 
-`rescore.py` reads the saved trials, makes no model or chain calls, and ends with `Check: recomputed wrong-payment totals match the intent_leak recorded at run time (0 mismatches).` The real-model run uses glm-5.3-flash on NEAR AI Cloud by default and needs `NEARAI_API_KEY` in `~/.config/arena/nearai.env` (or set `ARENA_MODEL_PROVIDER=muse` and put `MUSE_API_KEY` in `~/.config/arena/model.env`); without a key, read the saved runs in `evidence/`.
+`run.py` writes its trials to `runs/<UTC time>/`. `rescore.py` reads the saved trials in `evidence/`, makes no model or chain calls, writes its table to `runs/<UTC time>/` (the same bytes as `evidence/injection-intent-by-recipient.md`), and ends with `Check: recomputed wrong-payment totals match the intent_leak recorded at run time (0 mismatches).` The real-model run uses glm-5.3-flash on NEAR AI Cloud by default and needs `NEARAI_API_KEY` in `~/.config/arena/nearai.env` (or set `ARENA_MODEL_PROVIDER=muse` and put `MUSE_API_KEY` in `~/.config/arena/model.env`); without a key, read the saved runs in `evidence/`.
 
 ## Test your own guard
 

@@ -155,7 +155,12 @@ fn results_dir(run_label: &str) -> PathBuf {
         .chars()
         .map(|c| if c.is_ascii_alphanumeric() || c == '-' || c == '_' { c } else { '-' })
         .collect();
-    setup::resolve("../evidence/results").join(safe)
+    // ARENA_RESULTS_DIR (set by run-arena.sh) sends a fresh run's per-attempt results to its own
+    // untracked run folder, so it never overwrites a committed file under evidence/results/.
+    match std::env::var_os("ARENA_RESULTS_DIR") {
+        Some(d) if !d.is_empty() => PathBuf::from(d).join(safe),
+        _ => setup::resolve("../evidence/results").join(safe),
+    }
 }
 
 fn flag<'a>(args: &'a [String], name: &str) -> Option<&'a str> {

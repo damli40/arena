@@ -22,16 +22,20 @@ reserves ~1.0009 NEAR of allowance; the busiest sequence sends 5 agent calls.)
 ## Run
 
 ```
-./run-arena.sh scripted                 # log -> evidence/arena-<date>-scripted.log
-./run-arena.sh ai                       # log -> evidence/arena-<date>-ai.log
-./run-arena.sh control                  # scripted vs leaky-control-v2 -> evidence/arena-<date>-positive-control.log
-./run-arena.sh bypass [vault|control]   # sequences-bypass/ -> evidence/arena-<date>-bypass-<target>.log
-./run-arena.sh any <guard.wasm> [label] # scripted vs any wasm implementing INTERFACE.md -> evidence/arena-<date>-any-<label>.log
-./run-arena.sh native-control           # scripted vs targets/native-control, native scoring -> evidence/arena-<date>-native-control.log
-./run-arena.sh native-fixed             # scripted vs targets/native-fixed, native scoring -> evidence/arena-<date>-native-fixed.log
-./run-arena.sh any-native <guard.wasm> [label]  # any guard that pays in native NEAR -> evidence/arena-<date>-any-native-<label>.log
-./run-arena.sh replay <file> [--target vault|control | --wasm <path>]   # one sequence, fresh sandbox
+./run-arena.sh scripted                 # log -> runs/<time>/arena-<date>-scripted.log
+./run-arena.sh ai                       # log -> runs/<time>/arena-<date>-ai.log
+./run-arena.sh control                  # scripted vs leaky-control-v2 -> runs/<time>/arena-<date>-positive-control.log
+./run-arena.sh bypass [vault|control]   # sequences-bypass/ -> runs/<time>/arena-<date>-bypass-<target>.log
+./run-arena.sh any <guard.wasm> [label] # scripted vs any wasm implementing INTERFACE.md -> runs/<time>/arena-<date>-any-<label>.log
+./run-arena.sh native-control           # scripted vs targets/native-control, native scoring -> runs/<time>/arena-<date>-native-control.log
+./run-arena.sh native-fixed             # scripted vs targets/native-fixed, native scoring -> runs/<time>/arena-<date>-native-fixed.log
+./run-arena.sh any-native <guard.wasm> [label]  # any guard that pays in native NEAR -> runs/<time>/arena-<date>-any-native-<label>.log
+./run-arena.sh replay <file> [--target vault|control | --wasm <path>]   # one sequence, fresh sandbox -> appended to runs/<time>/replays.log
 ```
+
+Logs go to a new folder `runs/<UTC time>/` (not tracked by git) so a re-run never overwrites a
+committed file; `ARENA_OUT=<dir>` picks the folder, and `ARENA_RECORD=1` writes into `evidence/`
+instead (the `evidence/arena-<date>-*.log` names), for recording a new result on purpose.
 
 Every mode builds the harness and test token first if they are missing
 (`ensure_built`), and checks the fingerprints of vault-a, leaky-control (v1)
@@ -45,7 +49,9 @@ Direct harness use: `arena-harness attempt <file.json> [--target ... | --wasm PA
 (the adaptive tester's per-round entry).
 
 **Result files.** Each attempt's full result (per-step outcome, errors, final
-balances, score) is written to `evidence/results/<tester>-<target>/<sequence>.result.json`,
+balances, score) is written to `<run folder>/results/<tester>-<target>/<sequence>.result.json`
+when run through `run-arena.sh` (`evidence/results/` with `ARENA_RECORD=1`, or when the harness is
+run directly without `ARENA_RESULTS_DIR`),
 never into the sequence folder, and `run` skips any `*.result.json` it finds
 there. `targets/vault-a/` is only
 ever read; `contracts/guard/` is untouched by the harness.
@@ -163,7 +169,7 @@ harness/src/seq.rs      sequence parsing/execution (call/view/race/waits)
 harness/src/scorer.rs   policy scoring (token mode, and native mode via native_received)
 harness/src/scripted.rs the scripted tester's 10 sequences
 sequences-bypass/       3 bypass sequences (W3: the agent tries to go around the guard)
-evidence/results/       per-attempt result JSON, one folder per <tester>-<target>
+evidence/results/       saved per-attempt result JSON, one folder per <tester>-<target>
 ```
 
 ## Honesty lines (printed with every run)

@@ -37,6 +37,12 @@ It builds the contracts and the harness, then shows the main result: the planted
 scores both from final balances. Measured: 481 s on a fresh copy with no build folders, 196 s
 when the builds are already there.
 
+Its logs go to a new folder, `runs/<UTC time>-verify-fast/`, which git ignores, and every check
+reads that run's own logs. `run-arena.sh` and the prompt-injection scripts do the same
+(`runs/<UTC time>/`), and `arena check` writes to `./arena-report`, also ignored, so these leave
+`git status` clean. To write a new saved run into `evidence/` on purpose, set `ARENA_RECORD=1`.
+`tools/mutation/run.sh` (section 3) still writes into `evidence/mutation-<today>/`.
+
 ## 2. Each claim, and how to check it
 
 | # | Claim | Command | You should see | Our time | Our saved run |

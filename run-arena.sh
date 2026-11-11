@@ -28,7 +28,17 @@ cd "$(dirname "$0")"
 source "$HOME/.cargo/env" 2>/dev/null || true
 
 HARNESS=harness/target/release/arena-harness
-EVIDENCE=evidence
+# Where this run's logs go. By default a fresh, untracked folder runs/<UTC time>/ (gitignored),
+# so a re-run never overwrites a committed file under evidence/. ARENA_OUT names the folder
+# (verify.sh sets it so all its steps share one). ARENA_RECORD=1 writes into evidence/ instead,
+# with the date-tagged names, for recording a new result on purpose.
+if [ "${ARENA_RECORD:-0}" = "1" ]; then
+  EVIDENCE=evidence
+else
+  EVIDENCE="${ARENA_OUT:-runs/$(date -u +%Y%m%dT%H%M%SZ)}"
+  mkdir -p "$EVIDENCE/results"
+  ARENA_RESULTS_DIR="$(cd "$EVIDENCE" && pwd)/results"; export ARENA_RESULTS_DIR
+fi
 
 # Fresh-clone fix (plan 0.2): build what the harness needs if it is missing.
 ensure_built() {
@@ -138,6 +148,7 @@ case "${1:-}" in
     check_frozen "before replay"
     "$HARNESS" replay "$@" 2>&1 | tee -a "$EVIDENCE/replays.log"
     check_frozen "after replay"
+    echo "replay log appended: $EVIDENCE/replays.log"
     ;;
   *)
     echo "usage: $0 scripted | ai | control | native-control | native-fixed | bypass [vault|control] | any <guard.wasm> [label] | any-native <guard.wasm> [label] | replay <file.json> [--target vault|control|native-control|native-fixed | --wasm <path> [--native]]" >&2
