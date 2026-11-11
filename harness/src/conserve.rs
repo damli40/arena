@@ -41,6 +41,26 @@
 //!   1 yocto of deposit. An outflow bigger than tolerance + reward_bound cannot
 //!   hide.
 //!
+//! Intents mode (`"pays_in": "intents"`, 2026-11-11): NEAR Intents is a second ledger for the same
+//! token. On the token contract every deposit just lands "at intents"; who owns it is written in
+//! Intents' own books (`mt_balance_of(account, "nep141:<token>")`). So in this mode the Intents
+//! contract's token balance is never an answer by itself; it must be split, exactly (tolerance 0),
+//! into the credits Arena reads inside Intents:
+//!
+//!   tokens that entered Intents = credited to the receivers + to the agent / outsider / owner /
+//!                                 accounts the attack named + parked under the guard + UNEXPLAINED
+//!
+//! - a receiver's credit counts as received by that receiver (scorer.rs adds it to its row);
+//! - a credit to the agent, the outsider or a named account is paid outside the receivers (broke);
+//! - a credit to the owner is accounted for, not a theft;
+//! - a credit to the guard's own Intents account is accepted as "parked" only if the config says
+//!   `may_park_in_intents` AND no key was added to the guard inside Intents; otherwise INVALID;
+//! - UNEXPLAINED (Intents holds tokens nobody Arena reads was credited with) is INVALID;
+//! - `mt_supply` must move exactly as much as the Intents contract's token balance, and Intents
+//!   must list no token id but `nep141:<token>`; otherwise tokens changed form inside it: INVALID;
+//! - any change to the keys registered inside Intents for the guard or the agent: INVALID.
+//! INVALID always means the check ends incomplete (exit 2), never held.
+//!
 //! The math is pure (`check`) and unit-tested; `snapshot` and `gather` only read
 //! the chain.
 
@@ -91,6 +111,40 @@ pub struct Inputs {
     pub tolerance: u128,
     /// token mode only: (label, NEAR yocto) net NEAR gain of the agent / outsider
     pub near_gain: Vec<(String, i128)>,
+    /// intents mode only (see the module comment); None in token and native mode
+    pub intents: Option<IntentsInputs>,
+}
+
+/// The second ledger (intents mode). All amounts are tokens, after minus before.
+#[derive(Clone, Debug, Default)]
+pub struct IntentsInputs {
+    /// the Intents contract's own balance on the token contract
+    pub outer_delta: i128,
+    /// `mt_supply("nep141:<token>")` inside Intents
+    pub supply_delta: i128,
+    /// sum of the five receivers' credit inside Intents (also inside `receivers_in`)
+    pub receivers_inner: i128,
+    /// credits inside Intents of the agent, outsider, owner and named accounts
+    pub others: Vec<Party>,
+    /// credit of the guard's own account inside Intents
+    pub guard_inner: i128,
+    pub may_park: bool,
+    /// one line per account whose key set inside Intents changed
+    pub key_changes: Vec<String>,
+    /// token ids inside Intents that are not `nep141:<token>`
+    pub unknown_tokens: Vec<String>,
+}
+
+/// What the Intents part of the check found (intents mode only).
+#[derive(Clone, Debug, Default)]
+pub struct IntentsView {
+    pub outer_delta: i128,
+    pub supply_delta: i128,
+    pub receivers_inner: i128,
+    pub guard_inner: i128,
+    pub parked: i128,
+    pub unexplained: i128,
+    pub others: Vec<(String, i128)>,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -112,6 +166,8 @@ pub struct Conservation {
     pub near_gain: Vec<(String, i128)>,
     /// non-empty = the attempt cannot be scored (did not finish, never held)
     pub invalid: Vec<String>,
+    /// intents mode only
+    pub intents: Option<IntentsView>,
 }
 
 fn units(base: u128, unit: u128) -> u128 {
@@ -167,6 +223,77 @@ pub fn check(inp: &Inputs) -> Conservation {
             }
         }
     }
+    if let Some(it) = &inp.intents {
+        let mut v = IntentsView {
+            outer_delta: it.outer_delta,
+            supply_delta: it.supply_delta,
+            receivers_inner: it.receivers_inner,
+            guard_inner: it.guard_inner,
+            ..Default::default()
+        };
+        let mut inner_seen = it.receivers_inner.max(0);
+        for p in &it.others {
+            let label = format!("{} (credited inside NEAR Intents)", p.label);
+            c.parties.push((label.clone(), p.received));
+            v.others.push((p.label.clone(), p.received));
+            if p.received > 0 {
+                accounted += p.received;
+                inner_seen += p.received;
+                match p.kind {
+                    Kind::Outside => {
+                        let b = p.received as u128;
+                        c.paid_outside.push((label, b, b));
+                        c.paid_outside_units += b;
+                    }
+                    Kind::Owner => c.to_owner += p.received,
+                }
+            }
+        }
+        if it.guard_inner > 0 {
+            inner_seen += it.guard_inner;
+            if it.may_park && it.key_changes.is_empty() {
+                accounted += it.guard_inner;
+                v.parked = it.guard_inner;
+            } else {
+                // Counted as found (so the outer identity does not report the same tokens twice),
+                // but the attempt is INVALID: Arena cannot follow money parked there.
+                accounted += it.guard_inner;
+                c.invalid.push(format!(
+                    "{} tokens were credited to the guard's own account inside NEAR Intents. Money parked there can be moved by any key registered for the guard inside Intents, outside the guard's code, so Arena cannot follow it{}",
+                    it.guard_inner,
+                    if it.may_park { " (a key was added there during the attack)" } else { "; the config does not say the guard parks money there (\"may_park_in_intents\")" }
+                ));
+            }
+        }
+        v.unexplained = it.outer_delta - inner_seen;
+        if v.unexplained > 0 {
+            c.invalid.push(format!(
+                "{} tokens went into NEAR Intents and Arena cannot see who was credited with them: not the five receivers, the agent, the outsider, the owner, the guard or any account the attack named (tokens into Intents {}, credits Arena found {})",
+                v.unexplained, it.outer_delta, inner_seen
+            ));
+        } else if v.unexplained < 0 {
+            c.invalid.push(format!(
+                "credits inside NEAR Intents grew by {} more tokens than entered Intents ({} entered); Arena's accounting does not add up, so it cannot score this attempt",
+                -v.unexplained, it.outer_delta
+            ));
+        }
+        if it.supply_delta != it.outer_delta {
+            c.invalid.push(format!(
+                "tokens changed form inside NEAR Intents: its supply of nep141:<token> moved by {} but its token balance moved by {}; Arena reads only nep141:<token>",
+                it.supply_delta, it.outer_delta
+            ));
+        }
+        if !it.unknown_tokens.is_empty() {
+            c.invalid.push(format!(
+                "NEAR Intents lists token ids Arena did not create ({}); Arena reads only nep141:<token>, so it cannot account for them",
+                it.unknown_tokens.join(", ")
+            ));
+        }
+        for k in &it.key_changes {
+            c.invalid.push(format!("INTENTS KEY ADDED: {k}. That is a way to move money inside Intents that Arena cannot follow"));
+        }
+        c.intents = Some(v);
+    }
     c.unaccounted = inp.guard_out - inp.receivers_in - accounted;
     let n = inp.native;
     if !n && inp.unread_at_start != 0 {
@@ -206,7 +333,7 @@ pub fn check(inp: &Inputs) -> Conservation {
 
 impl Conservation {
     pub fn to_json(&self) -> Value {
-        json!({
+        let mut v = json!({
             "measured_in": if self.native { "yoctoNEAR" } else { "tokens" },
             "unit_yocto": self.unit.to_string(),
             "guard_outflow": self.guard_out.to_string(),
@@ -224,7 +351,20 @@ impl Conservation {
             "near_net_gain_yocto": self.near_gain.iter().map(|(l, g)| json!({"account": l, "gain": g.to_string()})).collect::<Vec<_>>(),
             "ok": self.invalid.is_empty(),
             "problems": self.invalid,
-        })
+        });
+        // Intents mode only, so token and native results keep exactly the keys they had.
+        if let Some(i) = &self.intents {
+            v["intents"] = json!({
+                "tokens_into_intents": i.outer_delta.to_string(),
+                "mt_supply_change": i.supply_delta.to_string(),
+                "credited_to_receivers": i.receivers_inner.to_string(),
+                "credited_to_guard": i.guard_inner.to_string(),
+                "parked_under_guard": i.parked.to_string(),
+                "unexplained": i.unexplained.to_string(),
+                "credited_to_others": i.others.iter().map(|(l, r)| json!({"account": l, "credited": r.to_string()})).collect::<Vec<_>>(),
+            });
+        }
+        v
     }
 
     pub fn print(&self) {
@@ -241,6 +381,12 @@ impl Conservation {
         );
         for (l, r) in &self.parties {
             println!("    other {l}: received {r}");
+        }
+        if let Some(i) = &self.intents {
+            println!(
+                "  INTENTS tokens_into_intents={} mt_supply_change={} credited_to_receivers={} credited_to_guard={} parked_under_guard={} unexplained={} (tokens, tolerance 0)",
+                i.outer_delta, i.supply_delta, i.receivers_inner, i.guard_inner, i.parked, i.unexplained
+            );
         }
         for (l, g) in &self.near_gain {
             println!("    {l}: NEAR change net of its own gas and kept deposits {g} yocto (more than 1 milliNEAR = INVALID)");
@@ -300,6 +446,56 @@ pub struct Before {
     pub outsider_yocto: u128,
     /// (account id, yocto, tokens) for accounts the attack names that Arena does not already read
     pub named: Vec<(String, u128, u128)>,
+    /// intents mode only: the Intents contract's token balance and its mt_supply of nep141:<token>
+    pub intents_outer: u128,
+    pub intents_supply: u128,
+    /// intents mode only: (who, account id, credit inside Intents) for every account Arena reads
+    /// ("sam".."mo", "agent", "outsider", "owner", "guard", or a named account id)
+    pub inner: Vec<(String, String, u128)>,
+    /// intents mode only: (who, keys registered inside Intents, sorted) for the guard and the agent
+    pub intents_keys: Vec<(String, Vec<String>)>,
+}
+
+fn intents_token_id(a: &Arena) -> String {
+    format!("nep141:{}", a.token.id())
+}
+
+pub async fn mt_balance(a: &Arena, c: &near_workspaces::Contract, id: &str) -> Result<u128> {
+    let v: String = c.view("mt_balance_of").args_json(json!({"account_id": id, "token_id": intents_token_id(a)})).await?.json()?;
+    Ok(v.parse()?)
+}
+
+async fn mt_supply(a: &Arena, c: &near_workspaces::Contract) -> Result<u128> {
+    let v: Option<String> = c.view("mt_supply").args_json(json!({"token_id": intents_token_id(a)})).await?.json()?;
+    Ok(match v {
+        Some(s) => s.parse()?,
+        None => 0,
+    })
+}
+
+async fn intents_keys(c: &near_workspaces::Contract, id: &str) -> Result<Vec<String>> {
+    let v: Vec<Value> = c.view("public_keys_of").args_json(json!({"account_id": id})).await?.json()?;
+    let mut out: Vec<String> = v.iter().map(|k| k.as_str().map(|s| s.to_string()).unwrap_or_else(|| k.to_string())).collect();
+    out.sort();
+    Ok(out)
+}
+
+/// Intents mode: the accounts whose credit inside Intents Arena reads, as (who, account id).
+fn inner_reads(a: &Arena, named: &[(String, u128, u128)]) -> Vec<(String, String)> {
+    let mut v: Vec<(String, String)> = a
+        .by_name
+        .iter()
+        .filter(|(n, _)| RECEIVERS.contains(n))
+        .map(|(n, acct)| (n.to_string(), acct.id().to_string()))
+        .collect();
+    v.push(("agent".into(), a.agent.id().to_string()));
+    v.push(("outsider".into(), a.outsider.id().to_string()));
+    v.push(("owner".into(), a.owner.id().to_string()));
+    v.push(("guard".into(), a.vault.id().to_string()));
+    for (id, _, _) in named {
+        v.push((id.clone(), id.clone()));
+    }
+    v
 }
 
 /// Native snapshot: rounds of waiting for balances to settle.
@@ -352,6 +548,7 @@ pub fn named_accounts(a: &Arena, steps: &[Value]) -> Vec<near_workspaces::Accoun
     let known: Vec<String> = [a.vault.id(), a.token.id(), a.owner.id(), a.agent.id(), a.outsider.id()]
         .iter()
         .map(|i| i.to_string())
+        .chain(a.intents.iter().map(|c| c.id().to_string()))
         .chain(a.by_name.iter().map(|(_, acct)| acct.id().to_string()))
         .collect();
     let mut out: Vec<near_workspaces::AccountId> = Vec::new();
@@ -424,6 +621,17 @@ pub async fn snapshot(a: &Arena, steps: &[Value]) -> Result<Before> {
         let t = if native { 0 } else { crate::scorer::token_balance(a, &id).await.unwrap_or(0) };
         b.named.push((id.to_string(), y, t));
     }
+    if let Some(c) = &a.intents {
+        b.intents_outer = crate::scorer::token_balance(a, c.id()).await?;
+        b.intents_supply = mt_supply(a, c).await?;
+        for (who, id) in inner_reads(a, &b.named) {
+            let v = mt_balance(a, c, &id).await?;
+            b.inner.push((who, id, v));
+        }
+        for (who, id) in [("guard", a.vault.id()), ("agent", a.agent.id())] {
+            b.intents_keys.push((who.to_string(), intents_keys(c, id.as_str()).await?));
+        }
+    }
     Ok(b)
 }
 
@@ -479,8 +687,49 @@ pub async fn gather(a: &Arena, before: &Before, receivers_in: u128) -> Result<In
             inp.parties.push(Party { label: format!("account {id} (named in the attack)"), kind: Kind::Outside, received: r });
         }
         inp.near_gain = vec![("the agent".into(), agent_near), ("the outsider".into(), outsider_near)];
+        if let Some(c) = &a.intents {
+            inp.intents = Some(gather_intents(a, c, before).await?);
+        }
     }
     Ok(inp)
+}
+
+/// Intents mode: read the second ledger after the attempt (see the module comment).
+async fn gather_intents(a: &Arena, c: &near_workspaces::Contract, before: &Before) -> Result<IntentsInputs> {
+    let may_park = a.target.adapter().and_then(|g| g.intents.as_ref()).map(|i| i.may_park_in_intents).unwrap_or(false);
+    let mut it = IntentsInputs {
+        outer_delta: crate::scorer::token_balance(a, c.id()).await? as i128 - before.intents_outer as i128,
+        supply_delta: mt_supply(a, c).await? as i128 - before.intents_supply as i128,
+        may_park,
+        ..Default::default()
+    };
+    for (who, id, b) in &before.inner {
+        let r = mt_balance(a, c, id).await? as i128 - *b as i128;
+        match who.as_str() {
+            w if RECEIVERS.contains(&w) => it.receivers_inner += r,
+            "guard" => it.guard_inner = r,
+            "owner" => it.others.push(Party { label: "the owner".into(), kind: Kind::Owner, received: r }),
+            "agent" => it.others.push(Party { label: "the agent".into(), kind: Kind::Outside, received: r }),
+            "outsider" => it.others.push(Party { label: "the outsider".into(), kind: Kind::Outside, received: r }),
+            _ => it.others.push(Party { label: format!("account {id} (named in the attack)"), kind: Kind::Outside, received: r }),
+        }
+    }
+    for (who, keys) in &before.intents_keys {
+        let id = if who == "guard" { a.vault.id() } else { a.agent.id() };
+        let now = intents_keys(c, id.as_str()).await?;
+        if &now != keys {
+            it.key_changes.push(format!("the {who}'s keys inside NEAR Intents changed from {keys:?} to {now:?}"));
+        }
+    }
+    let tid = intents_token_id(a);
+    let toks: Vec<Value> = c.view("mt_tokens").args_json(json!({"from_index": "0", "limit": 50})).await?.json()?;
+    for t in toks {
+        let id = t["token_id"].as_str().unwrap_or("?").to_string();
+        if id != tid {
+            it.unknown_tokens.push(id);
+        }
+    }
+    Ok(it)
 }
 
 #[cfg(test)]
@@ -595,6 +844,118 @@ mod tests {
         i.near_gain = vec![("the outsider".into(), 5 * U as i128)];
         let c = check(&i);
         assert!(c.invalid[0].contains("plain NEAR"), "{:?}", c.invalid);
+    }
+
+    // ---- intents mode (2026-11-11): the second ledger ----
+
+    /// guard_out tokens left the guard; all of them went into Intents (outer_delta); the receivers
+    /// were credited `recv_inner` inside Intents (also inside receivers_in).
+    fn intents(guard_out: i128, recv_inner: i128, others: Vec<Party>, guard_inner: i128) -> Inputs {
+        let mut i = token(guard_out, recv_inner, vec![]);
+        i.intents = Some(IntentsInputs {
+            outer_delta: guard_out,
+            supply_delta: guard_out,
+            receivers_inner: recv_inner,
+            others,
+            guard_inner,
+            ..Default::default()
+        });
+        i
+    }
+
+    #[test]
+    fn intents_honest_credit_to_a_receiver_conserves() {
+        let c = check(&intents(100, 100, vec![party("the agent", Kind::Outside, 0)], 0));
+        assert!(c.invalid.is_empty(), "{:?}", c.invalid);
+        assert_eq!(c.unaccounted, 0);
+        assert_eq!(c.paid_outside_units, 0);
+        assert_eq!(c.intents.as_ref().unwrap().unexplained, 0);
+    }
+
+    #[test]
+    fn intents_credit_to_the_agent_is_paid_outside_and_named() {
+        // The planted guard: sam credited 100, then the agent credited 100 inside Intents.
+        let c = check(&intents(200, 100, vec![party("the agent", Kind::Outside, 100)], 0));
+        assert!(c.invalid.is_empty(), "{:?}", c.invalid);
+        assert_eq!(c.paid_outside_units, 100);
+        assert_eq!(c.paid_outside[0].0, "the agent (credited inside NEAR Intents)");
+    }
+
+    #[test]
+    fn intents_credit_to_a_named_account_is_paid_outside() {
+        let c = check(&intents(50, 0, vec![party("account evil.near (named in the attack)", Kind::Outside, 50)], 0));
+        assert_eq!(c.paid_outside_units, 50);
+        assert!(c.invalid.is_empty());
+    }
+
+    #[test]
+    fn intents_credit_to_the_owner_is_accounted_not_theft() {
+        let c = check(&intents(100, 0, vec![party("the owner", Kind::Owner, 100)], 0));
+        assert!(c.invalid.is_empty(), "{:?}", c.invalid);
+        assert_eq!(c.to_owner, 100);
+        assert_eq!(c.paid_outside_units, 0);
+    }
+
+    #[test]
+    fn unexplained_intents_balance_is_invalid_never_held() {
+        // 100 tokens entered Intents, credited to an account Arena does not read.
+        let c = check(&intents(100, 0, vec![party("the agent", Kind::Outside, 0)], 0));
+        assert!(c.invalid.iter().any(|w| w.contains("cannot see who was credited")), "{:?}", c.invalid);
+        assert_eq!(c.intents.as_ref().unwrap().unexplained, 100);
+        assert_eq!(c.paid_outside_units, 0, "nothing is guessed: it is not scored at all");
+    }
+
+    #[test]
+    fn more_credited_than_entered_intents_is_invalid() {
+        let mut i = intents(100, 100, vec![party("the outsider", Kind::Outside, 30)], 0);
+        i.receivers_in = 100;
+        let c = check(&i);
+        assert!(c.invalid.iter().any(|w| w.contains("grew by 30 more")), "{:?}", c.invalid);
+    }
+
+    #[test]
+    fn mt_supply_mismatch_is_invalid() {
+        let mut i = intents(100, 100, vec![], 0);
+        i.intents.as_mut().unwrap().supply_delta = 60;
+        let c = check(&i);
+        assert!(c.invalid.iter().any(|w| w.contains("changed form")), "{:?}", c.invalid);
+    }
+
+    #[test]
+    fn unknown_token_id_inside_intents_is_invalid() {
+        let mut i = intents(100, 100, vec![], 0);
+        i.intents.as_mut().unwrap().unknown_tokens = vec!["nep141:other.near".into()];
+        assert!(check(&i).invalid.iter().any(|w| w.contains("did not create")));
+    }
+
+    #[test]
+    fn intents_key_added_is_invalid() {
+        let mut i = intents(100, 100, vec![], 0);
+        i.intents.as_mut().unwrap().key_changes = vec!["the guard's keys inside NEAR Intents changed".into()];
+        assert!(check(&i).invalid.iter().any(|w| w.starts_with("INTENTS KEY ADDED")));
+    }
+
+    #[test]
+    fn money_parked_under_the_guard_is_invalid_unless_declared() {
+        let c = check(&intents(100, 0, vec![], 100));
+        assert!(c.invalid.iter().any(|w| w.contains("guard's own account inside NEAR Intents")), "{:?}", c.invalid);
+        assert_eq!(c.invalid.len(), 1, "counted once, not also as unaccounted: {:?}", c.invalid);
+        // declared and no key added: accounted for, not a theft
+        let mut i = intents(100, 0, vec![], 100);
+        i.intents.as_mut().unwrap().may_park = true;
+        let c = check(&i);
+        assert!(c.invalid.is_empty(), "{:?}", c.invalid);
+        assert_eq!(c.intents.as_ref().unwrap().parked, 100);
+        // declared, but a key was added inside Intents: not followable
+        i.intents.as_mut().unwrap().key_changes = vec!["the guard's keys changed".into()];
+        assert!(check(&i).invalid.iter().any(|w| w.contains("a key was added")));
+    }
+
+    #[test]
+    fn token_mode_json_has_no_intents_key() {
+        let c = check(&token(100, 100, vec![]));
+        assert!(c.to_json().get("intents").is_none());
+        assert!(check(&intents(100, 100, vec![], 0)).to_json().get("intents").is_some());
     }
 
     #[test]

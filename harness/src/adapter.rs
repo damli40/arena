@@ -51,7 +51,22 @@ pub const CHOICES: [(&str, &[&str]); 9] = [
     ("paid_value", &["Paid", "paid", "PAID"]),
 ];
 
-pub const PLACEHOLDERS: [&str; 5] = ["$owner", "$agent", "$token", "$daily_cap", "$daily_cap_number"];
+pub const PLACEHOLDERS: [&str; 6] = ["$owner", "$agent", "$token", "$daily_cap", "$daily_cap_number", "$intents"];
+
+/// `"pays_in": "intents"` (2026-11-11): how the guard pays into NEAR Intents. Closed lists only.
+/// Mirrored in tools/check/guard_config.py (INTENTS_KEYS, BENEFICIARY_IN_MSG).
+pub const BENEFICIARY_IN_MSG: [&str; 2] = ["account_id", "json_receiver_id"];
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct IntentsCfg {
+    /// which `msg` shape the guard writes on `ft_transfer_call` (declared, printed; scoring reads
+    /// Intents' own ledger whatever the guard writes)
+    pub beneficiary_in_msg: String,
+    /// money credited to the guard's OWN account inside Intents is accepted as "parked" (not moved)
+    /// only when this is true AND the guard has no key registered inside Intents. Default false:
+    /// money parked there makes the attempt not finish.
+    pub may_park_in_intents: bool,
+}
 
 /// Rules the guard claims. A rule it does not claim is not scored, and the starting invoices
 /// that need it are never created (they authorise nothing).
@@ -80,10 +95,14 @@ pub struct GuardConfig {
     /// tokens. Amounts it is given are then yoctoNEAR (`setup::NATIVE_UNIT` per Arena unit), and
     /// it is scored from receivers' native balances (scorer.rs). Default false ("token").
     pub native: bool,
+    /// `"pays_in": "intents"`: the guard pays by depositing test tokens into the NEAR Intents
+    /// contract (setup deploys the pinned release wasm) crediting the receiver there. Scored from
+    /// token balances PLUS each account's credit inside Intents (`mt_balance_of`). None otherwise.
+    pub intents: Option<IntentsCfg>,
 }
 
 /// The values `pays_in` may take. Mirrored in tools/check/guard_config.py (PAYS_IN).
-pub const PAYS_IN: [&str; 2] = ["token", "native"];
+pub const PAYS_IN: [&str; 3] = ["token", "native", "intents"];
 
 fn method_name_ok(s: &str) -> bool {
     let b = s.as_bytes();
@@ -128,6 +147,7 @@ impl GuardConfig {
             shapes,
             deposits,
             native: false,
+            intents: None,
         }
     }
 
@@ -144,15 +164,38 @@ impl GuardConfig {
     pub fn from_value(file: &str, v: &Value) -> Result<Self> {
         let mut c = Self::vault_a_default(file);
         let top = obj(v, "guard config")?;
-        no_unknown(top, &["arena_guard_config", "pays_in", "init", "features", "methods", "shapes", "deposits"], "guard config")?;
+        no_unknown(top, &["arena_guard_config", "pays_in", "intents", "init", "features", "methods", "shapes", "deposits"], "guard config")?;
         if top.get("arena_guard_config") != Some(&json!(1)) {
             bail!("guard config: \"arena_guard_config\": 1 is required");
         }
         c.native = match top.get("pays_in") {
             None => false,
             Some(Value::String(s)) if PAYS_IN.contains(&s.as_str()) => s == "native",
-            Some(other) => bail!("pays_in: {other} is not allowed; use \"token\" or \"native\""),
+            Some(other) => bail!("pays_in: {other} is not allowed; use \"token\", \"native\" or \"intents\""),
         };
+        let pays_intents = top.get("pays_in").and_then(|v| v.as_str()) == Some("intents");
+        match top.get("intents") {
+            Some(_) if !pays_intents => bail!("intents: this block is only allowed with \"pays_in\": \"intents\""),
+            Some(b) => {
+                let b = obj(b, "intents")?;
+                no_unknown(b, &["beneficiary_in_msg", "may_park_in_intents"], "intents")?;
+                let ben = match b.get("beneficiary_in_msg") {
+                    None => "account_id".to_string(),
+                    Some(Value::String(s)) if BENEFICIARY_IN_MSG.contains(&s.as_str()) => s.clone(),
+                    Some(other) => bail!("intents.beneficiary_in_msg: {other} is not one of {BENEFICIARY_IN_MSG:?}"),
+                };
+                let park = match b.get("may_park_in_intents") {
+                    None => false,
+                    Some(Value::Bool(x)) => *x,
+                    Some(_) => bail!("intents.may_park_in_intents must be true or false"),
+                };
+                c.intents = Some(IntentsCfg { beneficiary_in_msg: ben, may_park_in_intents: park });
+            }
+            None if pays_intents => {
+                c.intents = Some(IntentsCfg { beneficiary_in_msg: "account_id".to_string(), may_park_in_intents: false })
+            }
+            None => {}
+        }
         if let Some(init) = top.get("init") {
             let init = obj(init, "init")?;
             no_unknown(init, &["method", "args"], "init")?;
@@ -213,6 +256,13 @@ impl GuardConfig {
             && !c.init_args.values().any(|v| matches!(v.as_str(), Some("$daily_cap") | Some("$daily_cap_number")))
         {
             bail!("init.args: the guard claims the daily cap, so its init must take Arena's cap through \"$daily_cap\" or \"$daily_cap_number\"");
+        }
+        let uses_intents = c.init_args.values().any(|v| v.as_str() == Some("$intents"));
+        if uses_intents && c.intents.is_none() {
+            bail!("init.args: \"$intents\" is only filled in with \"pays_in\": \"intents\"");
+        }
+        if c.intents.is_some() && !uses_intents {
+            bail!("init.args: a guard that pays into NEAR Intents must take the Intents contract's account through \"$intents\"");
         }
         if let Some(m) = top.get("methods") {
             let m = obj(m, "methods")?;
@@ -299,6 +349,17 @@ impl GuardConfig {
             }
         }
         (out, notes)
+    }
+
+    /// "token", "native" or "intents".
+    pub fn pays_in(&self) -> &'static str {
+        if self.native {
+            "native"
+        } else if self.intents.is_some() {
+            "intents"
+        } else {
+            "token"
+        }
     }
 
     fn shape(&self, k: &str) -> &str {
@@ -395,7 +456,13 @@ impl GuardConfig {
     }
 
     /// Init args with placeholders filled in.
+    #[allow(dead_code)] // setup.rs calls init_args_with; kept for the tests and other callers
     pub fn init_args(&self, owner: &str, agent: &str, token: &str, daily_cap: u128) -> Value {
+        self.init_args_with(owner, agent, token, daily_cap, None)
+    }
+
+    /// Same, with the Intents contract's account for `$intents` (intents mode only).
+    pub fn init_args_with(&self, owner: &str, agent: &str, token: &str, daily_cap: u128, intents: Option<&str>) -> Value {
         let mut out = Map::new();
         for (k, v) in &self.init_args {
             let filled = match v.as_str() {
@@ -404,6 +471,10 @@ impl GuardConfig {
                 Some("$token") => json!(token),
                 Some("$daily_cap") => json!(daily_cap.to_string()),
                 Some("$daily_cap_number") => json!(daily_cap as u64),
+                Some("$intents") => match intents {
+                    Some(i) => json!(i),
+                    None => v.clone(),
+                },
                 _ => v.clone(),
             };
             out.insert(k.clone(), filled);
@@ -424,10 +495,14 @@ impl GuardConfig {
             .filter(|(k, v)| self.shape(k) != v[0])
             .map(|(k, _)| format!("{k}={}", self.shape(k)))
             .collect();
+        let intents = match &self.intents {
+            Some(i) => format!(" intents(beneficiary_in_msg={}, may_park_in_intents={})", i.beneficiary_in_msg, i.may_park_in_intents),
+            None => String::new(),
+        };
         format!(
-            "file={} pays_in={} init={} features(payees={}, cancel={}, expiry={}, daily_cap={}) renamed=[{}] shapes=[{}] deposits={:?}",
+            "file={} pays_in={}{intents} init={} features(payees={}, cancel={}, expiry={}, daily_cap={}) renamed=[{}] shapes=[{}] deposits={:?}",
             self.file,
-            if self.native { "native" } else { "token" },
+            self.pays_in(),
             self.init_method,
             self.features.payees,
             self.features.cancel,
@@ -554,6 +629,36 @@ mod tests {
         assert_eq!(ms.expiry_ns_exact(ns + 123), 1_700_000_020_700_000_000);
         let n = cfg(json!({"arena_guard_config": 1})).unwrap();
         assert_eq!(n.expiry_ns_exact(ns + 123), ns + 123);
+    }
+
+    #[test]
+    fn pays_in_intents() {
+        let base = json!({"owner": "$owner", "agent": "$agent", "token": "$token", "intents": "$intents", "daily_cap": "$daily_cap"});
+        let c = cfg(json!({"arena_guard_config": 1, "pays_in": "intents", "init": {"args": base.clone()}})).unwrap();
+        assert!(!c.native);
+        assert_eq!(c.pays_in(), "intents");
+        assert_eq!(c.intents, Some(IntentsCfg { beneficiary_in_msg: "account_id".into(), may_park_in_intents: false }));
+        assert_eq!(c.init_args_with("o", "a", "t", 500, Some("i.near"))["intents"], json!("i.near"));
+        let c = cfg(json!({"arena_guard_config": 1, "pays_in": "intents", "init": {"args": base.clone()},
+            "intents": {"beneficiary_in_msg": "json_receiver_id", "may_park_in_intents": true}})).unwrap();
+        assert!(c.intents.as_ref().unwrap().may_park_in_intents);
+        assert!(c.describe().contains("pays_in=intents intents(beneficiary_in_msg=json_receiver_id"));
+        // refused: the block without the mode, $intents without the mode, the mode without $intents,
+        // unknown keys and values off the closed lists
+        let bad = [
+            json!({"arena_guard_config": 1, "intents": {}}),
+            json!({"arena_guard_config": 1, "init": {"args": base.clone()}}),
+            json!({"arena_guard_config": 1, "pays_in": "intents"}),
+            json!({"arena_guard_config": 1, "pays_in": "intents", "init": {"args": base.clone()}, "intents": {"x": 1}}),
+            json!({"arena_guard_config": 1, "pays_in": "intents", "init": {"args": base.clone()}, "intents": {"beneficiary_in_msg": "memo"}}),
+            json!({"arena_guard_config": 1, "pays_in": "intents", "init": {"args": base.clone()}, "intents": {"may_park_in_intents": "no"}}),
+            json!({"arena_guard_config": 1, "pays_in": "intents", "init": {"args": base.clone()}, "intents": []}),
+        ];
+        for b in bad {
+            assert!(cfg(b.clone()).is_err(), "should refuse {b}");
+        }
+        // token mode's description is unchanged
+        assert!(cfg(json!({"arena_guard_config": 1})).unwrap().describe().contains("pays_in=token init=new"));
     }
 
     /// tools/check/tests/validator-cases.json is read by BOTH validators (this test and

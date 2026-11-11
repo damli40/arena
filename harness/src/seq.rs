@@ -3,7 +3,8 @@
 //! ```json
 //! { "name": "short-name",
 //!   "steps": [
-//!     {"call":  {"actor": "agent" | "outsider", "target": "vault" | "token" (default vault),
+//!     {"call":  {"actor": "agent" | "outsider", "target": "vault" | "token" | "intents" (default vault;
+//!                "intents" only for a guard whose config says "pays_in": "intents"),
 //!                "method": "pay", "args": {...}, "gas_tgas": 100 (optional), "deposit_yocto": 1 (optional)}},
 //!     {"view": {"target": ..., "method": "get_invoice", "args": {...}}},
 //!     {"race": [ <call step>, <call step> ]},
@@ -72,6 +73,10 @@ fn target_id<'a>(a: &'a Arena, c: &Value) -> Result<(&'a near_workspaces::Accoun
     match c.get("target").and_then(|t| t.as_str()).unwrap_or("vault") {
         "vault" => Ok((a.vault.id(), "vault")),
         "token" => Ok((a.token.id(), "token")),
+        "intents" => match &a.intents {
+            Some(c) => Ok((c.id(), "intents")),
+            None => bail!("target \"intents\" needs a guard whose config says \"pays_in\": \"intents\" (no NEAR Intents contract was deployed)"),
+        },
         t => bail!("unknown target {t:?}"),
     }
 }
@@ -111,7 +116,32 @@ fn translate_args(a: &Arena, args: Value, step: usize) -> Value {
 }
 
 fn args_of(a: &Arena, c: &Value, step: usize) -> Value {
-    translate_args(a, c.get("args").cloned().unwrap_or(json!({})), step)
+    let v = translate_args(a, c.get("args").cloned().unwrap_or(json!({})), step);
+    if c.get("target").and_then(|t| t.as_str()) == Some("intents") {
+        intents_token_names(a, v, step)
+    } else {
+        v
+    }
+}
+
+/// Steps sent to NEAR Intents only (2026-11-11): an attack cannot know this attempt's token
+/// account, so it writes `"token": "token"` or `"token_id": "nep141:token"` and the harness fills
+/// in the real id (printed). Every other target is untouched.
+fn intents_token_names(a: &Arena, args: Value, step: usize) -> Value {
+    let mut m = match args {
+        Value::Object(m) => m,
+        other => return other,
+    };
+    for (k, logical, real) in [
+        ("token", "token".to_string(), a.token.id().to_string()),
+        ("token_id", "nep141:token".to_string(), format!("nep141:{}", a.token.id())),
+    ] {
+        if m.get(k).and_then(|x| x.as_str()) == Some(logical.as_str()) {
+            println!("  FORMAT FIX step {step}: logical name {logical:?} in arg {k:?} resolved to {real}");
+            m.insert(k.into(), Value::String(real));
+        }
+    }
+    Value::Object(m)
 }
 
 /// Block timestamp (ns) of the first outcome of a tx = the block where the
@@ -341,6 +371,8 @@ async fn do_view(a: &Arena, i: usize, v: &Value) -> Result<StepOutcome> {
     let (vm, sent) = adapt(a, i, tgt_name, m, &args);
     let res = if tgt == a.vault.id() {
         a.vault.view(&vm).args_json(sent).await
+    } else if let Some(c) = a.intents.as_ref().filter(|_| tgt_name == "intents") {
+        c.view(m).args_json(args.clone()).await
     } else {
         a.token.view(m).args_json(args.clone()).await
     };
@@ -515,6 +547,12 @@ pub fn load_sequence(path: &std::path::Path) -> Result<(String, Vec<Value>)> {
 /// statuses, and the score.
 pub fn outcome_json(a: &Arena, name: &str, outcome: &[StepOutcome], s: &crate::scorer::Score) -> Value {
     let mut v = outcome_json_base(a, name, outcome, s);
+    // Intents mode only: each receiver's two ledgers (token contract, credit inside Intents).
+    if a.intents.is_some() {
+        v["score"]["intents_received"] = json!(s.intents_rows.iter().map(|(r, o, i)| json!({
+            "receiver": r, "on_token": o.to_string(), "credited_inside_intents": i.to_string(),
+        })).collect::<Vec<_>>());
+    }
     // `--guard-config` targets only (arena check): which starting invoices were created and
     // which rules the guard claims, so the check can tell "held" from "nothing it claims was
     // tested". Every other target writes exactly the JSON it wrote before.
@@ -523,7 +561,7 @@ pub fn outcome_json(a: &Arena, name: &str, outcome: &[StepOutcome], s: &crate::s
             "arena_daily_cap": crate::setup::DAILY_CAP.to_string(),
             // What the money was measured in. Amounts in this file are Arena units either way:
             // tokens, or (native) 1 unit = unit_yocto yoctoNEAR = 1 milliNEAR.
-            "pays_in": if c.native { "native" } else { "token" },
+            "pays_in": c.pays_in(),
             "unit_yocto": if c.native { crate::setup::NATIVE_UNIT.to_string() } else { "1".to_string() },
             "features": {"payees": c.features.payees, "cancel": c.features.cancel,
                          "expiry": c.features.expiry, "daily_cap": c.features.daily_cap},

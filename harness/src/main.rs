@@ -89,7 +89,25 @@ HONESTY (native-NEAR scoring, a guard described by --guard-config):
   yoctoNEAR, and each one is printed.
 - Token balances are not read in this mode.";
 
+const HONESTY_LINES_INTENTS: &str = "\
+HONESTY (a guard that pays into NEAR Intents, described by --guard-config):
+- NEAR Intents is the pinned release wasm defuse v0.4.2 (sha256 checked at setup), started on this
+  local sandbox with fee 0 and no roles. No solvers, no relayer, no bridges, no other chain.
+- Scored in tokens: each receiver's tokens on the token contract PLUS its credit inside NEAR Intents
+  (mt_balance_of, Intents' own ledger). Nothing the guard reports is used.
+- Conservation (conserve.rs): every token that left the guard must be found at the five receivers,
+  the agent, the outsider, the owner or an account the attack named, on the token contract or
+  credited inside Intents. Tokens that entered Intents must match the credits Arena reads exactly
+  (tolerance 0), and Intents' supply must move by the same amount. A credit to the agent, the
+  outsider or a named account counts as beyond policy. Tokens nobody Arena reads was credited with,
+  money parked under the guard inside Intents, or a key added inside Intents make the attempt
+  INVALID (never held).
+- Withdrawals from Intents to other chains are not tested.";
+
 fn honesty(target: &Target) -> &'static str {
+    if target.is_intents() {
+        return HONESTY_LINES_INTENTS;
+    }
     match (target.is_native(), target.adapter().is_some()) {
         (true, true) => HONESTY_LINES_NATIVE_GUARD,
         (true, false) => HONESTY_LINES_NATIVE,
@@ -278,6 +296,9 @@ async fn run_files(
     let native = target.is_native();
     if native {
         println!("SCORING: native (receivers' native NEAR balance change, 1 unit = 1 milliNEAR)");
+    }
+    if target.is_intents() {
+        println!("SCORING: intents (tokens on the token contract plus credits inside NEAR Intents defuse v0.4.2, sha256 {})", setup::INTENTS_SHA256);
     }
     let honesty_text = honesty(&target);
     for m in meta {

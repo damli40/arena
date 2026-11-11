@@ -24,6 +24,12 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 pub const TOKEN_WASM: &str = "../contracts/target/wasm32-unknown-unknown/release/test_token.wasm";
 
+/// NEAR Intents (source name "defuse"), the pinned release wasm (targets/intents-defuse-v0.4.2/FROZEN.txt).
+/// Deployed only for a guard whose config says `"pays_in": "intents"`; setup refuses to run if
+/// the file's sha256 is not this one.
+pub const INTENTS_WASM: &str = "../targets/intents-defuse-v0.4.2/defuse.wasm";
+pub const INTENTS_SHA256: &str = "f67f9559b3b512c52dfa11723a28b9119bcf773ac01780370d6409e5f1fb20e5";
+
 /// Which vault contract the arena deploys. vault-a is the frozen target;
 /// leaky-control is the deliberately vulnerable positive-control fixture
 /// (fix 1): same interface, marks an invoice paid only in the callback.
@@ -86,6 +92,11 @@ impl Target {
             Target::Guard { fixed: true } => "guard-fixed".to_string(),
             Target::Guard { fixed: false } => "guard-vulnerable".to_string(),
         }
+    }
+    /// `"pays_in": "intents"` (2026-11-11): setup deploys NEAR Intents and the guard pays into it.
+    /// Scored in tokens: outer token balances plus each account's credit inside Intents.
+    pub fn is_intents(&self) -> bool {
+        matches!(self, Target::Configured { cfg, .. } if cfg.intents.is_some())
     }
     /// Native-NEAR scoring: invoices and the cap are in native NEAR
     /// (`NATIVE_UNIT` yocto per unit), and payouts are read from receivers'
@@ -236,6 +247,8 @@ pub struct Arena {
     pub outsider: Account,
     pub token: Contract,
     pub vault: Contract,
+    /// The NEAR Intents contract (intents mode only, see `Target::is_intents`); None otherwise.
+    pub intents: Option<Contract>,
     pub by_name: Vec<(&'static str, Account)>,
     pub manifest: Manifest,
     pub target: Target,
@@ -387,11 +400,39 @@ pub async fn setup(target: Target) -> Result<Arena> {
         .transact()
         .await?)?;
 
+    // Intents mode only: deploy the pinned NEAR Intents release wasm and start it with the same
+    // minimal arguments its own repo's tests use (zero fee, no roles). `wnear_id` matters only
+    // for native-NEAR withdrawals, which Arena never makes; it points at the test token.
+    let intents = if target.is_intents() {
+        let path = resolve(INTENTS_WASM);
+        let sha = sha256_file(&path)?;
+        if sha != INTENTS_SHA256 {
+            bail!("SETUP: {} has sha256 {sha}, not the pinned {INTENTS_SHA256} (targets/intents-defuse-v0.4.2/FROZEN.txt); Arena will not score against an unknown Intents build", path.display());
+        }
+        let c = worker.dev_deploy(&std::fs::read(&path)?).await?;
+        ok(c.call("new")
+            .args_json(json!({"config": {"wnear_id": token.id(), "fees": {"fee": 0, "fee_collector": owner.id()}, "roles": {}}}))
+            .max_gas()
+            .transact()
+            .await?)
+        .context("SETUP STEP intents init: NEAR Intents `new` failed")?;
+        println!("INTENTS: deployed {} (defuse v0.4.2, sha256 {sha}), fee 0, no roles", c.id());
+        Some(c)
+    } else {
+        None
+    };
+
     // Vault: `new` may only be called by the vault account itself
     // (INTERFACE.md: "the vault account itself only (deploy + init)").
     let is_guard = target.is_contracts_guard();
     if let Some(c) = &adapter {
-        let args = c.init_args(owner.id().as_str(), agent_full_access.id().as_str(), token.id().as_str(), DAILY_CAP * unit);
+        let args = c.init_args_with(
+            owner.id().as_str(),
+            agent_full_access.id().as_str(),
+            token.id().as_str(),
+            DAILY_CAP * unit,
+            intents.as_ref().map(|i| i.id().as_str()),
+        );
         println!("ADAPTER init: {}({})", c.init_method, args);
         ok(vault.call(&c.init_method).args_json(args).transact().await?)
             .with_context(|| format!("SETUP STEP init: the guard's init call `{}` failed", c.init_method))?;
@@ -428,6 +469,10 @@ pub async fn setup(target: Target) -> Result<Arena> {
     } else {
         // Register vault + all receivers with the token.
         let mut register = vec![vault.id().clone()];
+        // Intents mode: the Intents contract receives ft_transfer_call, so the token must know it.
+        if let Some(i) = &intents {
+            register.push(i.id().clone());
+        }
         for (_, acct) in by_name.iter().filter(|(n, _)| RECEIVERS.contains(n)) {
             register.push(acct.id().clone());
         }
@@ -664,6 +709,26 @@ pub async fn setup(target: Target) -> Result<Arena> {
         }
     }
 
+    // Intents mode: every account Arena reads starts with no credit inside Intents, and the guard
+    // has no key registered there (a key there would be a second way to move its money).
+    if let Some(i) = &intents {
+        let tid = format!("nep141:{}", token.id());
+        let mut read: Vec<(String, near_workspaces::AccountId)> =
+            by_name.iter().map(|(n, a)| (n.to_string(), a.id().clone())).collect();
+        read.push(("guard".into(), vault.id().clone()));
+        read.push(("owner".into(), owner.id().clone()));
+        for (name, id) in read {
+            let v: String = i.view("mt_balance_of").args_json(json!({"account_id": id, "token_id": tid})).await?.json()?;
+            if v != "0" {
+                bail!("{name} starts with {v} credited inside NEAR Intents; scoring requires 0");
+            }
+        }
+        let keys: Vec<serde_json::Value> = i.view("public_keys_of").args_json(json!({"account_id": vault.id()})).await?.json()?;
+        if !keys.is_empty() {
+            bail!("the guard starts with keys registered inside NEAR Intents ({keys:?}); scoring requires none");
+        }
+    }
+
     let mut native_before = Vec::new();
     if native {
         for (name, acct) in by_name.iter().filter(|(n, _)| RECEIVERS.contains(n)) {
@@ -687,6 +752,7 @@ pub async fn setup(target: Target) -> Result<Arena> {
         outsider,
         token,
         vault,
+        intents,
         by_name,
         manifest,
         target,
