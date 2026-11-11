@@ -8,12 +8,12 @@ that breaks the property:
 
 > an invoice is never paid more than its amount, and a failed transfer leaves it payable.
 
-Plan (written before running): `../evidence/tla-plan.md`. Results: `../evidence/tla-2026-11-10.md`.
+Plan (written before running): `../evidence/tla-plan.md`. Results: `../evidence/tla-2026-11-11/` (the Nov 10 run: `../evidence/tla-2026-11-10.md`).
 
 ## Run
 
 ```sh
-./run.sh                 # all 19 checks (17 original + 2 added Nov 10); exits 0 only if every one matches the plan
+./run.sh                 # all 25 checks; exits 0 only if every one matches the plan
 ./run.sh vuln_race       # one check by name
 python3 -I trace.py build/vuln_race/tlc.out   # a counterexample as one line per step
 ```

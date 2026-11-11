@@ -52,12 +52,10 @@ About 2.6 GB for those four, plus Rust toolchains and the cargo download cache (
 ## Time
 | Command | Time | Condition | Source |
 |---|---|---|---|
-| `./verify.sh` (full, 32 checks) | 14 min 01 s | fresh copy, no build folders, Apple silicon, Nov 9 | `README.md` "Check every claim at once"; `REPORT-foundation-2026-11-09.md` |
-| `./verify.sh fast` (5 checks) | 3 min 16 s | **warm** build (ran after the full run in the same copy) | same |
-| `./verify.sh fast`, cold | `[PENDING: cold-fast timing, not yet measured]` | | |
+| `./verify.sh` (full, 43 checks) | 943 to 965 s (four runs) | Apple silicon, Nov 10 (whether the builds were warm is not recorded) | `evidence/verify-summary.log` |
+| `./verify.sh fast` (5 checks) | 196 s | **warm** build (build folders already there) | `evidence/verify-summary.log` |
+| `./verify.sh fast`, cold | 481 s | fresh copy with no build folders, Rust and the cargo cache already installed, Nov 9 | `evidence/verify-cold-fast-2026-11-09.log` |
 | `./run.sh` alone | about 3 min | README says "~3 minutes" (not stated warm or cold) | `README.md` section 1 |
-
-The 14 min figure is agent-reported in the foundation report; the main session could not confirm the final `verify:` line from a file.
 
 ## Linux notes (all GUESS, untested)
 - `shasum` is used in `run-arena.sh`. It ships with Perl on many distributions (Debian/Ubuntu: package `perl`) but is not guaranteed. If missing, install it or create a `shasum` wrapper around `sha256sum`. A missing `shasum` would show up as `command not found` and a failed frozen check.

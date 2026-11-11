@@ -504,7 +504,7 @@ document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
 `;
 
 // ---------------------------------------------------------------- labels
-// Dami asked for a labelled drawing. The labels sit in their own layer over the figure, in the empty
+// A labelled drawing. The labels sit in their own layer over the figure, in the empty
 // margins, so the machine itself stays clean. Each points at a world position projected with the
 // figure's own camera. Under 768 px the layer hides and the same labels show as a numbered list.
 const CALLOUTS = [

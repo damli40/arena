@@ -15,7 +15,7 @@ You should see `10 passed; 0 failed`. Then check these result lines. Each one al
 | t5 | `after retry Sam=200 status=Approved -> DOUBLE PAY` | The final step fails after Sam got paid, and one ordinary retry pays him again | `run-2026-11-08-callback.log` |
 | t5 | `retry refused, Sam=100 status=Pending -> no double pay, but stuck` | The fixed guard never pays twice, but the invoice is stuck | `run-2026-11-08-callback.log` |
 | t7 | `reconcile -> Paid; retry refused; Sam=100` | `reconcile` reads the balance, marks it paid, and Sam stays at 100 | `run-2026-11-08-callback.log` |
-| t8 | `reconcile -> Approved; register Sam; retry paid once (Sam=100)` | When the money never left, `reconcile` makes the invoice payable again and it pays once | `run-2026-11-08-callback.log` |
+| t8 | `reconcile leaves it Pending; resolve_stuck(sent=false) -> Failed; pay refused; re-issued under a new id, paid once (Sam=100)` | When the money never left, `reconcile` no longer reopens the invoice (changed Nov 11). The owner closes it as `Failed` and re-issues it under a new id, which pays once | `verify-2026-11-11-run.log` (the Nov 8 log shows the old behaviour) |
 
 Logs live in `evidence/`. `run-2026-11-08.log` holds t1–t4; `run-2026-11-08-callback.log` holds all ten tests.
 
