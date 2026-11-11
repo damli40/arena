@@ -1,0 +1,11 @@
+withdraw-planted frozen 2026-11-11, before any full arena check run against this build (one 6-attack trial ran on the honest build first).
+TEST FIXTURE. NEVER DEPLOY: flaw planted on purpose. (see README.md, CHANGES.diff)
+sha256 withdraw_planted.wasm a85a2fb68e34aa65c0828066513d4695eab7f7eb649361a18c2bfc34962dc2f2
+sha256 src/lib.rs 761c3fdc3bdb5dd3012c4609894906c4b26fc8054eb1665ae234f308d9251e6b
+sha256 README.md 34881f49a1208c7bfaa887e982b84ad47ab4f3d04e838aafd19c4e825bd053e4
+sha256 Cargo.toml 0a48bd67009c18f4447e39369bbfd5cac1ec720a8860f812eaeda918a6321494
+sha256 Cargo.lock 425bf4d861a754db1625c498684fd05d72ea902c72e92026f1b126cb3b091d16
+sha256 .cargo/config.toml 74891c6e23394c7f061b89e3ab1539f87a0568df2aeb44a26fc057c120b5f65b
+sha256 CHANGES.diff c2d2c3749c172cebd0fd1a4634510894b112a7302d26ae4ef1dac0ed09ab85ba
+Built with rustc 1.86.0 (rust-toolchain.toml) and .cargo/config.toml (--cfg near, -s), cargo build --release --target wasm32-unknown-unknown.
+Withdraws from NEAR Intents: targets/intents-defuse-v0.4.2 (pinned release wasm), to Arena's bridge stand-in (contracts/bridge-standin).
