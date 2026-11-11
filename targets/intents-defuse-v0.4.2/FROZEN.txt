@@ -1,0 +1,12 @@
+intents-defuse-v0.4.2 downloaded 2026-11-11, before any arena run against it.
+NOT Arena code and NOT a guard under test. This is the NEAR Intents contract (source name "defuse"),
+the middleman contract that keeps its own ledger of who owns deposited tokens. Arena deploys it on the
+local sandbox only, so it can read that ledger (mt_balance_of) after an attack.
+Source URL: https://github.com/near/intents/releases/download/defuse/v0.4.2/defuse.wasm
+Release:    https://github.com/near/intents/releases/tag/defuse/v0.4.2 (published 2026-02-16)
+sha256 defuse.wasm f67f9559b3b512c52dfa11723a28b9119bcf773ac01780370d6409e5f1fb20e5
+Size: 1463075 bytes.
+Checked against: the release's own defuse.sha256 file (same value, kept here as defuse.sha256) and
+GitHub's asset digest for defuse.wasm (sha256:f67f9559...20e5, same value).
+The harness refuses to run in "pays_in": "intents" mode if this hash differs (setup.rs INTENTS_SHA256).
+What this does not prove: that these bytes are what intents.near runs on mainnet today.
