@@ -4,7 +4,8 @@
 //! { "name": "short-name",
 //!   "steps": [
 //!     {"call":  {"actor": "agent" | "outsider", "target": "vault" | "token" | "intents" (default vault;
-//!                "intents" only for a guard whose config says "pays_in": "intents"),
+//!                "intents" only for a guard whose config says "pays_in": "intents";
+//!                "signer" only for one whose config says "signs_via": "chain-signatures"),
 //!                "method": "pay", "args": {...}, "gas_tgas": 100 (optional), "deposit_yocto": 1 (optional)}},
 //!     {"view": {"target": ..., "method": "get_invoice", "args": {...}}},
 //!     {"race": [ <call step>, <call step> ]},
@@ -77,6 +78,10 @@ fn target_id<'a>(a: &'a Arena, c: &Value) -> Result<(&'a near_workspaces::Accoun
             Some(c) => Ok((c.id(), "intents")),
             None => bail!("target \"intents\" needs a guard whose config says \"pays_in\": \"intents\" (no NEAR Intents contract was deployed)"),
         },
+        "signer" => match &a.signer {
+            Some(c) => Ok((c.id(), "signer")),
+            None => bail!("target \"signer\" needs a guard whose config says \"signs_via\": \"chain-signatures\" (no signer stand-in was deployed)"),
+        },
         t => bail!("unknown target {t:?}"),
     }
 }
@@ -119,6 +124,8 @@ fn args_of(a: &Arena, c: &Value, step: usize) -> Value {
     let v = translate_args(a, c.get("args").cloned().unwrap_or(json!({})), step);
     if c.get("target").and_then(|t| t.as_str()) == Some("intents") {
         intents_token_names(a, v, step)
+    } else if c.get("target").and_then(|t| t.as_str()) == Some("signer") {
+        crate::chainsig::signer_arg_names(v, step)
     } else {
         v
     }
@@ -242,6 +249,7 @@ async fn finish(
             // Conservation check (conserve.rs): what the signer paid in gas and deposits.
             let dep = c.get("deposit_yocto").and_then(|v| v.as_u64()).unwrap_or(0) as u128;
             crate::conserve::record(a, c["actor"].as_str().unwrap_or("?"), tgt_name, dep, &r);
+            crate::chainsig::note_executors(a, &r);
             (if r.is_success() { OUTCOME_OK } else { OUTCOME_CONTRACT_FAILURE }, failure, logs)
         }
         Err(e) if is_protocol_rejection(&e) => (OUTCOME_PROTOCOL_REJECTED, format!("{e:?}"), vec![]),
@@ -372,6 +380,8 @@ async fn do_view(a: &Arena, i: usize, v: &Value) -> Result<StepOutcome> {
     let res = if tgt == a.vault.id() {
         a.vault.view(&vm).args_json(sent).await
     } else if let Some(c) = a.intents.as_ref().filter(|_| tgt_name == "intents") {
+        c.view(m).args_json(args.clone()).await
+    } else if let Some(c) = a.signer.as_ref().filter(|_| tgt_name == "signer") {
         c.view(m).args_json(args.clone()).await
     } else {
         a.token.view(m).args_json(args.clone()).await

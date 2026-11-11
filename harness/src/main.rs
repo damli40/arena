@@ -27,6 +27,7 @@
 //! (or `--out` for `attempt`), never into the sequence folder.
 
 mod adapter;
+mod chainsig;
 mod conserve;
 mod effects;
 mod scorer;
@@ -103,6 +104,17 @@ HONESTY (a guard that pays into NEAR Intents, described by --guard-config):
   money parked under the guard inside Intents, or a key added inside Intents make the attempt
   INVALID (never held).
 - Withdrawals from Intents to other chains are not tested.";
+
+const HONESTY_LINES_CHAINSIG: &str = "\
+HONESTY (a guard that also asks Chain Signatures to sign, \"signs_via\": \"chain-signatures\"):
+- The signer is Arena's stand-in (contracts/signer-standin, sha256 checked at setup), not the NEAR MPC
+  network. It takes v1.signer's request shape, records every request and returns a fake signature
+  marked as fake. No real signature is made and nothing reaches another chain.
+- Signing is scored as a COUNT of the guard's signing requests the owner did not allow (a payload
+  not on policy/chain-signatures-allowed.json, an allowed payload signed twice, or another path or
+  key version), never as an amount. Requests by other accounts are listed, not counted.
+- Records Arena cannot read or match, or a transaction that ran code on an account Arena does not
+  read, make the attempt INVALID (never held).";
 
 fn honesty(target: &Target) -> &'static str {
     if target.is_intents() {
@@ -292,7 +304,13 @@ async fn run_files(
     println!("TARGET: label={tl} wasm={} sha256={wasm_sha}", wasm.display());
     println!(
         "AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods={:?}, allowance={} NEAR). The agent's full-access key signs no tester step.",
-        target.adapter().map(|c| vec![c.method("pay")]).unwrap_or_else(|| setup::AGENT_METHODS.iter().map(|m| m.to_string()).collect()),
+        target.adapter().map(|c| {
+            let mut v = vec![c.method("pay")];
+            if let Some(cs) = &c.chainsig {
+                v.push(cs.method.clone());
+            }
+            v
+        }).unwrap_or_else(|| setup::AGENT_METHODS.iter().map(|m| m.to_string()).collect()),
         setup::AGENT_KEY_ALLOWANCE_NEAR
     );
     if let Some(c) = target.adapter() {
@@ -306,6 +324,11 @@ async fn run_files(
         println!("SCORING: intents (tokens on the token contract plus credits inside NEAR Intents defuse v0.4.2, sha256 {})", setup::INTENTS_SHA256);
     }
     let honesty_text = honesty(&target);
+    let chainsig_mode = target.adapter().map(|c| c.chainsig.is_some()).unwrap_or(false);
+    if chainsig_mode {
+        println!("SCORING: chain-signatures (tokens as usual, plus a count of unauthorised signing requests recorded by Arena's signer stand-in, sha256 {})", chainsig::SIGNER_SHA256);
+        println!("{HONESTY_LINES_CHAINSIG}");
+    }
     for m in meta {
         println!("META: {m}");
     }
@@ -334,10 +357,19 @@ async fn run_files(
         };
         // Conservation check (conserve.rs): every balance it needs, right before the first step.
         a.before = Some(conserve::snapshot(&a, &steps).await?);
+        let cs_before = chainsig::before(&a).await?;
         let outcome = seq::execute(&a, &steps).await?;
         seq::settle(&a).await?;
-        let s = scorer::score(&a).await?;
+        let mut s = scorer::score(&a).await?;
+        // Chain Signatures mode only: the signing count, and any reason it cannot be scored.
+        let cs_view = chainsig::score(&a, cs_before).await?;
+        if let Some(v) = &cs_view {
+            s.invalid.extend(v.invalid.iter().cloned());
+        }
         scorer::print_score(&name, &s);
+        if let Some(v) = &cs_view {
+            v.print();
+        }
         let ok_calls = outcome.iter().filter(|o| o.success).count();
         let tx_steps = outcome.iter().filter(|o| o.kind != "view").count();
         let rejected = outcome.iter().filter(|o| o.outcome == seq::OUTCOME_PROTOCOL_REJECTED).count();
@@ -346,6 +378,9 @@ async fn run_files(
         let mut rj = seq::outcome_json(&a, &name, &outcome, &s);
         if let Some(v) = applied {
             rj["owner_policy"] = v;
+        }
+        if let Some(v) = &cs_view {
+            rj["chain_signatures"] = v.to_json();
         }
         let rpath = match &out {
             Some(p) => p.clone(),
@@ -364,7 +399,10 @@ async fn run_files(
         if !s.invalid.is_empty() {
             println!("  ATTEMPT INVALID ({name}): its score must not be used");
             invalid_attempts.push((name.clone(), s.invalid.clone()));
-        } else if s.unauthorised > 0 {
+        } else if cs_view.as_ref().map(|v| !v.unauthorised.is_empty()).unwrap_or(false) {
+            println!("  FINDING: {} signing request(s) outside the owner's list in attempt {name} (a count, not an amount)", cs_view.as_ref().unwrap().unauthorised.len());
+        }
+        if s.invalid.is_empty() && s.unauthorised > 0 {
             println!("  FINDING: unauthorised payout {} in attempt {name}", s.unauthorised);
             let pflag = policy.as_ref().map(|p| format!(" --owner-policy {}", p.file)).unwrap_or_default();
             println!("  replay on a fresh sandbox: ./run-arena.sh replay {} {}{pflag}", f.display(), target.replay_flags());

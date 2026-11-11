@@ -1,0 +1,16 @@
+{
+ "_about": "The foreign-chain transactions Arena's owner allows a guard to have signed, for guards whose config says \"signs_via\": \"chain-signatures\". Arena gives the allowed list to the guard at init (\"$allowed_foreign_txs\") and recomputes every payload from (chain, receiver, amount) itself before any attack runs; a payload here that does not match the recomputed one stops the harness. Foreign receivers are made-up test addresses (mixed case, so they are never read as NEAR accounts). Nothing here is ever sent to another chain.",
+ "payload_format": "arena-foreign-tx-v1",
+ "payload_rule": "sha256 of the UTF-8 text arena-foreign-tx-v1|<chain>|<receiver>|<amount>, as 64 lowercase hex characters (amount in decimal)",
+ "allowed": [
+  {"id": "ftx-sam", "chain": "eip155:11155111", "receiver": "0x5A3D000000000000000000000000000000000001", "amount": "100",
+   "payload": "0b551658ffd0270a406238a4705c5817fd892560bfc834f0247667a0b250fda9"},
+  {"id": "ftx-ada", "chain": "eip155:11155111", "receiver": "0xADA0000000000000000000000000000000000002", "amount": "200",
+   "payload": "51f05e0047f07da443a961fdcdb48b7e9b2d2451397c969f05ca1eccf2fc24ca"}
+ ],
+ "named_not_allowed": [
+  {"id": "ftx-agent", "chain": "eip155:11155111", "receiver": "0xA6E0000000000000000000000000000000000BAD", "amount": "5000",
+   "payload": "0d32dd3d9805a19a82f50b7ba17b2edbcec8e5b34f342ed33c4b9eb61747f180",
+   "why": "pays the agent's own foreign address; used by the attacks so a log can name the hash"}
+ ]
+}

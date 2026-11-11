@@ -54,10 +54,11 @@
           "enum": [
             "vault",
             "token",
-            "intents"
+            "intents",
+            "signer"
           ],
           "default": "vault",
-          "description": "\"intents\" (the NEAR Intents contract) is allowed only in sequences-intents/, the suite run for a guard whose config says \"pays_in\": \"intents\"."
+          "description": "\"intents\" (the NEAR Intents contract) is allowed only in sequences-intents/, the suite run for a guard whose config says \"pays_in\": \"intents\". \"signer\" (Arena's Chain Signatures stand-in) is allowed only in sequences-chainsig/, the suite run for a guard whose config says \"signs_via\": \"chain-signatures\"."
         },
         "method": {
           "type": "string",
@@ -111,7 +112,8 @@
                   "enum": [
                     "vault",
                     "token",
-                    "intents"
+                    "intents",
+                    "signer"
                   ]
                 },
                 "method": {

@@ -240,6 +240,71 @@
    "text": "{\"arena_guard_config\": 1, \"pays_in\": \"Intents\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"intents\": \"$intents\", \"daily_cap\": \"$daily_cap\"}}}",
    "ok": false,
    "why": "pays_in is case-sensitive"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"signs_via\": \"chain-signatures\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"daily_cap\": \"$daily_cap\", \"signer\": \"$signer\", \"allowed_foreign_txs\": \"$allowed_foreign_txs\"}}}",
+   "ok": true,
+   "why": "chain-signatures with both placeholders"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"signs_via\": \"chain-signatures\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"daily_cap\": \"$daily_cap\", \"signer\": \"$signer\", \"allowed_foreign_txs\": \"$allowed_foreign_txs\"}}, \"chain_signatures\": {\"method\": \"sign_tx\", \"path\": \"ethereum-2\", \"key_version\": 1, \"payload_format\": \"arena-foreign-tx-v1\"}}",
+   "ok": true,
+   "why": "chain-signatures block, every key"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"signs_via\": \"chain-signatures\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"daily_cap\": \"$daily_cap\", \"signer\": \"$signer\"}}}",
+   "ok": false,
+   "why": "chain-signatures without $allowed_foreign_txs"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"signs_via\": \"chain-signatures\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"daily_cap\": \"$daily_cap\", \"allowed_foreign_txs\": \"$allowed_foreign_txs\"}}}",
+   "ok": false,
+   "why": "chain-signatures without $signer"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"daily_cap\": \"$daily_cap\", \"signer\": \"$signer\", \"allowed_foreign_txs\": \"$allowed_foreign_txs\"}}}",
+   "ok": false,
+   "why": "$signer without signs_via"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"chain_signatures\": {}, \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"daily_cap\": \"$daily_cap\"}}}",
+   "ok": false,
+   "why": "chain_signatures block without signs_via"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"signs_via\": \"mpc\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"daily_cap\": \"$daily_cap\", \"signer\": \"$signer\", \"allowed_foreign_txs\": \"$allowed_foreign_txs\"}}}",
+   "ok": false,
+   "why": "signs_via off the closed list"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"signs_via\": \"chain-signatures\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"daily_cap\": \"$daily_cap\", \"signer\": \"$signer\", \"allowed_foreign_txs\": \"$allowed_foreign_txs\"}}, \"chain_signatures\": {\"payload_format\": \"evm-rlp\"}}",
+   "ok": false,
+   "why": "payload_format off the closed list"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"signs_via\": \"chain-signatures\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"daily_cap\": \"$daily_cap\", \"signer\": \"$signer\", \"allowed_foreign_txs\": \"$allowed_foreign_txs\"}}, \"chain_signatures\": {\"x\": 1}}",
+   "ok": false,
+   "why": "unknown key in the chain_signatures block"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"signs_via\": \"chain-signatures\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"daily_cap\": \"$daily_cap\", \"signer\": \"$signer\", \"allowed_foreign_txs\": \"$allowed_foreign_txs\"}}, \"chain_signatures\": {\"key_version\": 1.0}}",
+   "ok": false,
+   "why": "key_version 1.0"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"signs_via\": \"chain-signatures\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"daily_cap\": \"$daily_cap\", \"signer\": \"$signer\", \"allowed_foreign_txs\": \"$allowed_foreign_txs\"}}, \"chain_signatures\": {\"path\": \"\"}}",
+   "ok": false,
+   "why": "empty path"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"signs_via\": \"chain-signatures\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"daily_cap\": \"$daily_cap\", \"signer\": \"$signer\", \"allowed_foreign_txs\": \"$allowed_foreign_txs\"}}, \"chain_signatures\": {\"method\": \"Sign\"}}",
+   "ok": false,
+   "why": "method name with a capital"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"signs_via\": \"chain-signatures\", \"pays_in\": \"native\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"daily_cap\": \"$daily_cap\", \"signer\": \"$signer\", \"allowed_foreign_txs\": \"$allowed_foreign_txs\"}}}",
+   "ok": false,
+   "why": "chain-signatures with a native guard"
   }
  ]
 }

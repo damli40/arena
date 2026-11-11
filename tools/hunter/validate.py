@@ -4,6 +4,7 @@
   python3 -I tools/hunter/validate.py [files or dirs ...]   validate; exit 1 if any is bad
   python3 -I tools/hunter/validate.py --self-test            check this file agrees with schema/attack.schema.json
   python3 -I tools/hunter/validate.py --intents-suite        validate sequences-intents/ (the "intents" target allowed)
+  python3 -I tools/hunter/validate.py --chainsig-suite       validate sequences-chainsig/ (the "signer" target allowed)
 
 Why hand-written: the hunter must reject anything an AI or a paper slips in, with a reason a
 person can read, using only the Python standard library (no pip install in CI). The JSON schema
@@ -37,6 +38,9 @@ TARGETS = ("vault", "token")
 # Allowed ONLY in the intents suite (sequences-intents/, loaded by tools/check/check.py for
 # "pays_in": "intents"); every other attack file keeps TARGETS, so the main library cannot change.
 INTENTS_TARGETS = TARGETS + ("intents",)
+# "signer" (2026-11-11): Arena's Chain Signatures stand-in, deployed only for a guard whose config
+# says "signs_via": "chain-signatures". Allowed ONLY in the chain-signatures suite (sequences-chainsig/).
+CHAINSIG_TARGETS = TARGETS + ("signer",)
 ADD_KEY_PERMISSIONS = ("full_access", "function_call_token")
 SOURCES = ("hand", "ai", "paper", "combined", "news")
 VALIDATION = ("broke", "valid-nothing-broke")
@@ -276,25 +280,25 @@ def check_meta(meta, steps):
         _need(isinstance(meta["found_in_hunt"], str) and ID_RE.fullmatch(meta["found_in_hunt"]), "meta.found_in_hunt must be a hunt id")
 
 
-def check_attack(doc, require_meta=True, intents_suite=False):
+def check_attack(doc, require_meta=True, intents_suite=False, chainsig_suite=False):
     """Validate a whole attack file (already parsed). Raises Invalid."""
     _need(isinstance(doc, dict), "an attack file is a JSON object")
     extra = set(doc) - {"name", "steps", "meta"}
     _need(not extra, f"unknown top-level keys {sorted(extra)}")
     _need(isinstance(doc.get("name"), str) and NAME_RE.fullmatch(doc["name"]), f"name must match {NAME_RE.pattern}")
-    check_steps(doc.get("steps"), INTENTS_TARGETS if intents_suite else TARGETS)
+    check_steps(doc.get("steps"), CHAINSIG_TARGETS if chainsig_suite else INTENTS_TARGETS if intents_suite else TARGETS)
     if require_meta or "meta" in doc:
         _need("meta" in doc, "meta block missing")
         check_meta(doc["meta"], doc["steps"])
 
 
-def validate_path(p, require_meta=True, intents_suite=False):
+def validate_path(p, require_meta=True, intents_suite=False, chainsig_suite=False):
     try:
         doc = json.loads(pathlib.Path(p).read_text())
     except (OSError, json.JSONDecodeError) as e:
         return f"{p}: not readable JSON ({type(e).__name__})"
     try:
-        check_attack(doc, require_meta, intents_suite)
+        check_attack(doc, require_meta, intents_suite, chainsig_suite)
     except Invalid as e:
         return f"{p}: {e}"
     return None
@@ -310,7 +314,7 @@ def self_test():
             problems.append(f"{label}: validator {a!r} vs schema {b!r}")
     same("max steps", MAX_STEPS, s["properties"]["steps"]["maxItems"])
     same("actors", list(ACTORS), d["call"]["properties"]["actor"]["enum"])
-    same("targets", list(INTENTS_TARGETS), d["call"]["properties"]["target"]["enum"])
+    same("targets", list(INTENTS_TARGETS) + ["signer"], d["call"]["properties"]["target"]["enum"])
     same("gas min", GAS_MIN, d["call"]["properties"]["gas_tgas"]["minimum"])
     same("gas max", GAS_MAX, d["call"]["properties"]["gas_tgas"]["maximum"])
     same("deposit max", MAX_DEPOSIT_YOCTO, d["call"]["properties"]["deposit_yocto"]["maximum"])
@@ -348,6 +352,11 @@ def main(argv):
     intents_suite = argv[:1] == ["--intents-suite"]
     if intents_suite:
         argv = argv[1:] or [str(ROOT / "sequences-intents")]
+    # --chainsig-suite: the attack files run only for a guard that signs via Chain Signatures, where
+    # the "signer" target is allowed (default folder sequences-chainsig/).
+    chainsig_suite = argv[:1] == ["--chainsig-suite"]
+    if chainsig_suite:
+        argv = argv[1:] or [str(ROOT / "sequences-chainsig")]
     paths = []
     for a in argv or [str(ROOT / d) for d in ("sequences-scripted", "sequences-ai", "sequences-bypass", "sequences-paper")]:
         p = pathlib.Path(a)
@@ -357,7 +366,7 @@ def main(argv):
             paths.append(p)
     bad = 0
     for p in paths:
-        err = validate_path(p, intents_suite=intents_suite)
+        err = validate_path(p, intents_suite=intents_suite, chainsig_suite=chainsig_suite)
         if err:
             bad += 1
             print("INVALID", err)

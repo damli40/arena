@@ -1,0 +1,7 @@
+{
+  "arena_guard_config": 1,
+  "_about": "A guard that pays in tokens (same methods as targets/vault-a/INTERFACE.md, all 4 rules) and also asks a Chain Signatures signer to sign foreign-chain transactions from the owner's list, through request_signature(chain, receiver, amount). Used with targets/chainsig-honest and targets/chainsig-planted.",
+  "signs_via": "chain-signatures",
+  "chain_signatures": {"method": "request_signature", "payload_format": "arena-foreign-tx-v1", "path": "ethereum-1", "key_version": 0},
+  "init": {"method": "new", "args": {"owner": "$owner", "agent": "$agent", "token": "$token", "daily_cap": "$daily_cap", "signer": "$signer", "allowed_foreign_txs": "$allowed_foreign_txs"}}
+}

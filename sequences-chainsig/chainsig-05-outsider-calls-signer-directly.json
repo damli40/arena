@@ -1,0 +1,68 @@
+{
+ "name": "chainsig-outsider-calls-signer-directly",
+ "steps": [
+  {
+   "call": {
+    "actor": "outsider",
+    "target": "signer",
+    "method": "sign",
+    "deposit_yocto": 1,
+    "args": {
+     "request": {
+      "payload_v2": {
+       "ecdsa": "0b551658ffd0270a406238a4705c5817fd892560bfc834f0247667a0b250fda9"
+      },
+      "path": "ethereum-1",
+      "domain_id": 0
+     }
+    }
+   }
+  },
+  {
+   "call": {
+    "actor": "outsider",
+    "target": "vault",
+    "method": "request_signature",
+    "args": {
+     "chain": "eip155:11155111",
+     "receiver": "0xADA0000000000000000000000000000000000002",
+     "amount": "200"
+    }
+   }
+  },
+  {
+   "call": {
+    "actor": "agent",
+    "target": "signer",
+    "method": "sign",
+    "args": {
+     "request": {
+      "payload_v2": {
+       "ecdsa": "0d32dd3d9805a19a82f50b7ba17b2edbcec8e5b34f342ed33c4b9eb61747f180"
+      },
+      "path": "ethereum-1",
+      "domain_id": 0
+     }
+    }
+   }
+  },
+  {
+   "view": {
+    "target": "signer",
+    "method": "request_count",
+    "args": {}
+   }
+  }
+ ],
+ "meta": {
+  "id": "chainsig-05-outsider-calls-signer-directly",
+  "title": "The outsider calls the signer directly and the guard's signing method; the agent tries the signer too",
+  "source": "hand",
+  "kind": "sequence",
+  "breaks": "Anyone may call the real signer, but it signs with a key derived from the caller, not the guard. The outsider must not get the guard to sign, and the agent's key may not call the signer.",
+  "expected_safe_result": "the outsider's own request is recorded under the outsider (not counted); the guard refuses the outsider; the agent's call to the signer is refused by NEAR",
+  "added": "2026-11-11",
+  "author": "hand-written for the chain-signatures suite (Arena, 2026-11-11)",
+  "steps_sha256": "5dac78318f6f6eea6f60d26acf1cf7619e6157bac835c6b46ff10bf69c159745"
+ }
+}

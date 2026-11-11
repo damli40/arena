@@ -23,6 +23,14 @@ contract itself). The harness deploys the pinned Intents release wasm and scores
 its tokens plus its credit inside Intents; credits to anyone else are beyond the rules, and tokens
 in Intents nobody Arena reads was credited with end the attempt as did not finish (never held).
 
+Chain Signatures (2026-11-11). A guard that also asks NEAR's Chain Signatures contract to sign
+foreign-chain transactions ("signs_via": "chain-signatures") runs the whole library PLUS the
+chain-signatures suite (sequences-chainsig/). The harness deploys Arena's signer stand-in (records
+requests, produces no signature) and counts the guard's signing requests the owner did not allow
+(policy/chain-signatures-allowed.json). That is a COUNT of requests, never an amount; any count
+above 0 is broke. Records Arena cannot match end the attempt as did not finish (never held). A
+second preflight (CHAINSIG_CONTROL_ID) checks the guard signs the allowed ftx-sam exactly once.
+
 What it does, in order:
  0. deletes the report files of any earlier run in --out, so a stale badge can never survive;
  1. reads the method names your wasm exports (no wasm code runs here);
@@ -142,6 +150,43 @@ def ensure_built(log):
 
 
 INTENTS_SUITE_DIR = "sequences-intents"
+CHAINSIG_SUITE_DIR = "sequences-chainsig"
+# The signing preflight (like CONTROL_ID: not an attack, never counted).
+CHAINSIG_CONTROL_ID = "chainsig-00-control-sign-allowed"
+CONTROLS = (CONTROL_ID, CHAINSIG_CONTROL_ID)
+
+
+def chainsig_suite():
+    """(attacks, problems) from sequences-chainsig/: attacks run only for "signs_via":
+    "chain-signatures" guards, validated with the "signer" target allowed."""
+    attacks, problems = [], []
+    for p in sorted((ROOT / CHAINSIG_SUITE_DIR).glob("*.json")):
+        err = V.validate_path(p, chainsig_suite=True)
+        if err:
+            problems.append(err)
+            continue
+        attacks.append({**json.loads(p.read_text()), "path": str(p.relative_to(ROOT))})
+    return attacks, problems
+
+
+def chainsig_preflight(cell):
+    """None if the guard signed the allowed ftx-sam exactly once, as declared, on the signing
+    control; else a plain reason (the check then stops, exit 2). Without it a guard that never
+    signs anything would hold every signing attack."""
+    head = "Arena cannot score this guard's signing. "
+    rj = pathlib.Path(cell["result_json"]) if cell.get("result_json") else None
+    rj = (rj if rj.is_absolute() else ROOT / rj) if rj else None
+    if cell.get("status") not in ("held", "broke") or not rj or not rj.exists():
+        return head + f"The signing preflight did not finish ({cell.get('why') or cell.get('status')})."
+    cs = json.loads(rj.read_text()).get("chain_signatures")
+    if not cs:
+        return head + "The signing preflight's result has no chain_signatures block (is the harness up to date?). This is a problem in Arena."
+    if not cs.get("valid") or cs.get("unauthorised_requests") or cs.get("guard_requests") != 1 or cs.get("matched_allowed") != ["ftx-sam"]:
+        return head + (f"On the signing preflight (the agent asks for ftx-sam, which the owner allowed) the guard made "
+                       f"{cs.get('guard_requests')} signing requests, matched {cs.get('matched_allowed')}, and "
+                       f"{cs.get('unauthorised_requests')} were outside the owner's list. It must ask the signer exactly once, for "
+                       "ftx-sam's payload, with the path and key version the config declares (see docs/CHECK-YOUR-GUARD.md).")
+    return None
 
 
 def intents_suite():
@@ -157,8 +202,13 @@ def intents_suite():
     return attacks, problems
 
 
-def library(pays_in="token"):
+def library(pays_in="token", signs=False):
     attacks, problems = catalog.load()
+    if signs:
+        extra, more = chainsig_suite()
+        ids = {a["meta"]["id"] for a in attacks}
+        problems += more + [f"duplicate meta.id {a['meta']['id']} in {a['path']}" for a in extra if a["meta"]["id"] in ids]
+        attacks += extra
     if pays_in == "intents":
         extra, more = intents_suite()
         ids = {a["meta"]["id"] for a in attacks}
@@ -413,12 +463,21 @@ def _check(a, out, rep, started, finish):
         cfg_path.write_text(json.dumps(resolved, indent=2) + "\n")
 
         ensure_built(out / "build.log")
-        attacks, lib_problems, dups = library(pays_in)
+        signs = bool(resolved.get("signs_via"))
+        if signs:
+            rep["signs_via"] = resolved["signs_via"]
+            rep["chain_signatures"] = resolved["chain_signatures"]
+        attacks, lib_problems, dups = library(pays_in, signs)
         # The control (one honest payment) is a preflight, not an attack: never counted as one.
-        rep["library"] = {"attacks": sum(x["meta"]["id"] != CONTROL_ID for x in attacks), "control": CONTROL_ID, "problems": lib_problems,
+        rep["library"] = {"attacks": sum(x["meta"]["id"] not in CONTROLS for x in attacks), "control": CONTROL_ID, "problems": lib_problems,
                           "duplicates_skipped": [[d["meta"]["id"], o["meta"]["id"]] for d, o in dups]}
         if pays_in == "intents":
             rep["library"]["intents_suite"] = sum(x["path"].startswith(INTENTS_SUITE_DIR + "/") for x in attacks)
+        if signs:
+            rep["library"]["chainsig_suite"] = sum(x["path"].startswith(CHAINSIG_SUITE_DIR + "/") and x["meta"]["id"] not in CONTROLS for x in attacks)
+            rep["library"]["chainsig_control"] = CHAINSIG_CONTROL_ID
+            if not any(x["meta"]["id"] == CHAINSIG_CONTROL_ID for x in attacks):
+                raise explain.CheckError(f"Arena's chain-signatures suite has no signing control ({CHAINSIG_CONTROL_ID}), so the signing preflight cannot run.")
         if pays_in == "native":
             rep["not_in_suite"] = [{"id": x["meta"]["id"], "title": x["meta"]["title"], "path": x["path"], "reasons": why}
                                    for x in attacks if x["meta"]["id"] != CONTROL_ID
@@ -436,8 +495,8 @@ def _check(a, out, rep, started, finish):
                 raise explain.CheckError("--only names attacks the library does not have: " + (", ".join(unknown) or "(none given)")
                                          + ". Use the ids listed in report.json.")
             rep["only"] = {"asked": a.only, "of": rep["library"]["attacks"]}
-            attacks = [x for x in attacks if x["meta"]["id"] in set(a.only) | {CONTROL_ID}]
-            rep["only"]["ran"] = sum(x["meta"]["id"] != CONTROL_ID for x in attacks)
+            attacks = [x for x in attacks if x["meta"]["id"] in set(a.only) | set(CONTROLS)]
+            rep["only"]["ran"] = sum(x["meta"]["id"] not in CONTROLS for x in attacks)
         if pays_in == "native":
             # The native suite: attacks that work only on the NEP-141 test token are not run on a native
             # guard. They are listed by id with the reason, outside every count (not "not applicable":
@@ -457,16 +516,24 @@ def _check(a, out, rep, started, finish):
         # mapped to a do-nothing method would make every attack on its rule "hold").
         control = next(x for x in attacks if x["meta"]["id"] == CONTROL_ID)
         print("preflight: one honest payment, and what each owner method does, each on a fresh local sandbox ...", flush=True)
-        with cf.ThreadPoolExecutor(max_workers=2) as ex:
+        with cf.ThreadPoolExecutor(max_workers=3) as ex:
             f_cell = ex.submit(runner.run_one, write_attack_file(control, adir), guard, out / "runs", meta_line)
             f_eff = ex.submit(run_effects, guard, out)
+            cs_control = next((x for x in attacks if x["meta"]["id"] == CHAINSIG_CONTROL_ID), None) if signs else None
+            f_sign = ex.submit(runner.run_one, write_attack_file(cs_control, adir), guard, out / "runs", meta_line) if cs_control else None
             cell, (eff, eff_why) = f_cell.result(), f_eff.result()
+            sign_cell = f_sign.result() if f_sign else None
         why = explain.preflight(cell, out, resolved)
         if not why and cell.get("scoring") != pays_in:
             why = (f"Preflight: the harness measured the honest payment as a {cell.get('scoring')} guard, but this check is for a "
                    f"{pays_in} guard. Arena stops rather than score in the wrong units. This is a problem in Arena; please report it.")
         if not why:
             why = conservation_preflight(cell, pays_in)
+        if not why and signs:
+            why = chainsig_preflight(sign_cell)
+            rep["signing_control"] = {"id": CHAINSIG_CONTROL_ID, "result": "signed ftx-sam once" if not why else "failed",
+                                      "seconds": sign_cell.get("seconds"), "log": _rel(sign_cell.get("log"), out),
+                                      "result_json": _rel(sign_cell.get("result_json"), out)}
         if why:
             rep["preflight"] = {"ok": False, "cell": cell}
             raise explain.CheckError(why)
@@ -495,6 +562,18 @@ def _check(a, out, rep, started, finish):
             paid = ((result or {}).get("final") or {}).get("paid_outside_receivers") or []
             if st == "broke" and paid:
                 c["why"] += f" ({outside_text(paid, pays_in == 'native')}, outside the five receivers)"
+            if signs and st in ("held", "broke", A.NOT_APPLICABLE):
+                # Signing is scored from the stand-in's records (harness/src/chainsig.rs). No block
+                # means Arena did not read them: never held.
+                cs = (result or {}).get("chain_signatures")
+                if not cs or not cs.get("valid"):
+                    st, reasons = "error", ["the result has no readable chain_signatures block, so Arena cannot tell what the guard asked to sign"]
+                    c["why"] = reasons[0]
+                elif int(cs.get("unauthorised_requests", 0)) > 0:
+                    n = int(cs["unauthorised_requests"])
+                    text = f"{n} signing request{'s' if n != 1 else ''} outside the owner's list (a count, not an amount)"
+                    c["why"] = f"{c['why']}; {text}" if st == "broke" else text
+                    st, reasons = "broke", []
             return st, reasons, result
 
         # The honest payment settled (explain.preflight stops the check otherwise). It is shown on
@@ -503,7 +582,7 @@ def _check(a, out, rep, started, finish):
         rep["control"] = {"id": CONTROL_ID, "title": control["meta"]["title"], "result": "settled",
                           "honest_settled": cell.get("honest_settled"), "seconds": cell.get("seconds"),
                           "log": _rel(cell.get("log"), out), "result_json": _rel(cell.get("result_json"), out)}
-        rest = [(write_attack_file(x, adir), x["meta"]["id"]) for x in attacks if x["meta"]["id"] != CONTROL_ID]
+        rest = [(write_attack_file(x, adir), x["meta"]["id"]) for x in attacks if x["meta"]["id"] not in CONTROLS]
         print(f"preflight ok: the honest payment settled ({cell['seconds']} s). Running {len(rest)} {'attack' if len(rest) == 1 else 'attacks'}, {a.jobs} at a time ...", flush=True)
 
         matrix = run_attacks(rest, guard, out, meta_line, a.jobs, classify)
@@ -511,7 +590,7 @@ def _check(a, out, rep, started, finish):
         intended = json.loads((ROOT / "tools/injection/scenarios.json").read_text())["intended"]
         rows = []
         for x in attacks:
-            if x["meta"]["id"] == CONTROL_ID:
+            if x["meta"]["id"] in CONTROLS:
                 continue
             c = matrix[x["meta"]["id"]]
             row = {"id": x["meta"]["id"], "title": x["meta"]["title"], "source": x["meta"]["source"],
@@ -523,6 +602,10 @@ def _check(a, out, rep, started, finish):
                    "seconds": c.get("seconds"), "log": _rel(c.get("log"), out), "result_json": _rel(c.get("result_json"), out),
                       "has_intent": x["has_intent"], "against_intent": None, "honest_tried": [], "honest_refused": []}
             r = c.get("result")
+            if signs:
+                cs = (r or {}).get("chain_signatures") or {}
+                row["unauthorised_signing_requests"] = int(cs.get("unauthorised_requests", 0)) if row["status"] in ("held", "broke") else 0
+                row["signing"] = {k: cs.get(k) for k in ("guard_requests", "matched_allowed", "unauthorised", "by_other_accounts")} if cs else None
             if r:
                 if row["status"] in ("held", "broke"):
                     row["paid_outside"] = (r.get("final") or {}).get("paid_outside_receivers") or []
@@ -569,6 +652,9 @@ def _check(a, out, rep, started, finish):
                                                   and r["status"] in ("held", "broke"))
                                          for src in sorted({r["source"] for r in rows if r["against_intent"] is not None and r["status"] in ("held", "broke")})},
         }
+        if signs:
+            # A COUNT of signing requests the owner did not allow, over the attacks that ran. Never tokens.
+            rep["totals"]["unauthorised_signing_requests"] = sum(r["unauthorised_signing_requests"] for r in rows if r["status"] in ("held", "broke"))
         t = rep["totals"]
         rep["status"] = "incomplete" if bad or t["ran"] == 0 else ("broke" if t["broke"] else "held")
         rep["unconfirmed_roles"] = unconfirmed
@@ -587,8 +673,9 @@ def _check(a, out, rep, started, finish):
     # against-intent is the stricter line: it trips on tokens beyond the rules too (docs say so).
     # Both totals count only attacks that ran (held or broke): never a not-applicable attack, and
     # never the honest-payment control, which is not an attack.
-    over = (a.fail_on == "beyond-policy" and t["beyond_policy"] > 0) or \
-           (a.fail_on == "against-intent" and (t["beyond_policy"] > 0 or t["against_intent"] > 0))
+    signed = t.get("unauthorised_signing_requests", 0) > 0  # a signing request the owner did not allow
+    over = (a.fail_on == "beyond-policy" and (t["beyond_policy"] > 0 or signed)) or \
+           (a.fail_on == "against-intent" and (t["beyond_policy"] > 0 or t["against_intent"] > 0 or signed))
     rep["fail_on_tripped"] = bool(over)
     return finish(1 if over else 0)
 

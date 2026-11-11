@@ -1,0 +1,10 @@
+signer-standin frozen 2026-11-11, before any arena check run against this build.
+Arena's Chain Signatures stand-in. Not the MPC network; holds no key; produces no signature. (see README.md)
+sha256 signer_standin.wasm fa83ea44877151bb070d6dcf75b6b8ab8eee8f6d486e14a05ea61b1a910956c1
+sha256 src/lib.rs 82cdb9a12283b5952a57127f580d8b8df15ba52e447f580a4703105bdf9cdc36
+sha256 README.md bac200b10237c942e135abbf5643691f8d944fcd02805c6553b8e166e43b7f17
+sha256 Cargo.toml cc38e35ec57bf7572a8a21d217b3c7b8637467a59b9c2bfbf6aa8a9c84cc48d8
+sha256 Cargo.lock f8fa8d28ace811deacfc7e53924c773981fcb6c38d401ba87d8a23c331cf95e5
+sha256 .cargo/config.toml 74891c6e23394c7f061b89e3ab1539f87a0568df2aeb44a26fc057c120b5f65b
+sha256 rust-toolchain.toml 1c84a94da84730f21b66904fdf195d93e85178d0a1fed6f7b2549880ad6b1eaa
+Built with rustc 1.86.0 (rust-toolchain.toml) and .cargo/config.toml (--cfg near, -s), cargo build --release --target wasm32-unknown-unknown.

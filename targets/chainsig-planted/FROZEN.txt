@@ -1,0 +1,11 @@
+chainsig-planted frozen 2026-11-11, before any arena check run against this build.
+TEST FIXTURE. NEVER DEPLOY. Planted flaw on purpose (see README.md, CHANGES.diff).
+sha256 chainsig_planted.wasm 13f06c009cce569593ba1030a6705ddbc32b013a225fbecaf167cec33e1b3743
+sha256 src/lib.rs 65e4503853903559e37338c7a44e2dba1c5740c4f3916eeec6f325cbd5e69c4a
+sha256 README.md e96f325d7e66c22a386638c02ed7d7a4f3ef21368c192995c174c09c27f41031
+sha256 Cargo.toml 919e6d7261f99c7e73fc84a8e13fb8aa945293eda523c45a664fe713fecf9ecb
+sha256 Cargo.lock c9605d1fa713bbc6f470146cb96bdbab5ea88124f88138b250fbd4cf47a98736
+sha256 .cargo/config.toml 74891c6e23394c7f061b89e3ab1539f87a0568df2aeb44a26fc057c120b5f65b
+sha256 rust-toolchain.toml 1c84a94da84730f21b66904fdf195d93e85178d0a1fed6f7b2549880ad6b1eaa
+sha256 CHANGES.diff 86b063ce3c84d13f349cb17d50d794443fd6829854249a920b8ab1688bbfc306
+Built with rustc 1.86.0 (rust-toolchain.toml) and .cargo/config.toml (--cfg near, -s), cargo build --release --target wasm32-unknown-unknown.

@@ -1,0 +1,51 @@
+{
+ "name": "chainsig-race-two-sign-requests",
+ "steps": [
+  {
+   "race": [
+    {
+     "actor": "agent",
+     "target": "vault",
+     "method": "request_signature",
+     "args": {
+      "chain": "eip155:11155111",
+      "receiver": "0xADA0000000000000000000000000000000000002",
+      "amount": "200"
+     }
+    },
+    {
+     "actor": "agent",
+     "target": "vault",
+     "method": "request_signature",
+     "args": {
+      "chain": "eip155:11155111",
+      "receiver": "0xADA0000000000000000000000000000000000002",
+      "amount": "200"
+     }
+    },
+    {
+     "actor": "agent",
+     "target": "vault",
+     "method": "request_signature",
+     "args": {
+      "chain": "eip155:11155111",
+      "receiver": "0xADA0000000000000000000000000000000000002",
+      "amount": "200",
+      "payload": "51f05e0047f07da443a961fdcdb48b7e9b2d2451397c969f05ca1eccf2fc24ca"
+     }
+    }
+   ]
+  }
+ ],
+ "meta": {
+  "id": "chainsig-04-race-two-sign-requests",
+  "title": "Three signing requests for the same allowed transaction race each other, one with its payload passed in",
+  "source": "hand",
+  "kind": "sequence",
+  "breaks": "The signing analogue of the double pay: requests that race before the guard records the first can each be signed.",
+  "expected_safe_result": "ftx-ada is signed exactly once; the other two requests are refused",
+  "added": "2026-11-11",
+  "author": "hand-written for the chain-signatures suite (Arena, 2026-11-11)",
+  "steps_sha256": "a10daefc0ae19fa1b1449addf5459f4373028c44d7a9be7a89e24cadcb2e1a8a"
+ }
+}

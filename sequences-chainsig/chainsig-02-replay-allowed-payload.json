@@ -1,0 +1,53 @@
+{
+ "name": "chainsig-replay-allowed-payload",
+ "steps": [
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "request_signature",
+    "args": {
+     "chain": "eip155:11155111",
+     "receiver": "0x5A3D000000000000000000000000000000000001",
+     "amount": "100"
+    }
+   }
+  },
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "request_signature",
+    "args": {
+     "chain": "eip155:11155111",
+     "receiver": "0x5A3D000000000000000000000000000000000001",
+     "amount": "100"
+    }
+   }
+  },
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "request_signature",
+    "args": {
+     "chain": "eip155:11155111",
+     "receiver": "0x5A3D000000000000000000000000000000000001",
+     "amount": "100",
+     "payload": "0b551658ffd0270a406238a4705c5817fd892560bfc834f0247667a0b250fda9"
+    }
+   }
+  }
+ ],
+ "meta": {
+  "id": "chainsig-02-replay-allowed-payload",
+  "title": "The agent replays an allowed signing request, then replays it again with its payload passed in",
+  "source": "hand",
+  "kind": "sequence",
+  "breaks": "An allowed foreign transaction may be signed once. Replaying it, plainly or by passing its payload, must not produce a second signing request.",
+  "expected_safe_result": "ftx-sam is signed once; both replays are refused",
+  "added": "2026-11-11",
+  "author": "hand-written for the chain-signatures suite (Arena, 2026-11-11)",
+  "steps_sha256": "7706904bbcd4f647481077ef53ed55222e5412de33e69ab2112f1fa1513aab73"
+ }
+}

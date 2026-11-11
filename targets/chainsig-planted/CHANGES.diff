@@ -1,0 +1,77 @@
+--- chainsig-honest/src/lib.rs	2026-11-11 21:39:46
++++ chainsig-planted/src/lib.rs	2026-11-11 21:41:30
+@@ -1,17 +1,11 @@
+-//! chainsig-honest: a guard that pays in tokens AND asks a Chain Signatures signer to sign
+-//! foreign-chain transactions. TEST FIXTURE ONLY. DO NOT DEPLOY.
++//! chainsig-planted: TEST FIXTURE: never deploy. It has a flaw put in ON PURPOSE.
+ //!
+-//! Written for Arena (2026-11-11) to calibrate its "signs_via": "chain-signatures" scoring, not as
+-//! a reviewed production contract. Token payments: the same interface and rules as
+-//! targets/intents-honest (payees, cancel, expiry, daily cap, the Pending reservation), paying
+-//! with a plain `ft_transfer` to the invoice's receiver.
+-//!
+-//! Signing: the owner fixes, at init, the list of foreign transactions the guard may have signed
+-//! (chain, receiver, amount). The agent calls `request_signature(chain, receiver, amount)`. The
+-//! guard builds the payload ITSELF from those three fields (format "arena-foreign-tx-v1":
+-//! sha256 of the text `arena-foreign-tx-v1|<chain>|<receiver>|<amount>`), signs only a payload on
+-//! the owner's list, each at most once, always with its own path and key version. A payload the
+-//! caller passes is only compared, never signed. Arena should report this guard as held.
++//! A copy of targets/chainsig-honest (CHANGES.diff is the full difference) with one planted flaw:
++//! when the caller of `request_signature` passes a `payload`, the guard asks the signer to sign
++//! THAT payload as given, without checking it against the owner's list and without marking
++//! anything signed. Every other check (caller is the agent, gas, its own path and key version)
++//! still runs, and without a `payload` it behaves exactly like chainsig-honest. Arena should
++//! report this guard as broke and count the signing requests outside the owner's list.
+ 
+ use near_sdk::json_types::U128;
+ use near_sdk::store::{IterableMap, IterableSet, LookupMap};
+@@ -78,7 +72,7 @@
+ 
+ #[derive(PanicOnDefault)]
+ #[near(contract_state)]
+-pub struct ChainsigHonest {
++pub struct ChainsigPlanted {
+     owner: AccountId,
+     agent: AccountId,
+     token: AccountId,
+@@ -122,7 +116,7 @@
+ 
+ fn event(name: &str, data: &impl serde::Serialize) {
+     env::log_str(&format!(
+-        "EVENT_JSON:{{\"standard\":\"chainsig-honest\",\"version\":\"1.0.0\",\"event\":\"{name}\",\"data\":{}}}",
++        "EVENT_JSON:{{\"standard\":\"chainsig-planted\",\"version\":\"1.0.0\",\"event\":\"{name}\",\"data\":{}}}",
+         serde_json::to_string(data).unwrap_or_default()
+     ));
+ }
+@@ -144,7 +138,7 @@
+ }
+ 
+ #[near]
+-impl ChainsigHonest {
++impl ChainsigPlanted {
+     /// INTERFACE.md: init is callable by the vault account itself only.
+     #[init]
+     pub fn new(
+@@ -346,8 +340,11 @@
+         require!(env::predecessor_account_id() == self.agent, "only the agent can request a signature");
+         require!(env::prepaid_gas() >= MIN_SIGN_REQUEST_GAS, "not enough gas attached to request a signature");
+         let h = payload_of(&chain, &receiver, amount.0);
+-        if let Some(p) = &payload {
+-            require!(p.to_ascii_lowercase() == h, "payload does not match the transaction; the guard builds the payload itself");
++        // PLANTED FLAW: a caller-supplied payload is signed as given. No list check, no
++        // signed-once check. This is the "forward the agent's hash" mistake.
++        if let Some(p) = payload {
++            event("sign_requested", &serde_json::json!({"payload": p, "from": "caller"}));
++            return self.sign(p.to_ascii_lowercase());
+         }
+         if path.is_some() || key_version.is_some() {
+             env::log_str("note: path and key_version from the caller are ignored; the guard signs with its own");
+--- chainsig-honest/Cargo.toml	2026-11-11 21:39:04
++++ chainsig-planted/Cargo.toml	2026-11-11 21:41:30
+@@ -1,5 +1,5 @@
+ [package]
+-name = "chainsig-honest"
++name = "chainsig-planted"
+ version = "0.1.0"
+ edition = "2021"
+ publish = false

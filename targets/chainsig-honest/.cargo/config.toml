@@ -1,0 +1,6 @@
+# Same flags as contracts/.cargo/config.toml (and the recipe that reproduces
+# leaky-control-v2's frozen wasm byte for byte). `--cfg near` makes near-sdk call
+# the real host functions; without it every require! is a bare `unreachable` trap
+# with no panic message. `-s` strips symbols.
+[target.wasm32-unknown-unknown]
+rustflags = ["--cfg", "near", "-C", "link-arg=-s"]

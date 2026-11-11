@@ -249,6 +249,8 @@ pub struct Arena {
     pub vault: Contract,
     /// The NEAR Intents contract (intents mode only, see `Target::is_intents`); None otherwise.
     pub intents: Option<Contract>,
+    /// Arena's signer stand-in (Chain Signatures mode only, chainsig.rs); None otherwise.
+    pub signer: Option<Contract>,
     pub by_name: Vec<(&'static str, Account)>,
     pub manifest: Manifest,
     pub target: Target,
@@ -375,10 +377,15 @@ pub async fn setup(target: Target) -> Result<Arena> {
     let adapter = target.adapter().cloned();
     // A configured guard's own name for `pay` (adapter.rs); otherwise exactly AGENT_METHODS.
     let mapped_pay: Vec<String> = adapter.iter().map(|c| c.method("pay")).collect();
-    let agent_methods: Vec<&str> = match &adapter {
+    let mut agent_methods: Vec<&str> = match &adapter {
         Some(_) => mapped_pay.iter().map(|s| s.as_str()).collect(),
         None => AGENT_METHODS.to_vec(),
     };
+    // Chain Signatures mode: the agent may also call the guard's signing method (chainsig.rs).
+    let cs_cfg = adapter.as_ref().and_then(|c| c.chainsig.clone());
+    if let Some(cs) = &cs_cfg {
+        agent_methods.push(cs.method.as_str());
+    }
     ok(agent_full_access
         .batch(agent_full_access.id())
         .add_key(
@@ -422,6 +429,24 @@ pub async fn setup(target: Target) -> Result<Arena> {
         None
     };
 
+    // Chain Signatures mode only: deploy Arena's signer stand-in (pinned bytes) in place of
+    // v1.signer, and load the owner's allowed foreign transactions (payloads recomputed).
+    let (signer, cs_allowed) = if cs_cfg.is_some() {
+        let path = resolve(crate::chainsig::SIGNER_WASM);
+        let sha = sha256_file(&path)?;
+        if sha != crate::chainsig::SIGNER_SHA256 {
+            bail!("SETUP: {} has sha256 {sha}, not the pinned {} (contracts/signer-standin/FROZEN.txt); Arena will not count signing requests with an unknown stand-in", path.display(), crate::chainsig::SIGNER_SHA256);
+        }
+        let pol = crate::chainsig::load_policy()?;
+        let c = worker.dev_deploy(&std::fs::read(&path)?).await?;
+        ok(c.call("new").args_json(json!({})).transact().await?).context("SETUP STEP signer stand-in init failed")?;
+        println!("CHAIN SIGNATURES: deployed Arena's signer stand-in {} (sha256 {sha}); it records requests and produces no signature. Allowed foreign transactions: {}", c.id(),
+            pol.allowed.iter().map(|t| format!("{} ({} {} on {}, payload {})", t.id, t.amount, t.receiver, t.chain, t.payload)).collect::<Vec<_>>().join(", "));
+        (Some(c), Some(crate::chainsig::init_list(&pol)))
+    } else {
+        (None, None)
+    };
+
     // Vault: `new` may only be called by the vault account itself
     // (INTERFACE.md: "the vault account itself only (deploy + init)").
     let is_guard = target.is_contracts_guard();
@@ -433,6 +458,10 @@ pub async fn setup(target: Target) -> Result<Arena> {
             DAILY_CAP * unit,
             intents.as_ref().map(|i| i.id().as_str()),
         );
+        let args = match (&signer, &cs_allowed) {
+            (Some(sg), Some(list)) => crate::chainsig::fill_init(args, sg.id().as_str(), list),
+            _ => args,
+        };
         println!("ADAPTER init: {}({})", c.init_method, args);
         ok(vault.call(&c.init_method).args_json(args).transact().await?)
             .with_context(|| format!("SETUP STEP init: the guard's init call `{}` failed", c.init_method))?;
@@ -753,6 +782,7 @@ pub async fn setup(target: Target) -> Result<Arena> {
         token,
         vault,
         intents,
+        signer,
         by_name,
         manifest,
         target,
