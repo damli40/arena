@@ -47,7 +47,7 @@ VIEW_KEYS = ("target", "method", "args")
 ADD_KEY_KEYS = ("actor", "permission")
 META_KEYS = ("id", "title", "source", "kind", "paper", "news", "breaks", "expected_safe_result",
              "added", "author", "steps_sha256", "injection", "found_in_hunt", "broke_guards", "held_guards",
-             "parents", "validation")
+             "parents", "validation", "spec", "admission")
 META_REQUIRED = ("id", "title", "source", "kind", "breaks", "expected_safe_result", "added", "author", "steps_sha256")
 PAPER_KEYS = ("arxiv_id", "title", "url")
 NEWS_KEYS = ("item_id", "date", "links")
@@ -56,6 +56,40 @@ INJECTION_KEYS = ("email", "injected_pays", "scenario_id")
 MAX_INJECTED_PAYS = 6
 MAX_EMAIL = 4000
 TEXT_LIMITS = {"title": 120, "breaks": 400, "expected_safe_result": 300, "author": 120}
+
+# ---- attack admission (2026-11-12): meta.spec (written by a person) and meta.admission (written
+# only by tools/admission/admit.py). The rules a JSON schema cannot say are checked here.
+REFERENCES = ROOT / "tools" / "admission" / "references.json"
+SPEC_KEYS = ("property", "failure_mode", "capabilities", "preconditions", "oracle", "ordering", "expected")
+SPEC_REQUIRED = ("property", "failure_mode", "capabilities")
+CAPABILITIES = ("C1", "C2", "C3", "C4", "C5", "C6")
+ORACLE_KEYS = ("decides", "receiver", "also")
+ORACLE_DECIDES = ("beyond_policy", "against_intent")
+ORACLE_ALSO = ("honest_settled", "conservation")
+ORDERINGS = ("none", "overlap")
+EXPECTED_KEYS = ("reference", "outcome", "beyond_policy", "receiver", "flaw", "mechanism", "note")
+EXPECTED_REQUIRED = ("reference", "outcome", "beyond_policy", "mechanism")
+OUTCOMES = ("held", "broke")
+STEP_OUTCOMES = ("ok", "contract-failure", "protocol-rejected", "not-included")
+SCORE_FIELDS = ("unauthorised_payout", "beyond_authorised", "above_cap", "paid_outside_receivers", "honest_settled", "should_pay")
+# predicate name -> {param: kind}; kinds: steps (list of STEP_OUTCOMES), idx, text, name, amount, field, status, actor, scalar
+PREDICATES = {
+    "step_outcomes": {"value": "steps"},
+    "failure_contains": {"step": "idx", "text": "text"},
+    "over_equals": {"receiver": "name", "amount": "amount"},
+    "outside_equals": {"to": "name", "amount": "amount"},
+    "score_equals": {"field": "field", "value": "amount"},
+    "status_equals": {"invoice": "name", "status": "status"},
+    "credited_equals": {"invoice": "name", "amount": "amount"},
+    "non_agent_pay": {"invoice": "name", "actor": "actor"},
+    "view_equals": {"step": "idx", "value": "scalar"},
+}
+ADMISSION_KEYS = ("class", "evidence", "date", "gate", "runs_counted", "runs_tried", "why")
+ADMISSION_REQUIRED = ("class", "evidence", "date", "gate", "runs_counted", "runs_tried")
+ADMISSION_CLASSES = ("validated", "partially-validated", "unvalidated")
+ADMISSION_GATE = "tools/admission/admit.py"
+EVIDENCE_RE = re.compile(r"^evidence/admission/[a-z0-9][a-z0-9-]{0,95}/[0-9]{8}T[0-9]{6}Z$")
+STATUS_RE = re.compile(r"^[A-Za-z]{1,32}$")
 
 NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,95}$")
@@ -274,6 +308,153 @@ def check_meta(meta, steps):
             _need(isinstance(meta[k], list) and all(isinstance(x, str) and ID_RE.fullmatch(x) for x in meta[k]), f"meta.{k} must list guard ids")
     if "found_in_hunt" in meta:
         _need(isinstance(meta["found_in_hunt"], str) and ID_RE.fullmatch(meta["found_in_hunt"]), "meta.found_in_hunt must be a hunt id")
+    if "spec" in meta:
+        check_spec(meta["spec"], steps)
+    if "admission" in meta:
+        check_admission(meta)
+
+
+def load_references():
+    return json.loads(REFERENCES.read_text())["references"]
+
+
+def spec_sha256(spec):
+    return hashlib.sha256(json.dumps(spec, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+def _check_predicate(p, where):
+    _need(isinstance(p, dict) and isinstance(p.get("pred"), str), f"{where}: a mechanism entry is an object with a 'pred'")
+    params = PREDICATES.get(p["pred"])
+    _need(params is not None, f"{where}: unknown predicate {p['pred']!r} (one of {sorted(PREDICATES)})")
+    _need(set(p) == {"pred", *params}, f"{where}: predicate {p['pred']} needs exactly {sorted(params)}")
+    for k, kind in params.items():
+        v = p[k]
+        if kind == "steps":
+            _need(isinstance(v, list) and 1 <= len(v) <= 16 and all(x in STEP_OUTCOMES for x in v), f"{where}.{k}: list of {STEP_OUTCOMES}")
+        elif kind == "idx":
+            _need(_is_int(v) and 0 <= v <= 15, f"{where}.{k}: step index 0-15")
+        elif kind == "text":
+            _text(v, f"{where}.{k}", 120)
+        elif kind == "name":
+            _need(isinstance(v, str) and INVOICE_RE.fullmatch(v), f"{where}.{k}: bad name {v!r}")
+        elif kind == "amount":
+            _need(_is_int(v) and 0 <= v <= MAX_INT, f"{where}.{k}: whole number >= 0")
+        elif kind == "field":
+            _need(v in SCORE_FIELDS, f"{where}.{k}: one of {SCORE_FIELDS}")
+        elif kind == "status":
+            _need(isinstance(v, str) and STATUS_RE.fullmatch(v), f"{where}.{k}: a status word")
+        elif kind == "actor":
+            _need(v == "outsider", f"{where}.{k}: only 'outsider' (the agent's pays are not non-agent pays)")
+        elif kind == "scalar":
+            _need(v is None or isinstance(v, (str, bool)) or _is_int(v), f"{where}.{k}: string, whole number, boolean or null")
+            if isinstance(v, str):
+                _need(len(v) <= MAX_ARG_STRING, f"{where}.{k}: at most {MAX_ARG_STRING} characters")
+
+
+def check_spec(spec, steps, refs=None):
+    """Structure and cross-field rules of meta.spec. Raises Invalid."""
+    _need(isinstance(spec, dict), "meta.spec must be an object")
+    extra = set(spec) - set(SPEC_KEYS)
+    _need(not extra, f"unknown meta.spec keys {sorted(extra)}")
+    for k in SPEC_REQUIRED:
+        _need(k in spec, f"meta.spec.{k} is required")
+    _text(spec["property"], "meta.spec.property", 300)
+    _text(spec["failure_mode"], "meta.spec.failure_mode", 300)
+    caps = spec["capabilities"]
+    _need(isinstance(caps, list) and 1 <= len(caps) <= 6 and len(set(caps)) == len(caps) and all(c in CAPABILITIES for c in caps),
+          f"meta.spec.capabilities must list distinct values from {CAPABILITIES}")
+    if "preconditions" in spec:
+        pc = spec["preconditions"]
+        _need(isinstance(pc, list) and len(pc) <= 8, "meta.spec.preconditions: at most 8")
+        for i, x in enumerate(pc):
+            _text(x, f"meta.spec.preconditions[{i}]", 200)
+    if "oracle" in spec:
+        o = spec["oracle"]
+        _need(isinstance(o, dict) and not (set(o) - set(ORACLE_KEYS)) and o.get("decides") in ORACLE_DECIDES,
+              f"meta.spec.oracle needs decides in {ORACLE_DECIDES}; keys among {ORACLE_KEYS}")
+        if "receiver" in o:
+            _need(isinstance(o["receiver"], str) and INVOICE_RE.fullmatch(o["receiver"]), "meta.spec.oracle.receiver: bad name")
+        if "also" in o:
+            _need(isinstance(o["also"], list) and len(set(o["also"])) == len(o["also"]) and all(x in ORACLE_ALSO for x in o["also"]),
+                  f"meta.spec.oracle.also: distinct values from {ORACLE_ALSO}")
+    has_race = any("race" in st for st in steps)
+    if "ordering" in spec:
+        _need(spec["ordering"] in ORDERINGS, f"meta.spec.ordering must be one of {ORDERINGS}")
+    if has_race:
+        _need(spec.get("ordering") not in (None, "none"), "meta.spec.ordering is required (not 'none') when any step is a race: a race is proved only by the ordering")
+    if "expected" in spec:
+        exp = spec["expected"]
+        _need(isinstance(exp, list) and 1 <= len(exp) <= 12, "meta.spec.expected: 1-12 entries")
+        refs = load_references() if refs is None else refs
+        seen = set()
+        for i, e in enumerate(exp):
+            w = f"meta.spec.expected[{i}]"
+            _need(isinstance(e, dict), f"{w} must be an object")
+            extra = set(e) - set(EXPECTED_KEYS)
+            _need(not extra, f"{w}: unknown keys {sorted(extra)}")
+            for k in EXPECTED_REQUIRED:
+                _need(k in e, f"{w}.{k} is required")
+            _need(e["reference"] in refs, f"{w}.reference {e['reference']!r} is not in the closed list (tools/admission/references.json)")
+            _need(e["reference"] not in seen, f"{w}.reference {e['reference']!r} named twice")
+            seen.add(e["reference"])
+            _need(e["outcome"] in OUTCOMES, f"{w}.outcome must be one of {OUTCOMES}")
+            _need(_is_int(e["beyond_policy"]) and 0 <= e["beyond_policy"] <= MAX_INT, f"{w}.beyond_policy: whole number >= 0")
+            if "receiver" in e:
+                _need(isinstance(e["receiver"], str) and INVOICE_RE.fullmatch(e["receiver"]), f"{w}.receiver: bad name")
+            if "note" in e:
+                _text(e["note"], f"{w}.note", 200)
+            ref = refs[e["reference"]]
+            if e["outcome"] == "held":
+                _need(e["beyond_policy"] == 0, f"{w}: a held entry has beyond_policy 0")
+                _need("flaw" not in e, f"{w}: a held entry names no flaw")
+                _need(ref["kind"] == "known-good", f"{w}: {e['reference']} is a {ref['kind']} reference; held entries name known-good references")
+            else:
+                _need(e["beyond_policy"] > 0, f"{w}: a broke entry needs a positive beyond_policy")
+                _need(isinstance(e.get("flaw"), str), f"{w}: a broke entry must name the flaw it expects to fire")
+                _need(ref["kind"] == "known-bad", f"{w}: {e['reference']} is a {ref['kind']} reference; broke entries name known-bad references")
+            ms = e["mechanism"]
+            _need(isinstance(ms, list) and 1 <= len(ms) <= 10, f"{w}.mechanism: 1-10 predicates")
+            for j, p in enumerate(ms):
+                _check_predicate(p, f"{w}.mechanism[{j}]")
+            for p in ms:
+                if p["pred"] in ("failure_contains", "view_equals"):
+                    _need(p["step"] < len(steps), f"{w}: predicate {p['pred']} names step {p['step']}, the attack has {len(steps)}")
+
+
+def matched_entries(spec, refs=None):
+    """The broke entries whose reference has exactly the flaw the entry names (the matched positive controls)."""
+    refs = load_references() if refs is None else refs
+    return [e for e in spec.get("expected", []) if e["outcome"] == "broke"
+            and refs[e["reference"]]["matchable"] and refs[e["reference"]]["flaw"] == e.get("flaw")]
+
+
+def check_admission(meta, root=ROOT):
+    """meta.admission must agree with the gate's own evidence: a hand-written 'validated' fails here."""
+    a = meta["admission"]
+    _need("spec" in meta, "meta.admission is only allowed next to meta.spec (the gate admits against a spec)")
+    _need(isinstance(a, dict), "meta.admission must be an object")
+    extra = set(a) - set(ADMISSION_KEYS)
+    _need(not extra, f"unknown meta.admission keys {sorted(extra)}")
+    for k in ADMISSION_REQUIRED:
+        _need(k in a, f"meta.admission.{k} is required")
+    _need(a["class"] in ADMISSION_CLASSES, f"meta.admission.class must be one of {ADMISSION_CLASSES}")
+    _need(a["gate"] == ADMISSION_GATE, f"meta.admission.gate must be {ADMISSION_GATE}")
+    _need(isinstance(a["date"], str) and DATE_RE.fullmatch(a["date"]), "meta.admission.date must be YYYY-MM-DD")
+    _need(_is_int(a["runs_counted"]) and _is_int(a["runs_tried"]) and 0 <= a["runs_counted"] <= a["runs_tried"], "meta.admission runs: 0 <= counted <= tried")
+    if "why" in a:
+        _text(a["why"], "meta.admission.why", 400)
+    _need(isinstance(a["evidence"], str) and EVIDENCE_RE.fullmatch(a["evidence"]), "meta.admission.evidence must be evidence/admission/<id>/<UTC stamp>")
+    _need(a["evidence"].split("/")[2] == meta["id"], "meta.admission.evidence must be this attack's own folder")
+    f = root / a["evidence"] / "admission.json"
+    _need(f.is_file(), f"meta.admission.evidence: {a['evidence']}/admission.json not found")
+    try:
+        ev = json.loads(f.read_text())
+    except json.JSONDecodeError:
+        raise Invalid(f"{a['evidence']}/admission.json is not JSON")
+    for k in ("class", "runs_counted", "runs_tried"):
+        _need(ev.get(k) == a[k], f"meta.admission.{k} ({a[k]!r}) differs from the gate's evidence ({ev.get(k)!r})")
+    _need(ev.get("steps_sha256") == meta["steps_sha256"], "the gate admitted different steps than this file has")
+    _need(ev.get("spec_sha256") == spec_sha256(meta["spec"]), "the gate admitted a different spec than this file has (spec edited after admission?)")
 
 
 def check_attack(doc, require_meta=True, intents_suite=False):
@@ -333,6 +514,25 @@ def self_test():
     same("news links max", MAX_NEWS_LINKS, d["news"]["properties"]["links"]["maxItems"])
     for k, lim in TEXT_LIMITS.items():
         same(f"{k} maxLength", lim, d["meta"]["properties"][k]["maxLength"])
+    same("spec keys", sorted(SPEC_KEYS), sorted(d["spec"]["properties"]))
+    same("spec required", sorted(SPEC_REQUIRED), sorted(d["spec"]["required"]))
+    same("capabilities", list(CAPABILITIES), d["spec"]["properties"]["capabilities"]["items"]["enum"])
+    same("oracle decides", list(ORACLE_DECIDES), d["spec"]["properties"]["oracle"]["properties"]["decides"]["enum"])
+    same("oracle also", list(ORACLE_ALSO), d["spec"]["properties"]["oracle"]["properties"]["also"]["items"]["enum"])
+    same("orderings", list(ORDERINGS), d["spec"]["properties"]["ordering"]["enum"])
+    same("expected keys", sorted(EXPECTED_KEYS), sorted(d["expected"]["properties"]))
+    same("expected required", sorted(EXPECTED_REQUIRED), sorted(d["expected"]["required"]))
+    same("outcomes", list(OUTCOMES), d["expected"]["properties"]["outcome"]["enum"])
+    same("predicates", sorted(PREDICATES), sorted(x["properties"]["pred"]["const"] for x in d["predicate"]["oneOf"]))
+    for x in d["predicate"]["oneOf"]:
+        name = x["properties"]["pred"]["const"]
+        same(f"predicate {name} params", sorted(["pred", *PREDICATES.get(name, {})]), sorted(x["required"]))
+    same("step outcomes", list(STEP_OUTCOMES), d["predicate"]["oneOf"][0]["properties"]["value"]["items"]["enum"])
+    same("score fields", list(SCORE_FIELDS), d["predicate"]["oneOf"][4]["properties"]["field"]["enum"])
+    same("admission keys", sorted(ADMISSION_KEYS), sorted(d["admission"]["properties"]))
+    same("admission required", sorted(ADMISSION_REQUIRED), sorted(d["admission"]["required"]))
+    same("admission classes", list(ADMISSION_CLASSES), d["admission"]["properties"]["class"]["enum"])
+    same("admission evidence pattern", EVIDENCE_RE.pattern, d["admission"]["properties"]["evidence"]["pattern"])
     return problems
 
 

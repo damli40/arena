@@ -372,7 +372,15 @@
             "broke",
             "valid-nothing-broke"
           ],
-          "description": "Set when the hunter adds an attack to sequences-paper/: it ran cleanly on every guard, and either broke at least one or broke none."
+          "description": "Set when the hunter adds an attack to sequences-paper/: it ran cleanly on every guard, and either broke at least one or broke none. Deprecated (2026-11-12) in favour of meta.admission.class, which only tools/admission/admit.py writes."
+        },
+        "spec": {
+          "$ref": "#/$defs/spec",
+          "description": "Optional. What the attack is meant to show, and what must happen on named reference guards (tools/admission/references.json). Without a spec an attack is Unvalidated by definition. See docs/ADD-AN-ATTACK.md, 'Admission'."
+        },
+        "admission": {
+          "$ref": "#/$defs/admission",
+          "description": "Written ONLY by tools/admission/admit.py after a gate run; never by hand or by a model. tools/hunter/validate.py checks it against the evidence folder it names."
         }
       }
     },
@@ -403,6 +411,406 @@
             "type": "string",
             "pattern": "^https://(x\\.com|twitter\\.com|t\\.me)/[A-Za-z0-9_./?=&%-]{1,200}$"
           }
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "property",
+        "failure_mode",
+        "capabilities"
+      ],
+      "properties": {
+        "property": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "One sentence: what a correct guard guarantees."
+        },
+        "failure_mode": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "One sentence: the specific way a guard breaks that property, which this attack triggers."
+        },
+        "capabilities": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "C1",
+              "C2",
+              "C3",
+              "C4",
+              "C5",
+              "C6"
+            ]
+          },
+          "description": "Guard shapes it applies to (C1 invoice-based, C2 direct payment, C3 allowances, C4 key on the guard account, C5 approval workflow, C6 Intents settlement)."
+        },
+        "preconditions": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "oracle": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "decides"
+          ],
+          "properties": {
+            "decides": {
+              "enum": [
+                "beyond_policy",
+                "against_intent"
+              ]
+            },
+            "receiver": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+            },
+            "also": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "honest_settled",
+                  "conservation"
+                ]
+              }
+            }
+          }
+        },
+        "ordering": {
+          "enum": [
+            "none",
+            "overlap"
+          ],
+          "description": "For races only: the ordering the harness must prove it produced from per-receipt block heights (overlap = each later pay's guard check ran in a block strictly before the earlier pay's callback). Without that record a race is never Validated."
+        },
+        "expected": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 12,
+          "items": {
+            "$ref": "#/$defs/expected"
+          }
+        }
+      }
+    },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reference",
+        "outcome",
+        "beyond_policy",
+        "mechanism"
+      ],
+      "properties": {
+        "reference": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "A key of tools/admission/references.json (closed list, pinned by wasm sha256)."
+        },
+        "outcome": {
+          "enum": [
+            "held",
+            "broke"
+          ]
+        },
+        "beyond_policy": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Exact, in Arena units (tokens; milliNEAR for native guards)."
+        },
+        "receiver": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{0,63}$",
+          "description": "Who got the money beyond policy (one of the five receivers, or outsider/agent/owner for money paid outside them)."
+        },
+        "flaw": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{0,63}$",
+          "description": "Required on a broke entry: the reference's one documented flaw (references.json 'flaw'). A mismatch means the break is not the matched positive control."
+        },
+        "mechanism": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "items": {
+            "$ref": "#/$defs/predicate"
+          }
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 200
+        }
+      }
+    },
+    "predicate": {
+      "type": "object",
+      "required": [
+        "pred"
+      ],
+      "description": "A closed vocabulary of checks over the harness's result JSON (implemented in tools/admission/predicates.py).",
+      "oneOf": [
+        {
+          "properties": {
+            "pred": {
+              "const": "step_outcomes"
+            },
+            "value": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 16,
+              "items": {
+                "enum": [
+                  "ok",
+                  "contract-failure",
+                  "protocol-rejected",
+                  "not-included"
+                ]
+              }
+            }
+          },
+          "required": [
+            "pred",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "pred": {
+              "const": "failure_contains"
+            },
+            "step": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 15
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            }
+          },
+          "required": [
+            "pred",
+            "step",
+            "text"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "pred": {
+              "const": "over_equals"
+            },
+            "receiver": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+            },
+            "amount": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "pred",
+            "receiver",
+            "amount"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "pred": {
+              "const": "outside_equals"
+            },
+            "to": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+            },
+            "amount": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "pred",
+            "to",
+            "amount"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "pred": {
+              "const": "score_equals"
+            },
+            "field": {
+              "enum": [
+                "unauthorised_payout",
+                "beyond_authorised",
+                "above_cap",
+                "paid_outside_receivers",
+                "honest_settled",
+                "should_pay"
+              ]
+            },
+            "value": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "pred",
+            "field",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "pred": {
+              "const": "status_equals"
+            },
+            "invoice": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+            },
+            "status": {
+              "type": "string",
+              "pattern": "^[A-Za-z]{1,32}$"
+            }
+          },
+          "required": [
+            "pred",
+            "invoice",
+            "status"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "pred": {
+              "const": "credited_equals"
+            },
+            "invoice": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+            },
+            "amount": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "pred",
+            "invoice",
+            "amount"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "pred": {
+              "const": "non_agent_pay"
+            },
+            "invoice": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+            },
+            "actor": {
+              "enum": [
+                "outsider"
+              ]
+            }
+          },
+          "required": [
+            "pred",
+            "invoice",
+            "actor"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "pred": {
+              "const": "view_equals"
+            },
+            "step": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 15
+            },
+            "value": {
+              "type": [
+                "string",
+                "integer",
+                "boolean",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "pred",
+            "step",
+            "value"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "admission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "class",
+        "evidence",
+        "date",
+        "gate",
+        "runs_counted",
+        "runs_tried"
+      ],
+      "properties": {
+        "class": {
+          "enum": [
+            "validated",
+            "partially-validated",
+            "unvalidated"
+          ]
+        },
+        "evidence": {
+          "type": "string",
+          "pattern": "^evidence/admission/[a-z0-9][a-z0-9-]{0,95}/[0-9]{8}T[0-9]{6}Z$"
+        },
+        "date": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "gate": {
+          "const": "tools/admission/admit.py"
+        },
+        "runs_counted": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "runs_tried": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "why": {
+          "type": "string",
+          "maxLength": 400
         }
       }
     }
