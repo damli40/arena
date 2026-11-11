@@ -32,6 +32,7 @@ The names are kept because the receipts saved on NEAR testnet point at these pat
 | Did the full check suite pass on the current build? | `verify-2026-11-11.md`, `verify-summary.log` |
 | Do the commands in `EVALUATE.md` work from a fresh copy with no build folders? | `clean-copy-2026-11-11.md` (12 commands, all matched, at commit `adaa69d`; test counts have grown since, see `EVALUATE.md`) |
 | Did every check still pass, from a fresh copy, after adding NEAR Intents testing? | `clean-copy-intents-2026-11-11.md` (10 checks, all matched; then merged) |
+| What did two independent reviewers find, and do the fixes hold on a fresh copy? | `judge-fixes-2026-11-11.md` (11 commands matched; no committed file changed by a run) |
 | What did the paper-driven and news-driven attack runs find? | `hunts/` (one `.md` and one `.json` per run) |
 | Which model writes the hunter's attacks, where does it run, and what does NEAR AI's attestation show? | `nearai-2026-11-11.md`; re-check a saved report offline with `python3 -I tools/hunter/recheck_attestation.py evidence/hunts/2026-11-11-papers-e3db55.json` |
 | What does a one-command guard check produce? | `check-2026-11-11.md`, `check-2026-11-11/` (one report card per guard). These say `52/52`: that count included the honest payment made before the attacks. There are 51 attacks; `check-fixes-2-2026-11-11.md` records the correction |
