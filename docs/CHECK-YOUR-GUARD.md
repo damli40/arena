@@ -175,7 +175,7 @@ What Arena does for such a guard:
 - The badge brackets say `pays via intents, local`, so a green badge cannot be read as "tested
   against the real Intents on mainnet".
 
-What it does not test: withdrawals from Intents to other chains, Chain Signatures, solvers and swaps,
+What it does not test: withdrawals from Intents to other chains, Chain Signatures requests from an Intents guard (`signs_via` works for token guards only, see below), solvers and swaps,
 fees above 0, and mainnet. NEAR Intents has no testnet. The pinned build is what Arena ran; it does
 not prove mainnet runs the same bytes today. Our own example guards: `targets/intents-honest` (held)
 and `targets/intents-planted` (a planted flaw, broke). Evidence: `evidence/check-intents-2026-11-11.md`.
