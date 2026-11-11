@@ -1366,7 +1366,7 @@ class ChainSignatures(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             self.assertIsNone(check.chainsig_preflight(self._cell(d, ok)))
             # a guard that never signs would hold every signing attack: the check must stop
-            self.assertIn("made 0 signing requests", check.chainsig_preflight(self._cell(d, {**ok, "guard_requests": 0, "matched_allowed": []})))
+            self.assertIn("made 0 signing request(s)", check.chainsig_preflight(self._cell(d, {**ok, "guard_requests": 0, "matched_allowed": []})))
             self.assertIsNotNone(check.chainsig_preflight(self._cell(d, {**ok, "guard_requests": 2, "unauthorised_requests": 1})))
             self.assertIn("no chain_signatures block", check.chainsig_preflight(self._cell(d, None)))
             self.assertIn("did not finish", check.chainsig_preflight(self._cell(d, ok, status="invalid")))
@@ -1382,6 +1382,14 @@ class ChainSignatures(unittest.TestCase):
         self.assertNotIn("signing", R.headline(Report.rep(Report())), "token reports unchanged")
         self.assertIn("(a count, not an amount)", R.signing_note({"unauthorised_signing_requests": 1}))
         self.assertEqual(R.signing_note({}), "")
+
+    def test_not_run_gives_no_signing_count(self):
+        # No attack ran (e.g. the signing preflight failed): a "0 outside the list" line would read as checked and clean.
+        r = Report.rep(Report())
+        r.update(signs_via="chain-signatures", status="not run", totals=None)
+        out = R.console(r, "r")
+        self.assertNotIn("signing requests outside the owner's list", out)
+        self.assertIn("No real MPC signing", out)
 
 if __name__ == "__main__":
     unittest.main(verbosity=1)

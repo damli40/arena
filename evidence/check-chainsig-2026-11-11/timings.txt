@@ -1,0 +1,2 @@
+chainsig-honest exit=0 wall=344s
+chainsig-planted exit=1 wall=355s

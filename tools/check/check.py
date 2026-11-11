@@ -183,7 +183,7 @@ def chainsig_preflight(cell):
         return head + "The signing preflight's result has no chain_signatures block (is the harness up to date?). This is a problem in Arena."
     if not cs.get("valid") or cs.get("unauthorised_requests") or cs.get("guard_requests") != 1 or cs.get("matched_allowed") != ["ftx-sam"]:
         return head + (f"On the signing preflight (the agent asks for ftx-sam, which the owner allowed) the guard made "
-                       f"{cs.get('guard_requests')} signing requests, matched {cs.get('matched_allowed')}, and "
+                       f"{cs.get('guard_requests')} signing request(s), matched {cs.get('matched_allowed')}, and "
                        f"{cs.get('unauthorised_requests')} were outside the owner's list. It must ask the signer exactly once, for "
                        "ftx-sam's payload, with the path and key version the config declares (see docs/CHECK-YOUR-GUARD.md).")
     return None

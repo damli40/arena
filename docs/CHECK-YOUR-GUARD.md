@@ -180,6 +180,81 @@ fees above 0, and mainnet. NEAR Intents has no testnet. The pinned build is what
 not prove mainnet runs the same bytes today. Our own example guards: `targets/intents-honest` (held)
 and `targets/intents-planted` (a planted flaw, broke). Evidence: `evidence/check-intents-2026-11-11.md`.
 
+### Test a guard that asks Chain Signatures to sign
+
+**The problem.** NEAR's Chain Signatures contract (`v1.signer` on mainnet) signs transactions for
+other chains (Ethereum, Bitcoin, ...) on behalf of a NEAR account. A guard that uses it hands the
+signer only a 32-byte fingerprint (a hash) of the foreign transaction. You cannot read the receiver
+or the amount back out of a hash. So a guard that signs a hash the agent gave it signs whatever the
+agent wants. And there is no MPC network (the group of nodes that really signs) on a local sandbox.
+
+**What Arena does.**
+
+- **It deploys a stand-in signer, not the real one.** `contracts/signer-standin` is a small contract
+  built from source in this repo. It takes the same `sign` request as `v1.signer`
+  (`{"request": {"payload_v2": {"Ecdsa": "<64 hex>"}, "path": ..., "domain_id": 0}}`, or the older
+  `payload` + `key_version` form), refuses it under the same basic rules (at least 1 yoctoNEAR and
+  10 TGas attached, a 32-byte Ecdsa payload), records who asked, the payload, the path, the key
+  version and the block, and returns a fake signature that says `NOT A SIGNATURE`. Arena checks its
+  sha256 before every run (`contracts/signer-standin/FROZEN.txt`).
+- **The owner's list of allowed foreign transactions is fixed by Arena**, in
+  `policy/chain-signatures-allowed.json`: `ftx-sam` (100 to a test address on chain
+  `eip155:11155111`) and `ftx-ada` (200). Each is written as (chain, receiver, amount) with its hash.
+  The hash format is `arena-foreign-tx-v1`: sha256 of the text
+  `arena-foreign-tx-v1|<chain>|<receiver>|<amount>`. Arena rebuilds every hash itself before any
+  attack and stops if one does not match. Your guard is given the list at init.
+- **After each attack, Arena counts the signing requests your guard made that the owner did not
+  allow**: a payload not on the list, an allowed payload signed a second time, or a path or key
+  version other than the ones your config declares (each picks a different foreign account).
+- **That is a COUNT of requests, never an amount.** Arena cannot know what an unknown hash was worth,
+  so the number is never added to the token totals. Any count above 0 makes the attack broke, and
+  `--fail-on beyond-policy` (the default) trips on it.
+- **Requests made by other accounts are listed, not counted.** The real signer derives a different
+  foreign key for every caller, so an outsider calling the signer directly signs with its own key,
+  not your guard's.
+- **A request Arena cannot match ends the attack as did not finish, never held**: the stand-in's
+  records cannot be read or do not line up (count went down, a gap, a form Arena does not know), or a
+  transaction ran code on an account Arena does not read (your guard may have asked some other signer).
+- **Signing preflight.** Before the attacks, the agent asks your guard to sign `ftx-sam`
+  (`sequences-chainsig/chainsig-00-control-sign-allowed.json`). Your guard must make exactly one
+  signing request, for ftx-sam's hash, with the declared path and key version. Otherwise the check
+  stops (exit 2): a guard that never signs anything would hold every signing attack.
+- **More attacks.** Your guard faces the whole library plus the chain-signatures suite
+  (`sequences-chainsig/`, 6 attacks): the agent passes another payload, replays an allowed one,
+  swaps the path and key version, races three requests, the outsider calls the signer and your
+  guard directly, and the agent asks for a transaction that is not on the list.
+
+Tell Arena in the config (full example: `examples/configs/chainsig-guard.json`):
+
+```json
+{
+  "arena_guard_config": 1,
+  "signs_via": "chain-signatures",
+  "chain_signatures": {"method": "request_signature", "payload_format": "arena-foreign-tx-v1",
+                       "path": "ethereum-1", "key_version": 0},
+  "init": {"method": "new", "args": {"owner": "$owner", "agent": "$agent", "token": "$token",
+                                     "daily_cap": "$daily_cap", "signer": "$signer",
+                                     "allowed_foreign_txs": "$allowed_foreign_txs"}}
+}
+```
+
+- `"$signer"` is the stand-in's account; `"$allowed_foreign_txs"` is the owner's list, as
+  `[{"chain": ..., "receiver": ..., "amount": "100"}, ...]`. Both are required.
+- `method` is the method the agent calls to ask for a signature, with arguments
+  `{"chain", "receiver", "amount"}` (attacks may add `payload`, `path`, `key_version`). Arena adds
+  it to the agent's key next to `pay`.
+- `payload_format` has one value today. A guard that hashes foreign transactions another way (for
+  example a real Ethereum transaction encoding) cannot be scored yet; the config is refused.
+- `"signs_via"` works with token guards only (`"pays_in": "token"`). Token payments are scored as
+  usual.
+- The badge brackets say `signs: stand-in, no real MPC`.
+
+What it does not test: real MPC signing (no signature is made, nothing checks one would verify),
+whether `v1.signer` would accept the request or how long it would take, delivery of anything on
+another chain, foreign-chain balances, and payload formats other than `arena-foreign-tx-v1`. Our own
+example guards: `targets/chainsig-honest` (held) and `targets/chainsig-planted` (signs a payload the
+agent passes; broke). Evidence: `evidence/check-chainsig-2026-11-11.md`.
+
 ### When you need a mapping
 
 Arena calls the methods named in `targets/vault-a/INTERFACE.md` (`pay`, `approve_invoice`,
@@ -431,8 +506,12 @@ score and when. It does not prove the bench ran unmodified, or that the attacks 
   `ft_transfer` on a NEP-141 token (Arena reads token balances), with plain NEAR transfers
   (`"pays_in": "native"`; Arena reads receivers' NEAR balances), or with `ft_transfer_call` into NEAR
   Intents (`"pays_in": "intents"`; Arena also reads who Intents credited). A guard that pays some
-  other way (another token standard, a mix of tokens and NEAR, a withdrawal to another chain, Chain
-  Signatures) is not measured.
+  other way (another token standard, a mix of tokens and NEAR, a withdrawal to another chain) is not
+  measured.
+- **Chain Signatures: requests are counted, nothing is signed.** For `"signs_via":
+  "chain-signatures"`, Arena counts the signing requests your guard sends to its stand-in signer
+  that the owner did not allow. It does not run the MPC network, make or verify a signature, or
+  see anything happen on another chain, and the count is never an amount.
 - **Money is followed only to accounts Arena knows.** Arena scores the five receivers and accounts for
   the rest of the guard's outflow at the agent, the outsider, the owner, the token contract (token
   guards) and accounts an attack names. Money a guard sends to any other account (one it creates, or

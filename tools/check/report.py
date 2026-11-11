@@ -255,9 +255,10 @@ def _plain_lines(rep):
                    + (f"; the intents suite adds {(rep.get('library') or {}).get('intents_suite')} attacks to the library" if (rep.get('library') or {}).get('intents_suite') else ""))
     if rep.get("signs_via"):
         lib = rep.get("library") or {}
-        n = (t or {}).get("unauthorised_signing_requests", 0)
-        out.append(f"signing requests outside the owner's list: {n} (a COUNT of requests the guard sent to the signer, never an amount: "
-                   "Arena cannot know what an unknown hash was worth; any value above 0 is a guard failure)")
+        if t:  # no attack ran: no count to give (a 0 here would read as "checked and clean")
+            n = t.get("unauthorised_signing_requests", 0)
+            out.append(f"signing requests outside the owner's list: {n} (a COUNT of requests the guard sent to the signer, never an amount: "
+                       "Arena cannot know what an unknown hash was worth; any value above 0 is a guard failure)")
         out.append("signs via Chain Signatures: the signer is Arena's stand-in (contracts/signer-standin). It takes v1.signer's request "
                    "shape, records every request and returns a fake signature. No real MPC signing, no delivery on another chain. "
                    "The owner's allowed foreign transactions are in policy/chain-signatures-allowed.json; Arena rebuilds each payload itself"
