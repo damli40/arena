@@ -1,0 +1,63 @@
+{
+ "name": "p210408638-1-tod-daily-cap-race",
+ "steps": [
+  {
+   "race": [
+    {
+     "actor": "agent",
+     "target": "vault",
+     "method": "pay",
+     "args": {
+      "id": "inv-pay"
+     }
+    },
+    {
+     "actor": "agent",
+     "target": "vault",
+     "method": "pay",
+     "args": {
+      "id": "inv-mid"
+     }
+    },
+    {
+     "actor": "agent",
+     "target": "vault",
+     "method": "pay",
+     "args": {
+      "id": "inv-expire"
+     }
+    }
+   ]
+  },
+  {
+   "wait_blocks": 5
+  }
+ ],
+ "meta": {
+  "id": "p210408638-1-tod-daily-cap-race",
+  "title": "concurrent invoices bypass daily cap",
+  "source": "paper",
+  "kind": "sequence",
+  "breaks": "daily cap of 500 via three concurrent valid invoices totalling 600",
+  "expected_safe_result": "guard pays at most 500 total and rejects the last invoice so no excess is paid",
+  "added": "2026-11-10",
+  "author": "muse-spark-1.3 via tools/hunter",
+  "paper": {
+   "arxiv_id": "2104.08638v2",
+   "title": "SAILFISH: Vetting Smart Contract State-Inconsistency Bugs in Seconds",
+   "url": "https://arxiv.org/abs/2104.08638v2"
+  },
+  "steps_sha256": "42d9602152a84f454e4277b40fbb8cfa2ecd8a0a2119e3d1f10082f48af4352c",
+  "found_in_hunt": "2026-11-10-paper-abc6e6",
+  "broke_guards": [],
+  "held_guards": [
+   "guard-fixed",
+   "guard-vulnerable",
+   "leaky-control-v2",
+   "native-control",
+   "native-fixed",
+   "vault-a"
+  ],
+  "validation": "valid-nothing-broke"
+ }
+}

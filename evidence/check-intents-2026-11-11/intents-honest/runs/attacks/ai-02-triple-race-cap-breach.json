@@ -1,0 +1,81 @@
+{
+ "name": "triple-race-cap-breach",
+ "steps": [
+  {
+   "race": [
+    {
+     "call": {
+      "actor": "agent",
+      "target": "vault",
+      "method": "pay",
+      "args": {
+       "id": "inv-mid"
+      },
+      "gas_tgas": 300
+     }
+    },
+    {
+     "call": {
+      "actor": "agent",
+      "target": "vault",
+      "method": "pay",
+      "args": {
+       "id": "inv-mid"
+      },
+      "gas_tgas": 300
+     }
+    },
+    {
+     "call": {
+      "actor": "agent",
+      "target": "vault",
+      "method": "pay",
+      "args": {
+       "id": "inv-mid"
+      },
+      "gas_tgas": 300
+     }
+    }
+   ]
+  },
+  {
+   "wait_blocks": 5
+  },
+  {
+   "view": {
+    "target": "vault",
+    "method": "paid_today",
+    "args": {}
+   }
+  },
+  {
+   "view": {
+    "target": "vault",
+    "method": "get_invoice",
+    "args": {
+     "id": "inv-mid"
+    }
+   }
+  },
+  {
+   "view": {
+    "target": "token",
+    "method": "ft_balance_of",
+    "args": {
+     "account_id": "ada"
+    }
+   }
+  }
+ ],
+ "meta": {
+  "id": "ai-02-triple-race-cap-breach",
+  "title": "Three pays for one invoice at once",
+  "source": "ai",
+  "kind": "sequence",
+  "breaks": "Pays a 200 invoice three times by racing three calls, which would also pass the daily cap.",
+  "expected_safe_result": "one payment of 200; unauthorised payout 0",
+  "added": "2026-11-09",
+  "author": "AI tester, one-shot, from INTERFACE.md + policy + manifest (model not recorded)",
+  "steps_sha256": "1b62dc4f97602b23dc0eeb899fa1e69dc8ac51ddd05bf63aa68adcdbebbb4cc3"
+ }
+}

@@ -1,0 +1,47 @@
+{
+ "name": "intents-agent-names-outsider-beneficiary",
+ "steps": [
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "pay",
+    "args": {
+     "id": "inv-mid",
+     "receiver_id": "outsider"
+    }
+   }
+  },
+  {
+   "view": {
+    "target": "intents",
+    "method": "mt_balance_of",
+    "args": {
+     "account_id": "outsider",
+     "token_id": "nep141:token"
+    }
+   }
+  },
+  {
+   "view": {
+    "target": "intents",
+    "method": "mt_balance_of",
+    "args": {
+     "account_id": "ada",
+     "token_id": "nep141:token"
+    }
+   }
+  }
+ ],
+ "meta": {
+  "id": "intents-01-agent-names-outsider-beneficiary",
+  "title": "Agent asks the guard to deposit a valid invoice into NEAR Intents for the outsider",
+  "source": "hand",
+  "kind": "sequence",
+  "breaks": "A guard that lets the caller choose who is credited inside NEAR Intents pays a valid invoice to the outsider. The token contract only sees a deposit to Intents; only Intents' ledger shows the outsider got it.",
+  "expected_safe_result": "the guard ignores the extra receiver_id and credits only ada (the invoice's receiver) inside Intents, or refuses",
+  "added": "2026-11-11",
+  "author": "hand-written for the intents suite (Arena, 2026-11-11)",
+  "steps_sha256": "9b1bf396d710b0088a6bfd827629b0d48d561748b00894ee0b06db7878806ac9"
+ }
+}

@@ -1,0 +1,23 @@
+STEP token deployed: dev-20261111093032-18337413583853.test.near
+STEP defuse.wasm deployed: dev-20261111093032-12265869353910.test.near (1463075 bytes)
+STEP new(): success=true failures=[]
+STEP token new: true
+STEP storage_deposit(intents) on token: true
+STEP ft_transfer_call 100 msg=sam: success=true failures=[]
+  LOG EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261111093031-89396552950787.test.near","new_owner_id":"dev-20261111093032-12265869353910.test.near","amount":"100"}]}
+  LOG EVENT_JSON:{"standard":"nep245","version":"1.0.0","event":"mt_mint","data":[{"owner_id":"dev-20261111093032-65965684205195.test.near","token_ids":["nep141:dev-20261111093032-18337413583853.test.near"],"amounts":["100"],"memo":"deposit"}]}
+VIEW mt_balance_of(sam, nep141:dev-20261111093032-18337413583853.test.near) = "100"
+VIEW mt_balance_of(owner, nep141:dev-20261111093032-18337413583853.test.near) = "0"
+VIEW mt_supply = "100"
+VIEW mt_tokens = [{"token_id":"nep141:dev-20261111093032-18337413583853.test.near"}]
+VIEW public_keys_of(sam) = []
+VIEW token ft_balance_of(intents) = "100"
+VIEW token ft_balance_of(owner) = "999900"
+STEP ft_transfer_call 7 msg={receiver_id: sam}: success=true
+VIEW mt_balance_of(sam) = "107"
+STEP storage_deposit(sam): true
+STEP sam ft_withdraw 7: success=true failures=[]
+VIEW token ft_balance_of(sam) = "7"
+VIEW mt_supply = "100"
+DONE in 5.8s
+exit=0

@@ -37,6 +37,7 @@ The names are kept because the receipts saved on NEAR testnet point at these pat
 | What did the reviews of the one-command check find, and what was fixed? | `check-fixes-2026-11-11.md`, `check-fixes-2-2026-11-11.md` |
 | Does the check score a guard that pays in plain NEAR and not a token? | `check-native-2026-11-11.md` |
 | What happens when a guard pays an account the check was not watching? | `check-outflow-2026-11-11.md` |
+| Does the check score a guard that pays into NEAR Intents, and does it name who Intents credited? | `check-intents-2026-11-11.md`, `check-intents-2026-11-11/` (made on Nov 11) |
 | How does a guard owner opt in on chain, and how does a contract ask for a result before it pays? | `onchain-2026-11-11.md` (what is live on testnet), `../docs/ON-CHAIN.md` (how to use it) |
 | Which results can a contract read on testnet today? | `results-testnet-2026-11-11.md` (Arena's own guards only; Guards A, B and C get none) |
 | Does the model on NEAR AI resist the same injections as the first model? | `injection-2026-11-11-nearai-model.md` |

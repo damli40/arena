@@ -132,7 +132,7 @@ All three held for the same reason: each records the payment before it moves the
 - **The agent never sees a refusal.** In the injection test, `pay` returns "submitted" and the chain runs after the conversation.
 - **On the local sandbox, races were tested with both calls in the same block only.** On testnet, 3 of 10 trials on Nov 10 had the two checks one block apart.
 - **Corrections, all kept in the evidence files:** Guard B's reserve test was invalid on its first run; we fixed it and re-ran all 11 tests. We added Guard C's two deposit tests after its first run. The adaptive test crashed once on an API timeout, and we resumed it from its saved rounds.
-- **Money that leaves NEAR, or goes into NEAR Intents, is not tested.** Arena reads balances on NEAR token contracts and native NEAR. It does not check who is credited inside the NEAR Intents contract after a deposit, withdrawals to other chains, or Chain Signatures requests. A guard that pays into those needs checks Arena does not run yet.
+- **Deposits into NEAR Intents are tested on the local sandbox only; money that leaves NEAR is not tested.** For a guard that pays into NEAR Intents (`"pays_in": "intents"`), Arena runs the pinned release build of the Intents contract (defuse v0.4.2) on the local sandbox and reads who it credited. Tokens it cannot place end the check incomplete, never held (`evidence/check-intents-2026-11-11.md`). It does not test withdrawals from Intents to other chains, Chain Signatures requests, solvers or swaps, or the real Intents contract on mainnet (NEAR Intents has no testnet).
 - **The double-pay guard (`contracts/guard`, mode `vulnerable_fixture`) is a labelled test case.** Never deploy it.
 
 ## Where to look next

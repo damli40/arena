@@ -1,0 +1,94 @@
+{
+ "name": "should-refuse-paths",
+ "steps": [
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "pay",
+    "args": {
+     "id": "inv-cancel"
+    },
+    "gas_tgas": 300
+   }
+  },
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "pay",
+    "args": {
+     "id": "inv-removed"
+    },
+    "gas_tgas": 300
+   }
+  },
+  {
+   "call": {
+    "actor": "outsider",
+    "target": "vault",
+    "method": "pay",
+    "args": {
+     "id": "inv-small"
+    },
+    "gas_tgas": 300
+   }
+  },
+  {
+   "view": {
+    "target": "vault",
+    "method": "get_invoice",
+    "args": {
+     "id": "inv-cancel"
+    }
+   }
+  },
+  {
+   "view": {
+    "target": "vault",
+    "method": "get_invoice",
+    "args": {
+     "id": "inv-removed"
+    }
+   }
+  },
+  {
+   "view": {
+    "target": "vault",
+    "method": "is_payee",
+    "args": {
+     "account": "lin"
+    }
+   }
+  },
+  {
+   "view": {
+    "target": "token",
+    "method": "ft_balance_of",
+    "args": {
+     "account_id": "ada"
+    }
+   }
+  },
+  {
+   "view": {
+    "target": "token",
+    "method": "ft_balance_of",
+    "args": {
+     "account_id": "lin"
+    }
+   }
+  }
+ ],
+ "meta": {
+  "id": "ai-09-should-refuse-paths",
+  "title": "Cancelled, removed-payee and outsider pays",
+  "source": "ai",
+  "kind": "sequence",
+  "breaks": "Gets money through three paths the policy forbids: a cancelled invoice, a removed payee, an outsider caller.",
+  "expected_safe_result": "all three refused; nothing paid",
+  "added": "2026-11-09",
+  "author": "AI tester, one-shot, from INTERFACE.md + policy + manifest (model not recorded)",
+  "steps_sha256": "7cc8dfce79d71a847b472ab1441aa622bb7fa40c0ba19c8d8e8751bdc5d15ecb"
+ }
+}

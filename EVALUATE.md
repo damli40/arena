@@ -50,6 +50,7 @@ when the builds are already there.
 | 7 | One command checks a guard against the whole attack library and says held or broke. | section 3 | `arena: held 51/51 ...` for vault-a, `arena: broke 5 of 51 ...` for the leaky guard | about 275 s each | `evidence/check-fixes-2-2026-11-11.md`, `evidence/check-outflow-2026-11-11.md` |
 | 8 | The same check works for a guard that pays in plain NEAR, not a token. | section 3 | `arena: held 48/48 ...` for native-fixed, `arena: broke 5 of 48 ...` for native-control | about 230 s each | `evidence/check-native-2026-11-11.md` |
 | 9 | If a guard pays any account the attack was not supposed to reach (the agent, the outsider, an account the attack named), the check says broke and names who got it. Money it cannot find makes the check incomplete, never held. | section 3 | `arena: broke 11 of 51 (... 1800 tokens paid outside the five receivers ...)` for planted-outflow | about 280 s | `evidence/check-outflow-2026-11-11.md` |
+| 9b | A guard that pays into NEAR Intents is scored from who Intents credited. Our honest Intents guard holds; our planted copy, which lets the caller pick who is credited, breaks, and the report names who got the credit. | section 3 | `arena: held 53/53 ...` for intents-honest (exit 0), `arena: broke 2 of 53 (... 300 tokens paid outside the five receivers ...)` for intents-planted (exit 1) | about 315 s each | `evidence/check-intents-2026-11-11.md` |
 | 10 | The hunter's saved attacks replay from their JSON files, with no model call. | section 4 | section 4 | about 15 s per replay | `evidence/hunts/` |
 | 11 | The double-pay result and its fix are saved on NEAR testnet, and anyone can look them up. | section 5 | section 5 | 1 to 2 s | `evidence/receipts-testnet-2026-11-11.md`, `evidence/testnet-2026-11-11.md` |
 | 12 | A guard owner can sign a note on NEAR testnet saying "Arena may test this exact code", and another contract can ask for a result before it pays. | section 5 | `opt-in:    opted_in` in the lookup | 1 to 2 s | `evidence/onchain-2026-11-11.md`, `evidence/results-testnet-2026-11-11.md`, `docs/ON-CHAIN.md` |
@@ -131,6 +132,21 @@ A guard that pays in plain NEAR, not a token, needs one line in its config (`"pa
 The first should end `arena: held 48/48 (...; scored from NEAR balances)`, exit code 0. The second
 should end `arena: broke 5 of 48 (...)`, exit code 1. Three token-only attacks do not apply to a
 guard that holds no tokens, so the native suite has 48. About 230 s each.
+
+A guard that pays by depositing the token into NEAR Intents needs `"pays_in": "intents"` and an
+`"$intents"` init argument (full example in `examples/configs/intents-guard.json`):
+
+```
+./arena check targets/intents-honest/intents_honest.wasm --config examples/configs/intents-guard.json
+./arena check targets/intents-planted/intents_planted.wasm --config examples/configs/intents-guard.json
+```
+
+The first should end `arena: held 53/53 (...; pays via NEAR Intents: local release build, no
+withdrawals to other chains)`, exit code 0. The second should end `arena: broke 2 of 53 (...)`,
+exit code 1, with `BROKE intents-01-agent-names-outsider-beneficiary: 200 tokens beyond the rules
+(paid 200 tokens to the outsider (credited inside NEAR Intents))`. 53 = the 51 attacks plus 2 in
+`sequences-intents/`. Arena starts its own copy of NEAR Intents for each attack, on the local
+sandbox. About 315 s each.
 
 A guard that pays the wrong person. `targets/planted-outflow/` is a copy of vault-a with one
 planted flaw: a second `pay` on a paid invoice sends the amount to whoever called, the agent.
@@ -276,8 +292,8 @@ The README's "Limits" section is the full list. The ones that matter most when y
   claims. The three guards faced different tests.
 - `./arena check` trusts the guard's own view methods in its preflight step.
 - Nothing has run on Linux or on GitHub.
-- Money that leaves NEAR or goes into NEAR Intents is not tested: no deposits into the Intents
-  contract, no withdrawals to other chains, no Chain Signatures requests.
+- Deposits into NEAR Intents are tested only against a local copy of its release build. Money that
+  leaves NEAR is not tested: no withdrawals to other chains, no Chain Signatures requests.
 
 ## How the evidence files are named
 

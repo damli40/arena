@@ -109,6 +109,73 @@ What changes for a native guard:
   `native NEAR`. In `report.json` every amount stays in Arena units (milliNEAR); `report.json`
   says so in `units`.
 
+### Test a guard that pays into NEAR Intents
+
+NEAR Intents is a contract that holds deposited tokens and keeps its own list of who owns them.
+When a guard pays into it (with `ft_transfer_call` on the token, sending to the Intents contract),
+the token contract only sees "100 tokens went to Intents". Who really got the money is written in
+Intents' own list. So Arena reads that list too.
+
+Tell Arena in the config:
+
+```json
+{
+  "arena_guard_config": 1,
+  "pays_in": "intents",
+  "intents": {"beneficiary_in_msg": "account_id", "may_park_in_intents": false},
+  "init": {"method": "new", "args": {"owner": "$owner", "agent": "$agent", "token": "$token",
+                                     "intents": "$intents", "daily_cap": "$daily_cap"}}
+}
+```
+
+```
+./arena check your_guard.wasm --config guard.json
+```
+
+- `"$intents"` is required. Arena fills in the account of the Intents contract it started, so your
+  guard knows where to deposit. Arena refuses the config without it (exit 2).
+- `beneficiary_in_msg` says how your guard names the receiver in `msg`: `"account_id"` (the plain
+  account id) or `"json_receiver_id"` (`{"receiver_id": ...}`). It is printed in the log. Arena
+  scores from Intents' list either way, never from what your guard says.
+- `may_park_in_intents` (default `false`): see "money parked under the guard" below.
+- Full example: `examples/configs/intents-guard.json`.
+
+What Arena does for such a guard:
+
+- **It starts a real copy of NEAR Intents** on the local sandbox: the release build `defuse v0.4.2`
+  from github.com/near/intents. Arena checks the file's fingerprint (sha256) before every run and
+  stops if it is not the pinned one (`targets/intents-defuse-v0.4.2/FROZEN.txt`). Fee is 0, there
+  are no solvers and no bridges.
+- **What a receiver got** = its tokens on the token contract + what Intents says it owns
+  (`mt_balance_of`). A receiver can take its Intents credit out whenever it wants, so it counts as
+  paid to that receiver.
+- **Every token that went into Intents must be found**, to the exact token. Arena reads what Intents
+  says the five receivers, the agent, the outsider, the owner, your guard and any account an attack
+  named own. Then:
+  - a credit to the agent, the outsider or a named account is **beyond the rules** (broke), and the
+    report says who got it, for example `100 tokens to the agent (credited inside NEAR Intents)`;
+  - a credit to the owner is fine (not theft);
+  - tokens in Intents that **nobody Arena reads** was credited with make the attack **did not
+    finish**, and the whole check ends incomplete (exit 2). Never held;
+  - **money parked under your guard** inside Intents also ends the attack as did not finish, unless
+    your config says `"may_park_in_intents": true` and no key was added for your guard inside
+    Intents during the attack. A key there could move that money without asking your guard;
+  - if Intents' total for the token moved by a different amount than its token balance, or it lists
+    a token Arena did not create, or a key was added inside Intents for your guard or the agent, the
+    attack ends as did not finish.
+- **The honest payment must go through Intents.** Preflight needs sam credited exactly 100 inside
+  Intents, 0 tokens at sam on the token contract, and nothing unexplained. Otherwise the check stops.
+- **More attacks.** Your guard faces the whole library plus the intents suite
+  (`sequences-intents/`, 2 attacks today). Those may also call the Intents contract directly
+  (target `"intents"`), for example the outsider trying to take sam's credit.
+- The badge brackets say `pays via intents, local`, so a green badge cannot be read as "tested
+  against the real Intents on mainnet".
+
+What it does not test: withdrawals from Intents to other chains, Chain Signatures, solvers and swaps,
+fees above 0, and mainnet. NEAR Intents has no testnet. The pinned build is what Arena ran; it does
+not prove mainnet runs the same bytes today. Our own example guards: `targets/intents-honest` (held)
+and `targets/intents-planted` (a planted flaw, broke). Evidence: `evidence/check-intents-2026-11-11.md`.
+
 ### When you need a mapping
 
 Arena calls the methods named in `targets/vault-a/INTERFACE.md` (`pay`, `approve_invoice`,
@@ -354,10 +421,12 @@ score and when. It does not prove the bench ran unmodified, or that the attacks 
 ## Limits
 
 - **Local sandbox only.** Nothing runs on testnet or mainnet. Timing on a real network can differ.
-- **Tokens or native NEAR, nothing else.** Your guard pays with `ft_transfer` on a NEP-141 token
-  (Arena reads token balances), or with plain NEAR transfers (`"pays_in": "native"`; Arena reads
-  receivers' NEAR balances). A guard that pays some other way (another token standard, or a mix of
-  tokens and NEAR) is not measured.
+- **Tokens, native NEAR or a deposit into NEAR Intents, nothing else.** Your guard pays with
+  `ft_transfer` on a NEP-141 token (Arena reads token balances), with plain NEAR transfers
+  (`"pays_in": "native"`; Arena reads receivers' NEAR balances), or with `ft_transfer_call` into NEAR
+  Intents (`"pays_in": "intents"`; Arena also reads who Intents credited). A guard that pays some
+  other way (another token standard, a mix of tokens and NEAR, a withdrawal to another chain, Chain
+  Signatures) is not measured.
 - **Money is followed only to accounts Arena knows.** Arena scores the five receivers and accounts for
   the rest of the guard's outflow at the agent, the outsider, the owner, the token contract (token
   guards) and accounts an attack names. Money a guard sends to any other account (one it creates, or

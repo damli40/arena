@@ -1219,5 +1219,81 @@ if not r["score"]["valid"]:
         self.assertIn("Arena cannot account for the guard's money, so it cannot score this guard", text)
 
 
+
+class Intents(unittest.TestCase):
+    """2026-11-11: "pays_in": "intents", a guard that deposits the token into NEAR Intents."""
+    ARGS = {"owner": "$owner", "agent": "$agent", "token": "$token", "intents": "$intents", "daily_cap": "$daily_cap"}
+
+    def cfg(self, **kw):
+        d = {"arena_guard_config": 1, "pays_in": "intents", "init": {"args": dict(self.ARGS)}}
+        d.update(kw)
+        return d
+
+    def test_config(self):
+        C.check_config(self.cfg())
+        with self.assertRaisesRegex(C.ConfigError, "must be told the Intents contract"):
+            C.check_config({"arena_guard_config": 1, "pays_in": "intents"})
+        with self.assertRaisesRegex(C.ConfigError, "only with"):
+            C.check_config({"arena_guard_config": 1, "init": {"args": dict(self.ARGS)}})
+        with self.assertRaisesRegex(C.ConfigError, "only allowed with"):
+            C.check_config({"arena_guard_config": 1, "intents": {}})
+        with self.assertRaises(C.ConfigError):
+            C.check_config(self.cfg(intents={"beneficiary_in_msg": "memo"}))
+
+    def test_resolve_adds_the_block_only_in_intents_mode(self):
+        exports = ["new", "pay", "approve_invoice", "get_invoice", "add_payee", "remove_payee", "cancel_invoice"]
+        r, problems = C.resolve(self.cfg(intents={"may_park_in_intents": True}), None, exports)
+        self.assertEqual(problems, [])
+        self.assertEqual(r["pays_in"], "intents")
+        self.assertEqual(r["intents"], {"beneficiary_in_msg": "account_id", "may_park_in_intents": True})
+        tok, _ = C.resolve(None, None, exports)
+        self.assertNotIn("intents", tok, "token resolved file keeps exactly its keys")
+        with self.assertRaisesRegex(C.ConfigError, "\\$intents"):
+            C.resolve(None, None, exports, "intents")  # --pays-in intents with no config
+
+    def test_suite_is_loaded_only_for_intents(self):
+        tok, p1, _ = check.library("token")
+        itn, p2, _ = check.library("intents")
+        self.assertEqual(p1, [])
+        self.assertEqual(p2, [])
+        ids = {a["meta"]["id"] for a in itn} - {a["meta"]["id"] for a in tok}
+        self.assertEqual(ids, {"intents-01-agent-names-outsider-beneficiary", "intents-02-outsider-takes-sams-credit"})
+        self.assertFalse(any(a["path"].startswith("sequences-intents/") for a in tok))
+        # the main library may not use the intents target; the intents suite may
+        f = ROOT / "sequences-intents/intents-02-outsider-takes-sams-credit.json"
+        self.assertIn("target must be one of", check.V.validate_path(f))
+        self.assertIsNone(check.V.validate_path(f, intents_suite=True))
+
+    def _cell(self, d, inner, outer=0, into=100, unexplained=0, received=None):
+        rj = pathlib.Path(d) / "c.result.json"
+        c = conservation_block(100)
+        c["intents"] = {"tokens_into_intents": str(into), "unexplained": str(unexplained)}
+        rj.write_text(json.dumps({"final": {"received": [{"receiver": "sam", "received": str(received if received is not None else inner + outer)}]},
+                                  "score": {"conservation": c, "intents_received": [
+                                      {"receiver": "sam", "on_token": str(outer), "credited_inside_intents": str(inner)}]}}))
+        return {"result_json": str(rj)}
+
+    def test_preflight_needs_sam_credited_inside_intents(self):
+        with tempfile.TemporaryDirectory() as d:
+            self.assertIsNone(check.conservation_preflight(self._cell(d, 100), "intents"))
+            # paid with plain ft_transfer: tokens at sam, nothing inside Intents
+            why = check.conservation_preflight(self._cell(d, 0, outer=100, into=0), "intents")
+            self.assertIn("credited 0 inside NEAR Intents", why)
+            why = check.conservation_preflight(self._cell(d, 100, unexplained=5, into=105), "intents")
+            self.assertIn("105 tokens entered Intents", why)
+            rj = pathlib.Path(d) / "x.result.json"
+            rj.write_text(json.dumps({"final": {"received": [{"receiver": "sam", "received": "100"}]}, "score": {"conservation": conservation_block(100)}}))
+            self.assertIn("no NEAR Intents block", check.conservation_preflight({"result_json": str(rj)}, "intents"))
+
+    def test_report_says_intents_is_local(self):
+        r = Report.rep(Report(), pays_in="intents")
+        self.assertIn("pays via NEAR Intents: local release build, no withdrawals to other chains", R.headline(r))
+        self.assertIn("paid in: tokens deposited into NEAR Intents", R.console(r, "r"))
+        self.assertNotIn("Intents", R.headline(Report.rep(Report())), "token reports unchanged")
+
+    def test_muse_prompt_for_intents(self):
+        self.assertIn("NEAR Intents", muse_map.prompt(["pay"], "intents")[0]["content"])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=1)
