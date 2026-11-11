@@ -51,7 +51,7 @@ when the builds are already there.
 | 9 | If a guard pays any account the attack was not supposed to reach (the agent, the outsider, an account the attack named), the check says broke and names who got it. Money it cannot find makes the check incomplete, never held. | section 3 | `arena: broke 11 of 51 (... 1800 tokens paid outside the five receivers ...)` for planted-outflow | about 280 s | `evidence/check-outflow-2026-11-11.md` |
 | 10 | The hunter's saved attacks replay from their JSON files, with no model call. | section 4 | section 4 | about 15 s per replay | `evidence/hunts/` |
 | 11 | The double-pay result and its fix are saved on NEAR testnet, and anyone can look them up. | section 5 | section 5 | 1 to 2 s | `evidence/receipts-testnet-2026-11-11.md`, `evidence/testnet-2026-11-11.md` |
-| 12 | A guard owner can sign a note on NEAR testnet saying "Arena may test this exact code", and another contract can ask for a result before it pays. | section 5 | `opt-in:    opted_in` in the lookup | 1 to 2 s | `evidence/onchain-2026-11-11.md`, `docs/ON-CHAIN.md` |
+| 12 | A guard owner can sign a note on NEAR testnet saying "Arena may test this exact code", and another contract can ask for a result before it pays. | section 5 | `opt-in:    opted_in` in the lookup | 1 to 2 s | `evidence/onchain-2026-11-11.md`, `evidence/results-testnet-2026-11-11.md`, `docs/ON-CHAIN.md` |
 | 13 | When the hunter's model runs on NEAR AI Cloud, the run saves NEAR's attestation report (a record, signed inside NEAR's sealed hardware, of which model and configuration answered). | `python3 -I tools/hunter/recheck_attestation.py evidence/hunts/2026-11-11-papers-e3db55.json` | `recheck: all checks pass (Intel and NVIDIA signatures are not checked offline)`, exit 0 | under 1 s | `evidence/nearai-2026-11-11.md` |
 
 Claim 6 needs the harness built first; `./verify.sh fast` does that.
@@ -238,7 +238,10 @@ runs held; worst run paid 100 over the limit)` and show `status:    broke`, exit
 us 1 to 2 s.
 
 `on chain:` is the result stored in Arena's own contract, which a wallet contract can read before it
-pays (`docs/ON-CHAIN.md`). ON_CHAIN_LINE
+pays (`docs/ON-CHAIN.md`). The fixed guard shows `on chain:  held` for mode `fixed`, and the
+planted-flaw guard `on chain:  broke` for mode `vulnerable_fixture`. Those results were published
+on Nov 11, for Arena's own guards only: `evidence/results-testnet-2026-11-11.md`, with transaction
+links.
 
 See `docs/CHECK-BEFORE-YOU-PAY.md` for more and `docs/ON-CHAIN.md` for what is stored.
 

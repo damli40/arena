@@ -25,7 +25,7 @@ not just the ones we tried.
 |---|---|---|
 | The fixed guard never pays a bill twice when pay messages race | on the real code, holds for every order of up to 4 pay calls; on the model, for any number of calls. The broken guard fails, as it should | Kani, plus NEAR's own near-tla (up to 3 pay calls) |
 | Tight rules never pay more than the owner meant | holds for up to 10 payment requests, in our test setup | z3 |
-| The result is public | saved on NEAR testnet, so anyone can look a guard's results up. A lookup shows the guard's code fingerprint; our broken and fixed guards share one, so a lookup must also read the guard's mode. Receipts for the current build were published Nov 10 | arena-receipts |
+| The result is public | saved on NEAR testnet, so anyone can look a guard's results up. A lookup shows the guard's code fingerprint; our broken and fixed guards share one, so a lookup must also read the guard's mode. Receipts for the current build were published Nov 10; results another contract can read before paying, Nov 11 (`evidence/results-testnet-2026-11-11.md`) | arena-receipts |
 
 **What "proved" means here:** the "any number of calls" proof covers a
 careful copy of the guard's logic (the model), not the contract itself. We

@@ -77,8 +77,8 @@
   "mode": "fixed",
   "mode_read": "ok",
   "block": {
-   "height": 277140123,
-   "hash": "5u3HkC2X3UhRgrbGJGBk9cMaRMfVW2JHsCTdchmYHWHy"
+   "height": 277155273,
+   "hash": "BFcnPT6NpJTAreBEKeiK9adfRgURqchV5htUNgxC5CnT"
   },
   "suite_filter": null,
   "receipts": [
@@ -171,20 +171,28 @@
    "sentence": "This guard's own account signed a note on chain saying Arena may test it."
   },
   "onchain_result": {
-   "status": "not_tested",
-   "suite": null,
-   "setup": null,
-   "arena_commit": null,
-   "attacks_ran": null,
-   "not_applicable": null,
-   "beyond_policy": null,
+   "status": "held",
+   "suite": "proof-pay-race-inductive",
+   "setup": "mode=fixed",
+   "arena_commit": "5034d28eeb0618a5dd54ebe1aa5347c93a6331d4",
+   "attacks_ran": 30,
+   "not_applicable": 0,
+   "beyond_policy": "0",
    "against_intent": null,
-   "evidence_path": null,
-   "evidence_sha256": null,
+   "evidence_path": "evidence/proofs-inductive-2026-11-11.md",
+   "evidence_sha256": "3df396b11867c61aa701b18c6269f80950b7a5e12dbff2cdc43f9c7050475e83",
    "attestation_sha256": null,
-   "published_at_ns": null,
-   "suites_considered": 0,
-   "sentence": "Arena has no result on chain for this exact code yet."
+   "published_at_ns": "1794364984052951339",
+   "suites_considered": 2,
+   "other_setups": [
+    {
+     "suite": "race-double-pay:mode=vulnerable_fixture",
+     "setup": "mode=vulnerable_fixture",
+     "status": "broke"
+    }
+   ],
+   "guard_mode": "fixed",
+   "sentence": "On chain, Arena's newest result for this exact code is \"held\": the attacks Arena ran found no way past it. Attacks Arena did not run might. It only counts for a guard set up like this: mode=fixed. Arena also has results on chain for this same code set up another way (mode=vulnerable_fixture: broke). Those do not count for this guard as it is set up now."
   }
  },
  {
@@ -197,8 +205,8 @@
   "mode": "vulnerable_fixture",
   "mode_read": "ok",
   "block": {
-   "height": 277140125,
-   "hash": "7jsYJE63RJPiG5fidy6oynAzMRMZdTfL3Ac2Vby5JE45"
+   "height": 277155276,
+   "hash": "Dg3EWySm6e64q6xRqa5gW7J3eb4HwsBuCa5QvdCxjNF3"
   },
   "suite_filter": null,
   "receipts": [
@@ -290,20 +298,33 @@
    "sentence": "The account that created this guard (arena-race-funder-1111.testnet) signed a note on chain saying Arena may test it."
   },
   "onchain_result": {
-   "status": "not_tested",
-   "suite": null,
-   "setup": null,
-   "arena_commit": null,
-   "attacks_ran": null,
-   "not_applicable": null,
-   "beyond_policy": null,
+   "status": "broke",
+   "suite": "race-double-pay:mode=vulnerable_fixture",
+   "setup": "mode=vulnerable_fixture",
+   "arena_commit": "5034d28eeb0618a5dd54ebe1aa5347c93a6331d4",
+   "attacks_ran": 5,
+   "not_applicable": 0,
+   "beyond_policy": "100",
    "against_intent": null,
-   "evidence_path": null,
-   "evidence_sha256": null,
+   "evidence_path": "evidence/testnet-2026-11-11.md",
+   "evidence_sha256": "312cd0cd0b4b2211eceb987a04038e5fe172b88947699a09e81d61ec6a5a59d4",
    "attestation_sha256": null,
-   "published_at_ns": null,
-   "suites_considered": 0,
-   "sentence": "Arena has no result on chain for this exact code yet."
+   "published_at_ns": "1794364976162485232",
+   "suites_considered": 1,
+   "other_setups": [
+    {
+     "suite": "race-double-pay:mode=fixed",
+     "setup": "mode=fixed",
+     "status": "held"
+    },
+    {
+     "suite": "proof-pay-race-inductive",
+     "setup": "mode=fixed",
+     "status": "held"
+    }
+   ],
+   "guard_mode": "vulnerable_fixture",
+   "sentence": "On chain, Arena's newest result for this exact code is \"broke\": an attack Arena ran got money out. It only counts for a guard set up like this: mode=vulnerable_fixture. Arena also has results on chain for this same code set up another way (mode=fixed: held; mode=fixed: held). Those do not count for this guard as it is set up now."
   }
  }
 ]

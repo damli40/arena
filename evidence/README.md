@@ -14,7 +14,7 @@ On Nov 10 we fixed a bug in the guard and re-ran everything on the same day. To 
 | `2026-11-10` | Nov 10, before the fix | `fcce82bf…` |
 | `2026-11-11` | Nov 10 after the fix, or Nov 11 | `0382023b…` (current) |
 
-Made on Nov 11: `check-native-2026-11-11.md`, `check-outflow-2026-11-11.md`, `onchain-2026-11-11.md`, `nearai-2026-11-11.md`, `injection-2026-11-11-nearai-model.md`, and the two hunt records whose names start `hunts/2026-11-11-`. Every other file with this tag was made on Nov 10.
+Made on Nov 11: `check-native-2026-11-11.md`, `check-outflow-2026-11-11.md`, `onchain-2026-11-11.md`, `results-testnet-2026-11-11.md`, `nearai-2026-11-11.md`, `injection-2026-11-11-nearai-model.md`, and the two hunt records whose names start `hunts/2026-11-11-`. Every other file with this tag was made on Nov 10.
 
 The names are kept because the receipts saved on NEAR testnet point at these paths and carry a hash of each file. Renaming a file, or editing its text, would break that link. The same tag appears in some code comments for the same reason.
 
@@ -37,6 +37,7 @@ The names are kept because the receipts saved on NEAR testnet point at these pat
 | Does the check score a guard that pays in plain NEAR and not a token? | `check-native-2026-11-11.md` |
 | What happens when a guard pays an account the check was not watching? | `check-outflow-2026-11-11.md` |
 | How does a guard owner opt in on chain, and how does a contract ask for a result before it pays? | `onchain-2026-11-11.md` (what is live on testnet), `../docs/ON-CHAIN.md` (how to use it) |
+| Which results can a contract read on testnet today? | `results-testnet-2026-11-11.md` (Arena's own guards only; Guards A, B and C get none) |
 | Does the model on NEAR AI resist the same injections as the first model? | `injection-2026-11-11-nearai-model.md` |
 | How long from a paper or a hack report to a tested attack? | `response-time-2026-11-11.md` (a replay of the planned schedule, not a measurement of it) |
 

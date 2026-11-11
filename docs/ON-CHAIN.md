@@ -11,7 +11,7 @@ Two things live on the Arena contract on NEAR testnet,
 "Held" in a result means one thing: **the attacks Arena ran found no way past the guard.** It is not
 a promise about attacks Arena did not run. The contract never says "safe".
 
-Testnet only. Live record of what is on chain: `evidence/onchain-2026-11-11.md`.
+Testnet only. Live record of what is on chain: `evidence/onchain-2026-11-11.md` (opt-ins) and `evidence/results-testnet-2026-11-11.md` (results, for Arena's own guards only).
 
 ## 1. Opt in your guard
 
