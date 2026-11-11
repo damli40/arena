@@ -100,6 +100,9 @@ pub struct Score {
     /// Intents mode only: receiver, tokens on the token contract, tokens credited inside NEAR
     /// Intents. `rows` holds their sum (both are the receiver's: it can withdraw the credit).
     pub intents_rows: Vec<(String, u128, u128)>,
+    /// Withdraw mode only (withdraw.rs): receiver, tokens withdrawn toward its allowed foreign
+    /// destination (recorded by the bridge stand-in). Also inside `rows`.
+    pub withdraw_rows: Vec<(String, u128)>,
 }
 
 /// Native mode: units received by one receiver, from its state at the end of
@@ -268,6 +271,7 @@ pub fn compute(m: &crate::setup::Manifest, inp: &ScoreInputs) -> Score {
         paid_outside: 0,
         conservation: None,
         intents_rows: Vec::new(),
+        withdraw_rows: Vec::new(),
     }
 }
 
@@ -288,6 +292,14 @@ pub async fn score(a: &Arena) -> Result<Score> {
     let mut native_rows = Vec::new();
     let mut invalid = Vec::new();
     let mut intents_rows = Vec::new();
+    // Withdraw mode: this attempt's bridge records, sorted onto the owner's list or off it.
+    let placed = match &a.bridge {
+        Some(_) => {
+            let from = a.before.as_ref().map(|b| b.bridge_records).unwrap_or(0);
+            Some(crate::withdraw::classify(&crate::withdraw::read_records(a, from).await?, a.token.id().as_str()))
+        }
+        None => None,
+    };
     for (name, acct) in a.by_name.iter() {
         if crate::setup::RECEIVERS.contains(name) {
             if native {
@@ -311,7 +323,9 @@ pub async fn score(a: &Arena) -> Result<Score> {
                 let outer = token_balance(a, acct.id()).await?;
                 let inner = crate::conserve::mt_balance(a, c, acct.id().as_str()).await?;
                 intents_rows.push((name.to_string(), outer, inner));
-                received.push((name.to_string(), outer + inner));
+                // Withdraw mode: plus what was withdrawn toward its allowed foreign destination.
+                let via = placed.as_ref().and_then(|p| p.to_receivers.iter().find(|(n, _)| n == name)).map(|(_, v)| *v).unwrap_or(0);
+                received.push((name.to_string(), outer + inner + via));
             } else {
                 received.push((name.to_string(), token_balance(a, acct.id()).await?));
             }
@@ -347,9 +361,17 @@ pub async fn score(a: &Arena) -> Result<Score> {
         s.mode = "intents";
         s.intents_rows = intents_rows;
     }
+    if let Some(p) = &placed {
+        // mode stays "intents" (what the config says it pays in); the rows mark withdraw mode
+        s.withdraw_rows = p.to_receivers.clone();
+    }
     match &a.before {
         Some(b) => {
-            let ci = crate::conserve::gather(a, b, receivers_in).await?;
+            let mut ci = crate::conserve::gather(a, b, receivers_in).await?;
+            if let (Some(p), Some(br)) = (placed, &a.bridge) {
+                let bridge_delta = token_balance(a, br.id()).await? as i128 - b.bridge_tokens as i128;
+                ci.withdraw = Some(crate::conserve::WithdrawInputs { bridge_delta, placed: p });
+            }
             apply_conservation(&mut s, crate::conserve::check(&ci));
         }
         None => s.invalid.push(
@@ -403,6 +425,11 @@ pub fn print_score(name: &str, s: &Score) {
     for (recv, outer, inner) in &s.intents_rows {
         if outer + inner > 0 {
             println!("  intents {recv:<6} on_token={outer} credited_inside_intents={inner}");
+        }
+    }
+    for (recv, via) in &s.withdraw_rows {
+        if *via > 0 {
+            println!("  withdrawn {recv:<6} toward_allowed_destination={via} (recorded by the bridge stand-in)");
         }
     }
     for (recv, got, au) in &s.rows {

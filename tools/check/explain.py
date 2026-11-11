@@ -104,6 +104,12 @@ def preflight(cell, out, resolved):
     if pays and not pays[0]["success"]:
         return head + f"The call failed: {from_text(pays[0].get('failure', ''), log)}"
     logs = " ".join(" ".join(s.get("logs", [])) for s in pays)
+    if (resolved.get("intents") or {}).get("pays_by") == "ft_withdraw" and sam == 0:
+        return head + (f"The call succeeded, but nothing was withdrawn toward sam's foreign destination. This check is for a guard "
+                       f"that pays by withdrawing from NEAR Intents (\"pays_by\": \"ft_withdraw\"): `{pay_name}` must call "
+                       f"ft_withdraw on the Intents account it was given at init ($intents) with token = $token, receiver_id = the "
+                       f"bridge it was given ($bridge), the invoice amount, 1 yoctoNEAR attached, and msg = "
+                       f"{{\"recipient\":\"<chain>:<address>\"}} for the receiver's entry in $foreign_destinations. Log: {log}")
     if resolved.get("pays_in") == "intents" and sam == 0:
         return head + (f"The call succeeded, but sam was not credited inside NEAR Intents (and got no tokens). This check is for a "
                        f"guard that pays into NEAR Intents (\"pays_in\": \"intents\"): `{pay_name}` must call ft_transfer_call on the "

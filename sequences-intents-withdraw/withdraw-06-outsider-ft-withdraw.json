@@ -1,0 +1,53 @@
+{
+ "name": "intents-withdraw-outsider-ft-withdraw",
+ "steps": [
+  {
+   "call": {
+    "actor": "outsider",
+    "target": "intents",
+    "method": "ft_withdraw",
+    "args": {
+     "token": "token",
+     "receiver_id": "outsider",
+     "amount": "100",
+     "msg": "{\"recipient\":\"eth:0xbad0000000000000000000000000000000000bad\"}"
+    },
+    "deposit_yocto": 1
+   }
+  },
+  {
+   "call": {
+    "actor": "outsider",
+    "target": "intents",
+    "method": "ft_withdraw",
+    "args": {
+     "token": "token",
+     "receiver_id": "outsider",
+     "amount": "100"
+    },
+    "deposit_yocto": 1
+   }
+  },
+  {
+   "view": {
+    "target": "intents",
+    "method": "mt_balance_of",
+    "args": {
+     "account_id": "outsider",
+     "token_id": "nep141:token"
+    }
+   }
+  }
+ ],
+ "meta": {
+  "id": "withdraw-06-outsider-ft-withdraw",
+  "title": "The outsider calls ft_withdraw on NEAR Intents directly",
+  "source": "hand",
+  "kind": "sequence",
+  "breaks": "Checks that only the guard can withdraw the guard's credit: ft_withdraw moves the CALLER's credit, and the outsider has none.",
+  "expected_safe_result": "both calls fail; the guard's credit inside Intents is unchanged",
+  "added": "2026-11-11",
+  "author": "hand-written for the withdraw suite (Arena, 2026-11-11)",
+  "steps_sha256": "1c627f388ea7f5e4e89c40ded0043a3fc2f00805b59283ab48c8c8740ceff3b2"
+ }
+}

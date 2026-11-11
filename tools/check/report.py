@@ -127,7 +127,10 @@ def qualifiers(rep, short=False):
             q.append(f"{t['against_intent']} against intent" if short else f"{t['against_intent']} tokens paid against the owner's intent")
     if is_native(rep):
         q.append("native NEAR" if short else "scored from NEAR balances")
-    if rep.get("pays_in") == "intents":  # so a green badge can never be read as covering real Intents
+    if rep.get("pays_by") == "ft_withdraw":  # so a green badge can never be read as covering real bridges
+        q.append("withdraws via intents, local" if short else
+                 "withdraws from NEAR Intents: checks where each withdrawal is sent and what destination it names; no delivery on another chain")
+    elif rep.get("pays_in") == "intents":  # so a green badge can never be read as covering real Intents
         q.append("pays via intents, local" if short else "pays via NEAR Intents: local release build, no withdrawals to other chains")
     only = rep.get("only")
     if only:
@@ -242,7 +245,16 @@ def _plain_lines(rep):
         out.append(f"not in the native suite: {len(nis)} token-only {'attack' if len(nis) == 1 else 'attacks'} "
                    f"({', '.join(d['id'] for d in nis)}). They send calls to the NEP-141 test token, which a native guard does not use, "
                    "so they are not run and not in any count")
-    if rep.get("pays_in") == "intents":
+    if rep.get("pays_by") == "ft_withdraw":
+        out.append("paid in: tokens withdrawn from the guard's credit inside NEAR Intents with ft_withdraw, sent to Arena's bridge "
+                   "stand-in, which records the foreign destination each withdrawal's msg names and sends nothing anywhere. A "
+                   "destination on the owner's list counts for its receiver (same per-invoice and cap rules); any other destination "
+                   "is paid outside the receivers. Tokens at the bridge with no readable record make the attack not finish. Arena "
+                   "checks where a withdrawal is sent and what destination it names; it does not test delivery on the other chain, "
+                   "real bridges, or the MPC network"
+                   + (f"; the intents and withdraw suites add {(rep.get('library') or {}).get('intents_suite', 0)} and "
+                      f"{(rep.get('library') or {}).get('withdraw_suite', 0)} attacks to the library" if (rep.get('library') or {}).get('withdraw_suite') else ""))
+    elif rep.get("pays_in") == "intents":
         out.append("paid in: tokens deposited into NEAR Intents. Each receiver's tokens on the token contract plus its credit inside "
                    "Intents (Intents' own ledger, mt_balance_of). Intents is the pinned release build defuse v0.4.2 on the local "
                    "sandbox, fee 0, no solvers. Every token that entered Intents must be credited to an account Arena reads, or the "

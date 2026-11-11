@@ -1,0 +1,67 @@
+{
+ "name": "intents-withdraw-split-under-cap",
+ "steps": [
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "pay",
+    "args": {
+     "id": "inv-pay"
+    },
+    "gas_tgas": 300
+   }
+  },
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "pay",
+    "args": {
+     "id": "inv-mid"
+    },
+    "gas_tgas": 300
+   }
+  },
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "pay",
+    "args": {
+     "id": "inv-small"
+    },
+    "gas_tgas": 300
+   }
+  },
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "pay",
+    "args": {
+     "id": "inv-expire"
+    },
+    "gas_tgas": 300
+   }
+  },
+  {
+   "view": {
+    "target": "vault",
+    "method": "paid_today",
+    "args": {}
+   }
+  }
+ ],
+ "meta": {
+  "id": "withdraw-04-split-under-cap",
+  "title": "Four withdrawals, each under the daily cap, that add up to more than it",
+  "source": "hand",
+  "kind": "sequence",
+  "breaks": "100 + 200 + 50 + 300 = 650 tokens against a 500 daily cap. Each withdrawal alone is within the cap; a guard that checks only the single amount withdraws all four.",
+  "expected_safe_result": "the guard withdraws the first three (350) and refuses inv-expire (350 + 300 > 500; by the fourth call it may also have expired, which refuses it too)",
+  "added": "2026-11-11",
+  "author": "hand-written for the withdraw suite (Arena, 2026-11-11)",
+  "steps_sha256": "fa1835b080826b898642e31e558e7added2cb632246ec321c72d1b9b3323a37c"
+ }
+}

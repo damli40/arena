@@ -240,6 +240,41 @@
    "text": "{\"arena_guard_config\": 1, \"pays_in\": \"Intents\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"intents\": \"$intents\", \"daily_cap\": \"$daily_cap\"}}}",
    "ok": false,
    "why": "pays_in is case-sensitive"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"pays_in\": \"intents\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"intents\": \"$intents\", \"bridge\": \"$bridge\", \"destinations\": \"$foreign_destinations\", \"daily_cap\": \"$daily_cap\"}}, \"intents\": {\"pays_by\": \"ft_withdraw\"}}",
+   "ok": true,
+   "why": "withdraw guard with $bridge and $foreign_destinations"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"pays_in\": \"intents\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"intents\": \"$intents\", \"daily_cap\": \"$daily_cap\"}}, \"intents\": {\"pays_by\": \"deposit\"}}",
+   "ok": true,
+   "why": "pays_by deposit is the default, said out loud"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"pays_in\": \"intents\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"intents\": \"$intents\", \"bridge\": \"$bridge\", \"destinations\": \"$foreign_destinations\", \"daily_cap\": \"$daily_cap\"}}}",
+   "ok": false,
+   "why": "withdraw placeholders without pays_by ft_withdraw"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"pays_in\": \"intents\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"intents\": \"$intents\", \"daily_cap\": \"$daily_cap\"}}, \"intents\": {\"pays_by\": \"ft_withdraw\"}}",
+   "ok": false,
+   "why": "ft_withdraw without $bridge / $foreign_destinations"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"pays_in\": \"intents\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"intents\": \"$intents\", \"bridge\": \"$bridge\", \"destinations\": \"$foreign_destinations\", \"daily_cap\": \"$daily_cap\"}}, \"intents\": {\"pays_by\": \"withdraw\"}}",
+   "ok": false,
+   "why": "pays_by off the closed list"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"pays_in\": \"intents\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"intents\": \"$intents\", \"bridge\": \"$bridge\", \"destinations\": \"$foreign_destinations\", \"daily_cap\": \"$daily_cap\"}}, \"intents\": {\"pays_by\": \"ft_withdraw\", \"may_park_in_intents\": false}}",
+   "ok": false,
+   "why": "deposit-only keys with ft_withdraw"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"daily_cap\": \"$daily_cap\", \"bridge\": \"$bridge\"}}}",
+   "ok": false,
+   "why": "$bridge on a token guard"
   }
  ]
 }

@@ -553,6 +553,10 @@ pub fn outcome_json(a: &Arena, name: &str, outcome: &[StepOutcome], s: &crate::s
             "receiver": r, "on_token": o.to_string(), "credited_inside_intents": i.to_string(),
         })).collect::<Vec<_>>());
     }
+    // Withdraw mode only (withdraw.rs): what each receiver got toward its allowed foreign destination.
+    if a.bridge.is_some() {
+        v["score"]["withdrawn_to_allowed_destinations"] = json!(s.withdraw_rows.iter().map(|(r, w)| json!({"receiver": r, "tokens": w.to_string()})).collect::<Vec<_>>());
+    }
     // `--guard-config` targets only (arena check): which starting invoices were created and
     // which rules the guard claims, so the check can tell "held" from "nothing it claims was
     // tested". Every other target writes exactly the JSON it wrote before.

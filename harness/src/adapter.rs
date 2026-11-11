@@ -51,7 +51,13 @@ pub const CHOICES: [(&str, &[&str]); 9] = [
     ("paid_value", &["Paid", "paid", "PAID"]),
 ];
 
-pub const PLACEHOLDERS: [&str; 6] = ["$owner", "$agent", "$token", "$daily_cap", "$daily_cap_number", "$intents"];
+pub const PLACEHOLDERS: [&str; 8] = ["$owner", "$agent", "$token", "$daily_cap", "$daily_cap_number", "$intents", "$bridge", "$foreign_destinations"];
+
+/// `"intents": {"pays_by": ...}` (2026-11-11, withdraw.rs): "deposit" = the guard deposits into NEAR
+/// Intents for the receiver (the default); "ft_withdraw" = the guard's money is a credit inside
+/// Intents and it pays by withdrawing toward a foreign destination through a bridge account.
+/// Mirrored in tools/check/guard_config.py (PAYS_BY).
+pub const PAYS_BY: [&str; 2] = ["deposit", "ft_withdraw"];
 
 /// `"pays_in": "intents"` (2026-11-11): how the guard pays into NEAR Intents. Closed lists only.
 /// Mirrored in tools/check/guard_config.py (INTENTS_KEYS, BENEFICIARY_IN_MSG).
@@ -66,6 +72,15 @@ pub struct IntentsCfg {
     /// only when this is true AND the guard has no key registered inside Intents. Default false:
     /// money parked there makes the attempt not finish.
     pub may_park_in_intents: bool,
+    /// "deposit" or "ft_withdraw" (PAYS_BY)
+    pub pays_by: String,
+}
+
+impl IntentsCfg {
+    /// The guard pays by `ft_withdraw` toward another chain (withdraw.rs).
+    pub fn withdraws(&self) -> bool {
+        self.pays_by == "ft_withdraw"
+    }
 }
 
 /// Rules the guard claims. A rule it does not claim is not scored, and the starting invoices
@@ -178,7 +193,15 @@ impl GuardConfig {
             Some(_) if !pays_intents => bail!("intents: this block is only allowed with \"pays_in\": \"intents\""),
             Some(b) => {
                 let b = obj(b, "intents")?;
-                no_unknown(b, &["beneficiary_in_msg", "may_park_in_intents"], "intents")?;
+                no_unknown(b, &["beneficiary_in_msg", "may_park_in_intents", "pays_by"], "intents")?;
+                let pays_by = match b.get("pays_by") {
+                    None => "deposit".to_string(),
+                    Some(Value::String(s)) if PAYS_BY.contains(&s.as_str()) => s.clone(),
+                    Some(other) => bail!("intents.pays_by: {other} is not one of {PAYS_BY:?}"),
+                };
+                if pays_by == "ft_withdraw" && (b.contains_key("beneficiary_in_msg") || b.contains_key("may_park_in_intents")) {
+                    bail!("intents: beneficiary_in_msg and may_park_in_intents describe deposits; a guard with \"pays_by\": \"ft_withdraw\" takes neither");
+                }
                 let ben = match b.get("beneficiary_in_msg") {
                     None => "account_id".to_string(),
                     Some(Value::String(s)) if BENEFICIARY_IN_MSG.contains(&s.as_str()) => s.clone(),
@@ -189,10 +212,10 @@ impl GuardConfig {
                     Some(Value::Bool(x)) => *x,
                     Some(_) => bail!("intents.may_park_in_intents must be true or false"),
                 };
-                c.intents = Some(IntentsCfg { beneficiary_in_msg: ben, may_park_in_intents: park });
+                c.intents = Some(IntentsCfg { beneficiary_in_msg: ben, may_park_in_intents: park, pays_by });
             }
             None if pays_intents => {
-                c.intents = Some(IntentsCfg { beneficiary_in_msg: "account_id".to_string(), may_park_in_intents: false })
+                c.intents = Some(IntentsCfg { beneficiary_in_msg: "account_id".to_string(), may_park_in_intents: false, pays_by: "deposit".to_string() })
             }
             None => {}
         }
@@ -263,6 +286,19 @@ impl GuardConfig {
         }
         if c.intents.is_some() && !uses_intents {
             bail!("init.args: a guard that pays into NEAR Intents must take the Intents contract's account through \"$intents\"");
+        }
+        // Withdrawals (withdraw.rs): the bridge account and the owner's foreign destinations come
+        // from Arena, and only for a guard that says it pays by ft_withdraw.
+        let withdraws = c.intents.as_ref().map(|i| i.withdraws()).unwrap_or(false);
+        for ph in ["$bridge", "$foreign_destinations"] {
+            let used = c.init_args.values().any(|v| v.as_str() == Some(ph));
+            if used && !withdraws {
+                bail!("init.args: \"{ph}\" is only filled in for a guard with \"pays_in\": \"intents\" and \"intents\": {{\"pays_by\": \"ft_withdraw\"}}");
+            }
+            if withdraws && !used {
+                bail!("init.args: a guard that pays by ft_withdraw must take {} through \"{ph}\"",
+                    if ph == "$bridge" { "the bridge account" } else { "the owner's foreign destinations" });
+            }
         }
         if let Some(m) = top.get("methods") {
             let m = obj(m, "methods")?;
@@ -482,6 +518,24 @@ impl GuardConfig {
         Value::Object(out)
     }
 
+    /// Withdraw mode (withdraw.rs): fill `$bridge` and `$foreign_destinations` in already-filled init
+    /// args. Every other value is left as it is.
+    pub fn fill_withdraw(&self, args: Value, bridge: &str, destinations: &Value) -> Value {
+        let Value::Object(m) = args else { return args };
+        Value::Object(
+            m.into_iter()
+                .map(|(k, v)| {
+                    let f = match v.as_str() {
+                        Some("$bridge") => json!(bridge),
+                        Some("$foreign_destinations") => destinations.clone(),
+                        _ => v,
+                    };
+                    (k, f)
+                })
+                .collect(),
+        )
+    }
+
     /// One line for the run header, so a log names the mapping it used.
     pub fn describe(&self) -> String {
         let renamed: Vec<String> = self
@@ -496,6 +550,7 @@ impl GuardConfig {
             .map(|(k, _)| format!("{k}={}", self.shape(k)))
             .collect();
         let intents = match &self.intents {
+            Some(i) if i.withdraws() => " intents(pays_by=ft_withdraw)".to_string(),
             Some(i) => format!(" intents(beneficiary_in_msg={}, may_park_in_intents={})", i.beneficiary_in_msg, i.may_park_in_intents),
             None => String::new(),
         };
@@ -637,7 +692,7 @@ mod tests {
         let c = cfg(json!({"arena_guard_config": 1, "pays_in": "intents", "init": {"args": base.clone()}})).unwrap();
         assert!(!c.native);
         assert_eq!(c.pays_in(), "intents");
-        assert_eq!(c.intents, Some(IntentsCfg { beneficiary_in_msg: "account_id".into(), may_park_in_intents: false }));
+        assert_eq!(c.intents, Some(IntentsCfg { beneficiary_in_msg: "account_id".into(), may_park_in_intents: false, pays_by: "deposit".into() }));
         assert_eq!(c.init_args_with("o", "a", "t", 500, Some("i.near"))["intents"], json!("i.near"));
         let c = cfg(json!({"arena_guard_config": 1, "pays_in": "intents", "init": {"args": base.clone()},
             "intents": {"beneficiary_in_msg": "json_receiver_id", "may_park_in_intents": true}})).unwrap();
@@ -659,6 +714,41 @@ mod tests {
         }
         // token mode's description is unchanged
         assert!(cfg(json!({"arena_guard_config": 1})).unwrap().describe().contains("pays_in=token init=new"));
+    }
+
+    #[test]
+    fn pays_by_ft_withdraw() {
+        let base = json!({"owner": "$owner", "agent": "$agent", "token": "$token", "intents": "$intents",
+                          "bridge": "$bridge", "destinations": "$foreign_destinations", "daily_cap": "$daily_cap"});
+        let c = cfg(json!({"arena_guard_config": 1, "pays_in": "intents", "init": {"args": base.clone()},
+                           "intents": {"pays_by": "ft_withdraw"}})).unwrap();
+        assert!(c.intents.as_ref().unwrap().withdraws());
+        assert!(c.describe().contains("pays_in=intents intents(pays_by=ft_withdraw)"));
+        let filled = c.fill_withdraw(c.init_args_with("o", "a", "t", 500, Some("i.near")), "b.near", &json!([{"account": "s"}]));
+        assert_eq!(filled["bridge"], json!("b.near"));
+        assert_eq!(filled["destinations"], json!([{"account": "s"}]));
+        assert_eq!(filled["intents"], json!("i.near"));
+        let mut no_bridge = base.clone();
+        no_bridge.as_object_mut().unwrap().remove("bridge");
+        let mut deposit_args = base.clone();
+        deposit_args.as_object_mut().unwrap().remove("bridge");
+        deposit_args.as_object_mut().unwrap().remove("destinations");
+        // a deposit guard keeps working; the withdraw placeholders are refused without the mode
+        assert!(!cfg(json!({"arena_guard_config": 1, "pays_in": "intents", "init": {"args": deposit_args.clone()}})).unwrap()
+            .intents.unwrap().withdraws());
+        let bad = [
+            json!({"arena_guard_config": 1, "pays_in": "intents", "init": {"args": base.clone()}}),
+            json!({"arena_guard_config": 1, "pays_in": "intents", "init": {"args": no_bridge}, "intents": {"pays_by": "ft_withdraw"}}),
+            json!({"arena_guard_config": 1, "pays_in": "intents", "init": {"args": deposit_args}, "intents": {"pays_by": "ft_withdraw"}}),
+            json!({"arena_guard_config": 1, "pays_in": "intents", "init": {"args": base.clone()}, "intents": {"pays_by": "withdraw"}}),
+            json!({"arena_guard_config": 1, "pays_in": "intents", "init": {"args": base.clone()},
+                   "intents": {"pays_by": "ft_withdraw", "may_park_in_intents": false}}),
+            json!({"arena_guard_config": 1, "init": {"args": {"owner": "$owner", "agent": "$agent", "token": "$token",
+                   "daily_cap": "$daily_cap", "bridge": "$bridge"}}}),
+        ];
+        for b in bad {
+            assert!(cfg(b.clone()).is_err(), "should refuse {b}");
+        }
     }
 
     /// tools/check/tests/validator-cases.json is read by BOTH validators (this test and

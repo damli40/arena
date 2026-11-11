@@ -1,0 +1,54 @@
+{
+ "name": "intents-withdraw-race-two-withdrawals",
+ "steps": [
+  {
+   "race": [
+    {
+     "call": {
+      "actor": "agent",
+      "target": "vault",
+      "method": "pay",
+      "args": {
+       "id": "inv-mid"
+      },
+      "gas_tgas": 300
+     }
+    },
+    {
+     "call": {
+      "actor": "agent",
+      "target": "vault",
+      "method": "pay",
+      "args": {
+       "id": "inv-mid"
+      },
+      "gas_tgas": 300
+     }
+    }
+   ]
+  },
+  {
+   "wait_blocks": 5
+  },
+  {
+   "view": {
+    "target": "vault",
+    "method": "get_invoice",
+    "args": {
+     "id": "inv-mid"
+    }
+   }
+  }
+ ],
+ "meta": {
+  "id": "withdraw-05-race-two-withdrawals",
+  "title": "Two withdrawals of the same invoice sent in the same block",
+  "source": "hand",
+  "kind": "sequence",
+  "breaks": "ft_withdraw is a chain of five receipts. A guard that marks the invoice paid only in its callback lets a second pay of the same invoice start a second withdrawal before the first one finishes.",
+  "expected_safe_result": "exactly one withdrawal of 200 toward ada's destination; the second pay is refused (the invoice is already in flight)",
+  "added": "2026-11-11",
+  "author": "hand-written for the withdraw suite (Arena, 2026-11-11)",
+  "steps_sha256": "b30db464a8fd57fba8fb0a44119527e8226d8f5f863a6312f0f9ccb6472e1f51"
+ }
+}
