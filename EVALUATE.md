@@ -250,6 +250,37 @@ measurement of it.
 The design borrows ideas from AutoRedTeamer (Andy Zhou et al., NeurIPS 2025, arXiv 2503.15754). No
 code was copied. See `docs/DESIGN-CREDIT.md`.
 
+### 4b. Attack admission and the hidden test set: check each claim
+
+Each row: the claim, the command (from the repo root of a fresh `git archive` export, no network,
+no private files), the line it prints, the exit code, and the time we measured on one Mac (Apple silicon).
+
+| Claim | Command | Line it prints | Exit | Time |
+|---|---|---|---|---|
+| 7 of 53 attacks validated, 1 partially, 45 unvalidated, and the committed count files are what the code computes | `python3 -I tools/admission/manifest.py --check` | `manifest: up to date` (the counts are in `evidence/MANIFEST.md`, line "Admission: 7 of 53 validated, ...") | 0 | 1 s |
+| A stamp follows from the stored raw runs (re-judged, no sandbox) | `python3 -I tools/admission/admit.py --recheck sequences-scripted/03-sequential-second-pay.json` | `recheck scripted-03-sequential-second-pay: stored runs give validated (every reference matched in 3 counted runs; matched known-bad: mutant:M4); stamp agrees` | 0 | under 1 s |
+| The double-pay race is only partially validated: no block heights recorded | `python3 -I tools/admission/admit.py --recheck sequences-scripted/02-race-double-pay.json` | `recheck scripted-02-race-double-pay: stored runs give partially-validated (outcomes matched, race ordering not shown: ...steps[].receipts absent...); stamp agrees` | 0 | under 1 s |
+| A hand-written or edited "validated" stamp is refused; a race counts only if each later check ran in a block strictly before the earlier callback (same block = tie, never counted); earlier evidence files are byte-identical | `python3 -I -m unittest discover -s tools/admission/tests` | `Ran 54 tests`, `OK` | 0 | 2 s |
+| The gate itself reproduces a validation (local sandbox; needs the build from `./verify.sh fast`) | `python3 -I tools/admission/admit.py sequences-scripted/03-sequential-second-pay.json --runs 3` | `ADMISSION scripted-03-sequential-second-pay: validated (every reference matched in 3 counted runs; matched known-bad: mutant:M4)`; raw runs in `runs/evidence/admission/...` (gitignored) | 0 | 37 s |
+| The hidden set was fixed before its runs, and every public run file is consistent with it | `python3 -I tools/hidden/hidden.py check-public` | `hidden-set public files: 6 of 6 consistent with set 835729d9f34fa123... (9 attacks)` | 0 | under 1 s |
+
+How an outsider checks the hidden set without seeing it: `hidden-set/COMMITMENT.json` holds the
+set's sha256 (`835729d9...`), its size (9) and its families. In a git clone (not an export),
+`git log --format='%H %cI' -- hidden-set/COMMITMENT.json` shows the commitment was committed before
+the run files in `evidence/hidden-set/` (`git log -- evidence/hidden-set/`). `check-public` above
+checks every run file names that hash and that its rows and totals agree. If a result is published
+on testnet, its `suite_version` must equal the same hash. What you cannot check: the attacks
+themselves, or that we ran them honestly. Those wait for the reveal (rule in `COMMITMENT.json`:
+after 5 guard code hashes or 30 days). Limit of these first runs: the set has no race variant, so
+the double-pay guards (`guard:vulnerable_fixture`, `leaky-control-v2`) held all 8 attacks that
+apply to them; only `intents-planted` broke (100 beyond policy, 1 attack). On the two Intents
+guards, a "held" on a family whose rule the guard does not claim (cancel, expiry, payee list) is
+not meaningful: `hidden.py run` does not apply `arena check`'s applicability rules.
+
+What a recheck does not prove: the stored runs are bound only by the sha256s in each
+`admission.json`, a file in the repo. Someone who writes plausible result files and recomputes the
+hashes passes it. What binds the evidence is git history and re-running the gate (row 5).
+
 ## 5. Look up a result on NEAR testnet
 
 ```
