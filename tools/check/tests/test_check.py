@@ -1304,5 +1304,84 @@ class Intents(unittest.TestCase):
         self.assertIn("NEAR Intents", muse_map.prompt(["pay"], "intents")[0]["content"])
 
 
+
+class ChainSignatures(unittest.TestCase):
+    """2026-11-11: "signs_via": "chain-signatures", a guard that also asks a signer to sign
+    foreign-chain transactions. Scored as a COUNT of signing requests, never an amount."""
+    ARGS = {"owner": "$owner", "agent": "$agent", "token": "$token", "daily_cap": "$daily_cap",
+            "signer": "$signer", "allowed_foreign_txs": "$allowed_foreign_txs"}
+    EXPORTS = ["new", "pay", "approve_invoice", "get_invoice", "add_payee", "remove_payee", "cancel_invoice", "request_signature"]
+
+    def cfg(self, **kw):
+        d = {"arena_guard_config": 1, "signs_via": "chain-signatures", "init": {"args": dict(self.ARGS)}}
+        d.update(kw)
+        return d
+
+    def test_closed_lists_agree_with_harness(self):
+        rs = (ROOT / "harness/src/chainsig.rs").read_text()
+        for name, py in (("SIGNS_VIA", C.SIGNS_VIA), ("PAYLOAD_FORMATS", C.PAYLOAD_FORMATS), ("CHAINSIG_KEYS", sorted(C.CHAINSIG_KEYS))):
+            vals = re.findall(r'"([^"]+)"', re.search(rf"pub const {name}: \[&str; \d+\] = \[(.*?)\];", rs, re.S).group(1))
+            self.assertEqual(sorted(vals) if name == "CHAINSIG_KEYS" else vals, py, name)
+        self.assertIn(f'pub const LOGICAL_METHOD: &str = "{C.DEFAULT_CHAINSIG["method"]}"', rs)
+        self.assertIn(f'pub const DEFAULT_PATH: &str = "{C.DEFAULT_CHAINSIG["path"]}"', rs)
+
+    def test_policy_hashes_reproduce(self):
+        import hashlib
+        pol = json.loads((ROOT / "policy/chain-signatures-allowed.json").read_text())
+        for t in pol["allowed"] + pol["named_not_allowed"]:
+            h = hashlib.sha256(f"arena-foreign-tx-v1|{t['chain']}|{t['receiver']}|{t['amount']}".encode()).hexdigest()
+            self.assertEqual(h, t["payload"], t["id"])
+
+    def test_resolve_adds_the_block_only_when_signing(self):
+        r, problems = C.resolve(self.cfg(), None, self.EXPORTS)
+        self.assertEqual(problems, [])
+        self.assertEqual(r["signs_via"], "chain-signatures")
+        self.assertEqual(r["chain_signatures"], C.DEFAULT_CHAINSIG)
+        tok, _ = C.resolve(None, None, self.EXPORTS)
+        self.assertNotIn("signs_via", tok, "token resolved file keeps exactly its keys")
+        self.assertNotIn("chain_signatures", tok)
+        _, problems = C.resolve(self.cfg(), None, [m for m in self.EXPORTS if m != "request_signature"])
+        self.assertTrue(any("request_signature" in p for p in problems), problems)
+        _, problems = C.resolve(self.cfg(chain_signatures={"method": "pay"}), None, self.EXPORTS)
+        self.assertTrue(any("already the init method or a role method" in p for p in problems), problems)
+
+    def test_suite_is_loaded_only_when_signing(self):
+        tok, p1, _ = check.library("token")
+        sig, p2, _ = check.library("token", signs=True)
+        self.assertEqual((p1, p2), ([], []))
+        ids = {a["meta"]["id"] for a in sig} - {a["meta"]["id"] for a in tok}
+        self.assertEqual(len(ids), 7)
+        self.assertIn(check.CHAINSIG_CONTROL_ID, ids)
+        f = ROOT / "sequences-chainsig/chainsig-05-outsider-calls-signer-directly.json"
+        self.assertIn("target must be one of", check.V.validate_path(f))
+        self.assertIsNone(check.V.validate_path(f, chainsig_suite=True))
+
+    def _cell(self, d, cs, status="held"):
+        rj = pathlib.Path(d) / "s.result.json"
+        rj.write_text(json.dumps({"chain_signatures": cs} if cs is not None else {}))
+        return {"result_json": str(rj), "status": status}
+
+    def test_signing_preflight(self):
+        ok = {"valid": True, "guard_requests": 1, "matched_allowed": ["ftx-sam"], "unauthorised_requests": 0}
+        with tempfile.TemporaryDirectory() as d:
+            self.assertIsNone(check.chainsig_preflight(self._cell(d, ok)))
+            # a guard that never signs would hold every signing attack: the check must stop
+            self.assertIn("made 0 signing requests", check.chainsig_preflight(self._cell(d, {**ok, "guard_requests": 0, "matched_allowed": []})))
+            self.assertIsNotNone(check.chainsig_preflight(self._cell(d, {**ok, "guard_requests": 2, "unauthorised_requests": 1})))
+            self.assertIn("no chain_signatures block", check.chainsig_preflight(self._cell(d, None)))
+            self.assertIn("did not finish", check.chainsig_preflight(self._cell(d, ok, status="invalid")))
+
+    def test_report_says_count_not_amount_and_stand_in(self):
+        r = Report.rep(Report())
+        r.update(signs_via="chain-signatures", status="broke")
+        r["totals"].update(unauthorised_signing_requests=3)
+        h = R.headline(r)
+        self.assertIn("3 signing requests outside the owner's list (a count, not an amount)", h)
+        self.assertIn("no real MPC signing", h)
+        self.assertIn("never an amount", R.console(r, "r"))
+        self.assertNotIn("signing", R.headline(Report.rep(Report())), "token reports unchanged")
+        self.assertIn("(a count, not an amount)", R.signing_note({"unauthorised_signing_requests": 1}))
+        self.assertEqual(R.signing_note({}), "")
+
 if __name__ == "__main__":
     unittest.main(verbosity=1)

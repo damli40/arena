@@ -127,6 +127,11 @@ def qualifiers(rep, short=False):
             q.append(f"{t['against_intent']} against intent" if short else f"{t['against_intent']} tokens paid against the owner's intent")
     if is_native(rep):
         q.append("native NEAR" if short else "scored from NEAR balances")
+    if rep.get("signs_via"):  # a count of requests, never an amount; and never real MPC signing
+        n = t.get("unauthorised_signing_requests", 0)
+        if n:
+            q.append(f"{n} unauthorised signing requests" if short else f"{n} signing requests outside the owner's list (a count, not an amount)")
+        q.append("signs: stand-in, no real MPC" if short else "signs via Chain Signatures: Arena's stand-in signer, no real MPC signing, nothing sent to another chain")
     if rep.get("pays_in") == "intents":  # so a green badge can never be read as covering real Intents
         q.append("pays via intents, local" if short else "pays via NEAR Intents: local release build, no withdrawals to other chains")
     only = rep.get("only")
@@ -248,6 +253,18 @@ def _plain_lines(rep):
                    "sandbox, fee 0, no solvers. Every token that entered Intents must be credited to an account Arena reads, or the "
                    "attack does not finish. Withdrawals from Intents to other chains are not tested"
                    + (f"; the intents suite adds {(rep.get('library') or {}).get('intents_suite')} attacks to the library" if (rep.get('library') or {}).get('intents_suite') else ""))
+    if rep.get("signs_via"):
+        lib = rep.get("library") or {}
+        n = (t or {}).get("unauthorised_signing_requests", 0)
+        out.append(f"signing requests outside the owner's list: {n} (a COUNT of requests the guard sent to the signer, never an amount: "
+                   "Arena cannot know what an unknown hash was worth; any value above 0 is a guard failure)")
+        out.append("signs via Chain Signatures: the signer is Arena's stand-in (contracts/signer-standin). It takes v1.signer's request "
+                   "shape, records every request and returns a fake signature. No real MPC signing, no delivery on another chain. "
+                   "The owner's allowed foreign transactions are in policy/chain-signatures-allowed.json; Arena rebuilds each payload itself"
+                   + (f"; the chain-signatures suite adds {lib.get('chainsig_suite')} attacks to the library" if lib.get("chainsig_suite") else ""))
+        sc = rep.get("signing_control")
+        if sc:
+            out.append(f"signing preflight: {sc.get('result')} (not an attack; not in any count)")
     if is_native(rep):
         out.append("paid in: native NEAR. Read from each receiver's NEAR balance (end of setup to end of attack). The guard's, the agent's, "
                    "the outsider's and the owner's NEAR are read too, to find where all the NEAR that left the guard went; the agent's and "
@@ -289,7 +306,7 @@ def summary_md(rep):
         if broke:
             head = "NEAR beyond the rules" if is_native(rep) else "Tokens beyond the rules"
             lines += ["", f"| Attack that broke it | {head} |", "|---|---|"]
-            lines += [f"| {md(r['id'])}: {md(r['title'])} | {amt(rep, int(r['beyond_policy'] or 0))}{md(outside_note(rep, r))} |" for r in broke]
+            lines += [f"| {md(r['id'])}: {md(r['title'])} | {amt(rep, int(r['beyond_policy'] or 0))}{md(outside_note(rep, r))}{md(signing_note(r))} |" for r in broke]
     for e in rep.get("errors", []):
         f = fence(e)
         lines += ["", "**Could not finish:**", "", f, e, f]
@@ -319,13 +336,19 @@ def outside_note(rep, r):
     return " (paid " + ", ".join(f"{amt(rep, int(p.get('units', 0)))} {noun(rep)} to {p.get('to', '?')}" for p in paid) + ")"
 
 
+def signing_note(r):
+    """'; 2 signing requests outside the owner's list (a count, not an amount)' or ''."""
+    n = int(r.get("unauthorised_signing_requests") or 0)
+    return f"; {n} signing request{'s' if n != 1 else ''} outside the owner's list (a count, not an amount)" if n else ""
+
+
 def console(rep, where):
     """`where` is the report path as it should be shown (already relative)."""
     lines = ["", f"arena: {headline(rep)}"]
     lines += [f"  {x}" for x in _plain_lines(rep)]
     for r in rep.get("attacks", []):
         if r["status"] == "broke":
-            lines.append(f"  BROKE {r['id']}: {amt(rep, r['beyond_policy'])} {noun(rep)} beyond the rules{outside_note(rep, r)}")
+            lines.append(f"  BROKE {r['id']}: {amt(rep, r['beyond_policy'])} {noun(rep)} beyond the rules{outside_note(rep, r)}{signing_note(r)}")
     for e in rep.get("errors", []):
         lines += ["", "COULD NOT FINISH:", "  " + e.replace("\n", "\n  ")]
     lines += [f"  wall-clock: {rep.get('wall_seconds')} s", "  held means: it held these attacks on a local sandbox; it is not a proof.",
@@ -455,7 +478,7 @@ def html_page(rep):
             f"<p>{t['held']} attacks held, {t['broke']} broke, {t.get('not_applicable', 0)} not applicable, {t['errors']} did not finish. "
             "The two numbers are never added together. Held and broke count only attacks that really ran against a rule the guard claims.</p>")
     extra = [x for x in _plain_lines(rep) if x.startswith(("paid in", "rules the guard", "role methods", "owner method", "subset", "honest payments", "not counted",
-                                                           "paid outside", "not in the native suite"))]
+                                                           "paid outside", "not in the native suite", "signing requests", "signs via", "signing preflight"))]
     if extra:
         parts.append("<ul>" + "".join(f"<li>{e(x)}</li>" for x in extra) + "</ul>")
     parts.append("<h2>What was tested</h2><dl>"
@@ -480,7 +503,7 @@ def html_page(rep):
     if broke:
         parts.append("<h2 class=bad>Attacks that broke it</h2>")
         for r in broke:
-            parts.append(f"<details open><summary>{e(r['id'])}: {amt(rep, r['beyond_policy'])} {noun(rep)} beyond the rules{e(outside_note(rep, r))}</summary>"
+            parts.append(f"<details open><summary>{e(r['id'])}: {amt(rep, r['beyond_policy'])} {noun(rep)} beyond the rules{e(outside_note(rep, r))}{e(signing_note(r))}</summary>"
                          f"<p>{e(r['title'])}. <span class=muted>{e(r['breaks'])}</span></p>"
                          f"<p class=muted>Attack file: <code>{e(r['path'])}</code> · full log: "
                          + (f"<a href=\"{e(_safe_href(r['log']))}\">{e(r['log'])}</a>" if _safe_href(r['log']) else f"<code>{e(r['log'] or '')}</code>") + "</p>"
