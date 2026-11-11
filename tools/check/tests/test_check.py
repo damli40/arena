@@ -1340,6 +1340,8 @@ class Withdraw(unittest.TestCase):
         paid = [{"to": "toward eth:0xbad, not on the owner's list of foreign destinations (recorded by Arena's bridge stand-in)", "units": "200"}]
         self.assertTrue(check.outside_text(paid, False).startswith("200 tokens toward eth:0xbad, not on the owner's list"))
         self.assertEqual(check.outside_text([{"to": "the agent", "units": "5"}], False), "5 tokens to the agent")
+        self.assertEqual(R.outside_note({}, {"paid_outside": paid}), " (paid 200 tokens " + paid[0]["to"] + ")")
+        self.assertEqual(R.outside_note({}, {"paid_outside": [{"to": "the agent", "units": "5"}]}), " (paid 5 tokens to the agent)")
 
     def _cell(self, d, via=100, received=100, recorded=100, out=100):
         rj = pathlib.Path(d) / "w.result.json"

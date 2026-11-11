@@ -328,7 +328,9 @@ def outside_note(rep, r):
     paid = r.get("paid_outside") or []
     if not paid:
         return ""
-    return " (paid " + ", ".join(f"{amt(rep, int(p.get('units', 0)))} {noun(rep)} to {p.get('to', '?')}" for p in paid) + ")"
+    # Withdraw-mode labels already say where ("toward eth:0x..., not on the owner's list ..."), so no "to".
+    return " (paid " + ", ".join(f"{amt(rep, int(p.get('units', 0)))} {noun(rep)} "
+                                 f"{'' if str(p.get('to', '')).startswith('toward ') else 'to '}{p.get('to', '?')}" for p in paid) + ")"
 
 
 def console(rep, where):

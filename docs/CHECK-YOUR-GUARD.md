@@ -247,7 +247,7 @@ What Arena does with it:
 - The badge brackets say `withdraws via intents, local`.
 
 Our own example guards: `targets/withdraw-honest` and `targets/withdraw-planted` (a planted flaw:
-it forwards whatever `msg` the agent passes). Evidence: `evidence/check-withdraw-2026-11-11.md`.
+it forwards whatever `msg` the agent passes). Evidence: `evidence/check-withdraw-2026-11-12.md`.
 
 ### When you need a mapping
 
