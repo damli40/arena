@@ -1011,7 +1011,7 @@ class NativeEndToEnd(unittest.TestCase):
         self.assertIn("bypass-01-bypass-direct-ft-transfer", [d["id"] for d in rep["not_in_suite"]])
         self.assertTrue(rep["badge"]["message"].startswith("held 1/1 (0 not applicable"), rep["badge"]["message"])
         self.assertIn("not in the native suite: 3 token-only attacks (", text)
-        self.assertIn("subset: 1 of 48 attacks", rep["badge"]["message"])
+        self.assertIn("subset: 1 of 49 attacks", rep["badge"]["message"])  # 49 since 2026-11-12: bypass-04 (outsider owner methods) joined the native suite
         self.assertIn("native NEAR", rep["badge"]["message"])
         self.assertIn("NEAR paid beyond the guard's own rules: 0", text)
         self.assertNotIn("tokens paid beyond", text)
