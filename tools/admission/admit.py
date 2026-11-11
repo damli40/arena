@@ -6,6 +6,9 @@
       tools/hunter/runner.py:run_one, the hunter's own path), judge each run, write an evidence
       folder evidence/admission/<id>/<UTC stamp>/, print the class. --stamp also writes
       meta.admission into the attack file (only the gate writes that block).
+  python3 -I tools/admission/admit.py <attack.json> --stamp-from evidence/admission/<id>/<stamp>
+      Write meta.admission from a gate folder written earlier (so several gate runs can all run on a
+      clean tree first). Refused unless the stored runs re-judge to the class the folder records.
   python3 -I tools/admission/admit.py --recheck <attack.json>
       Re-judge the stored runs named by the file's meta.admission (no sandbox). Exit 1 if the
       stamp does not follow from the stored runs. tools/hunter/validate.py calls the same code.
@@ -439,7 +442,8 @@ def run_gate(attack_path, runs=DEFAULT_RUNS, jobs=4, stamp=False, out_root=None,
         a = {"class": cls, "evidence": rel, "date": ev["date"], "gate": GATE,
              "runs_counted": ev["runs_counted"], "runs_tried": ev["runs_tried"], "why": why[:400]}
         doc["meta"]["admission"] = a
-        attack_path.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n")
+        ind = 1 if raw.startswith(b'{\n "') else 2
+        attack_path.write_text(json.dumps(doc, indent=ind, ensure_ascii=False) + "\n")
     return cls, why, folder
 
 
@@ -462,6 +466,25 @@ def render_md(ev, spec):
     return "\n".join(L)
 
 
+def stamp_from(attack_path, rel):
+    attack_path = pathlib.Path(attack_path)
+    doc = json.loads(attack_path.read_text())
+    meta = doc["meta"]
+    ev = json.loads((ROOT / rel / "admission.json").read_text())
+    if ev.get("attack_id") != meta["id"] or ev.get("steps_sha256") != meta["steps_sha256"] or ev.get("spec_sha256") != V.spec_sha256(meta["spec"]):
+        raise SystemExit(f"{rel} is the gate's record for a different attack, steps or spec")
+    a = {"class": ev["class"], "evidence": rel.rstrip("/"), "date": ev["date"], "gate": GATE,
+         "runs_counted": ev["runs_counted"], "runs_tried": ev["runs_tried"], "why": ev["why"][:400]}
+    cls, why, problems = rederive({"meta": {**meta, "admission": a}, "steps": doc["steps"]})
+    if problems:
+        raise SystemExit("refused: " + "; ".join(problems))
+    doc["meta"]["admission"] = a
+    ind = 1 if attack_path.read_bytes().startswith(b'{\n "') else 2
+    attack_path.write_text(json.dumps(doc, indent=ind, ensure_ascii=False) + "\n")
+    print(f"stamped {meta['id']}: {cls} ({why})")
+    return 0
+
+
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("attack")
@@ -470,7 +493,10 @@ def main(argv):
     ap.add_argument("--stamp", action="store_true", help="write meta.admission into the attack file")
     ap.add_argument("--out-root", help="write the evidence folder under this directory instead of the repo (private re-admission)")
     ap.add_argument("--recheck", action="store_true", help="re-judge the stored runs behind meta.admission; no sandbox")
+    ap.add_argument("--stamp-from", help="write meta.admission from this existing gate folder (repo-relative)")
     a = ap.parse_args(argv)
+    if a.stamp_from:
+        return stamp_from(a.attack, a.stamp_from)
     if a.recheck:
         doc = json.loads(pathlib.Path(a.attack).read_text())
         if "admission" not in doc.get("meta", {}):
