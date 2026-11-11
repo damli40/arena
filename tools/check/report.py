@@ -127,6 +127,8 @@ def qualifiers(rep, short=False):
             q.append(f"{t['against_intent']} against intent" if short else f"{t['against_intent']} tokens paid against the owner's intent")
     if is_native(rep):
         q.append("native NEAR" if short else "scored from NEAR balances")
+    if rep.get("pays_in") == "intents":  # so a green badge can never be read as covering real Intents
+        q.append("pays via intents, local" if short else "pays via NEAR Intents: local release build, no withdrawals to other chains")
     only = rep.get("only")
     if only:
         if isinstance(only, dict):
@@ -240,6 +242,12 @@ def _plain_lines(rep):
         out.append(f"not in the native suite: {len(nis)} token-only {'attack' if len(nis) == 1 else 'attacks'} "
                    f"({', '.join(d['id'] for d in nis)}). They send calls to the NEP-141 test token, which a native guard does not use, "
                    "so they are not run and not in any count")
+    if rep.get("pays_in") == "intents":
+        out.append("paid in: tokens deposited into NEAR Intents. Each receiver's tokens on the token contract plus its credit inside "
+                   "Intents (Intents' own ledger, mt_balance_of). Intents is the pinned release build defuse v0.4.2 on the local "
+                   "sandbox, fee 0, no solvers. Every token that entered Intents must be credited to an account Arena reads, or the "
+                   "attack does not finish. Withdrawals from Intents to other chains are not tested"
+                   + (f"; the intents suite adds {(rep.get('library') or {}).get('intents_suite')} attacks to the library" if (rep.get('library') or {}).get('intents_suite') else ""))
     if is_native(rep):
         out.append("paid in: native NEAR. Read from each receiver's NEAR balance (end of setup to end of attack). The guard's, the agent's, "
                    "the outsider's and the owner's NEAR are read too, to find where all the NEAR that left the guard went; the agent's and "

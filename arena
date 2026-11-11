@@ -3,7 +3,7 @@
 #
 #   ./arena check <guard.wasm> [--config guard.json] [--mapping mapping.json] [--out arena-report]
 #                 [--fail-on beyond-policy|against-intent|never] [--jobs N] [--no-muse] [--label NAME]
-#                 [--pays-in token|native]
+#                 [--pays-in token|native|intents]
 #
 # Runs every attack in Arena's library against your guard on a LOCAL NEAR sandbox and writes a
 # report card to ./arena-report (report.html, report.json, badge.svg, shields.json, summary.md).
@@ -32,5 +32,5 @@ esac
 
 case "${1:-}" in
   check) shift; exec python3 -I "$ARENA_HOME/tools/check/check.py" "$@" ;;
-  *) echo "usage: $0 check <guard.wasm> [--config guard.json] [--mapping mapping.json] [--out DIR] [--fail-on beyond-policy|against-intent|never] [--pays-in token|native]" >&2; exit 64 ;;
+  *) echo "usage: $0 check <guard.wasm> [--config guard.json] [--mapping mapping.json] [--out DIR] [--fail-on beyond-policy|against-intent|never] [--pays-in token|native|intents]" >&2; exit 64 ;;
 esac

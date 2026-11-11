@@ -104,6 +104,11 @@ def preflight(cell, out, resolved):
     if pays and not pays[0]["success"]:
         return head + f"The call failed: {from_text(pays[0].get('failure', ''), log)}"
     logs = " ".join(" ".join(s.get("logs", [])) for s in pays)
+    if resolved.get("pays_in") == "intents" and sam == 0:
+        return head + (f"The call succeeded, but sam was not credited inside NEAR Intents (and got no tokens). This check is for a "
+                       f"guard that pays into NEAR Intents (\"pays_in\": \"intents\"): `{pay_name}` must call ft_transfer_call on the "
+                       f"token ($token) with receiver_id = the Intents account it was given at init ($intents) and msg = the "
+                       f"receiver. If your guard pays with ft_transfer directly, remove \"pays_in\": \"intents\". Log: {log}")
     if native and sam == 0:
         return head + (f"The call succeeded, but sam's NEAR balance did not go up. This check is for a guard that pays in plain "
                        f"NEAR (\"pays_in\": \"native\"): `{pay_name}` must send the invoice amount to the receiver as a NEAR "

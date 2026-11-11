@@ -3,6 +3,7 @@
 
   python3 -I tools/hunter/validate.py [files or dirs ...]   validate; exit 1 if any is bad
   python3 -I tools/hunter/validate.py --self-test            check this file agrees with schema/attack.schema.json
+  python3 -I tools/hunter/validate.py --intents-suite        validate sequences-intents/ (the "intents" target allowed)
 
 Why hand-written: the hunter must reject anything an AI or a paper slips in, with a reason a
 person can read, using only the Python standard library (no pip install in CI). The JSON schema
@@ -32,6 +33,10 @@ MAX_ARG_DEPTH = 2
 MAX_INT = 2**63 - 1
 ACTORS = ("agent", "outsider")
 TARGETS = ("vault", "token")
+# "intents" (2026-11-11): the NEAR Intents contract, deployed only for a guard that pays into it.
+# Allowed ONLY in the intents suite (sequences-intents/, loaded by tools/check/check.py for
+# "pays_in": "intents"); every other attack file keeps TARGETS, so the main library cannot change.
+INTENTS_TARGETS = TARGETS + ("intents",)
 ADD_KEY_PERMISSIONS = ("full_access", "function_call_token")
 SOURCES = ("hand", "ai", "paper", "combined", "news")
 VALIDATION = ("broke", "valid-nothing-broke")
@@ -113,12 +118,12 @@ def _check_args(args, where, depth=0):
         raise Invalid(f"{where}: arg values must be strings, whole numbers, booleans, null, lists or objects")
 
 
-def _check_call(c, where):
+def _check_call(c, where, targets=TARGETS):
     _need(isinstance(c, dict), f"{where}: call must be an object")
     extra = set(c) - set(CALL_KEYS)
     _need(not extra, f"{where}: unknown call keys {sorted(extra)}")
     _need(c.get("actor") in ACTORS, f"{where}: actor must be one of {ACTORS} (the owner is never available)")
-    _need(c.get("target", "vault") in TARGETS, f"{where}: target must be one of {TARGETS}")
+    _need(c.get("target", "vault") in targets, f"{where}: target must be one of {targets}")
     _need(isinstance(c.get("method"), str) and METHOD_RE.match(c["method"]), f"{where}: bad method name {c.get('method')!r}")
     _check_args(c.get("args", {}), where)
     if "gas_tgas" in c:
@@ -128,7 +133,7 @@ def _check_call(c, where):
               f"{where}: deposit_yocto must be 0-{MAX_DEPOSIT_YOCTO}")
 
 
-def check_steps(steps):
+def check_steps(steps, targets=TARGETS):
     """Validate a steps list. Returns None; raises Invalid with a reason."""
     _need(isinstance(steps, list) and steps, "steps must be a non-empty list")
     _need(len(steps) <= MAX_STEPS, f"at most {MAX_STEPS} steps (got {len(steps)})")
@@ -140,19 +145,19 @@ def check_steps(steps):
         (k, v), = st.items()
         _need(k in STEP_KEYS, f"{w}: unknown step kind {k!r}")
         if k == "call":
-            _check_call(v, w); state_changing += 1
+            _check_call(v, w, targets); state_changing += 1
         elif k == "view":
             _need(isinstance(v, dict), f"{w}: view must be an object")
             extra = set(v) - set(VIEW_KEYS)
             _need(not extra, f"{w}: unknown view keys {sorted(extra)}")
-            _need(v.get("target", "vault") in TARGETS, f"{w}: target must be one of {TARGETS}")
+            _need(v.get("target", "vault") in targets, f"{w}: target must be one of {targets}")
             _need(isinstance(v.get("method"), str) and METHOD_RE.match(v["method"]), f"{w}: bad view method {v.get('method')!r}")
             _check_args(v.get("args", {}), w)
         elif k == "race":
             _need(isinstance(v, list) and RACE_MIN <= len(v) <= RACE_MAX, f"{w}: race must list {RACE_MIN}-{RACE_MAX} calls")
             for j, el in enumerate(v):
                 inner = el["call"] if isinstance(el, dict) and set(el) == {"call"} else el
-                _check_call(inner, f"{w} race call {j}")
+                _check_call(inner, f"{w} race call {j}", targets)
             state_changing += 1
         elif k == "wait_blocks":
             _need(_is_int(v) and 1 <= v <= MAX_WAIT_BLOCKS, f"{w}: wait_blocks must be 1-{MAX_WAIT_BLOCKS}")
@@ -271,25 +276,25 @@ def check_meta(meta, steps):
         _need(isinstance(meta["found_in_hunt"], str) and ID_RE.match(meta["found_in_hunt"]), "meta.found_in_hunt must be a hunt id")
 
 
-def check_attack(doc, require_meta=True):
+def check_attack(doc, require_meta=True, intents_suite=False):
     """Validate a whole attack file (already parsed). Raises Invalid."""
     _need(isinstance(doc, dict), "an attack file is a JSON object")
     extra = set(doc) - {"name", "steps", "meta"}
     _need(not extra, f"unknown top-level keys {sorted(extra)}")
     _need(isinstance(doc.get("name"), str) and NAME_RE.match(doc["name"]), f"name must match {NAME_RE.pattern}")
-    check_steps(doc.get("steps"))
+    check_steps(doc.get("steps"), INTENTS_TARGETS if intents_suite else TARGETS)
     if require_meta or "meta" in doc:
         _need("meta" in doc, "meta block missing")
         check_meta(doc["meta"], doc["steps"])
 
 
-def validate_path(p, require_meta=True):
+def validate_path(p, require_meta=True, intents_suite=False):
     try:
         doc = json.loads(pathlib.Path(p).read_text())
     except (OSError, json.JSONDecodeError) as e:
         return f"{p}: not readable JSON ({type(e).__name__})"
     try:
-        check_attack(doc, require_meta)
+        check_attack(doc, require_meta, intents_suite)
     except Invalid as e:
         return f"{p}: {e}"
     return None
@@ -305,7 +310,7 @@ def self_test():
             problems.append(f"{label}: validator {a!r} vs schema {b!r}")
     same("max steps", MAX_STEPS, s["properties"]["steps"]["maxItems"])
     same("actors", list(ACTORS), d["call"]["properties"]["actor"]["enum"])
-    same("targets", list(TARGETS), d["call"]["properties"]["target"]["enum"])
+    same("targets", list(INTENTS_TARGETS), d["call"]["properties"]["target"]["enum"])
     same("gas min", GAS_MIN, d["call"]["properties"]["gas_tgas"]["minimum"])
     same("gas max", GAS_MAX, d["call"]["properties"]["gas_tgas"]["maximum"])
     same("deposit max", MAX_DEPOSIT_YOCTO, d["call"]["properties"]["deposit_yocto"]["maximum"])
@@ -338,6 +343,11 @@ def main(argv):
             print("MISMATCH", p)
         print(f"self-test: {'ok' if not problems else str(len(problems)) + ' mismatches'} (validator vs {SCHEMA.relative_to(ROOT)})")
         return 1 if problems else 0
+    # --intents-suite: the attack files run only for a guard that pays into NEAR Intents, where the
+    # "intents" target is allowed (default folder sequences-intents/).
+    intents_suite = argv[:1] == ["--intents-suite"]
+    if intents_suite:
+        argv = argv[1:] or [str(ROOT / "sequences-intents")]
     paths = []
     for a in argv or [str(ROOT / d) for d in ("sequences-scripted", "sequences-ai", "sequences-bypass", "sequences-paper")]:
         p = pathlib.Path(a)
@@ -347,7 +357,7 @@ def main(argv):
             paths.append(p)
     bad = 0
     for p in paths:
-        err = validate_path(p)
+        err = validate_path(p, intents_suite=intents_suite)
         if err:
             bad += 1
             print("INVALID", err)

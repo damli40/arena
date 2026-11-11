@@ -21,8 +21,10 @@ MAX_CALLS = 2
 PAY_HELP = {
     "token": "the agent calls it with an invoice id; it pays that invoice by calling ft_transfer on the NEP-141 token",
     "native": "the agent calls it with an invoice id; it pays that invoice by sending plain NEAR (a native transfer) to the receiver",
+    "intents": "the agent calls it with an invoice id; it pays that invoice by depositing the NEP-141 token into NEAR Intents (ft_transfer_call) for the receiver",
 }
-MONEY = {"token": "test tokens (a NEP-141 token)", "native": "plain NEAR (native transfers, no token)"}
+MONEY = {"token": "test tokens (a NEP-141 token)", "native": "plain NEAR (native transfers, no token)",
+         "intents": "test tokens (a NEP-141 token) deposited into NEAR Intents"}
 
 SYSTEM = """You map the methods of a NEAR payment-guard contract onto a fixed interface, for "Arena", a test bench that runs on a local sandbox. This guard pays in {money}.
 

@@ -38,14 +38,19 @@ CHOICES = {
     "status_field": ["status", "state"],
     "paid_value": ["Paid", "paid", "PAID"],
 }
-PLACEHOLDERS = ["$owner", "$agent", "$token", "$daily_cap", "$daily_cap_number"]
+PLACEHOLDERS = ["$owner", "$agent", "$token", "$daily_cap", "$daily_cap_number", "$intents"]
 FEATURES = ["payees", "cancel", "expiry", "daily_cap"]
 # How the guard pays (2026-11-11). Mirrors harness/src/adapter.rs PAYS_IN. "token" = ft_transfer on
 # a NEP-141 token (scored from token balances); "native" = plain NEAR transfers (scored from
 # receivers' NEAR balances, 1 Arena unit = 1 milliNEAR = 10^21 yoctoNEAR).
-PAYS_IN = ["token", "native"]
-PAYS_IN_HELP = ('"token" (your guard pays with ft_transfer on a NEP-141 token) or '
-                '"native" (your guard sends plain NEAR)')
+PAYS_IN = ["token", "native", "intents"]
+PAYS_IN_HELP = ('"token" (your guard pays with ft_transfer on a NEP-141 token), '
+                '"native" (your guard sends plain NEAR) or "intents" (your guard deposits the token into NEAR Intents '
+                'with ft_transfer_call, crediting the receiver there)')
+# "pays_in": "intents" (2026-11-11). Mirrors harness/src/adapter.rs (IntentsCfg, BENEFICIARY_IN_MSG).
+INTENTS_KEYS = {"beneficiary_in_msg", "may_park_in_intents"}
+BENEFICIARY_IN_MSG = ["account_id", "json_receiver_id"]
+DEFAULT_INTENTS = {"beneficiary_in_msg": "account_id", "may_park_in_intents": False}
 
 # What each role does, in plain words (shown in errors and given to Muse).
 ROLE_HELP = {
@@ -65,7 +70,7 @@ ROLE_HELP = {
 DEFAULT_DEPOSITS = {"approve_invoice": 1, "add_payee": 1, "remove_payee": 0, "cancel_invoice": 0, "set_daily_cap": 1}
 DEFAULT_INIT = {"method": "new", "args": {"owner": "$owner", "agent": "$agent", "token": "$token", "daily_cap": "$daily_cap"}}
 
-CONFIG_KEYS = {"arena_guard_config", "_about", "name", "policy", "pays_in", "init", "features", "methods", "shapes", "deposits"}
+CONFIG_KEYS = {"arena_guard_config", "_about", "name", "policy", "pays_in", "intents", "init", "features", "methods", "shapes", "deposits"}
 MAPPING_KEYS = {"arena_mapping", "_about", "methods", "shapes", "deposits"}
 
 
@@ -196,6 +201,21 @@ def check_config(d, where="config"):
           f"{where}: your config says the guard has a daily cap, but init.args does not pass Arena's cap. Arena scores "
           "the cap as 500 tokens, so pass it in with \"$daily_cap\" (a string, \"500\") or \"$daily_cap_number\" (the number 500). "
           "If your guard has no daily cap, set \"features\": {\"daily_cap\": false}.")
+    intents = d.get("pays_in") == "intents"
+    if "intents" in d:
+        _need(intents, f"{where}: the \"intents\" block is only allowed with \"pays_in\": \"intents\"")
+        b = d["intents"]
+        _need(isinstance(b, dict) and not (set(b) - INTENTS_KEYS),
+              f"{where}: intents must be an object with only {sorted(INTENTS_KEYS)}")
+        if "beneficiary_in_msg" in b:
+            _need(isinstance(b["beneficiary_in_msg"], str) and b["beneficiary_in_msg"] in BENEFICIARY_IN_MSG,
+                  f"{where}: intents.beneficiary_in_msg = {b['beneficiary_in_msg']!r} is not allowed; pick one of {BENEFICIARY_IN_MSG}")
+        if "may_park_in_intents" in b:
+            _need(isinstance(b["may_park_in_intents"], bool), f"{where}: intents.may_park_in_intents must be true or false")
+    uses = "$intents" in [v for v in args.values() if isinstance(v, str)]
+    _need(not uses or intents, f"{where}: init.args uses \"$intents\", which Arena fills in only with \"pays_in\": \"intents\"")
+    _need(uses or not intents, f"{where}: a guard that pays into NEAR Intents must be told the Intents contract's account at init. "
+          "Add an init argument with the value \"$intents\" (for example \"intents\": \"$intents\").")
     _check_mapping_part(d, where)
     if d.get("pays_in") == "native":
         check_native(d.get("init", {}).get("args", DEFAULT_INIT["args"]), d.get("shapes", {}), where)
@@ -268,6 +288,11 @@ def resolve(config, mapping, wasm_methods, pays_in=None):
         problems.append("Methods your wasm exports: " + (", ".join(sorted(exported)) or "none"))
     resolved = {"arena_guard_config": 1, "pays_in": pays, "init": init, "features": features, "methods": methods,
                 "shapes": shapes, "deposits": deposits}
+    if pays == "intents":  # only then, so token and native resolved files keep exactly their keys
+        _need("$intents" in [v for v in init["args"].values() if isinstance(v, str)],
+              "config: a guard that pays into NEAR Intents must take the Intents contract's account at init through \"$intents\". "
+              "--pays-in intents needs a config that says so.")
+        resolved["intents"] = {**DEFAULT_INTENTS, **config.get("intents", {})}
     return resolved, problems
 
 

@@ -195,6 +195,51 @@
    "text": "{\"arena_guard_config\": 1, \"pays_in\": \"token\", \"init\": {\"args\": {\"cap\": \"$daily_cap_number\"}}}",
    "ok": true,
    "why": "token cap as a number is fine"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"pays_in\": \"intents\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"intents\": \"$intents\", \"daily_cap\": \"$daily_cap\"}}}",
+   "ok": true,
+   "why": "intents mode with $intents"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"pays_in\": \"intents\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"intents\": \"$intents\", \"daily_cap\": \"$daily_cap\"}}, \"intents\": {\"beneficiary_in_msg\": \"json_receiver_id\", \"may_park_in_intents\": true}}",
+   "ok": true,
+   "why": "intents block with both keys"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"pays_in\": \"intents\"}",
+   "ok": false,
+   "why": "intents mode without $intents at init"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"intents\": \"$intents\", \"daily_cap\": \"$daily_cap\"}}}",
+   "ok": false,
+   "why": "$intents without intents mode"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"intents\": {}}",
+   "ok": false,
+   "why": "intents block without intents mode"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"pays_in\": \"intents\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"intents\": \"$intents\", \"daily_cap\": \"$daily_cap\"}}, \"intents\": {\"x\": 1}}",
+   "ok": false,
+   "why": "unknown key in the intents block"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"pays_in\": \"intents\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"intents\": \"$intents\", \"daily_cap\": \"$daily_cap\"}}, \"intents\": {\"beneficiary_in_msg\": \"memo\"}}",
+   "ok": false,
+   "why": "beneficiary_in_msg off the closed list"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"pays_in\": \"intents\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"intents\": \"$intents\", \"daily_cap\": \"$daily_cap\"}}, \"intents\": {\"may_park_in_intents\": 1}}",
+   "ok": false,
+   "why": "may_park_in_intents not a bool"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"pays_in\": \"Intents\", \"init\": {\"args\": {\"owner\": \"$owner\", \"agent\": \"$agent\", \"token\": \"$token\", \"intents\": \"$intents\", \"daily_cap\": \"$daily_cap\"}}}",
+   "ok": false,
+   "why": "pays_in is case-sensitive"
   }
  ]
 }

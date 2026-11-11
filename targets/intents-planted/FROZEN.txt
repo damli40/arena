@@ -1,0 +1,11 @@
+intents-planted frozen 2026-11-11, before any arena check run against this build.
+TEST FIXTURE: never deploy. Planted flaw on purpose (see README.md).
+sha256 intents_planted.wasm 954d02cebb25eefe270bcb3376f1735cb7f5ddee8ff654984122fa9f2e3f169c
+sha256 src/lib.rs 1607411ae7599db07deb13e8f41f661c7fc0333f695f1a656cd3b151a84dc09e
+sha256 README.md c41d525f6745dce08c30282da170fa4ba7f2ccb90b996aba9b0a4a397313a82c
+sha256 Cargo.toml 8217151872ca5c751b5c7a53ccf3e4bf8cc9da3febc1815b994841bb42b7e865
+sha256 Cargo.lock c80a32efc3f7969770fb1ddeaee51c1de4dee59815345e098331b279ad829603
+sha256 .cargo/config.toml 74891c6e23394c7f061b89e3ab1539f87a0568df2aeb44a26fc057c120b5f65b
+sha256 CHANGES.diff b33eec416d363426e63719e0882e5cb9601b353d11bc62870e6728b10069b288
+Built with rustc 1.86.0 (rust-toolchain.toml) and .cargo/config.toml (--cfg near, -s), cargo build --release --target wasm32-unknown-unknown.
+Pays into NEAR Intents: targets/intents-defuse-v0.4.2 (pinned release wasm).

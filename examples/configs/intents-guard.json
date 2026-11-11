@@ -1,0 +1,7 @@
+{
+  "arena_guard_config": 1,
+  "_about": "A guard that pays by depositing test tokens into NEAR Intents with ft_transfer_call, msg = the receiver. Same methods as targets/vault-a/INTERFACE.md, all 4 rules, plus the Intents contract's account at init. Used with targets/intents-honest and targets/intents-planted.",
+  "pays_in": "intents",
+  "intents": {"beneficiary_in_msg": "account_id", "may_park_in_intents": false},
+  "init": {"method": "new", "args": {"owner": "$owner", "agent": "$agent", "token": "$token", "intents": "$intents", "daily_cap": "$daily_cap"}}
+}

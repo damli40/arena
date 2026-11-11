@@ -53,9 +53,11 @@
         "target": {
           "enum": [
             "vault",
-            "token"
+            "token",
+            "intents"
           ],
-          "default": "vault"
+          "default": "vault",
+          "description": "\"intents\" (the NEAR Intents contract) is allowed only in sequences-intents/, the suite run for a guard whose config says \"pays_in\": \"intents\"."
         },
         "method": {
           "type": "string",
@@ -108,7 +110,8 @@
                 "target": {
                   "enum": [
                     "vault",
-                    "token"
+                    "token",
+                    "intents"
                   ]
                 },
                 "method": {

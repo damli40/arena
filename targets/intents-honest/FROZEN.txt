@@ -1,0 +1,10 @@
+intents-honest frozen 2026-11-11, before any arena check run against this build.
+TEST FIXTURE. DO NOT DEPLOY. (see README.md)
+sha256 intents_honest.wasm 1dbd023f08ddf8ac0299842f26e7e4140e4a53bdb77ed46637d38b7ef1cf7a35
+sha256 src/lib.rs 9c2f3a306cc26e2c00e63db7ae193f4b09d07cf41a22f50916256c014ce74035
+sha256 README.md c9b8278f7c126667274a1bb17d7b8142fe62d083f1cfdc39adf4b4334bab1ef6
+sha256 Cargo.toml 9e3835cf79abe7a79438aa81a5f410172d17a86716575ca2938c4f7aa3d13dac
+sha256 Cargo.lock 59431132ccf8a056c9cb57e2ecb74437185d4129467e488cdd0659d316523a09
+sha256 .cargo/config.toml 74891c6e23394c7f061b89e3ab1539f87a0568df2aeb44a26fc057c120b5f65b
+Built with rustc 1.86.0 (rust-toolchain.toml) and .cargo/config.toml (--cfg near, -s), cargo build --release --target wasm32-unknown-unknown.
+Pays into NEAR Intents: targets/intents-defuse-v0.4.2 (pinned release wasm).

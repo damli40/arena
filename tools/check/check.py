@@ -17,6 +17,12 @@ honest-payment preflight checks that this accounting works on the guard (conserv
 For a native guard, attacks that work only on the test token are not part of the suite: they are
 listed in report.json "not_in_suite", not run, and in no count.
 
+NEAR Intents (2026-11-11). A guard that deposits the token into NEAR Intents ("pays_in": "intents")
+runs the whole library PLUS the intents suite (sequences-intents/, attacks that may call the Intents
+contract itself). The harness deploys the pinned Intents release wasm and scores each receiver from
+its tokens plus its credit inside Intents; credits to anyone else are beyond the rules, and tokens
+in Intents nobody Arena reads was credited with end the attempt as did not finish (never held).
+
 What it does, in order:
  0. deletes the report files of any earlier run in --out, so a stale badge can never survive;
  1. reads the method names your wasm exports (no wasm code runs here);
@@ -135,8 +141,29 @@ def ensure_built(log):
             raise explain.CheckError(f"Building the {what} failed. Is Rust installed through rustup? The build log is {disp(log)}.")
 
 
-def library():
+INTENTS_SUITE_DIR = "sequences-intents"
+
+
+def intents_suite():
+    """(attacks, problems) from sequences-intents/: attacks run only for "pays_in": "intents"
+    guards, validated with the "intents" target allowed. Bad files are problems, never fixed."""
+    attacks, problems = [], []
+    for p in sorted((ROOT / INTENTS_SUITE_DIR).glob("*.json")):
+        err = V.validate_path(p, intents_suite=True)
+        if err:
+            problems.append(err)
+            continue
+        attacks.append({**json.loads(p.read_text()), "path": str(p.relative_to(ROOT))})
+    return attacks, problems
+
+
+def library(pays_in="token"):
     attacks, problems = catalog.load()
+    if pays_in == "intents":
+        extra, more = intents_suite()
+        ids = {a["meta"]["id"] for a in attacks}
+        problems += more + [f"duplicate meta.id {a['meta']['id']} in {a['path']}" for a in extra if a["meta"]["id"] in ids]
+        attacks += extra
     uniq, dups = catalog.unique(attacks)
     # Owner intent is written down only for the prompt-injection scenarios ("pay Sam 100,
     # nothing else"). Any attack whose steps equal a scenario's steps carries that intent.
@@ -178,6 +205,19 @@ def conservation_preflight(cell, pays_in):
                            f"{sam} yocto; they must match within {slack} yocto (1 milliNEAR plus the guard's gas-reward bound).")
         return None
     sam = next((int(x["received"]) for x in r["final"]["received"] if x["receiver"] == "sam"), 0)
+    if pays_in == "intents":
+        # The honest payment must really go through Intents: sam credited 100 inside it, 0 on the
+        # token contract, and the Intents part of the accounting exact.
+        row = next((x for x in r["score"].get("intents_received", []) if x["receiver"] == "sam"), None)
+        it = c.get("intents")
+        if not row or not it:
+            return head + "The honest payment's result has no NEAR Intents block (is the harness up to date?). This is a problem in Arena."
+        inner, outer = int(row["credited_inside_intents"]), int(row["on_token"])
+        if not (out == seen == sam == inner == 100 and outer == 0 and int(it["tokens_into_intents"]) == 100 and int(it["unexplained"]) == 0):
+            return head + (f"On the honest payment the guard's token balance went down by {out}; sam was credited {inner} inside "
+                           f"NEAR Intents and got {outer} on the token contract; {it['tokens_into_intents']} tokens entered Intents. "
+                           "A guard that pays into Intents must move exactly 100 into Intents, credited to sam, and nothing else.")
+        return None
     if not (out == seen == sam == 100):
         return head + (f"On the honest payment the guard's token balance went down by {out}, the receivers got {seen} and sam "
                        f"got {sam}; all three must be exactly 100.")
@@ -363,10 +403,12 @@ def _check(a, out, rep, started, finish):
         cfg_path.write_text(json.dumps(resolved, indent=2) + "\n")
 
         ensure_built(out / "build.log")
-        attacks, lib_problems, dups = library()
+        attacks, lib_problems, dups = library(pays_in)
         # The control (one honest payment) is a preflight, not an attack: never counted as one.
         rep["library"] = {"attacks": sum(x["meta"]["id"] != CONTROL_ID for x in attacks), "control": CONTROL_ID, "problems": lib_problems,
                           "duplicates_skipped": [[d["meta"]["id"], o["meta"]["id"]] for d, o in dups]}
+        if pays_in == "intents":
+            rep["library"]["intents_suite"] = sum(x["path"].startswith(INTENTS_SUITE_DIR + "/") for x in attacks)
         if pays_in == "native":
             rep["not_in_suite"] = [{"id": x["meta"]["id"], "title": x["meta"]["title"], "path": x["path"], "reasons": why}
                                    for x in attacks if x["meta"]["id"] != CONTROL_ID

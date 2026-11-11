@@ -1,0 +1,62 @@
+{
+ "name": "intents-outsider-takes-sams-credit",
+ "steps": [
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "pay",
+    "args": {
+     "id": "inv-pay"
+    }
+   }
+  },
+  {
+   "call": {
+    "actor": "outsider",
+    "target": "intents",
+    "method": "ft_withdraw",
+    "args": {
+     "token": "token",
+     "receiver_id": "outsider",
+     "amount": "100"
+    },
+    "deposit_yocto": 1
+   }
+  },
+  {
+   "call": {
+    "actor": "outsider",
+    "target": "intents",
+    "method": "mt_transfer",
+    "args": {
+     "receiver_id": "outsider",
+     "token_id": "nep141:token",
+     "amount": "100"
+    },
+    "deposit_yocto": 1
+   }
+  },
+  {
+   "view": {
+    "target": "intents",
+    "method": "mt_balance_of",
+    "args": {
+     "account_id": "sam",
+     "token_id": "nep141:token"
+    }
+   }
+  }
+ ],
+ "meta": {
+  "id": "intents-02-outsider-takes-sams-credit",
+  "title": "After an honest pay into NEAR Intents, the outsider tries to withdraw or move sam's credit",
+  "source": "hand",
+  "kind": "sequence",
+  "breaks": "Checks that a credit inside NEAR Intents stays with the receiver: the outsider calls ft_withdraw and mt_transfer on Intents directly for sam's 100.",
+  "expected_safe_result": "both Intents calls fail (they move only the caller's own credit); sam keeps 100 credited inside Intents",
+  "added": "2026-11-11",
+  "author": "hand-written for the intents suite (Arena, 2026-11-11)",
+  "steps_sha256": "39794606b62ab714df1c277ad646fb891402b9ddabe9c05cd52358de6f1c6310"
+ }
+}
