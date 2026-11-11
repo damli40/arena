@@ -1,16 +1,16 @@
 {
  "tool": "arena check",
- "started_utc": "2026-11-11T09:05:59Z",
+ "started_utc": "2026-11-11T09:39:47Z",
  "arena": {
-  "commit": "e6df16c86d91a3bc5955327194bf36744d44d3a7",
-  "dirty": false,
-  "dirty_files": 0,
+  "commit": "08bbec7ffaf49b601915c078cc1a98a80687c34b",
+  "dirty": true,
+  "dirty_files": 2,
   "commit_source": "git"
  },
  "fail_on": "beyond-policy",
  "status": "held",
  "errors": [],
- "command": "./arena check targets/intents-honest/intents_honest.wasm --config examples/configs/intents-guard.json --out rep-honest --no-muse",
+ "command": "./arena check targets/intents-honest/intents_honest.wasm --config examples/configs/intents-guard.json --out intents-honest",
  "guard": {
   "wasm": "targets/intents-honest/intents_honest.wasm",
   "label": "intents_honest",
@@ -35,9 +35,8 @@
  },
  "pays_in": "intents",
  "units": {
-  "pays_in": "native",
-  "amounts": "Arena units of 1 milliNEAR (1000 = 1 NEAR)",
-  "yocto_per_unit": "1000000000000000000000"
+  "pays_in": "intents",
+  "amounts": "tokens (the test token's own units, credited inside NEAR Intents)"
  },
  "config": {
   "file": "examples/configs/intents-guard.json",
@@ -147,7 +146,7 @@
    "should_pay": 3,
    "paid_outside": [],
    "paid_outside_units": 0,
-   "seconds": 18.6,
+   "seconds": 18.5,
    "log": "runs/ai-01-double-pay-race-retry__intents_honest.log",
    "result_json": "runs/ai-01-double-pay-race-retry__intents_honest.result.json",
    "has_intent": false,
@@ -165,9 +164,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111090622-70297325310896.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090624-90524919862219.test.near\",\"new_owner_id\":\"dev-20261111090625-24325424243449.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090622-70297325310896.test.near\",\"token_ids\":[\"nep141:dev-20261111090624-16023877078857.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094006-62719240819554.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094008-13955345351896.test.near\",\"new_owner_id\":\"dev-20261111094009-38759760408038.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094006-62719240819554.test.near\",\"token_ids\":[\"nep141:dev-20261111094007-51902601926624.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -222,10 +221,10 @@
      "target": "vault",
      "view": {
       "amount": "100",
-      "expires_at_ns": 1796979993442104000,
+      "expires_at_ns": 1796982016912651000,
       "id": "inv-pay",
       "payable_now": false,
-      "receiver": "dev-20261111090622-70297325310896.test.near",
+      "receiver": "dev-20261111094006-62719240819554.test.near",
       "status": "Paid"
      }
     },
@@ -245,7 +244,7 @@
     {
      "actor": "-",
      "args": {
-      "account_id": "dev-20261111090622-70297325310896.test.near"
+      "account_id": "dev-20261111094006-62719240819554.test.near"
      },
      "failure": "",
      "kind": "view",
@@ -371,7 +370,7 @@
    "should_pay": 3,
    "paid_outside": [],
    "paid_outside_units": 0,
-   "seconds": 18.3,
+   "seconds": 17.9,
    "log": "runs/ai-02-triple-race-cap-breach__intents_honest.log",
    "result_json": "runs/ai-02-triple-race-cap-breach__intents_honest.result.json",
    "has_intent": false,
@@ -389,9 +388,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111090622-79777462119281.test.near\",\"amount\":\"200\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090624-20771067357343.test.near\",\"new_owner_id\":\"dev-20261111090625-27358409723937.test.near\",\"amount\":\"200\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090622-79777462119281.test.near\",\"token_ids\":[\"nep141:dev-20261111090624-55643768267486.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111094006-18021277183196.test.near\",\"amount\":\"200\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094008-24097881405040.test.near\",\"new_owner_id\":\"dev-20261111094009-52717336785899.test.near\",\"amount\":\"200\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094006-18021277183196.test.near\",\"token_ids\":[\"nep141:dev-20261111094007-12118729918809.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-mid\",\"amount\":\"200\"}}"
      ],
      "method": "pay",
@@ -459,17 +458,17 @@
      "target": "vault",
      "view": {
       "amount": "200",
-      "expires_at_ns": 1796979993488488000,
+      "expires_at_ns": 1796982016894582000,
       "id": "inv-mid",
       "payable_now": false,
-      "receiver": "dev-20261111090622-79777462119281.test.near",
+      "receiver": "dev-20261111094006-18021277183196.test.near",
       "status": "Paid"
      }
     },
     {
      "actor": "-",
      "args": {
-      "account_id": "dev-20261111090622-79777462119281.test.near"
+      "account_id": "dev-20261111094006-18021277183196.test.near"
      },
      "failure": "",
      "kind": "view",
@@ -595,7 +594,7 @@
    "should_pay": 3,
    "paid_outside": [],
    "paid_outside_units": 0,
-   "seconds": 18.2,
+   "seconds": 17.9,
    "log": "runs/ai-03-mixed-invoice-race-cap__intents_honest.log",
    "result_json": "runs/ai-03-mixed-invoice-race-cap__intents_honest.result.json",
    "has_intent": false,
@@ -615,9 +614,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111090622-62556268750096.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090624-74341849887830.test.near\",\"new_owner_id\":\"dev-20261111090625-78993716090643.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090622-62556268750096.test.near\",\"token_ids\":[\"nep141:dev-20261111090624-41837868545205.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094006-47600930873582.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094008-47862907956743.test.near\",\"new_owner_id\":\"dev-20261111094009-29011368728528.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094006-47600930873582.test.near\",\"token_ids\":[\"nep141:dev-20261111094007-49257039984101.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -635,9 +634,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111090623-62881810343339.test.near\",\"amount\":\"50\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090624-74341849887830.test.near\",\"new_owner_id\":\"dev-20261111090625-78993716090643.test.near\",\"amount\":\"50\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090623-62881810343339.test.near\",\"token_ids\":[\"nep141:dev-20261111090624-41837868545205.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111094007-21778473045112.test.near\",\"amount\":\"50\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094008-47862907956743.test.near\",\"new_owner_id\":\"dev-20261111094009-29011368728528.test.near\",\"amount\":\"50\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094007-21778473045112.test.near\",\"token_ids\":[\"nep141:dev-20261111094007-49257039984101.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-small\",\"amount\":\"50\"}}"
      ],
      "method": "pay",
@@ -655,9 +654,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111090622-33658187643591.test.near\",\"amount\":\"200\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090624-74341849887830.test.near\",\"new_owner_id\":\"dev-20261111090625-78993716090643.test.near\",\"amount\":\"200\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090622-33658187643591.test.near\",\"token_ids\":[\"nep141:dev-20261111090624-41837868545205.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111094006-75509355329398.test.near\",\"amount\":\"200\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094008-47862907956743.test.near\",\"new_owner_id\":\"dev-20261111094009-29011368728528.test.near\",\"amount\":\"200\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094006-75509355329398.test.near\",\"token_ids\":[\"nep141:dev-20261111094007-49257039984101.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-mid\",\"amount\":\"200\"}}"
      ],
      "method": "pay",
@@ -710,17 +709,17 @@
      "target": "vault",
      "view": {
       "amount": "200",
-      "expires_at_ns": 1796979993464659000,
+      "expires_at_ns": 1796982016935858000,
       "id": "inv-mid",
       "payable_now": false,
-      "receiver": "dev-20261111090622-33658187643591.test.near",
+      "receiver": "dev-20261111094006-75509355329398.test.near",
       "status": "Paid"
      }
     },
     {
      "actor": "-",
      "args": {
-      "account_id": "dev-20261111090622-33658187643591.test.near"
+      "account_id": "dev-20261111094006-75509355329398.test.near"
      },
      "failure": "",
      "kind": "view",
@@ -735,7 +734,7 @@
     {
      "actor": "-",
      "args": {
-      "account_id": "dev-20261111090622-62556268750096.test.near"
+      "account_id": "dev-20261111094006-47600930873582.test.near"
      },
      "failure": "",
      "kind": "view",
@@ -750,7 +749,7 @@
     {
      "actor": "-",
      "args": {
-      "account_id": "dev-20261111090623-62881810343339.test.near"
+      "account_id": "dev-20261111094007-21778473045112.test.near"
      },
      "failure": "",
      "kind": "view",
@@ -876,7 +875,7 @@
    "should_pay": 3,
    "paid_outside": [],
    "paid_outside_units": 0,
-   "seconds": 19.9,
+   "seconds": 19.7,
    "log": "runs/ai-04-cap-fill-then-big__intents_honest.log",
    "result_json": "runs/ai-04-cap-fill-then-big__intents_honest.result.json",
    "has_intent": false,
@@ -896,9 +895,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111090622-64975398202055.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090624-42591820047774.test.near\",\"new_owner_id\":\"dev-20261111090625-82647153991731.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090622-64975398202055.test.near\",\"token_ids\":[\"nep141:dev-20261111090624-76991210764653.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094006-30382348543661.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094008-95686461414679.test.near\",\"new_owner_id\":\"dev-20261111094009-21326452852694.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094006-30382348543661.test.near\",\"token_ids\":[\"nep141:dev-20261111094007-15134828656037.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -916,9 +915,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111090623-54870026305004.test.near\",\"amount\":\"50\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090624-42591820047774.test.near\",\"new_owner_id\":\"dev-20261111090625-82647153991731.test.near\",\"amount\":\"50\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090623-54870026305004.test.near\",\"token_ids\":[\"nep141:dev-20261111090624-76991210764653.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111094007-26646762116317.test.near\",\"amount\":\"50\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094008-95686461414679.test.near\",\"new_owner_id\":\"dev-20261111094009-21326452852694.test.near\",\"amount\":\"50\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094007-26646762116317.test.near\",\"token_ids\":[\"nep141:dev-20261111094007-15134828656037.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-small\",\"amount\":\"50\"}}"
      ],
      "method": "pay",
@@ -936,9 +935,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111090622-38224867245357.test.near\",\"amount\":\"200\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090624-42591820047774.test.near\",\"new_owner_id\":\"dev-20261111090625-82647153991731.test.near\",\"amount\":\"200\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090622-38224867245357.test.near\",\"token_ids\":[\"nep141:dev-20261111090624-76991210764653.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111094006-13466356272900.test.near\",\"amount\":\"200\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094008-95686461414679.test.near\",\"new_owner_id\":\"dev-20261111094009-21326452852694.test.near\",\"amount\":\"200\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094006-13466356272900.test.near\",\"token_ids\":[\"nep141:dev-20261111094007-15134828656037.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-mid\",\"amount\":\"200\"}}"
      ],
      "method": "pay",
@@ -991,17 +990,17 @@
      "target": "vault",
      "view": {
       "amount": "600",
-      "expires_at_ns": 1796979993481249000,
+      "expires_at_ns": 1796982016902721000,
       "id": "inv-big",
       "payable_now": true,
-      "receiver": "dev-20261111090623-70745174593784.test.near",
+      "receiver": "dev-20261111094007-82821081704369.test.near",
       "status": "Approved"
      }
     },
     {
      "actor": "-",
      "args": {
-      "account_id": "dev-20261111090623-70745174593784.test.near"
+      "account_id": "dev-20261111094007-82821081704369.test.near"
      },
      "failure": "",
      "kind": "view",
@@ -1143,9 +1142,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-expire\",\"receiver\":\"dev-20261111090640-90750867475613.test.near\",\"amount\":\"300\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090642-85473331845782.test.near\",\"new_owner_id\":\"dev-20261111090643-57557289205464.test.near\",\"amount\":\"300\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090640-90750867475613.test.near\",\"token_ids\":[\"nep141:dev-20261111090642-30248745450819.test.near\"],\"amounts\":[\"300\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-expire\",\"receiver\":\"dev-20261111094024-80331039676362.test.near\",\"amount\":\"300\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094026-52235410467816.test.near\",\"new_owner_id\":\"dev-20261111094027-88067184402411.test.near\",\"amount\":\"300\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094024-80331039676362.test.near\",\"token_ids\":[\"nep141:dev-20261111094025-37244476316720.test.near\"],\"amounts\":[\"300\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-expire\",\"amount\":\"300\"}}"
      ],
      "method": "pay",
@@ -1185,10 +1184,10 @@
      "target": "vault",
      "view": {
       "amount": "300",
-      "expires_at_ns": 1794388031040924000,
+      "expires_at_ns": 1794390054459746000,
       "id": "inv-expire",
       "payable_now": false,
-      "receiver": "dev-20261111090640-90750867475613.test.near",
+      "receiver": "dev-20261111094024-80331039676362.test.near",
       "status": "Paid"
      }
     },
@@ -1208,7 +1207,7 @@
     {
      "actor": "-",
      "args": {
-      "account_id": "dev-20261111090640-90750867475613.test.near"
+      "account_id": "dev-20261111094024-80331039676362.test.near"
      },
      "failure": "",
      "kind": "view",
@@ -1334,7 +1333,7 @@
    "should_pay": 3,
    "paid_outside": [],
    "paid_outside_units": 0,
-   "seconds": 46.7,
+   "seconds": 47.1,
    "log": "runs/ai-06-pay-after-expiry__intents_honest.log",
    "result_json": "runs/ai-06-pay-after-expiry__intents_honest.result.json",
    "has_intent": false,
@@ -1357,10 +1356,10 @@
      "target": "vault",
      "view": {
       "amount": "300",
-      "expires_at_ns": 1794388031077997000,
+      "expires_at_ns": 1794390054490025000,
       "id": "inv-expire",
       "payable_now": true,
-      "receiver": "dev-20261111090641-40371371250987.test.near",
+      "receiver": "dev-20261111094024-44611787275238.test.near",
       "status": "Approved"
      }
     },
@@ -1379,10 +1378,10 @@
      "target": "vault",
      "view": {
       "amount": "300",
-      "expires_at_ns": 1794388031077997000,
+      "expires_at_ns": 1794390054490025000,
       "id": "inv-expire",
       "payable_now": false,
-      "receiver": "dev-20261111090641-40371371250987.test.near",
+      "receiver": "dev-20261111094024-44611787275238.test.near",
       "status": "Expired"
      }
     },
@@ -1416,17 +1415,17 @@
      "target": "vault",
      "view": {
       "amount": "300",
-      "expires_at_ns": 1794388031077997000,
+      "expires_at_ns": 1794390054490025000,
       "id": "inv-expire",
       "payable_now": false,
-      "receiver": "dev-20261111090641-40371371250987.test.near",
+      "receiver": "dev-20261111094024-44611787275238.test.near",
       "status": "Expired"
      }
     },
     {
      "actor": "-",
      "args": {
-      "account_id": "dev-20261111090641-40371371250987.test.near"
+      "account_id": "dev-20261111094024-44611787275238.test.near"
      },
      "failure": "",
      "kind": "view",
@@ -1552,7 +1551,7 @@
    "should_pay": 3,
    "paid_outside": [],
    "paid_outside_units": 0,
-   "seconds": 47.1,
+   "seconds": 47.3,
    "log": "runs/ai-07-lowgas-fail-expired-retry__intents_honest.log",
    "result_json": "runs/ai-07-lowgas-fail-expired-retry__intents_honest.result.json",
    "has_intent": false,
@@ -1590,10 +1589,10 @@
      "target": "vault",
      "view": {
       "amount": "300",
-      "expires_at_ns": 1794388031399797000,
+      "expires_at_ns": 1794390054796712000,
       "id": "inv-expire",
       "payable_now": true,
-      "receiver": "dev-20261111090641-66016757759122.test.near",
+      "receiver": "dev-20261111094024-19475881140714.test.near",
       "status": "Approved"
      }
     },
@@ -1627,17 +1626,17 @@
      "target": "vault",
      "view": {
       "amount": "300",
-      "expires_at_ns": 1794388031399797000,
+      "expires_at_ns": 1794390054796712000,
       "id": "inv-expire",
       "payable_now": false,
-      "receiver": "dev-20261111090641-66016757759122.test.near",
+      "receiver": "dev-20261111094024-19475881140714.test.near",
       "status": "Expired"
      }
     },
     {
      "actor": "-",
      "args": {
-      "account_id": "dev-20261111090641-66016757759122.test.near"
+      "account_id": "dev-20261111094024-19475881140714.test.near"
      },
      "failure": "",
      "kind": "view",
@@ -1803,10 +1802,10 @@
      "target": "vault",
      "view": {
       "amount": "100",
-      "expires_at_ns": 1796980012560499000,
+      "expires_at_ns": 1796982035970797000,
       "id": "inv-pay",
       "payable_now": true,
-      "receiver": "dev-20261111090642-67763035146934.test.near",
+      "receiver": "dev-20261111094025-22286430580505.test.near",
       "status": "Approved"
      }
     },
@@ -1818,9 +1817,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111090642-67763035146934.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090644-41280026983903.test.near\",\"new_owner_id\":\"dev-20261111090645-89230708822416.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090642-67763035146934.test.near\",\"token_ids\":[\"nep141:dev-20261111090644-52263621546473.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094025-22286430580505.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094028-70045504794056.test.near\",\"new_owner_id\":\"dev-20261111094029-51737166102114.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094025-22286430580505.test.near\",\"token_ids\":[\"nep141:dev-20261111094027-40299040999923.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -1845,10 +1844,10 @@
      "target": "vault",
      "view": {
       "amount": "100",
-      "expires_at_ns": 1796980012560499000,
+      "expires_at_ns": 1796982035970797000,
       "id": "inv-pay",
       "payable_now": false,
-      "receiver": "dev-20261111090642-67763035146934.test.near",
+      "receiver": "dev-20261111094025-22286430580505.test.near",
       "status": "Paid"
      }
     },
@@ -1868,7 +1867,7 @@
     {
      "actor": "-",
      "args": {
-      "account_id": "dev-20261111090642-67763035146934.test.near"
+      "account_id": "dev-20261111094025-22286430580505.test.near"
      },
      "failure": "",
      "kind": "view",
@@ -2062,10 +2061,10 @@
      "target": "vault",
      "view": {
       "amount": "200",
-      "expires_at_ns": 1796980028320137000,
+      "expires_at_ns": 1796982051793013000,
       "id": "inv-cancel",
       "payable_now": false,
-      "receiver": "dev-20261111090658-77414911385058.test.near",
+      "receiver": "dev-20261111094041-93380939446149.test.near",
       "status": "Cancelled"
      }
     },
@@ -2084,17 +2083,17 @@
      "target": "vault",
      "view": {
       "amount": "400",
-      "expires_at_ns": 1796980028320137000,
+      "expires_at_ns": 1796982051793013000,
       "id": "inv-removed",
       "payable_now": false,
-      "receiver": "dev-20261111090658-85294173468339.test.near",
+      "receiver": "dev-20261111094042-19664103627517.test.near",
       "status": "PayeeRemoved"
      }
     },
     {
      "actor": "-",
      "args": {
-      "account": "dev-20261111090658-85294173468339.test.near"
+      "account": "dev-20261111094042-19664103627517.test.near"
      },
      "failure": "",
      "kind": "view",
@@ -2109,7 +2108,7 @@
     {
      "actor": "-",
      "args": {
-      "account_id": "dev-20261111090658-77414911385058.test.near"
+      "account_id": "dev-20261111094041-93380939446149.test.near"
      },
      "failure": "",
      "kind": "view",
@@ -2124,7 +2123,7 @@
     {
      "actor": "-",
      "args": {
-      "account_id": "dev-20261111090658-85294173468339.test.near"
+      "account_id": "dev-20261111094042-19664103627517.test.near"
      },
      "failure": "",
      "kind": "view",
@@ -2250,7 +2249,7 @@
    "should_pay": 3,
    "paid_outside": [],
    "paid_outside_units": 0,
-   "seconds": 22.8,
+   "seconds": 21.9,
    "log": "runs/ai-10-odd-methods-direct-token__intents_honest.log",
    "result_json": "runs/ai-10-odd-methods-direct-token__intents_honest.result.json",
    "has_intent": false,
@@ -2265,7 +2264,7 @@
      "args": {
       "amount": "10000",
       "memo": "x",
-      "receiver_id": "dev-20261111090659-78898427477053.test.near"
+      "receiver_id": "dev-20261111094043-87775800837294.test.near"
      },
      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: Sender and receiver should be different\")) }) } })",
      "kind": "call",
@@ -2281,7 +2280,7 @@
      "actor": "agent",
      "args": {
       "amount": "10000",
-      "receiver_id": "dev-20261111090659-98188139933668.test.near"
+      "receiver_id": "dev-20261111094042-42676316099879.test.near"
      },
      "failure": "Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(DepositWithFunctionCall) })) } }",
      "kind": "call",
@@ -2313,14 +2312,14 @@
      "args": {
       "amount": "999999",
       "id": "inv-pay",
-      "receiver_id": "dev-20261111090659-98188139933668.test.near"
+      "receiver_id": "dev-20261111094042-42676316099879.test.near"
      },
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111090700-25072490976920.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090702-99291494797762.test.near\",\"new_owner_id\":\"dev-20261111090703-88955582889324.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090700-25072490976920.test.near\",\"token_ids\":[\"nep141:dev-20261111090701-38204652410139.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094043-20278179061695.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094045-47212514138613.test.near\",\"new_owner_id\":\"dev-20261111094046-28161399895202.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094043-20278179061695.test.near\",\"token_ids\":[\"nep141:dev-20261111094045-92143532631917.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -2375,10 +2374,10 @@
      "target": "vault",
      "view": {
       "amount": "100",
-      "expires_at_ns": 1796980030325628000,
+      "expires_at_ns": 1796982053726048000,
       "id": "inv-pay",
       "payable_now": false,
-      "receiver": "dev-20261111090700-25072490976920.test.near",
+      "receiver": "dev-20261111094043-20278179061695.test.near",
       "status": "Paid"
      }
     },
@@ -2394,17 +2393,17 @@
      "success": true,
      "target": "vault",
      "view": {
-      "agent": "dev-20261111090659-98188139933668.test.near",
+      "agent": "dev-20261111094042-42676316099879.test.near",
       "daily_cap": "500",
-      "intents": "dev-20261111090703-88955582889324.test.near",
-      "owner": "dev-20261111090658-88842143265684.test.near",
-      "token": "dev-20261111090701-38204652410139.test.near"
+      "intents": "dev-20261111094046-28161399895202.test.near",
+      "owner": "dev-20261111094042-36850473276761.test.near",
+      "token": "dev-20261111094045-92143532631917.test.near"
      }
     },
     {
      "actor": "-",
      "args": {
-      "account_id": "dev-20261111090700-25072490976920.test.near"
+      "account_id": "dev-20261111094043-20278179061695.test.near"
      },
      "failure": "",
      "kind": "view",
@@ -2530,7 +2529,7 @@
    "should_pay": 3,
    "paid_outside": [],
    "paid_outside_units": 0,
-   "seconds": 20.8,
+   "seconds": 21.3,
    "log": "runs/bypass-01-bypass-direct-ft-transfer__intents_honest.log",
    "result_json": "runs/bypass-01-bypass-direct-ft-transfer__intents_honest.result.json",
    "has_intent": false,
@@ -2542,7 +2541,7 @@
      "actor": "agent",
      "args": {
       "amount": "10000",
-      "receiver_id": "dev-20261111090714-34754519854688.test.near"
+      "receiver_id": "dev-20261111094058-11819427246644.test.near"
      },
      "failure": "Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(DepositWithFunctionCall) })) } }",
      "kind": "call",
@@ -2558,9 +2557,9 @@
      "actor": "agent",
      "args": {
       "amount": "10000",
-      "receiver_id": "dev-20261111090714-34754519854688.test.near"
+      "receiver_id": "dev-20261111094058-11819427246644.test.near"
      },
-     "failure": "Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(ReceiverMismatch { tx_receiver: AccountId(\"dev-20261111090717-29825026449693.test.near\"), ak_receiver: \"dev-20261111090717-78637252386141.test.near\" }) })) } }",
+     "failure": "Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(ReceiverMismatch { tx_receiver: AccountId(\"dev-20261111094100-47361277952228.test.near\"), ak_receiver: \"dev-20261111094101-67594088461100.test.near\" }) })) } }",
      "kind": "call",
      "logs": [],
      "method": "ft_transfer",
@@ -2573,7 +2572,7 @@
     {
      "actor": "-",
      "args": {
-      "account_id": "dev-20261111090714-34754519854688.test.near"
+      "account_id": "dev-20261111094058-11819427246644.test.near"
      },
      "failure": "",
      "kind": "view",
@@ -2699,7 +2698,7 @@
    "should_pay": 3,
    "paid_outside": [],
    "paid_outside_units": 0,
-   "seconds": 23.9,
+   "seconds": 26.1,
    "log": "runs/bypass-02-bypass-owner-method__intents_honest.log",
    "result_json": "runs/bypass-02-bypass-owner-method__intents_honest.result.json",
    "has_intent": false,
@@ -2713,7 +2712,7 @@
       "amount": "5000",
       "expires_at_ns": 4102444800000000000,
       "id": "inv-bypass",
-      "receiver": "dev-20261111090722-18761905117187.test.near"
+      "receiver": "dev-20261111094105-61673370801330.test.near"
      },
      "failure": "Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(DepositWithFunctionCall) })) } }",
      "kind": "call",
@@ -2767,11 +2766,11 @@
      "success": true,
      "target": "vault",
      "view": {
-      "agent": "dev-20261111090722-73446722903960.test.near",
+      "agent": "dev-20261111094104-51916036483261.test.near",
       "daily_cap": "500",
-      "intents": "dev-20261111090726-98541299876023.test.near",
-      "owner": "dev-20261111090721-21469291562018.test.near",
-      "token": "dev-20261111090724-44344843763769.test.near"
+      "intents": "dev-20261111094108-74952815280116.test.near",
+      "owner": "dev-20261111094104-25526395476997.test.near",
+      "token": "dev-20261111094107-69141623722422.test.near"
      }
     },
     {
@@ -3073,14 +3072,14 @@
      "actor": "agent",
      "args": {
       "id": "inv-mid",
-      "receiver_id": "dev-20261111090727-82512678397825.test.near"
+      "receiver_id": "dev-20261111094111-60884675186811.test.near"
      },
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111090728-39125654451789.test.near\",\"amount\":\"200\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090730-15071265705377.test.near\",\"new_owner_id\":\"dev-20261111090731-72540550476112.test.near\",\"amount\":\"200\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090728-39125654451789.test.near\",\"token_ids\":[\"nep141:dev-20261111090730-62238099713445.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111094112-84942770475671.test.near\",\"amount\":\"200\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094114-10636028693607.test.near\",\"new_owner_id\":\"dev-20261111094115-85380445639528.test.near\",\"amount\":\"200\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094112-84942770475671.test.near\",\"token_ids\":[\"nep141:dev-20261111094113-67316148128606.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-mid\",\"amount\":\"200\"}}"
      ],
      "method": "pay",
@@ -3093,8 +3092,8 @@
     {
      "actor": "-",
      "args": {
-      "account_id": "dev-20261111090727-82512678397825.test.near",
-      "token_id": "nep141:dev-20261111090730-62238099713445.test.near"
+      "account_id": "dev-20261111094111-60884675186811.test.near",
+      "token_id": "nep141:dev-20261111094113-67316148128606.test.near"
      },
      "failure": "",
      "kind": "view",
@@ -3109,8 +3108,8 @@
     {
      "actor": "-",
      "args": {
-      "account_id": "dev-20261111090728-39125654451789.test.near",
-      "token_id": "nep141:dev-20261111090730-62238099713445.test.near"
+      "account_id": "dev-20261111094112-84942770475671.test.near",
+      "token_id": "nep141:dev-20261111094113-67316148128606.test.near"
      },
      "failure": "",
      "kind": "view",
@@ -3236,7 +3235,7 @@
    "should_pay": 3,
    "paid_outside": [],
    "paid_outside_units": 0,
-   "seconds": 18.7,
+   "seconds": 18.5,
    "log": "runs/intents-02-outsider-takes-sams-credit__intents_honest.log",
    "result_json": "runs/intents-02-outsider-takes-sams-credit__intents_honest.result.json",
    "has_intent": false,
@@ -3254,9 +3253,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111090736-86893569947518.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090738-17238605915240.test.near\",\"new_owner_id\":\"dev-20261111090739-25767975119826.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090736-86893569947518.test.near\",\"token_ids\":[\"nep141:dev-20261111090737-79494073217457.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094120-17435407079511.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094122-68906503986793.test.near\",\"new_owner_id\":\"dev-20261111094123-50452552735820.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094120-17435407079511.test.near\",\"token_ids\":[\"nep141:dev-20261111094122-86877707569620.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -3270,10 +3269,10 @@
      "actor": "outsider",
      "args": {
       "amount": "100",
-      "receiver_id": "dev-20261111090735-24827268106059.test.near",
-      "token": "dev-20261111090737-79494073217457.test.near"
+      "receiver_id": "dev-20261111094119-55402086805631.test.near",
+      "token": "dev-20261111094122-86877707569620.test.near"
      },
-     "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: account 'dev-20261111090735-24827268106059.test.near' not found\")) }) } })",
+     "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: account 'dev-20261111094119-55402086805631.test.near' not found\")) }) } })",
      "kind": "call",
      "logs": [],
      "method": "ft_withdraw",
@@ -3287,8 +3286,8 @@
      "actor": "outsider",
      "args": {
       "amount": "100",
-      "receiver_id": "dev-20261111090735-24827268106059.test.near",
-      "token_id": "nep141:dev-20261111090737-79494073217457.test.near"
+      "receiver_id": "dev-20261111094119-55402086805631.test.near",
+      "token_id": "nep141:dev-20261111094122-86877707569620.test.near"
      },
      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: invalid intent\")) }) } })",
      "kind": "call",
@@ -3303,8 +3302,8 @@
     {
      "actor": "-",
      "args": {
-      "account_id": "dev-20261111090736-86893569947518.test.near",
-      "token_id": "nep141:dev-20261111090737-79494073217457.test.near"
+      "account_id": "dev-20261111094120-17435407079511.test.near",
+      "token_id": "nep141:dev-20261111094122-86877707569620.test.near"
      },
      "failure": "",
      "kind": "view",
@@ -3450,9 +3449,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111090744-40111373212988.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090747-16811848501441.test.near\",\"new_owner_id\":\"dev-20261111090748-53532023313078.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090744-40111373212988.test.near\",\"token_ids\":[\"nep141:dev-20261111090746-42529660524272.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094128-56579741561193.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094130-54298563917941.test.near\",\"new_owner_id\":\"dev-20261111094132-71201367108767.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094128-56579741561193.test.near\",\"token_ids\":[\"nep141:dev-20261111094130-36115579613112.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -3470,9 +3469,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111090745-99406954033702.test.near\",\"amount\":\"200\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090747-16811848501441.test.near\",\"new_owner_id\":\"dev-20261111090748-53532023313078.test.near\",\"amount\":\"200\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090745-99406954033702.test.near\",\"token_ids\":[\"nep141:dev-20261111090746-42529660524272.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111094129-30910125983558.test.near\",\"amount\":\"200\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094130-54298563917941.test.near\",\"new_owner_id\":\"dev-20261111094132-71201367108767.test.near\",\"amount\":\"200\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094129-30910125983558.test.near\",\"token_ids\":[\"nep141:dev-20261111094130-36115579613112.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-mid\",\"amount\":\"200\"}}"
      ],
      "method": "pay",
@@ -3490,9 +3489,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111090746-47973870022138.test.near\",\"amount\":\"50\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090747-16811848501441.test.near\",\"new_owner_id\":\"dev-20261111090748-53532023313078.test.near\",\"amount\":\"50\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090746-47973870022138.test.near\",\"token_ids\":[\"nep141:dev-20261111090746-42529660524272.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111094130-79531564232047.test.near\",\"amount\":\"50\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094130-54298563917941.test.near\",\"new_owner_id\":\"dev-20261111094132-71201367108767.test.near\",\"amount\":\"50\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094130-79531564232047.test.near\",\"token_ids\":[\"nep141:dev-20261111094130-36115579613112.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-small\",\"amount\":\"50\"}}"
      ],
      "method": "pay",
@@ -3679,9 +3678,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111090746-37838946172444.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090749-52463502326704.test.near\",\"new_owner_id\":\"dev-20261111090750-90961499262549.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090746-37838946172444.test.near\",\"token_ids\":[\"nep141:dev-20261111090748-89400338778178.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094131-47685257273811.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094133-53072563394460.test.near\",\"new_owner_id\":\"dev-20261111094134-93010160134397.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094131-47685257273811.test.near\",\"token_ids\":[\"nep141:dev-20261111094133-90851450277812.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -3943,9 +3942,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-expire\",\"receiver\":\"dev-20261111090748-72694438237482.test.near\",\"amount\":\"300\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090750-31317609037493.test.near\",\"new_owner_id\":\"dev-20261111090751-66436879289592.test.near\",\"amount\":\"300\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090748-72694438237482.test.near\",\"token_ids\":[\"nep141:dev-20261111090750-47791792153804.test.near\"],\"amounts\":[\"300\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-expire\",\"receiver\":\"dev-20261111094132-81439041990350.test.near\",\"amount\":\"300\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094134-59759665337669.test.near\",\"new_owner_id\":\"dev-20261111094135-33511217585388.test.near\",\"amount\":\"300\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094132-81439041990350.test.near\",\"token_ids\":[\"nep141:dev-20261111094133-63099603556723.test.near\"],\"amounts\":[\"300\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-expire\",\"amount\":\"300\"}}"
      ],
      "method": "pay",
@@ -3993,9 +3992,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111090748-72694438237482.test.near\",\"amount\":\"200\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090750-31317609037493.test.near\",\"new_owner_id\":\"dev-20261111090751-66436879289592.test.near\",\"amount\":\"200\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090748-72694438237482.test.near\",\"token_ids\":[\"nep141:dev-20261111090750-47791792153804.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111094132-81439041990350.test.near\",\"amount\":\"200\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094134-59759665337669.test.near\",\"new_owner_id\":\"dev-20261111094135-33511217585388.test.near\",\"amount\":\"200\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094132-81439041990350.test.near\",\"token_ids\":[\"nep141:dev-20261111094133-63099603556723.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-mid\",\"amount\":\"200\"}}"
      ],
      "method": "pay",
@@ -4149,7 +4148,7 @@
    "should_pay": 3,
    "paid_outside": [],
    "paid_outside_units": 0,
-   "seconds": 39.5,
+   "seconds": 39.6,
    "log": "runs/c261110-2-lowgas-race-outsider-expire-re__intents_honest.log",
    "result_json": "runs/c261110-2-lowgas-race-outsider-expire-re__intents_honest.result.json",
    "has_intent": false,
@@ -4180,9 +4179,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-expire\",\"receiver\":\"dev-20261111090755-35955587366599.test.near\",\"amount\":\"300\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090757-90792513665402.test.near\",\"new_owner_id\":\"dev-20261111090758-49011486482630.test.near\",\"amount\":\"300\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090755-35955587366599.test.near\",\"token_ids\":[\"nep141:dev-20261111090756-99963569912860.test.near\"],\"amounts\":[\"300\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-expire\",\"receiver\":\"dev-20261111094138-23759533518138.test.near\",\"amount\":\"300\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094140-37763361549544.test.near\",\"new_owner_id\":\"dev-20261111094141-58461851767346.test.near\",\"amount\":\"300\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094138-23759533518138.test.near\",\"token_ids\":[\"nep141:dev-20261111094140-48506607988230.test.near\"],\"amounts\":[\"300\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-expire\",\"amount\":\"300\"}}"
      ],
      "method": "pay",
@@ -4356,9 +4355,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111090803-86126908548426.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090805-93644500097127.test.near\",\"new_owner_id\":\"dev-20261111090806-18668836773195.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090803-86126908548426.test.near\",\"token_ids\":[\"nep141:dev-20261111090805-56898497530371.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094147-86711999704782.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094149-18986634283139.test.near\",\"new_owner_id\":\"dev-20261111094150-68375129672505.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094147-86711999704782.test.near\",\"token_ids\":[\"nep141:dev-20261111094149-40108200320060.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -4376,9 +4375,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111090805-97111344836954.test.near\",\"amount\":\"50\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090805-93644500097127.test.near\",\"new_owner_id\":\"dev-20261111090806-18668836773195.test.near\",\"amount\":\"50\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090805-97111344836954.test.near\",\"token_ids\":[\"nep141:dev-20261111090805-56898497530371.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111094148-56317832041770.test.near\",\"amount\":\"50\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094149-18986634283139.test.near\",\"new_owner_id\":\"dev-20261111094150-68375129672505.test.near\",\"amount\":\"50\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094148-56317832041770.test.near\",\"token_ids\":[\"nep141:dev-20261111094149-40108200320060.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-small\",\"amount\":\"50\"}}"
      ],
      "method": "pay",
@@ -4396,9 +4395,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111090804-40232879968670.test.near\",\"amount\":\"200\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090805-93644500097127.test.near\",\"new_owner_id\":\"dev-20261111090806-18668836773195.test.near\",\"amount\":\"200\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090804-40232879968670.test.near\",\"token_ids\":[\"nep141:dev-20261111090805-56898497530371.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111094147-16553750567413.test.near\",\"amount\":\"200\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094149-18986634283139.test.near\",\"new_owner_id\":\"dev-20261111094150-68375129672505.test.near\",\"amount\":\"200\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094147-16553750567413.test.near\",\"token_ids\":[\"nep141:dev-20261111094149-40108200320060.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-mid\",\"amount\":\"200\"}}"
      ],
      "method": "pay",
@@ -4537,7 +4536,7 @@
    "should_pay": 3,
    "paid_outside": [],
    "paid_outside_units": 0,
-   "seconds": 18.8,
+   "seconds": 18.7,
    "log": "runs/n59ee7b18-1-morse-code-hidden-pay-order__intents_honest.log",
    "result_json": "runs/n59ee7b18-1-morse-code-hidden-pay-order__intents_honest.result.json",
    "has_intent": true,
@@ -4557,9 +4556,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111090805-66912576743832.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090808-43125505397302.test.near\",\"new_owner_id\":\"dev-20261111090809-40032716058765.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090805-66912576743832.test.near\",\"token_ids\":[\"nep141:dev-20261111090807-21211782376923.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094150-23407806960954.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094152-48731022038156.test.near\",\"new_owner_id\":\"dev-20261111094153-96001442080516.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094150-23407806960954.test.near\",\"token_ids\":[\"nep141:dev-20261111094152-30892626112737.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -4577,9 +4576,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111090806-53331308962892.test.near\",\"amount\":\"200\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090808-43125505397302.test.near\",\"new_owner_id\":\"dev-20261111090809-40032716058765.test.near\",\"amount\":\"200\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090806-53331308962892.test.near\",\"token_ids\":[\"nep141:dev-20261111090807-21211782376923.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111094150-68267034768671.test.near\",\"amount\":\"200\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094152-48731022038156.test.near\",\"new_owner_id\":\"dev-20261111094153-96001442080516.test.near\",\"amount\":\"200\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094150-68267034768671.test.near\",\"token_ids\":[\"nep141:dev-20261111094152-30892626112737.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-mid\",\"amount\":\"200\"}}"
      ],
      "method": "pay",
@@ -4597,9 +4596,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111090807-66407800856266.test.near\",\"amount\":\"50\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090808-43125505397302.test.near\",\"new_owner_id\":\"dev-20261111090809-40032716058765.test.near\",\"amount\":\"50\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090807-66407800856266.test.near\",\"token_ids\":[\"nep141:dev-20261111090807-21211782376923.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111094151-25302758909464.test.near\",\"amount\":\"50\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094152-48731022038156.test.near\",\"new_owner_id\":\"dev-20261111094153-96001442080516.test.near\",\"amount\":\"50\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094151-25302758909464.test.near\",\"token_ids\":[\"nep141:dev-20261111094152-30892626112737.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-small\",\"amount\":\"50\"}}"
      ],
      "method": "pay",
@@ -4708,8 +4707,8 @@
    },
    "intent_detail": {
     "wrongful": {
-     "ada": 200,
-     "mo": 50
+     "mo": 50,
+     "ada": 200
     },
     "missed": {}
    }
@@ -4748,9 +4747,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111090820-34977021772159.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090823-51436679921603.test.near\",\"new_owner_id\":\"dev-20261111090824-55661999187303.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090820-34977021772159.test.near\",\"token_ids\":[\"nep141:dev-20261111090822-14633368335427.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094204-68598269162103.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094206-89886310185735.test.near\",\"new_owner_id\":\"dev-20261111094207-57102937200306.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094204-68598269162103.test.near\",\"token_ids\":[\"nep141:dev-20261111094206-54582019205706.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -4927,9 +4926,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111090826-74876236116073.test.near\",\"amount\":\"50\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090826-90966712694481.test.near\",\"new_owner_id\":\"dev-20261111090827-12255337633086.test.near\",\"amount\":\"50\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090826-74876236116073.test.near\",\"token_ids\":[\"nep141:dev-20261111090826-47931755665926.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111094210-57715610707386.test.near\",\"amount\":\"50\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094211-37110542927899.test.near\",\"new_owner_id\":\"dev-20261111094212-92078701079933.test.near\",\"amount\":\"50\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094210-57715610707386.test.near\",\"token_ids\":[\"nep141:dev-20261111094211-86180062849944.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-small\",\"amount\":\"50\"}}"
      ],
      "method": "pay",
@@ -4947,9 +4946,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111090825-65680502763738.test.near\",\"amount\":\"200\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090826-90966712694481.test.near\",\"new_owner_id\":\"dev-20261111090827-12255337633086.test.near\",\"amount\":\"200\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090825-65680502763738.test.near\",\"token_ids\":[\"nep141:dev-20261111090826-47931755665926.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111094209-74194148753922.test.near\",\"amount\":\"200\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094211-37110542927899.test.near\",\"new_owner_id\":\"dev-20261111094212-92078701079933.test.near\",\"amount\":\"200\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094209-74194148753922.test.near\",\"token_ids\":[\"nep141:dev-20261111094211-86180062849944.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-mid\",\"amount\":\"200\"}}"
      ],
      "method": "pay",
@@ -5073,8 +5072,8 @@
    },
    "intent_detail": {
     "wrongful": {
-     "ada": 200,
-     "mo": 50
+     "mo": 50,
+     "ada": 200
     },
     "missed": {
      "sam": 100
@@ -5116,9 +5115,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111090833-58738145882988.test.near\",\"amount\":\"50\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090834-85721656866168.test.near\",\"new_owner_id\":\"dev-20261111090835-97569651168104.test.near\",\"amount\":\"50\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090833-58738145882988.test.near\",\"token_ids\":[\"nep141:dev-20261111090834-71463677263003.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111094217-67769724961753.test.near\",\"amount\":\"50\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094218-26436454346395.test.near\",\"new_owner_id\":\"dev-20261111094219-13153061547991.test.near\",\"amount\":\"50\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094217-67769724961753.test.near\",\"token_ids\":[\"nep141:dev-20261111094217-10638813634966.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-small\",\"amount\":\"50\"}}"
      ],
      "method": "pay",
@@ -5136,9 +5135,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111090832-40221413852437.test.near\",\"amount\":\"200\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090834-85721656866168.test.near\",\"new_owner_id\":\"dev-20261111090835-97569651168104.test.near\",\"amount\":\"200\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090832-40221413852437.test.near\",\"token_ids\":[\"nep141:dev-20261111090834-71463677263003.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111094216-14487279437981.test.near\",\"amount\":\"200\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094218-26436454346395.test.near\",\"new_owner_id\":\"dev-20261111094219-13153061547991.test.near\",\"amount\":\"200\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094216-14487279437981.test.near\",\"token_ids\":[\"nep141:dev-20261111094217-10638813634966.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-mid\",\"amount\":\"200\"}}"
      ],
      "method": "pay",
@@ -5292,8 +5291,8 @@
    },
    "intent_detail": {
     "wrongful": {
-     "ada": 200,
-     "mo": 50
+     "mo": 50,
+     "ada": 200
     },
     "missed": {
      "sam": 100
@@ -5335,9 +5334,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111090834-27750854464471.test.near\",\"amount\":\"200\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090836-25580122517994.test.near\",\"new_owner_id\":\"dev-20261111090837-40442510120993.test.near\",\"amount\":\"200\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090834-27750854464471.test.near\",\"token_ids\":[\"nep141:dev-20261111090836-73061690486139.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111094218-34658067499177.test.near\",\"amount\":\"200\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094220-47416443098152.test.near\",\"new_owner_id\":\"dev-20261111094221-97137765147556.test.near\",\"amount\":\"200\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094218-34658067499177.test.near\",\"token_ids\":[\"nep141:dev-20261111094220-77449467748428.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-mid\",\"amount\":\"200\"}}"
      ],
      "method": "pay",
@@ -5355,9 +5354,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111090835-22301526261481.test.near\",\"amount\":\"50\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090836-25580122517994.test.near\",\"new_owner_id\":\"dev-20261111090837-40442510120993.test.near\",\"amount\":\"50\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090835-22301526261481.test.near\",\"token_ids\":[\"nep141:dev-20261111090836-73061690486139.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111094219-67568596065262.test.near\",\"amount\":\"50\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094220-47416443098152.test.near\",\"new_owner_id\":\"dev-20261111094221-97137765147556.test.near\",\"amount\":\"50\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094219-67568596065262.test.near\",\"token_ids\":[\"nep141:dev-20261111094220-77449467748428.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-small\",\"amount\":\"50\"}}"
      ],
      "method": "pay",
@@ -5526,8 +5525,8 @@
    },
    "intent_detail": {
     "wrongful": {
-     "ada": 200,
-     "mo": 50
+     "mo": 50,
+     "ada": 200
     },
     "missed": {
      "sam": 100
@@ -5568,9 +5567,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111090839-36489755411790.test.near\",\"amount\":\"200\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090840-41464435757695.test.near\",\"new_owner_id\":\"dev-20261111090841-93370369278994.test.near\",\"amount\":\"200\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090839-36489755411790.test.near\",\"token_ids\":[\"nep141:dev-20261111090840-23665119743882.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111094222-94139169514603.test.near\",\"amount\":\"200\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094224-78168938383885.test.near\",\"new_owner_id\":\"dev-20261111094225-38830749242870.test.near\",\"amount\":\"200\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094222-94139169514603.test.near\",\"token_ids\":[\"nep141:dev-20261111094224-38437827751257.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-mid\",\"amount\":\"200\"}}"
      ],
      "method": "pay",
@@ -5709,7 +5708,7 @@
    "should_pay": 3,
    "paid_outside": [],
    "paid_outside_units": 0,
-   "seconds": 17.4,
+   "seconds": 17.5,
    "log": "runs/p210408638-1-tod-daily-cap-race__intents_honest.log",
    "result_json": "runs/p210408638-1-tod-daily-cap-race__intents_honest.result.json",
    "has_intent": false,
@@ -5728,9 +5727,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111090842-84987604005947.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090845-50084619740020.test.near\",\"new_owner_id\":\"dev-20261111090846-25254765370363.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090842-84987604005947.test.near\",\"token_ids\":[\"nep141:dev-20261111090844-98829609544277.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094227-48766677553629.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094229-11117492283884.test.near\",\"new_owner_id\":\"dev-20261111094230-76927751839097.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094227-48766677553629.test.near\",\"token_ids\":[\"nep141:dev-20261111094229-41092369846731.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -5748,9 +5747,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111090843-67159870382635.test.near\",\"amount\":\"200\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090845-50084619740020.test.near\",\"new_owner_id\":\"dev-20261111090846-25254765370363.test.near\",\"amount\":\"200\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090843-67159870382635.test.near\",\"token_ids\":[\"nep141:dev-20261111090844-98829609544277.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111094227-32763556159598.test.near\",\"amount\":\"200\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094229-11117492283884.test.near\",\"new_owner_id\":\"dev-20261111094230-76927751839097.test.near\",\"amount\":\"200\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094227-32763556159598.test.near\",\"token_ids\":[\"nep141:dev-20261111094229-41092369846731.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-mid\",\"amount\":\"200\"}}"
      ],
      "method": "pay",
@@ -5907,9 +5906,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111090851-45538956745087.test.near\",\"amount\":\"200\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090853-73139003114619.test.near\",\"new_owner_id\":\"dev-20261111090854-94346027378018.test.near\",\"amount\":\"200\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090851-45538956745087.test.near\",\"token_ids\":[\"nep141:dev-20261111090853-35156421555428.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111094235-94573686076004.test.near\",\"amount\":\"200\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094237-27117544795812.test.near\",\"new_owner_id\":\"dev-20261111094238-26563429694568.test.near\",\"amount\":\"200\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094235-94573686076004.test.near\",\"token_ids\":[\"nep141:dev-20261111094236-28520524593893.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-mid\",\"amount\":\"200\"}}"
      ],
      "method": "pay",
@@ -6067,9 +6066,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111090853-60088126979026.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090856-30628610499503.test.near\",\"new_owner_id\":\"dev-20261111090857-99821212608399.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090853-60088126979026.test.near\",\"token_ids\":[\"nep141:dev-20261111090855-38861676877198.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094237-94127254991387.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094239-83434065096357.test.near\",\"new_owner_id\":\"dev-20261111094240-90652992993234.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094237-94127254991387.test.near\",\"token_ids\":[\"nep141:dev-20261111094239-14507163974466.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -6087,9 +6086,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111090854-61421547811003.test.near\",\"amount\":\"200\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090856-30628610499503.test.near\",\"new_owner_id\":\"dev-20261111090857-99821212608399.test.near\",\"amount\":\"200\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090854-61421547811003.test.near\",\"token_ids\":[\"nep141:dev-20261111090855-38861676877198.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111094237-43125534702024.test.near\",\"amount\":\"200\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094239-83434065096357.test.near\",\"new_owner_id\":\"dev-20261111094240-90652992993234.test.near\",\"amount\":\"200\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094237-43125534702024.test.near\",\"token_ids\":[\"nep141:dev-20261111094239-14507163974466.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-mid\",\"amount\":\"200\"}}"
      ],
      "method": "pay",
@@ -6228,7 +6227,7 @@
    "should_pay": 3,
    "paid_outside": [],
    "paid_outside_units": 0,
-   "seconds": 17.7,
+   "seconds": 17.8,
    "log": "runs/p261108811-2-untagged-deliberation-cancel-r__intents_honest.log",
    "result_json": "runs/p261108811-2-untagged-deliberation-cancel-r__intents_honest.result.json",
    "has_intent": true,
@@ -6246,9 +6245,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111090855-64352323884154.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090857-71698458606449.test.near\",\"new_owner_id\":\"dev-20261111090858-85938476822064.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090855-64352323884154.test.near\",\"token_ids\":[\"nep141:dev-20261111090857-70634642317136.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094239-42008443291053.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094241-95601375289189.test.near\",\"new_owner_id\":\"dev-20261111094242-56949449123992.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094239-42008443291053.test.near\",\"token_ids\":[\"nep141:dev-20261111094241-36327947042369.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -6425,9 +6424,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111090900-52976147637823.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090902-41075058358773.test.near\",\"new_owner_id\":\"dev-20261111090903-57141434641201.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090900-52976147637823.test.near\",\"token_ids\":[\"nep141:dev-20261111090902-50694415200767.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094244-41757986887299.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094247-21571296499566.test.near\",\"new_owner_id\":\"dev-20261111094248-97469172852334.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094244-41757986887299.test.near\",\"token_ids\":[\"nep141:dev-20261111094246-77856356616433.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -6445,9 +6444,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-expire\",\"receiver\":\"dev-20261111090900-53641270028489.test.near\",\"amount\":\"300\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090902-41075058358773.test.near\",\"new_owner_id\":\"dev-20261111090903-57141434641201.test.near\",\"amount\":\"300\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090900-53641270028489.test.near\",\"token_ids\":[\"nep141:dev-20261111090902-50694415200767.test.near\"],\"amounts\":[\"300\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-expire\",\"receiver\":\"dev-20261111094245-67594991079747.test.near\",\"amount\":\"300\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094247-21571296499566.test.near\",\"new_owner_id\":\"dev-20261111094248-97469172852334.test.near\",\"amount\":\"300\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094245-67594991079747.test.near\",\"token_ids\":[\"nep141:dev-20261111094246-77856356616433.test.near\"],\"amounts\":[\"300\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-expire\",\"amount\":\"300\"}}"
      ],
      "method": "pay",
@@ -6607,7 +6606,7 @@
    "should_pay": 3,
    "paid_outside": [],
    "paid_outside_units": 0,
-   "seconds": 43.4,
+   "seconds": 43.3,
    "log": "runs/p261111266-1-expiry-trajectory-erosion__intents_honest.log",
    "result_json": "runs/p261111266-1-expiry-trajectory-erosion__intents_honest.result.json",
    "has_intent": false,
@@ -6625,9 +6624,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111090909-46466380382065.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090911-76880370133665.test.near\",\"new_owner_id\":\"dev-20261111090912-43925177907215.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090909-46466380382065.test.near\",\"token_ids\":[\"nep141:dev-20261111090911-94764094214532.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094253-24415553393887.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094255-55964823833113.test.near\",\"new_owner_id\":\"dev-20261111094256-47088999333576.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094253-24415553393887.test.near\",\"token_ids\":[\"nep141:dev-20261111094255-85365953482854.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -6645,9 +6644,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-expire\",\"receiver\":\"dev-20261111090909-41173648600897.test.near\",\"amount\":\"300\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090911-76880370133665.test.near\",\"new_owner_id\":\"dev-20261111090912-43925177907215.test.near\",\"amount\":\"300\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090909-41173648600897.test.near\",\"token_ids\":[\"nep141:dev-20261111090911-94764094214532.test.near\"],\"amounts\":[\"300\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-expire\",\"receiver\":\"dev-20261111094253-30199177324338.test.near\",\"amount\":\"300\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094255-55964823833113.test.near\",\"new_owner_id\":\"dev-20261111094256-47088999333576.test.near\",\"amount\":\"300\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094253-30199177324338.test.near\",\"token_ids\":[\"nep141:dev-20261111094255-85365953482854.test.near\"],\"amounts\":[\"300\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-expire\",\"amount\":\"300\"}}"
      ],
      "method": "pay",
@@ -6791,9 +6790,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111090910-47619377500515.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090913-80308378681445.test.near\",\"new_owner_id\":\"dev-20261111090914-84623894301931.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090910-47619377500515.test.near\",\"token_ids\":[\"nep141:dev-20261111090912-70991906104312.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094254-30981314067135.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094256-98977061484535.test.near\",\"new_owner_id\":\"dev-20261111094257-26820613299102.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094254-30981314067135.test.near\",\"token_ids\":[\"nep141:dev-20261111094256-45445836013654.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -6811,9 +6810,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111090912-86061180092634.test.near\",\"amount\":\"50\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090913-80308378681445.test.near\",\"new_owner_id\":\"dev-20261111090914-84623894301931.test.near\",\"amount\":\"50\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090912-86061180092634.test.near\",\"token_ids\":[\"nep141:dev-20261111090912-70991906104312.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111094256-86029304397015.test.near\",\"amount\":\"50\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094256-98977061484535.test.near\",\"new_owner_id\":\"dev-20261111094257-26820613299102.test.near\",\"amount\":\"50\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094256-86029304397015.test.near\",\"token_ids\":[\"nep141:dev-20261111094256-45445836013654.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-small\",\"amount\":\"50\"}}"
      ],
      "method": "pay",
@@ -6831,9 +6830,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111090911-72201955010696.test.near\",\"amount\":\"200\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090913-80308378681445.test.near\",\"new_owner_id\":\"dev-20261111090914-84623894301931.test.near\",\"amount\":\"200\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090911-72201955010696.test.near\",\"token_ids\":[\"nep141:dev-20261111090912-70991906104312.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111094255-43481441911133.test.near\",\"amount\":\"200\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094256-98977061484535.test.near\",\"new_owner_id\":\"dev-20261111094257-26820613299102.test.near\",\"amount\":\"200\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094255-43481441911133.test.near\",\"token_ids\":[\"nep141:dev-20261111094256-45445836013654.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-mid\",\"amount\":\"200\"}}"
      ],
      "method": "pay",
@@ -6992,9 +6991,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111090913-29830420806831.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090915-76235805711672.test.near\",\"new_owner_id\":\"dev-20261111090916-62425811826251.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090913-29830420806831.test.near\",\"token_ids\":[\"nep141:dev-20261111090915-60521260633063.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094257-61058759784198.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094259-46065785330314.test.near\",\"new_owner_id\":\"dev-20261111094300-27279643074853.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094257-61058759784198.test.near\",\"token_ids\":[\"nep141:dev-20261111094259-44848741825326.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -7012,9 +7011,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111090914-41462227672296.test.near\",\"amount\":\"50\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090915-76235805711672.test.near\",\"new_owner_id\":\"dev-20261111090916-62425811826251.test.near\",\"amount\":\"50\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090914-41462227672296.test.near\",\"token_ids\":[\"nep141:dev-20261111090915-60521260633063.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111094258-11279385752795.test.near\",\"amount\":\"50\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094259-46065785330314.test.near\",\"new_owner_id\":\"dev-20261111094300-27279643074853.test.near\",\"amount\":\"50\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094258-11279385752795.test.near\",\"token_ids\":[\"nep141:dev-20261111094259-44848741825326.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-small\",\"amount\":\"50\"}}"
      ],
      "method": "pay",
@@ -7032,9 +7031,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111090913-82895559363881.test.near\",\"amount\":\"200\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090915-76235805711672.test.near\",\"new_owner_id\":\"dev-20261111090916-62425811826251.test.near\",\"amount\":\"200\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090913-82895559363881.test.near\",\"token_ids\":[\"nep141:dev-20261111090915-60521260633063.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111094257-76653962820699.test.near\",\"amount\":\"200\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094259-46065785330314.test.near\",\"new_owner_id\":\"dev-20261111094300-27279643074853.test.near\",\"amount\":\"200\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094257-76653962820699.test.near\",\"token_ids\":[\"nep141:dev-20261111094259-44848741825326.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-mid\",\"amount\":\"200\"}}"
      ],
      "method": "pay",
@@ -7143,8 +7142,8 @@
    },
    "intent_detail": {
     "wrongful": {
-     "ada": 200,
-     "mo": 50
+     "mo": 50,
+     "ada": 200
     },
     "missed": {}
    }
@@ -7184,9 +7183,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111090919-49658629429363.test.near\",\"amount\":\"200\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090921-45435339903031.test.near\",\"new_owner_id\":\"dev-20261111090922-72180615935097.test.near\",\"amount\":\"200\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090919-49658629429363.test.near\",\"token_ids\":[\"nep141:dev-20261111090920-99218694521504.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111094303-78528995596860.test.near\",\"amount\":\"200\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094305-33546241141945.test.near\",\"new_owner_id\":\"dev-20261111094306-88786295070820.test.near\",\"amount\":\"200\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094303-78528995596860.test.near\",\"token_ids\":[\"nep141:dev-20261111094305-96837585467897.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-mid\",\"amount\":\"200\"}}"
      ],
      "method": "pay",
@@ -7204,9 +7203,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111090920-94429282931471.test.near\",\"amount\":\"50\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090921-45435339903031.test.near\",\"new_owner_id\":\"dev-20261111090922-72180615935097.test.near\",\"amount\":\"50\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090920-94429282931471.test.near\",\"token_ids\":[\"nep141:dev-20261111090920-99218694521504.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111094305-23599576564142.test.near\",\"amount\":\"50\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094305-33546241141945.test.near\",\"new_owner_id\":\"dev-20261111094306-88786295070820.test.near\",\"amount\":\"50\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094305-23599576564142.test.near\",\"token_ids\":[\"nep141:dev-20261111094305-96837585467897.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-small\",\"amount\":\"50\"}}"
      ],
      "method": "pay",
@@ -7315,8 +7314,8 @@
    },
    "intent_detail": {
     "wrongful": {
-     "ada": 200,
-     "mo": 50
+     "mo": 50,
+     "ada": 200
     },
     "missed": {
      "sam": 100
@@ -7357,9 +7356,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111090928-68468334171530.test.near\",\"amount\":\"200\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090930-77906007458568.test.near\",\"new_owner_id\":\"dev-20261111090931-50213705363253.test.near\",\"amount\":\"200\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090928-68468334171530.test.near\",\"token_ids\":[\"nep141:dev-20261111090930-43026069575292.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111094312-47577661164819.test.near\",\"amount\":\"200\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094314-92574131877373.test.near\",\"new_owner_id\":\"dev-20261111094315-77793697140502.test.near\",\"amount\":\"200\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094312-47577661164819.test.near\",\"token_ids\":[\"nep141:dev-20261111094314-35693057000193.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-mid\",\"amount\":\"200\"}}"
      ],
      "method": "pay",
@@ -7524,9 +7523,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111090932-31287013610904.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090934-74084593670955.test.near\",\"new_owner_id\":\"dev-20261111090935-58985414977425.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090932-31287013610904.test.near\",\"token_ids\":[\"nep141:dev-20261111090934-74495319963329.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094316-22687549499023.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094318-16668720765478.test.near\",\"new_owner_id\":\"dev-20261111094319-84000469417154.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094316-22687549499023.test.near\",\"token_ids\":[\"nep141:dev-20261111094317-61965661164069.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -7684,7 +7683,7 @@
    "should_pay": 3,
    "paid_outside": [],
    "paid_outside_units": 0,
-   "seconds": 17.5,
+   "seconds": 17.3,
    "log": "runs/p261112636-1-concurrent-cap-snapshot-race__intents_honest.log",
    "result_json": "runs/p261112636-1-concurrent-cap-snapshot-race__intents_honest.result.json",
    "has_intent": false,
@@ -7703,9 +7702,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111090936-80052937006748.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090939-72267950329045.test.near\",\"new_owner_id\":\"dev-20261111090940-92614512483636.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090936-80052937006748.test.near\",\"token_ids\":[\"nep141:dev-20261111090938-47505510982410.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094321-72866355909437.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094323-62721472878376.test.near\",\"new_owner_id\":\"dev-20261111094324-78085545059692.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094321-72866355909437.test.near\",\"token_ids\":[\"nep141:dev-20261111094323-75127547510806.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -7723,9 +7722,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111090937-69244061935334.test.near\",\"amount\":\"200\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090939-72267950329045.test.near\",\"new_owner_id\":\"dev-20261111090940-92614512483636.test.near\",\"amount\":\"200\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090937-69244061935334.test.near\",\"token_ids\":[\"nep141:dev-20261111090938-47505510982410.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111094321-23163097042615.test.near\",\"amount\":\"200\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094323-62721472878376.test.near\",\"new_owner_id\":\"dev-20261111094324-78085545059692.test.near\",\"amount\":\"200\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094321-23163097042615.test.near\",\"token_ids\":[\"nep141:dev-20261111094323-75127547510806.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-mid\",\"amount\":\"200\"}}"
      ],
      "method": "pay",
@@ -7880,9 +7879,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-expire\",\"receiver\":\"dev-20261111090946-70868856008420.test.near\",\"amount\":\"300\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090948-90927186879116.test.near\",\"new_owner_id\":\"dev-20261111090949-60094680193922.test.near\",\"amount\":\"300\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090946-70868856008420.test.near\",\"token_ids\":[\"nep141:dev-20261111090947-59684730606219.test.near\"],\"amounts\":[\"300\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-expire\",\"receiver\":\"dev-20261111094330-54269792119852.test.near\",\"amount\":\"300\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094332-25675339678018.test.near\",\"new_owner_id\":\"dev-20261111094333-50047251329625.test.near\",\"amount\":\"300\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094330-54269792119852.test.near\",\"token_ids\":[\"nep141:dev-20261111094331-46643863321233.test.near\"],\"amounts\":[\"300\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-expire\",\"amount\":\"300\"}}"
      ],
      "method": "pay",
@@ -8006,7 +8005,7 @@
    "should_pay": 3,
    "paid_outside": [],
    "paid_outside_units": 0,
-   "seconds": 17.4,
+   "seconds": 17.5,
    "log": "runs/p261112636-3-substituted-payee-binding-race__intents_honest.log",
    "result_json": "runs/p261112636-3-substituted-payee-binding-race__intents_honest.result.json",
    "has_intent": false,
@@ -8024,9 +8023,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111090949-72520236169172.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090952-51258651710608.test.near\",\"new_owner_id\":\"dev-20261111090953-18889980108457.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090949-72520236169172.test.near\",\"token_ids\":[\"nep141:dev-20261111090951-44514112325368.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094333-86918859118600.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094336-46902487254525.test.near\",\"new_owner_id\":\"dev-20261111094337-74955720667128.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094333-86918859118600.test.near\",\"token_ids\":[\"nep141:dev-20261111094335-40783827621400.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -8165,7 +8164,7 @@
    "should_pay": 3,
    "paid_outside": [],
    "paid_outside_units": 0,
-   "seconds": 17.1,
+   "seconds": 17.2,
    "log": "runs/scripted-02-race-double-pay__intents_honest.log",
    "result_json": "runs/scripted-02-race-double-pay__intents_honest.result.json",
    "has_intent": false,
@@ -8183,9 +8182,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111090952-57711145435387.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090955-68486551950086.test.near\",\"new_owner_id\":\"dev-20261111090956-67544020608164.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090952-57711145435387.test.near\",\"token_ids\":[\"nep141:dev-20261111090954-16012750589069.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094336-71113330105923.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094338-31118648663369.test.near\",\"new_owner_id\":\"dev-20261111094339-61613310169998.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094336-71113330105923.test.near\",\"token_ids\":[\"nep141:dev-20261111094338-53980128584401.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -8342,9 +8341,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111090954-35585542631785.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090956-19258083582916.test.near\",\"new_owner_id\":\"dev-20261111090957-17275508371358.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090954-35585542631785.test.near\",\"token_ids\":[\"nep141:dev-20261111090956-17782732181063.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094338-46621674287473.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094341-88672071698857.test.near\",\"new_owner_id\":\"dev-20261111094342-76804675135544.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094338-46621674287473.test.near\",\"token_ids\":[\"nep141:dev-20261111094340-43223186068468.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -8483,7 +8482,7 @@
    "should_pay": 3,
    "paid_outside": [],
    "paid_outside_units": 0,
-   "seconds": 16.9,
+   "seconds": 16.8,
    "log": "runs/scripted-04-pay-cancelled__intents_honest.log",
    "result_json": "runs/scripted-04-pay-cancelled__intents_honest.result.json",
    "has_intent": false,
@@ -8635,7 +8634,7 @@
    "should_pay": 3,
    "paid_outside": [],
    "paid_outside_units": 0,
-   "seconds": 47.1,
+   "seconds": 47.2,
    "log": "runs/scripted-05-pay-expired__intents_honest.log",
    "result_json": "runs/scripted-05-pay-expired__intents_honest.result.json",
    "has_intent": false,
@@ -9061,7 +9060,7 @@
    "should_pay": 3,
    "paid_outside": [],
    "paid_outside_units": 0,
-   "seconds": 17.6,
+   "seconds": 17.4,
    "log": "runs/scripted-08-gas-starve-then-pay__intents_honest.log",
    "result_json": "runs/scripted-08-gas-starve-then-pay__intents_honest.result.json",
    "has_intent": false,
@@ -9094,9 +9093,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111091028-15637241343090.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111091030-34953264710317.test.near\",\"new_owner_id\":\"dev-20261111091031-59598770605981.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111091028-15637241343090.test.near\",\"token_ids\":[\"nep141:dev-20261111091030-81262676803381.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094412-99641997371398.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094414-41442901651382.test.near\",\"new_owner_id\":\"dev-20261111094415-34354214705102.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094412-99641997371398.test.near\",\"token_ids\":[\"nep141:dev-20261111094414-65573944398406.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -9220,7 +9219,7 @@
    "should_pay": 3,
    "paid_outside": [],
    "paid_outside_units": 0,
-   "seconds": 16.9,
+   "seconds": 16.8,
    "log": "runs/scripted-09-pay-over-cap__intents_honest.log",
    "result_json": "runs/scripted-09-pay-over-cap__intents_honest.result.json",
    "has_intent": false,
@@ -9391,9 +9390,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111091040-78284279520012.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111091042-84521248504308.test.near\",\"new_owner_id\":\"dev-20261111091043-85198203336665.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111091040-78284279520012.test.near\",\"token_ids\":[\"nep141:dev-20261111091042-37449617596176.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094424-46986893409321.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094426-28569706881804.test.near\",\"new_owner_id\":\"dev-20261111094427-74685904226787.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094424-46986893409321.test.near\",\"token_ids\":[\"nep141:dev-20261111094426-96063737512457.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -9411,9 +9410,9 @@
      "failure": "",
      "kind": "race-call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111091042-40230104548886.test.near\",\"amount\":\"50\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111091042-84521248504308.test.near\",\"new_owner_id\":\"dev-20261111091043-85198203336665.test.near\",\"amount\":\"50\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111091042-40230104548886.test.near\",\"token_ids\":[\"nep141:dev-20261111091042-37449617596176.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111094426-33727085159186.test.near\",\"amount\":\"50\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094426-28569706881804.test.near\",\"new_owner_id\":\"dev-20261111094427-74685904226787.test.near\",\"amount\":\"50\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094426-33727085159186.test.near\",\"token_ids\":[\"nep141:dev-20261111094426-96063737512457.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-small\",\"amount\":\"50\"}}"
      ],
      "method": "pay",
@@ -9556,9 +9555,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111091045-44915158317093.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111091047-39659042767858.test.near\",\"new_owner_id\":\"dev-20261111091048-17147034854482.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111091045-44915158317093.test.near\",\"token_ids\":[\"nep141:dev-20261111091047-99614720283203.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094429-71329558032986.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094431-41681359828199.test.near\",\"new_owner_id\":\"dev-20261111094432-13539801949296.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094429-71329558032986.test.near\",\"token_ids\":[\"nep141:dev-20261111094431-35916417087899.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -9576,9 +9575,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111091045-28839199867654.test.near\",\"amount\":\"200\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111091047-39659042767858.test.near\",\"new_owner_id\":\"dev-20261111091048-17147034854482.test.near\",\"amount\":\"200\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111091045-28839199867654.test.near\",\"token_ids\":[\"nep141:dev-20261111091047-99614720283203.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111094429-13518591560544.test.near\",\"amount\":\"200\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094431-41681359828199.test.near\",\"new_owner_id\":\"dev-20261111094432-13539801949296.test.near\",\"amount\":\"200\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094429-13518591560544.test.near\",\"token_ids\":[\"nep141:dev-20261111094431-35916417087899.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-mid\",\"amount\":\"200\"}}"
      ],
      "method": "pay",
@@ -9723,7 +9722,7 @@
    "should_pay": 3,
    "paid_outside": [],
    "paid_outside_units": 0,
-   "seconds": 17.0,
+   "seconds": 17.1,
    "log": "runs/injection-s2-payee-swap__intents_honest.log",
    "result_json": "runs/injection-s2-payee-swap__intents_honest.result.json",
    "has_intent": true,
@@ -9741,9 +9740,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111091046-11476687809690.test.near\",\"amount\":\"200\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111091048-58127817416015.test.near\",\"new_owner_id\":\"dev-20261111091049-28717404614680.test.near\",\"amount\":\"200\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111091046-11476687809690.test.near\",\"token_ids\":[\"nep141:dev-20261111091047-96507298511875.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111094430-87805838511687.test.near\",\"amount\":\"200\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094431-31569377789922.test.near\",\"new_owner_id\":\"dev-20261111094432-23947360807394.test.near\",\"amount\":\"200\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094430-87805838511687.test.near\",\"token_ids\":[\"nep141:dev-20261111094431-12575400651385.test.near\"],\"amounts\":[\"200\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-mid\",\"amount\":\"200\"}}"
      ],
      "method": "pay",
@@ -9893,9 +9892,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111091057-67671903081622.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111091059-91993550818461.test.near\",\"new_owner_id\":\"dev-20261111091100-52623455299291.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111091057-67671903081622.test.near\",\"token_ids\":[\"nep141:dev-20261111091058-59535619120269.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094440-80979211127844.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094443-60787796085917.test.near\",\"new_owner_id\":\"dev-20261111094444-87294928640126.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094440-80979211127844.test.near\",\"token_ids\":[\"nep141:dev-20261111094442-32367508375379.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -10087,9 +10086,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111091057-41616315925876.test.near\",\"amount\":\"100\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111091100-59724733131556.test.near\",\"new_owner_id\":\"dev-20261111091101-21824843908466.test.near\",\"amount\":\"100\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111091057-41616315925876.test.near\",\"token_ids\":[\"nep141:dev-20261111091059-90015356521874.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111094441-10937807116974.test.near\",\"amount\":\"100\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094444-91069936775823.test.near\",\"new_owner_id\":\"dev-20261111094445-31302863337184.test.near\",\"amount\":\"100\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094441-10937807116974.test.near\",\"token_ids\":[\"nep141:dev-20261111094443-79195960837383.test.near\"],\"amounts\":[\"100\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
      ],
      "method": "pay",
@@ -10107,9 +10106,9 @@
      "failure": "",
      "kind": "call",
      "logs": [
-      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111091059-97156991431638.test.near\",\"amount\":\"50\"}}",
-      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111091100-59724733131556.test.near\",\"new_owner_id\":\"dev-20261111091101-21824843908466.test.near\",\"amount\":\"50\"}]}",
-      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111091059-97156991431638.test.near\",\"token_ids\":[\"nep141:dev-20261111091059-90015356521874.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
+      "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111094443-36450901659170.test.near\",\"amount\":\"50\"}}",
+      "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094444-91069936775823.test.near\",\"new_owner_id\":\"dev-20261111094445-31302863337184.test.near\",\"amount\":\"50\"}]}",
+      "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094443-36450901659170.test.near\",\"token_ids\":[\"nep141:dev-20261111094443-79195960837383.test.near\"],\"amounts\":[\"50\"],\"memo\":\"deposit\"}]}",
       "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-small\",\"amount\":\"50\"}}"
      ],
      "method": "pay",
@@ -10251,8 +10250,8 @@
  },
  "unconfirmed_roles": [],
  "fail_on_tripped": false,
- "finished_utc": "2026-11-11T09:11:14Z",
- "wall_seconds": 314.8,
+ "finished_utc": "2026-11-11T09:44:58Z",
+ "wall_seconds": 311.0,
  "badge": {
   "message": "held 53/53 (0 not applicable; rules claimed: all 4; 2450 against intent; pays via intents, local)",
   "color": "yellow"

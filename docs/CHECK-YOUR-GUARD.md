@@ -168,6 +168,10 @@ What Arena does for such a guard:
 - **More attacks.** Your guard faces the whole library plus the intents suite
   (`sequences-intents/`, 2 attacks today). Those may also call the Intents contract directly
   (target `"intents"`), for example the outsider trying to take sam's credit.
+- **Gas.** Some attacks call `pay` with only 50 TGas. Paying into Intents needs more (the deposit
+  call plus your guard's callback), so the example guard `intents-honest` refuses `pay` below
+  100 TGas, and the later 300 TGas retry pays. Refusing is fine for the score, but it means those
+  low-gas attacks never reach that guard's callback. If your guard accepts less gas, they will.
 - The badge brackets say `pays via intents, local`, so a green badge cannot be read as "tested
   against the real Intents on mainnet".
 

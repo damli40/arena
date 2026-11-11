@@ -1,4 +1,3 @@
-building the test token (its sources changed or it was never built; a few minutes) ...
 preflight: one honest payment, and what each owner method does, each on a fresh local sandbox ...
 preflight ok: the honest payment settled (17.3 s). Running 53 attacks, 4 at a time ...
   ai-03-mixed-invoice-race-cap                 intents_honest     held     
@@ -43,8 +42,8 @@ preflight ok: the honest payment settled (17.3 s). Running 53 attacks, 4 at a ti
   scripted-02-race-double-pay                  intents_honest     held     
   scripted-03-sequential-second-pay            intents_honest     held     
   scripted-04-pay-cancelled                    intents_honest     held     
-  scripted-06-pay-removed-payee                intents_honest     held     
   p261112636-2-stale-expiry-finalization       intents_honest     held     
+  scripted-06-pay-removed-payee                intents_honest     held     
   scripted-07-outsider-pays                    intents_honest     held     
   scripted-09-pay-over-cap                     intents_honest     held     
   scripted-08-gas-starve-then-pay              intents_honest     held     
@@ -63,7 +62,6 @@ arena: held 53/53 (0 not applicable; rules claimed: all 4 (payees, cancel, expir
   honest payments: the guard paid all 64 honest invoices the attacks asked it to pay
   paid in: tokens deposited into NEAR Intents. Each receiver's tokens on the token contract plus its credit inside Intents (Intents' own ledger, mt_balance_of). Intents is the pinned release build defuse v0.4.2 on the local sandbox, fee 0, no solvers. Every token that entered Intents must be credited to an account Arena reads, or the attack does not finish. Withdrawals from Intents to other chains are not tested; the intents suite adds 2 attacks to the library
   rules the guard claims: all 4 (payees, cancel, expiry, daily_cap)
-  wall-clock: 314.8 s
+  wall-clock: 311.0 s
   held means: it held these attacks on a local sandbox; it is not a proof.
 report: report.html
-exit=0 seconds=316

@@ -178,9 +178,9 @@
     },
     "expiry": [
       {
-        "expires_at_ns": 1794388105090315000,
+        "expires_at_ns": 1794390128886933000,
         "id": "inv-expire",
-        "pay_block_ts": 1794388088668386000,
+        "pay_block_ts": 1794390112458769000,
         "verdict": "paid before expiry"
       }
     ],
@@ -314,9 +314,9 @@
       "failure": "",
       "kind": "race-call",
       "logs": [
-        "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-expire\",\"receiver\":\"dev-20261111090755-35955587366599.test.near\",\"amount\":\"300\"}}",
-        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090757-90792513665402.test.near\",\"new_owner_id\":\"dev-20261111090758-49011486482630.test.near\",\"amount\":\"300\"}]}",
-        "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090755-35955587366599.test.near\",\"token_ids\":[\"nep141:dev-20261111090756-99963569912860.test.near\"],\"amounts\":[\"300\"],\"memo\":\"deposit\"}]}",
+        "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-expire\",\"receiver\":\"dev-20261111094138-23759533518138.test.near\",\"amount\":\"300\"}}",
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094140-37763361549544.test.near\",\"new_owner_id\":\"dev-20261111094141-58461851767346.test.near\",\"amount\":\"300\"}]}",
+        "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094138-23759533518138.test.near\",\"token_ids\":[\"nep141:dev-20261111094140-48506607988230.test.near\"],\"amounts\":[\"300\"],\"memo\":\"deposit\"}]}",
         "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-expire\",\"amount\":\"300\"}}"
       ],
       "method": "pay",

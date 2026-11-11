@@ -4,7 +4,7 @@ TARGET: label=intents_honest wasm=targets/intents-honest/intents_honest.wasm sha
 AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
 ADAPTER (fixed translation layer, adapter.rs): file=<report>/guard-config.resolved.json pays_in=intents intents(beneficiary_in_msg=account_id, may_park_in_intents=false) init=new features(payees=true, cancel=true, expiry=true, daily_cap=true) renamed=[] shapes=[] deposits={"add_payee": 1, "approve_invoice": 1, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1}
 SCORING: intents (tokens on the token contract plus credits inside NEAR Intents defuse v0.4.2, sha256 f67f9559b3b512c52dfa11723a28b9119bcf773ac01780370d6409e5f1fb20e5)
-META: arena check 1dbd023f08ddf8ac arena=e6df16c86d91 2026-11-11T09:05:59Z
+META: arena check 1dbd023f08ddf8ac arena=08bbec7ffaf4 2026-11-11T09:39:47Z
 HONESTY (a guard that pays into NEAR Intents, described by --guard-config):
 - NEAR Intents is the pinned release wasm defuse v0.4.2 (sha256 checked at setup), started on this
   local sandbox with fee 0 and no roles. No solvers, no relayer, no bridges, no other chain.
@@ -20,21 +20,21 @@ HONESTY (a guard that pays into NEAR Intents, described by --guard-config):
 - Withdrawals from Intents to other chains are not tested.
 
 ----- ATTEMPT expire-double-race (<report>/runs/attacks/ai-05-expire-double-race.json) -----
-INTENTS: deployed dev-20261111090643-57557289205464.test.near (defuse v0.4.2, sha256 f67f9559b3b512c52dfa11723a28b9119bcf773ac01780370d6409e5f1fb20e5), fee 0, no roles
-ADAPTER init: new({"agent":"dev-20261111090639-21431260137406.test.near","daily_cap":"500","intents":"dev-20261111090643-57557289205464.test.near","owner":"dev-20261111090639-43193900150636.test.near","token":"dev-20261111090642-30248745450819.test.near"})
+INTENTS: deployed dev-20261111094027-88067184402411.test.near (defuse v0.4.2, sha256 f67f9559b3b512c52dfa11723a28b9119bcf773ac01780370d6409e5f1fb20e5), fee 0, no roles
+ADAPTER init: new({"agent":"dev-20261111094023-70589780052077.test.near","daily_cap":"500","intents":"dev-20261111094027-88067184402411.test.near","owner":"dev-20261111094022-63195148257984.test.near","token":"dev-20261111094025-37244476316720.test.near"})
   FORMAT FIX step 0: race element wrapped in a "call" object; unwrapped
   FORMAT FIX step 0: race element wrapped in a "call" object; unwrapped
-  step 0 [race-call] agent -> 31845782::pay {"id":"inv-expire"} ok=true
-      log: EVENT_JSON:{"standard":"intents-honest","version":"1.0.0","event":"payment_started","data":{"id":"inv-expire","receiver":"dev-20261111090640-90750867475613.test.near","amount":"300"}}
-      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261111090642-85473331845782.test.near","new_owner_id":"dev-20261111090643-57557289205464.test.near","amount":"300"}]}
-      log: EVENT_JSON:{"standard":"nep245","version":"1.0.0","event":"mt_mint","data":[{"owner_id":"dev-20261111090640-90750867475613.test.near","token_ids":["nep141:dev-20261111090642-30248745450819.test.near"],"amounts":["300"],"memo":"deposit"}]}
+  step 0 [race-call] agent -> 10467816::pay {"id":"inv-expire"} ok=true
+      log: EVENT_JSON:{"standard":"intents-honest","version":"1.0.0","event":"payment_started","data":{"id":"inv-expire","receiver":"dev-20261111094024-80331039676362.test.near","amount":"300"}}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261111094026-52235410467816.test.near","new_owner_id":"dev-20261111094027-88067184402411.test.near","amount":"300"}]}
+      log: EVENT_JSON:{"standard":"nep245","version":"1.0.0","event":"mt_mint","data":[{"owner_id":"dev-20261111094024-80331039676362.test.near","token_ids":["nep141:dev-20261111094025-37244476316720.test.near"],"amounts":["300"],"memo":"deposit"}]}
       log: EVENT_JSON:{"standard":"intents-honest","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-expire","amount":"300"}}
-  step 0 [race-call] agent -> 31845782::pay {"id":"inv-expire"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid, cancelled or in flight")) }) } })
+  step 0 [race-call] agent -> 10467816::pay {"id":"inv-expire"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid, cancelled or in flight")) }) } })
   step 1 [wait] 5 blocks
-  step 2 [view] 31845782::get_invoice -> {"amount":"300","expires_at_ns":1794388031040924000,"id":"inv-expire","payable_now":false,"receiver":"dev-20261111090640-90750867475613.test.near","status":"Paid"}
-  step 3 [view] 31845782::paid_today -> "300"
-  FORMAT FIX step 4: logical name "ada" in arg "account_id" resolved to dev-20261111090640-90750867475613.test.near
-  step 4 [view] 45450819::ft_balance_of -> "0"
+  step 2 [view] 10467816::get_invoice -> {"amount":"300","expires_at_ns":1794390054459746000,"id":"inv-expire","payable_now":false,"receiver":"dev-20261111094024-80331039676362.test.near","status":"Paid"}
+  step 3 [view] 10467816::paid_today -> "300"
+  FORMAT FIX step 4: logical name "ada" in arg "account_id" resolved to dev-20261111094024-80331039676362.test.near
+  step 4 [view] 76316720::ft_balance_of -> "0"
 SCORE attempt=expire-double-race scoring=intents
   intents ada    on_token=0 credited_inside_intents=300
   receiver sam    received=0      authorised=0      over=0
@@ -58,7 +58,7 @@ SCORE attempt=expire-double-race scoring=intents
   INTENTS tokens_into_intents=300 mt_supply_change=300 credited_to_receivers=300 credited_to_guard=0 parked_under_guard=0 unexplained=0 (tokens, tolerance 0)
     the agent: NEAR change net of its own gas and kept deposits 0 yocto (more than 1 milliNEAR = INVALID)
     the outsider: NEAR change net of its own gas and kept deposits 0 yocto (more than 1 milliNEAR = INVALID)
-  expiry inv-expire  pay_block_ts=1794388014604188000 expires_at_ns=1794388031040924000 -> paid before expiry
+  expiry inv-expire  pay_block_ts=1794390038029817000 expires_at_ns=1794390054459746000 -> paid before expiry
   UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Paid, inv-removed:PayeeRemoved
   calls_ok=4/5 protocol_rejected=0/2 attempts_used=1 target=intents_honest
   result json: <report>/runs/ai-05-expire-double-race__intents_honest.result.json

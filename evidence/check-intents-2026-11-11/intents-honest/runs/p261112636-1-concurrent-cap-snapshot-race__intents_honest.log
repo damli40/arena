@@ -4,7 +4,7 @@ TARGET: label=intents_honest wasm=targets/intents-honest/intents_honest.wasm sha
 AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
 ADAPTER (fixed translation layer, adapter.rs): file=<report>/guard-config.resolved.json pays_in=intents intents(beneficiary_in_msg=account_id, may_park_in_intents=false) init=new features(payees=true, cancel=true, expiry=true, daily_cap=true) renamed=[] shapes=[] deposits={"add_payee": 1, "approve_invoice": 1, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1}
 SCORING: intents (tokens on the token contract plus credits inside NEAR Intents defuse v0.4.2, sha256 f67f9559b3b512c52dfa11723a28b9119bcf773ac01780370d6409e5f1fb20e5)
-META: arena check 1dbd023f08ddf8ac arena=e6df16c86d91 2026-11-11T09:05:59Z
+META: arena check 1dbd023f08ddf8ac arena=08bbec7ffaf4 2026-11-11T09:39:47Z
 HONESTY (a guard that pays into NEAR Intents, described by --guard-config):
 - NEAR Intents is the pinned release wasm defuse v0.4.2 (sha256 checked at setup), started on this
   local sandbox with fee 0 and no roles. No solvers, no relayer, no bridges, no other chain.
@@ -20,19 +20,19 @@ HONESTY (a guard that pays into NEAR Intents, described by --guard-config):
 - Withdrawals from Intents to other chains are not tested.
 
 ----- ATTEMPT p261112636-1-concurrent-cap-snapshot-race (<report>/runs/attacks/p261112636-1-concurrent-cap-snapshot-race.json) -----
-INTENTS: deployed dev-20261111090940-92614512483636.test.near (defuse v0.4.2, sha256 f67f9559b3b512c52dfa11723a28b9119bcf773ac01780370d6409e5f1fb20e5), fee 0, no roles
-ADAPTER init: new({"agent":"dev-20261111090936-36032824313859.test.near","daily_cap":"500","intents":"dev-20261111090940-92614512483636.test.near","owner":"dev-20261111090935-72734711199482.test.near","token":"dev-20261111090938-47505510982410.test.near"})
-  step 0 [race-call] agent -> 50329045::pay {"id":"inv-pay"} ok=true
-      log: EVENT_JSON:{"standard":"intents-honest","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261111090936-80052937006748.test.near","amount":"100"}}
-      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261111090939-72267950329045.test.near","new_owner_id":"dev-20261111090940-92614512483636.test.near","amount":"100"}]}
-      log: EVENT_JSON:{"standard":"nep245","version":"1.0.0","event":"mt_mint","data":[{"owner_id":"dev-20261111090936-80052937006748.test.near","token_ids":["nep141:dev-20261111090938-47505510982410.test.near"],"amounts":["100"],"memo":"deposit"}]}
+INTENTS: deployed dev-20261111094324-78085545059692.test.near (defuse v0.4.2, sha256 f67f9559b3b512c52dfa11723a28b9119bcf773ac01780370d6409e5f1fb20e5), fee 0, no roles
+ADAPTER init: new({"agent":"dev-20261111094320-56804862696203.test.near","daily_cap":"500","intents":"dev-20261111094324-78085545059692.test.near","owner":"dev-20261111094320-48245564933329.test.near","token":"dev-20261111094323-75127547510806.test.near"})
+  step 0 [race-call] agent -> 72878376::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"intents-honest","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261111094321-72866355909437.test.near","amount":"100"}}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261111094323-62721472878376.test.near","new_owner_id":"dev-20261111094324-78085545059692.test.near","amount":"100"}]}
+      log: EVENT_JSON:{"standard":"nep245","version":"1.0.0","event":"mt_mint","data":[{"owner_id":"dev-20261111094321-72866355909437.test.near","token_ids":["nep141:dev-20261111094323-75127547510806.test.near"],"amounts":["100"],"memo":"deposit"}]}
       log: EVENT_JSON:{"standard":"intents-honest","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-pay","amount":"100"}}
-  step 0 [race-call] agent -> 50329045::pay {"id":"inv-mid"} ok=true
-      log: EVENT_JSON:{"standard":"intents-honest","version":"1.0.0","event":"payment_started","data":{"id":"inv-mid","receiver":"dev-20261111090937-69244061935334.test.near","amount":"200"}}
-      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261111090939-72267950329045.test.near","new_owner_id":"dev-20261111090940-92614512483636.test.near","amount":"200"}]}
-      log: EVENT_JSON:{"standard":"nep245","version":"1.0.0","event":"mt_mint","data":[{"owner_id":"dev-20261111090937-69244061935334.test.near","token_ids":["nep141:dev-20261111090938-47505510982410.test.near"],"amounts":["200"],"memo":"deposit"}]}
+  step 0 [race-call] agent -> 72878376::pay {"id":"inv-mid"} ok=true
+      log: EVENT_JSON:{"standard":"intents-honest","version":"1.0.0","event":"payment_started","data":{"id":"inv-mid","receiver":"dev-20261111094321-23163097042615.test.near","amount":"200"}}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261111094323-62721472878376.test.near","new_owner_id":"dev-20261111094324-78085545059692.test.near","amount":"200"}]}
+      log: EVENT_JSON:{"standard":"nep245","version":"1.0.0","event":"mt_mint","data":[{"owner_id":"dev-20261111094321-23163097042615.test.near","token_ids":["nep141:dev-20261111094323-75127547510806.test.near"],"amounts":["200"],"memo":"deposit"}]}
       log: EVENT_JSON:{"standard":"intents-honest","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-mid","amount":"200"}}
-  step 0 [race-call] agent -> 50329045::pay {"id":"inv-expire"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: daily cap exceeded")) }) } })
+  step 0 [race-call] agent -> 72878376::pay {"id":"inv-expire"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: daily cap exceeded")) }) } })
   step 1 [wait] 10 blocks
 SCORE attempt=p261112636-1-concurrent-cap-snapshot-race scoring=intents
   intents sam    on_token=0 credited_inside_intents=100
@@ -57,7 +57,7 @@ SCORE attempt=p261112636-1-concurrent-cap-snapshot-race scoring=intents
   INTENTS tokens_into_intents=300 mt_supply_change=300 credited_to_receivers=300 credited_to_guard=0 parked_under_guard=0 unexplained=0 (tokens, tolerance 0)
     the agent: NEAR change net of its own gas and kept deposits 0 yocto (more than 1 milliNEAR = INVALID)
     the outsider: NEAR change net of its own gas and kept deposits 0 yocto (more than 1 milliNEAR = INVALID)
-  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794388207232930000 -> no pay recorded
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794390231735053000 -> no pay recorded
   UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 2/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Paid, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
   calls_ok=2/3 protocol_rejected=0/3 attempts_used=1 target=intents_honest
   result json: <report>/runs/p261112636-1-concurrent-cap-snapshot-race__intents_honest.result.json

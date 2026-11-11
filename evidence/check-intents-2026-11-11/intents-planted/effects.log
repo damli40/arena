@@ -1,6 +1,6 @@
 EFFECTS target=intents_planted (file=<report>/guard-config.resolved.json pays_in=intents intents(beneficiary_in_msg=account_id, may_park_in_intents=false) init=new features(payees=true, cancel=true, expiry=true, daily_cap=true) renamed=[] shapes=[] deposits={"add_payee": 1, "approve_invoice": 1, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1})
-INTENTS: deployed dev-20261111091119-82815298533281.test.near (defuse v0.4.2, sha256 f67f9559b3b512c52dfa11723a28b9119bcf773ac01780370d6409e5f1fb20e5), fee 0, no roles
-ADAPTER init: new({"agent":"dev-20261111091115-77851873420403.test.near","daily_cap":"500","intents":"dev-20261111091119-82815298533281.test.near","owner":"dev-20261111091114-38753224226925.test.near","token":"dev-20261111091117-99407195616673.test.near"})
+INTENTS: deployed dev-20261111094503-61433275926804.test.near (defuse v0.4.2, sha256 f67f9559b3b512c52dfa11723a28b9119bcf773ac01780370d6409e5f1fb20e5), fee 0, no roles
+ADAPTER init: new({"agent":"dev-20261111094459-73052712517447.test.near","daily_cap":"500","intents":"dev-20261111094503-61433275926804.test.near","owner":"dev-20261111094458-56775287070774.test.near","token":"dev-20261111094501-47608146244286.test.near"})
 {
   "add_payee": {
     "detail": "`is_payee` says sam is a payee after the owner added sam",

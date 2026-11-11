@@ -62,7 +62,7 @@ STEP sam ft_withdraw 7: success=true failures=[]
 
 **2. Our honest Intents guard.**
 `./arena check targets/intents-honest/intents_honest.wasm --config examples/configs/intents-guard.json`
-Exit code 0, wall-clock 314.8 s.
+Exit code 0, wall-clock 311 s (re-run; first run 314.8 s).
 
 ```
 arena: held 53/53 (0 not applicable; rules claimed: all 4 (payees, cancel, expiry, daily_cap); 2450 tokens paid against the owner's intent; pays via NEAR Intents: local release build, no withdrawals to other chains)
@@ -73,7 +73,7 @@ arena: held 53/53 (0 not applicable; rules claimed: all 4 (payees, cancel, expir
 
 **3. Our planted copy.**
 `./arena check targets/intents-planted/intents_planted.wasm --config examples/configs/intents-guard.json`
-Exit code 1, wall-clock 311.0 s.
+Exit code 1, wall-clock 311 s (re-run; first run 311.0 s).
 
 ```
 arena: broke 2 of 53 (0 not applicable; rules claimed: all 4 (payees, cancel, expiry, daily_cap); 300 tokens paid outside the five receivers; 2450 tokens paid against the owner's intent; pays via NEAR Intents: local release build, no withdrawals to other chains)
@@ -117,3 +117,11 @@ text, so no earlier evidence file changed.
   sandbox, because an attack can only point the guard at accounts it names, and Arena reads those.
 - **Two guards, both ours.** Held 53/53 means our honest guard held these 53 attacks. It is not a
   proof that a guard is safe, and no other team's guard was run in this mode.
+
+## Re-run after the review fix (2026-11-11)
+
+A pre-merge review found that `report.json` said an intents guard's amounts were "milliNEAR"
+(`units.pays_in: native`). They are tokens. `tools/check/check.py` now writes
+`units.pays_in: intents`, and a test covers it. Both checks above were run again after the fix and the
+folders here hold that second run: the same headline lines, the same BROKE lines, the same exit codes.
+

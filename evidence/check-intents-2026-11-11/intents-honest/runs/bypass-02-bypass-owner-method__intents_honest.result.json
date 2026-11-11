@@ -214,7 +214,7 @@
     },
     "expiry": [
       {
-        "expires_at_ns": 1794388073200654000,
+        "expires_at_ns": 1794390095631532000,
         "id": "inv-expire",
         "pay_block_ts": 0,
         "verdict": "no pay recorded"
@@ -333,7 +333,7 @@
         "amount": "5000",
         "expires_at_ns": 4102444800000000000,
         "id": "inv-bypass",
-        "receiver": "dev-20261111090722-18761905117187.test.near"
+        "receiver": "dev-20261111094105-61673370801330.test.near"
       },
       "failure": "Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(DepositWithFunctionCall) })) } }",
       "kind": "call",
@@ -387,11 +387,11 @@
       "success": true,
       "target": "vault",
       "view": {
-        "agent": "dev-20261111090722-73446722903960.test.near",
+        "agent": "dev-20261111094104-51916036483261.test.near",
         "daily_cap": "500",
-        "intents": "dev-20261111090726-98541299876023.test.near",
-        "owner": "dev-20261111090721-21469291562018.test.near",
-        "token": "dev-20261111090724-44344843763769.test.near"
+        "intents": "dev-20261111094108-74952815280116.test.near",
+        "owner": "dev-20261111094104-25526395476997.test.near",
+        "token": "dev-20261111094107-69141623722422.test.near"
       }
     },
     {

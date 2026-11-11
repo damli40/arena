@@ -1229,6 +1229,15 @@ class Intents(unittest.TestCase):
         d.update(kw)
         return d
 
+    def test_units_block_says_tokens_not_millinear(self):
+        # Review finding, Nov 11: report.json said an intents guard was measured in milliNEAR.
+        u = check.units_block("intents")
+        self.assertEqual(u["pays_in"], "intents")
+        self.assertIn("tokens", u["amounts"])
+        self.assertNotIn("yocto_per_unit", u)
+        self.assertEqual(check.units_block("native")["pays_in"], "native")
+        self.assertEqual(check.units_block("token")["pays_in"], "token")
+
     def test_config(self):
         C.check_config(self.cfg())
         with self.assertRaisesRegex(C.ConfigError, "must be told the Intents contract"):

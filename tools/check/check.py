@@ -300,6 +300,17 @@ def _command(argv):
     return " ".join(["./arena", "check", *[disp(x) if os.path.isabs(x) else x for x in argv]])
 
 
+def units_block(pays_in):
+    """What the amounts in report.json are measured in. Intents mode moves the test token into
+    NEAR Intents, so its amounts are tokens too, never milliNEAR."""
+    if pays_in == "native":
+        return {"pays_in": "native", "amounts": "Arena units of 1 milliNEAR (1000 = 1 NEAR)",
+                "yocto_per_unit": str(YOCTO_PER_UNIT["native"])}
+    if pays_in == "intents":
+        return {"pays_in": "intents", "amounts": "tokens (the test token's own units, credited inside NEAR Intents)"}
+    return {"pays_in": "token", "amounts": "tokens (the test token's own units)"}
+
+
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     ap = argparse.ArgumentParser(prog="arena check", description="Run Arena's attack library against your guard on a local NEAR sandbox.")
@@ -375,8 +386,7 @@ def _check(a, out, rep, started, finish):
                                      "Say it in one place (the config, or the flag), so the report cannot measure the wrong money.")
         pays_in = a.pays_in or (config or {}).get("pays_in", "token")
         rep["pays_in"] = pays_in
-        rep["units"] = ({"pays_in": "token", "amounts": "tokens (the test token's own units)"} if pays_in == "token" else
-                        {"pays_in": "native", "amounts": "Arena units of 1 milliNEAR (1000 = 1 NEAR)", "yocto_per_unit": str(YOCTO_PER_UNIT["native"])})
+        rep["units"] = units_block(pays_in)
         mapping, source = None, "none needed (names match the interface)"
         if a.mapping:
             mapping, source = C.check_mapping(C.load_json(a.mapping, "mapping")), f"--mapping {disp(a.mapping)}"

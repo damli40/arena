@@ -178,7 +178,7 @@
     },
     "expiry": [
       {
-        "expires_at_ns": 1794388569833992000,
+        "expires_at_ns": 1794390594321812000,
         "id": "inv-expire",
         "pay_block_ts": 0,
         "verdict": "no pay recorded"

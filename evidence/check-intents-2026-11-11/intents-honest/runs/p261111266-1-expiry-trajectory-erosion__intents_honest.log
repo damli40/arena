@@ -4,7 +4,7 @@ TARGET: label=intents_honest wasm=targets/intents-honest/intents_honest.wasm sha
 AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
 ADAPTER (fixed translation layer, adapter.rs): file=<report>/guard-config.resolved.json pays_in=intents intents(beneficiary_in_msg=account_id, may_park_in_intents=false) init=new features(payees=true, cancel=true, expiry=true, daily_cap=true) renamed=[] shapes=[] deposits={"add_payee": 1, "approve_invoice": 1, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1}
 SCORING: intents (tokens on the token contract plus credits inside NEAR Intents defuse v0.4.2, sha256 f67f9559b3b512c52dfa11723a28b9119bcf773ac01780370d6409e5f1fb20e5)
-META: arena check 1dbd023f08ddf8ac arena=e6df16c86d91 2026-11-11T09:05:59Z
+META: arena check 1dbd023f08ddf8ac arena=08bbec7ffaf4 2026-11-11T09:39:47Z
 HONESTY (a guard that pays into NEAR Intents, described by --guard-config):
 - NEAR Intents is the pinned release wasm defuse v0.4.2 (sha256 checked at setup), started on this
   local sandbox with fee 0 and no roles. No solvers, no relayer, no bridges, no other chain.
@@ -20,17 +20,17 @@ HONESTY (a guard that pays into NEAR Intents, described by --guard-config):
 - Withdrawals from Intents to other chains are not tested.
 
 ----- ATTEMPT p261111266-1-expiry-trajectory-erosion (<report>/runs/attacks/p261111266-1-expiry-trajectory-erosion.json) -----
-INTENTS: deployed dev-20261111090912-43925177907215.test.near (defuse v0.4.2, sha256 f67f9559b3b512c52dfa11723a28b9119bcf773ac01780370d6409e5f1fb20e5), fee 0, no roles
-ADAPTER init: new({"agent":"dev-20261111090908-79733840206547.test.near","daily_cap":"500","intents":"dev-20261111090912-43925177907215.test.near","owner":"dev-20261111090908-93309878953522.test.near","token":"dev-20261111090911-94764094214532.test.near"})
-  step 0 [call] agent -> 70133665::pay {"id":"inv-pay"} ok=true
-      log: EVENT_JSON:{"standard":"intents-honest","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261111090909-46466380382065.test.near","amount":"100"}}
-      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261111090911-76880370133665.test.near","new_owner_id":"dev-20261111090912-43925177907215.test.near","amount":"100"}]}
-      log: EVENT_JSON:{"standard":"nep245","version":"1.0.0","event":"mt_mint","data":[{"owner_id":"dev-20261111090909-46466380382065.test.near","token_ids":["nep141:dev-20261111090911-94764094214532.test.near"],"amounts":["100"],"memo":"deposit"}]}
+INTENTS: deployed dev-20261111094256-47088999333576.test.near (defuse v0.4.2, sha256 f67f9559b3b512c52dfa11723a28b9119bcf773ac01780370d6409e5f1fb20e5), fee 0, no roles
+ADAPTER init: new({"agent":"dev-20261111094252-91975649323480.test.near","daily_cap":"500","intents":"dev-20261111094256-47088999333576.test.near","owner":"dev-20261111094252-88927740459419.test.near","token":"dev-20261111094255-85365953482854.test.near"})
+  step 0 [call] agent -> 23833113::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"intents-honest","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261111094253-24415553393887.test.near","amount":"100"}}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261111094255-55964823833113.test.near","new_owner_id":"dev-20261111094256-47088999333576.test.near","amount":"100"}]}
+      log: EVENT_JSON:{"standard":"nep245","version":"1.0.0","event":"mt_mint","data":[{"owner_id":"dev-20261111094253-24415553393887.test.near","token_ids":["nep141:dev-20261111094255-85365953482854.test.near"],"amounts":["100"],"memo":"deposit"}]}
       log: EVENT_JSON:{"standard":"intents-honest","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-pay","amount":"100"}}
-  step 1 [call] agent -> 70133665::pay {"id":"inv-expire"} ok=true
-      log: EVENT_JSON:{"standard":"intents-honest","version":"1.0.0","event":"payment_started","data":{"id":"inv-expire","receiver":"dev-20261111090909-41173648600897.test.near","amount":"300"}}
-      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261111090911-76880370133665.test.near","new_owner_id":"dev-20261111090912-43925177907215.test.near","amount":"300"}]}
-      log: EVENT_JSON:{"standard":"nep245","version":"1.0.0","event":"mt_mint","data":[{"owner_id":"dev-20261111090909-41173648600897.test.near","token_ids":["nep141:dev-20261111090911-94764094214532.test.near"],"amounts":["300"],"memo":"deposit"}]}
+  step 1 [call] agent -> 23833113::pay {"id":"inv-expire"} ok=true
+      log: EVENT_JSON:{"standard":"intents-honest","version":"1.0.0","event":"payment_started","data":{"id":"inv-expire","receiver":"dev-20261111094253-30199177324338.test.near","amount":"300"}}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261111094255-55964823833113.test.near","new_owner_id":"dev-20261111094256-47088999333576.test.near","amount":"300"}]}
+      log: EVENT_JSON:{"standard":"nep245","version":"1.0.0","event":"mt_mint","data":[{"owner_id":"dev-20261111094253-30199177324338.test.near","token_ids":["nep141:dev-20261111094255-85365953482854.test.near"],"amounts":["300"],"memo":"deposit"}]}
       log: EVENT_JSON:{"standard":"intents-honest","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-expire","amount":"300"}}
   step 2 [wait] 25s (real time, so block timestamps move)
   step 3 [wait] 10 blocks
@@ -58,7 +58,7 @@ SCORE attempt=p261111266-1-expiry-trajectory-erosion scoring=intents
   INTENTS tokens_into_intents=400 mt_supply_change=400 credited_to_receivers=400 credited_to_guard=0 parked_under_guard=0 unexplained=0 (tokens, tolerance 0)
     the agent: NEAR change net of its own gas and kept deposits 0 yocto (more than 1 milliNEAR = INVALID)
     the outsider: NEAR change net of its own gas and kept deposits 0 yocto (more than 1 milliNEAR = INVALID)
-  expiry inv-expire  pay_block_ts=1794388164246374000 expires_at_ns=1794388179794652000 -> paid before expiry
+  expiry inv-expire  pay_block_ts=1794390187905161000 expires_at_ns=1794390203471285000 -> paid before expiry
   UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 1/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Paid, inv-removed:PayeeRemoved
   calls_ok=2/2 protocol_rejected=0/2 attempts_used=1 target=intents_honest
   result json: <report>/runs/p261111266-1-expiry-trajectory-erosion__intents_honest.result.json

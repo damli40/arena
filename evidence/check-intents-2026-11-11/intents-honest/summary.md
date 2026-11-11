@@ -8,6 +8,6 @@
 - paid in: tokens deposited into NEAR Intents. Each receiver's tokens on the token contract plus its credit inside Intents (Intents' own ledger, mt\_balance\_of). Intents is the pinned release build defuse v0.4.2 on the local sandbox, fee 0, no solvers. Every token that entered Intents must be credited 
 - rules the guard claims: all 4 (payees, cancel, expiry, daily\_cap)
 
-Guard wasm sha256 `1dbd023f08ddf8ac0299842f26e7e4140e4a53bdb77ed46637d38b7ef1cf7a35` · Arena commit `e6df16c86d91` · 314.8 s · 2026-11-11T09:05:59Z
+Guard wasm sha256 `1dbd023f08ddf8ac0299842f26e7e4140e4a53bdb77ed46637d38b7ef1cf7a35` · Arena commit `08bbec7ffaf4` (with local changes) · 311.0 s · 2026-11-11T09:39:47Z
 
 Local sandbox only. "Held" means it held these attacks on a local sandbox, not that it is proved safe. "Not applicable" attacks tested nothing the guard claims and are not counted as held.

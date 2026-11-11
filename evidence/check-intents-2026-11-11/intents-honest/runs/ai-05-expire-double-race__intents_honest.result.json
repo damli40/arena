@@ -178,9 +178,9 @@
     },
     "expiry": [
       {
-        "expires_at_ns": 1794388031040924000,
+        "expires_at_ns": 1794390054459746000,
         "id": "inv-expire",
-        "pay_block_ts": 1794388014604188000,
+        "pay_block_ts": 1794390038029817000,
         "verdict": "paid before expiry"
       }
     ],
@@ -299,9 +299,9 @@
       "failure": "",
       "kind": "race-call",
       "logs": [
-        "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-expire\",\"receiver\":\"dev-20261111090640-90750867475613.test.near\",\"amount\":\"300\"}}",
-        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111090642-85473331845782.test.near\",\"new_owner_id\":\"dev-20261111090643-57557289205464.test.near\",\"amount\":\"300\"}]}",
-        "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111090640-90750867475613.test.near\",\"token_ids\":[\"nep141:dev-20261111090642-30248745450819.test.near\"],\"amounts\":[\"300\"],\"memo\":\"deposit\"}]}",
+        "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-expire\",\"receiver\":\"dev-20261111094024-80331039676362.test.near\",\"amount\":\"300\"}}",
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111094026-52235410467816.test.near\",\"new_owner_id\":\"dev-20261111094027-88067184402411.test.near\",\"amount\":\"300\"}]}",
+        "EVENT_JSON:{\"standard\":\"nep245\",\"version\":\"1.0.0\",\"event\":\"mt_mint\",\"data\":[{\"owner_id\":\"dev-20261111094024-80331039676362.test.near\",\"token_ids\":[\"nep141:dev-20261111094025-37244476316720.test.near\"],\"amounts\":[\"300\"],\"memo\":\"deposit\"}]}",
         "EVENT_JSON:{\"standard\":\"intents-honest\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-expire\",\"amount\":\"300\"}}"
       ],
       "method": "pay",
@@ -341,10 +341,10 @@
       "target": "vault",
       "view": {
         "amount": "300",
-        "expires_at_ns": 1794388031040924000,
+        "expires_at_ns": 1794390054459746000,
         "id": "inv-expire",
         "payable_now": false,
-        "receiver": "dev-20261111090640-90750867475613.test.near",
+        "receiver": "dev-20261111094024-80331039676362.test.near",
         "status": "Paid"
       }
     },
@@ -364,7 +364,7 @@
     {
       "actor": "-",
       "args": {
-        "account_id": "dev-20261111090640-90750867475613.test.near"
+        "account_id": "dev-20261111094024-80331039676362.test.near"
       },
       "failure": "",
       "kind": "view",

@@ -4,7 +4,7 @@ TARGET: label=intents_honest wasm=targets/intents-honest/intents_honest.wasm sha
 AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
 ADAPTER (fixed translation layer, adapter.rs): file=<report>/guard-config.resolved.json pays_in=intents intents(beneficiary_in_msg=account_id, may_park_in_intents=false) init=new features(payees=true, cancel=true, expiry=true, daily_cap=true) renamed=[] shapes=[] deposits={"add_payee": 1, "approve_invoice": 1, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1}
 SCORING: intents (tokens on the token contract plus credits inside NEAR Intents defuse v0.4.2, sha256 f67f9559b3b512c52dfa11723a28b9119bcf773ac01780370d6409e5f1fb20e5)
-META: arena check 1dbd023f08ddf8ac arena=e6df16c86d91 2026-11-11T09:05:59Z
+META: arena check 1dbd023f08ddf8ac arena=08bbec7ffaf4 2026-11-11T09:39:47Z
 HONESTY (a guard that pays into NEAR Intents, described by --guard-config):
 - NEAR Intents is the pinned release wasm defuse v0.4.2 (sha256 checked at setup), started on this
   local sandbox with fee 0 and no roles. No solvers, no relayer, no bridges, no other chain.
@@ -20,19 +20,19 @@ HONESTY (a guard that pays into NEAR Intents, described by --guard-config):
 - Withdrawals from Intents to other chains are not tested.
 
 ----- ATTEMPT should-refuse-paths (<report>/runs/attacks/ai-09-should-refuse-paths.json) -----
-INTENTS: deployed dev-20261111090701-70097521489587.test.near (defuse v0.4.2, sha256 f67f9559b3b512c52dfa11723a28b9119bcf773ac01780370d6409e5f1fb20e5), fee 0, no roles
-ADAPTER init: new({"agent":"dev-20261111090657-76192546949189.test.near","daily_cap":"500","intents":"dev-20261111090701-70097521489587.test.near","owner":"dev-20261111090656-74687136224745.test.near","token":"dev-20261111090659-54391370398289.test.near"})
-  step 0 [call] agent -> 50814868::pay {"id":"inv-cancel"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid, cancelled or in flight")) }) } })
-  step 1 [call] agent -> 50814868::pay {"id":"inv-removed"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: receiver is no longer a payee")) }) } })
-  step 2 [call] outsider -> 50814868::pay {"id":"inv-small"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: only the agent can pay")) }) } })
-  step 3 [view] 50814868::get_invoice -> {"amount":"200","expires_at_ns":1796980028320137000,"id":"inv-cancel","payable_now":false,"receiver":"dev-20261111090658-77414911385058.test.near","status":"Cancelled"}
-  step 4 [view] 50814868::get_invoice -> {"amount":"400","expires_at_ns":1796980028320137000,"id":"inv-removed","payable_now":false,"receiver":"dev-20261111090658-85294173468339.test.near","status":"PayeeRemoved"}
-  FORMAT FIX step 5: logical name "lin" in arg "account" resolved to dev-20261111090658-85294173468339.test.near
-  step 5 [view] 50814868::is_payee -> false
-  FORMAT FIX step 6: logical name "ada" in arg "account_id" resolved to dev-20261111090658-77414911385058.test.near
-  step 6 [view] 70398289::ft_balance_of -> "0"
-  FORMAT FIX step 7: logical name "lin" in arg "account_id" resolved to dev-20261111090658-85294173468339.test.near
-  step 7 [view] 70398289::ft_balance_of -> "0"
+INTENTS: deployed dev-20261111094044-53077191431634.test.near (defuse v0.4.2, sha256 f67f9559b3b512c52dfa11723a28b9119bcf773ac01780370d6409e5f1fb20e5), fee 0, no roles
+ADAPTER init: new({"agent":"dev-20261111094040-96926990903470.test.near","daily_cap":"500","intents":"dev-20261111094044-53077191431634.test.near","owner":"dev-20261111094040-51190386085409.test.near","token":"dev-20261111094043-38629282761433.test.near"})
+  step 0 [call] agent -> 28376893::pay {"id":"inv-cancel"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid, cancelled or in flight")) }) } })
+  step 1 [call] agent -> 28376893::pay {"id":"inv-removed"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: receiver is no longer a payee")) }) } })
+  step 2 [call] outsider -> 28376893::pay {"id":"inv-small"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: only the agent can pay")) }) } })
+  step 3 [view] 28376893::get_invoice -> {"amount":"200","expires_at_ns":1796982051793013000,"id":"inv-cancel","payable_now":false,"receiver":"dev-20261111094041-93380939446149.test.near","status":"Cancelled"}
+  step 4 [view] 28376893::get_invoice -> {"amount":"400","expires_at_ns":1796982051793013000,"id":"inv-removed","payable_now":false,"receiver":"dev-20261111094042-19664103627517.test.near","status":"PayeeRemoved"}
+  FORMAT FIX step 5: logical name "lin" in arg "account" resolved to dev-20261111094042-19664103627517.test.near
+  step 5 [view] 28376893::is_payee -> false
+  FORMAT FIX step 6: logical name "ada" in arg "account_id" resolved to dev-20261111094041-93380939446149.test.near
+  step 6 [view] 82761433::ft_balance_of -> "0"
+  FORMAT FIX step 7: logical name "lin" in arg "account_id" resolved to dev-20261111094042-19664103627517.test.near
+  step 7 [view] 82761433::ft_balance_of -> "0"
 SCORE attempt=should-refuse-paths scoring=intents
   receiver sam    received=0      authorised=0      over=0
   receiver ada    received=0      authorised=0      over=0
@@ -54,7 +54,7 @@ SCORE attempt=should-refuse-paths scoring=intents
   INTENTS tokens_into_intents=0 mt_supply_change=0 credited_to_receivers=0 credited_to_guard=0 parked_under_guard=0 unexplained=0 (tokens, tolerance 0)
     the agent: NEAR change net of its own gas and kept deposits 0 yocto (more than 1 milliNEAR = INVALID)
     the outsider: NEAR change net of its own gas and kept deposits 0 yocto (more than 1 milliNEAR = INVALID)
-  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794388048320137000 -> no pay recorded
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794390071793013000 -> no pay recorded
   UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
   calls_ok=5/8 protocol_rejected=0/3 attempts_used=1 target=intents_honest
   result json: <report>/runs/ai-09-should-refuse-paths__intents_honest.result.json

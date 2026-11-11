@@ -4,7 +4,7 @@ TARGET: label=intents_honest wasm=targets/intents-honest/intents_honest.wasm sha
 AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
 ADAPTER (fixed translation layer, adapter.rs): file=<report>/guard-config.resolved.json pays_in=intents intents(beneficiary_in_msg=account_id, may_park_in_intents=false) init=new features(payees=true, cancel=true, expiry=true, daily_cap=true) renamed=[] shapes=[] deposits={"add_payee": 1, "approve_invoice": 1, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1}
 SCORING: intents (tokens on the token contract plus credits inside NEAR Intents defuse v0.4.2, sha256 f67f9559b3b512c52dfa11723a28b9119bcf773ac01780370d6409e5f1fb20e5)
-META: arena check 1dbd023f08ddf8ac arena=e6df16c86d91 2026-11-11T09:05:59Z
+META: arena check 1dbd023f08ddf8ac arena=08bbec7ffaf4 2026-11-11T09:39:47Z
 HONESTY (a guard that pays into NEAR Intents, described by --guard-config):
 - NEAR Intents is the pinned release wasm defuse v0.4.2 (sha256 checked at setup), started on this
   local sandbox with fee 0 and no roles. No solvers, no relayer, no bridges, no other chain.
@@ -20,15 +20,15 @@ HONESTY (a guard that pays into NEAR Intents, described by --guard-config):
 - Withdrawals from Intents to other chains are not tested.
 
 ----- ATTEMPT pay-after-expiry (<report>/runs/attacks/ai-06-pay-after-expiry.json) -----
-INTENTS: deployed dev-20261111090644-67039952671579.test.near (defuse v0.4.2, sha256 f67f9559b3b512c52dfa11723a28b9119bcf773ac01780370d6409e5f1fb20e5), fee 0, no roles
-ADAPTER init: new({"agent":"dev-20261111090639-53483250174133.test.near","daily_cap":"500","intents":"dev-20261111090644-67039952671579.test.near","owner":"dev-20261111090639-59890012520003.test.near","token":"dev-20261111090642-44931498941472.test.near"})
-  step 0 [view] 58373933::get_invoice -> {"amount":"300","expires_at_ns":1794388031077997000,"id":"inv-expire","payable_now":true,"receiver":"dev-20261111090641-40371371250987.test.near","status":"Approved"}
+INTENTS: deployed dev-20261111094027-62992946000038.test.near (defuse v0.4.2, sha256 f67f9559b3b512c52dfa11723a28b9119bcf773ac01780370d6409e5f1fb20e5), fee 0, no roles
+ADAPTER init: new({"agent":"dev-20261111094023-24076685492303.test.near","daily_cap":"500","intents":"dev-20261111094027-62992946000038.test.near","owner":"dev-20261111094022-66910413566403.test.near","token":"dev-20261111094025-94928790453495.test.near"})
+  step 0 [view] 17151530::get_invoice -> {"amount":"300","expires_at_ns":1794390054490025000,"id":"inv-expire","payable_now":true,"receiver":"dev-20261111094024-44611787275238.test.near","status":"Approved"}
   step 1 [wait] 30s (real time, so block timestamps move)
-  step 2 [view] 58373933::get_invoice -> {"amount":"300","expires_at_ns":1794388031077997000,"id":"inv-expire","payable_now":false,"receiver":"dev-20261111090641-40371371250987.test.near","status":"Expired"}
-  step 3 [call] agent -> 58373933::pay {"id":"inv-expire"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice expired")) }) } })
-  step 4 [view] 58373933::get_invoice -> {"amount":"300","expires_at_ns":1794388031077997000,"id":"inv-expire","payable_now":false,"receiver":"dev-20261111090641-40371371250987.test.near","status":"Expired"}
-  FORMAT FIX step 5: logical name "ada" in arg "account_id" resolved to dev-20261111090641-40371371250987.test.near
-  step 5 [view] 98941472::ft_balance_of -> "0"
+  step 2 [view] 17151530::get_invoice -> {"amount":"300","expires_at_ns":1794390054490025000,"id":"inv-expire","payable_now":false,"receiver":"dev-20261111094024-44611787275238.test.near","status":"Expired"}
+  step 3 [call] agent -> 17151530::pay {"id":"inv-expire"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice expired")) }) } })
+  step 4 [view] 17151530::get_invoice -> {"amount":"300","expires_at_ns":1794390054490025000,"id":"inv-expire","payable_now":false,"receiver":"dev-20261111094024-44611787275238.test.near","status":"Expired"}
+  FORMAT FIX step 5: logical name "ada" in arg "account_id" resolved to dev-20261111094024-44611787275238.test.near
+  step 5 [view] 90453495::ft_balance_of -> "0"
 SCORE attempt=pay-after-expiry scoring=intents
   receiver sam    received=0      authorised=0      over=0
   receiver ada    received=0      authorised=0      over=0
@@ -50,7 +50,7 @@ SCORE attempt=pay-after-expiry scoring=intents
   INTENTS tokens_into_intents=0 mt_supply_change=0 credited_to_receivers=0 credited_to_guard=0 parked_under_guard=0 unexplained=0 (tokens, tolerance 0)
     the agent: NEAR change net of its own gas and kept deposits 0 yocto (more than 1 milliNEAR = INVALID)
     the outsider: NEAR change net of its own gas and kept deposits 0 yocto (more than 1 milliNEAR = INVALID)
-  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794388031077997000 -> no pay recorded
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794390054490025000 -> no pay recorded
   UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Expired, inv-removed:PayeeRemoved
   calls_ok=4/5 protocol_rejected=0/1 attempts_used=1 target=intents_honest
   result json: <report>/runs/ai-06-pay-after-expiry__intents_honest.result.json

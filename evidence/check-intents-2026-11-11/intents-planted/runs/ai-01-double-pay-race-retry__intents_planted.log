@@ -4,7 +4,7 @@ TARGET: label=intents_planted wasm=targets/intents-planted/intents_planted.wasm 
 AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
 ADAPTER (fixed translation layer, adapter.rs): file=<report>/guard-config.resolved.json pays_in=intents intents(beneficiary_in_msg=account_id, may_park_in_intents=false) init=new features(payees=true, cancel=true, expiry=true, daily_cap=true) renamed=[] shapes=[] deposits={"add_payee": 1, "approve_invoice": 1, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1}
 SCORING: intents (tokens on the token contract plus credits inside NEAR Intents defuse v0.4.2, sha256 f67f9559b3b512c52dfa11723a28b9119bcf773ac01780370d6409e5f1fb20e5)
-META: arena check 954d02cebb25eefe arena=e6df16c86d91 2026-11-11T09:11:14Z
+META: arena check 954d02cebb25eefe arena=08bbec7ffaf4 2026-11-11T09:44:58Z
 HONESTY (a guard that pays into NEAR Intents, described by --guard-config):
 - NEAR Intents is the pinned release wasm defuse v0.4.2 (sha256 checked at setup), started on this
   local sandbox with fee 0 and no roles. No solvers, no relayer, no bridges, no other chain.
@@ -20,22 +20,22 @@ HONESTY (a guard that pays into NEAR Intents, described by --guard-config):
 - Withdrawals from Intents to other chains are not tested.
 
 ----- ATTEMPT double-pay-race-retry (<report>/runs/attacks/ai-01-double-pay-race-retry.json) -----
-INTENTS: deployed dev-20261111091136-19105832896319.test.near (defuse v0.4.2, sha256 f67f9559b3b512c52dfa11723a28b9119bcf773ac01780370d6409e5f1fb20e5), fee 0, no roles
-ADAPTER init: new({"agent":"dev-20261111091132-12790858360555.test.near","daily_cap":"500","intents":"dev-20261111091136-19105832896319.test.near","owner":"dev-20261111091132-60042513872333.test.near","token":"dev-20261111091135-71416073341272.test.near"})
+INTENTS: deployed dev-20261111094520-46246698346133.test.near (defuse v0.4.2, sha256 f67f9559b3b512c52dfa11723a28b9119bcf773ac01780370d6409e5f1fb20e5), fee 0, no roles
+ADAPTER init: new({"agent":"dev-20261111094516-51693042063338.test.near","daily_cap":"500","intents":"dev-20261111094520-46246698346133.test.near","owner":"dev-20261111094516-94314325215604.test.near","token":"dev-20261111094519-80286856712760.test.near"})
   FORMAT FIX step 0: race element wrapped in a "call" object; unwrapped
   FORMAT FIX step 0: race element wrapped in a "call" object; unwrapped
-  step 0 [race-call] agent -> 54713192::pay {"id":"inv-pay"} ok=true
-      log: EVENT_JSON:{"standard":"intents-planted","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261111091133-23978699579439.test.near","amount":"100"}}
-      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261111091135-51432054713192.test.near","new_owner_id":"dev-20261111091136-19105832896319.test.near","amount":"100"}]}
-      log: EVENT_JSON:{"standard":"nep245","version":"1.0.0","event":"mt_mint","data":[{"owner_id":"dev-20261111091133-23978699579439.test.near","token_ids":["nep141:dev-20261111091135-71416073341272.test.near"],"amounts":["100"],"memo":"deposit"}]}
+  step 0 [race-call] agent -> 86941120::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"intents-planted","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261111094517-74249997779895.test.near","amount":"100"}}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261111094519-42166986941120.test.near","new_owner_id":"dev-20261111094520-46246698346133.test.near","amount":"100"}]}
+      log: EVENT_JSON:{"standard":"nep245","version":"1.0.0","event":"mt_mint","data":[{"owner_id":"dev-20261111094517-74249997779895.test.near","token_ids":["nep141:dev-20261111094519-80286856712760.test.near"],"amounts":["100"],"memo":"deposit"}]}
       log: EVENT_JSON:{"standard":"intents-planted","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-pay","amount":"100"}}
-  step 0 [race-call] agent -> 54713192::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid, cancelled or in flight")) }) } })
+  step 0 [race-call] agent -> 86941120::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid, cancelled or in flight")) }) } })
   step 1 [wait] 5 blocks
-  step 2 [call] agent -> 54713192::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid, cancelled or in flight")) }) } })
-  step 3 [view] 54713192::get_invoice -> {"amount":"100","expires_at_ns":1796980304121156000,"id":"inv-pay","payable_now":false,"receiver":"dev-20261111091133-23978699579439.test.near","status":"Paid"}
-  step 4 [view] 54713192::paid_today -> "100"
-  FORMAT FIX step 5: logical name "sam" in arg "account_id" resolved to dev-20261111091133-23978699579439.test.near
-  step 5 [view] 73341272::ft_balance_of -> "0"
+  step 2 [call] agent -> 86941120::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid, cancelled or in flight")) }) } })
+  step 3 [view] 86941120::get_invoice -> {"amount":"100","expires_at_ns":1796982328016086000,"id":"inv-pay","payable_now":false,"receiver":"dev-20261111094517-74249997779895.test.near","status":"Paid"}
+  step 4 [view] 86941120::paid_today -> "100"
+  FORMAT FIX step 5: logical name "sam" in arg "account_id" resolved to dev-20261111094517-74249997779895.test.near
+  step 5 [view] 56712760::ft_balance_of -> "0"
 SCORE attempt=double-pay-race-retry scoring=intents
   intents sam    on_token=0 credited_inside_intents=100
   receiver sam    received=100    authorised=100    over=0
@@ -58,7 +58,7 @@ SCORE attempt=double-pay-race-retry scoring=intents
   INTENTS tokens_into_intents=100 mt_supply_change=100 credited_to_receivers=100 credited_to_guard=0 parked_under_guard=0 unexplained=0 (tokens, tolerance 0)
     the agent: NEAR change net of its own gas and kept deposits 0 yocto (more than 1 milliNEAR = INVALID)
     the outsider: NEAR change net of its own gas and kept deposits 0 yocto (more than 1 milliNEAR = INVALID)
-  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794388324121156000 -> no pay recorded
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794390348016086000 -> no pay recorded
   UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 1/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
   calls_ok=4/6 protocol_rejected=0/3 attempts_used=1 target=intents_planted
   result json: <report>/runs/ai-01-double-pay-race-retry__intents_planted.result.json
