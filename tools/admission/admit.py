@@ -445,8 +445,8 @@ def run_gate(attack_path, runs=DEFAULT_RUNS, jobs=4, stamp=False, out_root=None,
     (folder / "admission.json").write_text(json.dumps(ev, indent=1, sort_keys=True) + "\n")
     (folder / "ADMISSION.md").write_text(render_md(ev, spec))
     if stamp:
-        if out_root:
-            raise SystemExit("--stamp writes into the repo; it cannot be combined with --out-root")
+        if out_root and attack_path.is_relative_to(ROOT):
+            raise SystemExit("--stamp with --out-root is only for attack files outside the repo (the private hidden set): a repo file must point at repo evidence")
         a = {"class": cls, "evidence": rel, "date": ev["date"], "gate": GATE,
              "runs_counted": ev["runs_counted"], "runs_tried": ev["runs_tried"], "why": why[:400]}
         doc["meta"]["admission"] = a
