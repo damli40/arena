@@ -191,9 +191,13 @@ def to_result(r: dict, attestation_sha256=None) -> dict:
 
 
 def all_results(rs, attestations=None):
+    """Results only for Arena's own guards. Guards A, B and C are other teams' guards that never
+    opted in: their receipts stay as a record, but they get no result a contract can query, so they
+    are never on the board (a result is what a wallet contract reads before it pays)."""
     att = attestations or {}
+    rs = [r for r in rs if r["suite"] != "claims-coverage"]
     unknown = set(att) - {r["evidence_path"] for r in rs}
-    assert not unknown, f"--attestations names evidence files with no receipt: {sorted(unknown)}"
+    assert not unknown, f"--attestations names evidence files with no result: {sorted(unknown)}"
     return [to_result(r, att.get(r["evidence_path"])) for r in rs]
 
 
