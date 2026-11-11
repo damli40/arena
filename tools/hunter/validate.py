@@ -311,7 +311,7 @@ def check_meta(meta, steps):
     if "spec" in meta:
         check_spec(meta["spec"], steps)
     if "admission" in meta:
-        check_admission(meta)
+        check_admission(meta, steps)
 
 
 def load_references():
@@ -416,9 +416,16 @@ def check_spec(spec, steps, refs=None):
             _need(isinstance(ms, list) and 1 <= len(ms) <= 10, f"{w}.mechanism: 1-10 predicates")
             for j, p in enumerate(ms):
                 _check_predicate(p, f"{w}.mechanism[{j}]")
+            n_rec = recorded_step_count(steps)
             for p in ms:
                 if p["pred"] in ("failure_contains", "view_equals"):
-                    _need(p["step"] < len(steps), f"{w}: predicate {p['pred']} names step {p['step']}, the attack has {len(steps)}")
+                    _need(p["step"] < n_rec, f"{w}: predicate {p['pred']} names recorded step {p['step']}, the harness records {n_rec} for this attack (one per call, view, add_key and race leg; none for waits)")
+
+
+def recorded_step_count(steps):
+    """How many entries the harness writes to a result's `steps` for these attack steps:
+    one per call, view and add_key, one per race leg, none for waits (harness/src/seq.rs execute)."""
+    return sum(len(st["race"]) if "race" in st else (1 if any(k in st for k in ("call", "view", "add_key")) else 0) for st in steps)
 
 
 def matched_entries(spec, refs=None):
@@ -428,7 +435,7 @@ def matched_entries(spec, refs=None):
             and refs[e["reference"]]["matchable"] and refs[e["reference"]]["flaw"] == e.get("flaw")]
 
 
-def check_admission(meta, root=ROOT):
+def check_admission(meta, steps, root=ROOT):
     """meta.admission must agree with the gate's own evidence: a hand-written 'validated' fails here."""
     a = meta["admission"]
     _need("spec" in meta, "meta.admission is only allowed next to meta.spec (the gate admits against a spec)")
@@ -455,6 +462,12 @@ def check_admission(meta, root=ROOT):
         _need(ev.get(k) == a[k], f"meta.admission.{k} ({a[k]!r}) differs from the gate's evidence ({ev.get(k)!r})")
     _need(ev.get("steps_sha256") == meta["steps_sha256"], "the gate admitted different steps than this file has")
     _need(ev.get("spec_sha256") == spec_sha256(meta["spec"]), "the gate admitted a different spec than this file has (spec edited after admission?)")
+    _need(ev.get("attack_id") == meta["id"] and ev.get("gate") == ADMISSION_GATE, "the evidence folder is not the gate's record for this attack")
+    # The class must FOLLOW from the stored raw runs, not just be copied: re-judge them (pure, no sandbox).
+    sys.path.insert(0, str(root / "tools" / "admission"))
+    import admit  # noqa: E402  (lazy: admit imports this module)
+    cls, why, problems = admit.rederive({"meta": meta, "steps": steps}, root=root)
+    _need(not problems, "meta.admission does not follow from the stored runs: " + "; ".join(problems)[:600])
 
 
 def check_attack(doc, require_meta=True, intents_suite=False):

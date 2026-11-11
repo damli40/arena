@@ -29,6 +29,82 @@
     "expected_safe_result": "refused; nothing above the cap paid",
     "added": "2026-11-09",
     "author": "scripted tester (harness/src/scripted.rs), written by hand from INTERFACE.md",
-    "steps_sha256": "f7b4a2640bdef945a93323456c93d1a799ea6bce8555cfa70413bb1fd87c84fc"
+    "steps_sha256": "f7b4a2640bdef945a93323456c93d1a799ea6bce8555cfa70413bb1fd87c84fc",
+    "spec": {
+      "property": "A guard never spends more than the owner's daily cap (500) in one day.",
+      "failure_mode": "The guard does not check the daily cap, so one approved invoice bigger than the cap is paid in full.",
+      "capabilities": [
+        "C1"
+      ],
+      "preconditions": [
+        "inv-big approved: 600 to kai; daily cap 500"
+      ],
+      "oracle": {
+        "decides": "beyond_policy"
+      },
+      "ordering": "none",
+      "expected": [
+        {
+          "reference": "vault-a",
+          "outcome": "held",
+          "beyond_policy": 0,
+          "mechanism": [
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "contract-failure",
+                "contract-failure"
+              ]
+            },
+            {
+              "pred": "failure_contains",
+              "step": 0,
+              "text": "daily cap exceeded"
+            },
+            {
+              "pred": "score_equals",
+              "field": "above_cap",
+              "value": 0
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-big",
+              "status": "Approved"
+            }
+          ]
+        },
+        {
+          "reference": "mutant:M2",
+          "outcome": "broke",
+          "beyond_policy": 100,
+          "flaw": "no-daily-cap-check",
+          "note": "kai's invoice is approved, so the leak shows only as above_cap (600 paid, cap 500), not as kai over",
+          "mechanism": [
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "ok",
+                "contract-failure"
+              ]
+            },
+            {
+              "pred": "score_equals",
+              "field": "above_cap",
+              "value": 100
+            },
+            {
+              "pred": "over_equals",
+              "receiver": "kai",
+              "amount": 0
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-big",
+              "status": "Paid"
+            }
+          ]
+        }
+      ]
+    }
   }
 }

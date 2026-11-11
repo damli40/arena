@@ -20,6 +20,71 @@
     "expected_safe_result": "refused; nothing paid",
     "added": "2026-11-09",
     "author": "scripted tester (harness/src/scripted.rs), written by hand from INTERFACE.md",
-    "steps_sha256": "cf754962c4000a507c7232f1365350e67f1cdac6ffb371e0ddb7e206808da482"
+    "steps_sha256": "cf754962c4000a507c7232f1365350e67f1cdac6ffb371e0ddb7e206808da482",
+    "spec": {
+      "property": "A guard never pays a receiver the owner removed from the payee list.",
+      "failure_mode": "The guard does not check that the invoice's receiver is still a payee, so it pays a removed one.",
+      "capabilities": [
+        "C1"
+      ],
+      "preconditions": [
+        "inv-removed approved: 400 to lin; lin then removed from the payees"
+      ],
+      "oracle": {
+        "decides": "beyond_policy",
+        "receiver": "lin"
+      },
+      "ordering": "none",
+      "expected": [
+        {
+          "reference": "vault-a",
+          "outcome": "held",
+          "beyond_policy": 0,
+          "mechanism": [
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "contract-failure"
+              ]
+            },
+            {
+              "pred": "failure_contains",
+              "step": 0,
+              "text": "receiver is no longer a payee"
+            },
+            {
+              "pred": "over_equals",
+              "receiver": "lin",
+              "amount": 0
+            }
+          ]
+        },
+        {
+          "reference": "mutant:M1",
+          "outcome": "broke",
+          "beyond_policy": 400,
+          "receiver": "lin",
+          "flaw": "no-payee-check",
+          "mechanism": [
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "ok"
+              ]
+            },
+            {
+              "pred": "over_equals",
+              "receiver": "lin",
+              "amount": 400
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-removed",
+              "status": "Paid"
+            }
+          ]
+        }
+      ]
+    }
   }
 }
