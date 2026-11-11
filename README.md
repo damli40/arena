@@ -59,7 +59,15 @@ Check it yourself: `./verify.sh fast` (about 8 min), `proofs/run.sh` (about
 
 ## Check it yourself
 
-You need Rust installed through rustup (`curl https://sh.rustup.rs -sSf | sh`) and Python 3. The scripts pin the Rust toolchain and download the NEAR sandbox themselves. Tested on macOS (Apple silicon).
+You need:
+
+- **Rust**, through rustup: `curl https://sh.rustup.rs -sSf | sh`. The repo pins the toolchain (`rust-toolchain.toml`), so rustup fetches the right version on first build.
+- **The NEAR sandbox**: nothing to install. The scripts download it on the first run (needs the internet).
+- **Python 3**, for `arena check`, the prompt-injection scripts and the tool tests.
+- **Node 18 or newer**, for the lookup and its tests (`tools/lookup/`).
+- For the proofs only: **Kani** (`cargo install --locked kani-verifier && cargo kani setup`), **z3** (`python3 -m venv proofs/.venv && proofs/.venv/bin/pip install z3-solver`), and **Java 17 or newer** for `tla/run.sh` (`brew install openjdk@21`; the other near-tla setup steps are in `tla/README.md`).
+
+Tested on macOS (Apple silicon).
 
 ```
 ./verify.sh fast     # the headline: the double pay, and the bench catching it. 5 checks
@@ -133,6 +141,9 @@ All three held for the same reason: each records the payment before it moves the
 - **On the local sandbox, races were tested with both calls in the same block only.** On testnet, 3 of 10 trials on Nov 10 had the two checks one block apart.
 - **Corrections, all kept in the evidence files:** Guard B's reserve test was invalid on its first run; we fixed it and re-ran all 11 tests. We added Guard C's two deposit tests after its first run. The adaptive test crashed once on an API timeout, and we resumed it from its saved rounds.
 - **Deposits into NEAR Intents are tested on the local sandbox only; money that leaves NEAR is not tested.** For a guard that pays into NEAR Intents (`"pays_in": "intents"`), Arena runs the pinned release build of the Intents contract (defuse v0.4.2) on the local sandbox and reads who it credited. Tokens it cannot place end the check incomplete, never held (`evidence/check-intents-2026-11-11.md`). It does not test withdrawals from Intents to other chains, Chain Signatures requests, solvers or swaps, or the real Intents contract on mainnet (NEAR Intents has no testnet).
+- **"Beyond policy" reads one input from the guard itself.** Balances come from the chain, but whether an invoice counts toward what its receiver may get depends on the guard's own `get_invoice` status (`Paid`, for an invoice the agent tried to pay). A guard that reports a wrong status can move that number (`harness/src/scorer.rs`).
+- **When no pay start time was recorded, expiry is not scored.** If an expiring invoice ends `Paid` but the bench recorded no start time for its payment, it cannot tell whether the payment came before or after expiry. It counts the invoice as allowed and prints `expiry not scored`.
+- **On chain, a result is not tied to the guard's mode or to an opt-in.** The contract's answer does not read the guard's mode, so a contract asking about a wasm that has results under more than one mode must name the suite (`docs/ON-CHAIN.md`). `publish_result` does not check the opt-in table, so a result on chain does not show that the guard's owner agreed to be tested.
 - **The double-pay guard (`contracts/guard`, mode `vulnerable_fixture`) is a labelled test case.** Never deploy it.
 
 ## Where to look next

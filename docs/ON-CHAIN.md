@@ -139,6 +139,8 @@ check it again before large payments, because a guard with a full-access key can
   still opt it in. `signer_role` says which one signed.
 - The contract does **not** check that `code_hash` is the code the guard runs. It cannot: NEAR gives
   contracts no way to read another account's code. Arena checks it off chain, at test time.
+- `publish_result` does not read the opt-in table. The owner can publish a result for a code hash
+  that has no opt-in, so a result does not show that the guard's owner agreed to be tested.
 - A result proves who published it (the contract's owner key) and when. It does not prove the bench
   ran unmodified, or that the attacks were good. "Held" is never "safe".
 - One key decides: the contract's own key publishes results and can replace the contract's code.

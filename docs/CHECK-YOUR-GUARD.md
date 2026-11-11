@@ -209,12 +209,14 @@ harness (`harness/src/adapter.rs`). Each call still goes straight from the agent
 guard, so your guard sees the real caller and the race timing is unchanged. Nothing in the mapping
 is compiled or run.
 
-**If you give no mapping** and your names differ, Arena can ask Muse (a language model) to
-**propose** one from the list of method names your wasm exports. The proposal is checked before
+**If you give no mapping** and your names differ, `arena check` by default asks Muse (Meta's
+hosted language model, over the network) to **propose** one from the list of method names your
+wasm exports; the prompt carries those names, not your code. Pass `--no-muse` to stop that network
+call: the check then stops and asks for a hand-written mapping. The proposal is checked before
 use: every name must exist in your wasm, every shape must be on the closed lists, two roles may not
 share a method. It is saved as `arena-report/mapping.json`; read it, then pass it with `--mapping`
-next time. This needs a key in `~/.config/arena/model.env` (`MUSE_API_KEY=...`); `--no-muse` turns
-it off.
+next time. The call is made only when a key is set (`MUSE_API_KEY`, or `~/.config/arena/model.env`);
+with no key there is no call, and the check asks for a hand-written mapping.
 
 ## What the report says
 

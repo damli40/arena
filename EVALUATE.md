@@ -73,6 +73,10 @@ python3 -I -m unittest discover -s tools/hunter/tests
 node --test tools/lookup/test.mjs
 ```
 
+You should see `Ran 105 tests` and `OK (skipped=1)`, then `Ran 79 tests` and `OK`, then `pass 37`
+and `fail 0`. The hunter tests pass on a fresh copy before anything is built. These counts are for
+the current commit: `evidence/clean-copy-2026-11-11.md` records 98 and 77 at the older commit it ran.
+
 The on-chain contract's own sandbox tests (opt-in, results, a contract asking before it pays):
 
 ```
