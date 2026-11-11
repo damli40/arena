@@ -1,80 +1,292 @@
 {
   "version": 1,
-  "_about": "The closed list of reference guards an attack spec may name (meta.spec.expected[].reference). A reference is BYTES, not a name: each entry pins the wasm sha256, and tools/admission/admit.py refuses to run if the file on disk differs (checked before and after every gate run). known-good = must hold. known-bad = has exactly one documented flaw (`flaw`), so a break on it says which flaw fired. matchable=false means the guard has several differences from a known-good one, so a break on it can never be the matched positive control (it may still be listed as an extra reference). Flaw ids are a closed vocabulary: a spec's broke entry must name the same id as its reference.",
+  "_about": "The closed list of reference guards an attack spec may name (meta.spec.expected[].reference). A reference is BYTES, not a name: each entry pins the wasm sha256, and tools/admission/admit.py refuses to run if the file on disk differs (checked before and after every gate run). known-good = must hold. known-bad = has exactly one documented flaw (`flaw`), so a break on it says which flaw fired. matchable=false means the guard has several differences from a known-good one, so a break on it can never be the matched positive control (it may still be listed as an extra reference). Flaw ids are a closed vocabulary: a spec's broke entry must name the same id as its reference. twin_of = the known-good this one-flaw copy was made from (a break counts as matched only if the spec also expects that known-good to hold). target_label = the result's `target` field, which tells two modes of the same wasm apart (guard:fixed vs guard:vulnerable_fixture); native targets have none recorded yet, so they are not checked.",
   "references": {
     "vault-a": {
-      "kind": "known-good", "flaw": null, "matchable": false,
+      "kind": "known-good",
+      "flaw": null,
+      "matchable": false,
       "wasm": "targets/vault-a/vault_a.wasm",
       "wasm_sha256": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
-      "harness_flags": ["--target", "vault"],
-      "doc": "targets/vault-a (frozen, targets/vault-a/FROZEN.txt)"
+      "harness_flags": [
+        "--target",
+        "vault"
+      ],
+      "doc": "targets/vault-a (frozen, targets/vault-a/FROZEN.txt)",
+      "target_label": "vault-a"
     },
     "leaky-control-v2": {
-      "kind": "known-bad", "flaw": "several", "matchable": false,
+      "kind": "known-bad",
+      "flaw": "several",
+      "matchable": false,
       "wasm": "targets/leaky-control-v2/leaky_control.wasm",
       "wasm_sha256": "9b0ea03b25ecee6d6133790aa6a220511dad7bfaacf90d38a622732fd9e545b4",
-      "harness_flags": ["--target", "control"],
-      "doc": "targets/leaky-control-v2/CHANGES.diff is four #[payable] lines on top of the original leaky-control, which differs from vault-a in more than one place: a break does not say which flaw fired"
+      "harness_flags": [
+        "--target",
+        "control"
+      ],
+      "doc": "targets/leaky-control-v2/CHANGES.diff is four #[payable] lines on top of the original leaky-control, which differs from vault-a in more than one place: a break does not say which flaw fired",
+      "target_label": "leaky-control-v2"
     },
     "guard:fixed": {
-      "kind": "known-good", "flaw": null, "matchable": false,
+      "kind": "known-good",
+      "flaw": null,
+      "matchable": false,
       "wasm": "contracts/target/wasm32-unknown-unknown/release/guard.wasm",
       "wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
       "build": "cd contracts && cargo build --release --target wasm32-unknown-unknown -p guard",
-      "source_sha256": {"contracts/guard/src/lib.rs": "c0d268be36312d23c6150b20cc3f5d35d58119ece94e9cc3fbd0412167d756b5", "contracts/guard/Cargo.toml": "59211f5fdb7f61fb528a9e1f78d4e48a22fc8bec76b12a631751ae4321cbeab1"},
-      "harness_flags": ["--target", "guard-fixed"],
-      "doc": "contracts/guard, mode fixed (contracts/guard/src/lib.rs:3-25). Narrower policy than vault-a: no cap, expiry or payee list"
+      "source_sha256": {
+        "contracts/guard/src/lib.rs": "c0d268be36312d23c6150b20cc3f5d35d58119ece94e9cc3fbd0412167d756b5",
+        "contracts/guard/Cargo.toml": "59211f5fdb7f61fb528a9e1f78d4e48a22fc8bec76b12a631751ae4321cbeab1"
+      },
+      "harness_flags": [
+        "--target",
+        "guard-fixed"
+      ],
+      "doc": "contracts/guard, mode fixed (contracts/guard/src/lib.rs:3-25). Narrower policy than vault-a: no cap, expiry or payee list",
+      "target_label": "guard-fixed"
     },
     "guard:vulnerable_fixture": {
-      "kind": "known-bad", "flaw": "no-reservation-before-transfer", "matchable": true,
+      "kind": "known-bad",
+      "flaw": "no-reservation-before-transfer",
+      "matchable": true,
       "wasm": "contracts/target/wasm32-unknown-unknown/release/guard.wasm",
       "wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
       "build": "cd contracts && cargo build --release --target wasm32-unknown-unknown -p guard",
-      "source_sha256": {"contracts/guard/src/lib.rs": "c0d268be36312d23c6150b20cc3f5d35d58119ece94e9cc3fbd0412167d756b5", "contracts/guard/Cargo.toml": "59211f5fdb7f61fb528a9e1f78d4e48a22fc8bec76b12a631751ae4321cbeab1"},
-      "harness_flags": ["--target", "guard-vulnerable"],
-      "doc": "contracts/guard, mode vulnerable_fixture: checks 'already paid', starts the transfer, records Paid only in the callback (contracts/guard/src/lib.rs:3-25). Same bytes as guard:fixed; the mode is an init argument"
+      "source_sha256": {
+        "contracts/guard/src/lib.rs": "c0d268be36312d23c6150b20cc3f5d35d58119ece94e9cc3fbd0412167d756b5",
+        "contracts/guard/Cargo.toml": "59211f5fdb7f61fb528a9e1f78d4e48a22fc8bec76b12a631751ae4321cbeab1"
+      },
+      "harness_flags": [
+        "--target",
+        "guard-vulnerable"
+      ],
+      "doc": "contracts/guard, mode vulnerable_fixture: checks 'already paid', starts the transfer, records Paid only in the callback (contracts/guard/src/lib.rs:3-25). Same bytes as guard:fixed; the mode is an init argument",
+      "twin_of": "guard:fixed",
+      "target_label": "guard-vulnerable"
     },
     "native-fixed": {
-      "kind": "known-good", "flaw": null, "matchable": false,
+      "kind": "known-good",
+      "flaw": null,
+      "matchable": false,
       "wasm": "targets/native-fixed/native_fixed.wasm",
       "wasm_sha256": "5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44",
-      "harness_flags": ["--target", "native-fixed"],
+      "harness_flags": [
+        "--target",
+        "native-fixed"
+      ],
       "doc": "targets/native-fixed (pays native NEAR, reservation fix)"
     },
     "native-control": {
-      "kind": "known-bad", "flaw": "several", "matchable": false,
+      "kind": "known-bad",
+      "flaw": "several",
+      "matchable": false,
       "wasm": "targets/native-control/native_control.wasm",
       "wasm_sha256": "cc7fb389cad0b04729df5eaefe8f7624be8529b0e526477761937cbe985244de",
-      "harness_flags": ["--target", "native-control"],
+      "harness_flags": [
+        "--target",
+        "native-control"
+      ],
       "doc": "targets/native-control: no one-flaw diff against native-fixed is on record, so it is never a matched reference"
     },
     "intents-honest": {
-      "kind": "known-good", "flaw": null, "matchable": false,
+      "kind": "known-good",
+      "flaw": null,
+      "matchable": false,
       "wasm": "targets/intents-honest/intents_honest.wasm",
       "wasm_sha256": "1dbd023f08ddf8ac0299842f26e7e4140e4a53bdb77ed46637d38b7ef1cf7a35",
-      "harness_flags": ["--wasm", "targets/intents-honest/intents_honest.wasm", "--wasm-label", "intents_honest", "--guard-config", "tools/admission/configs/intents-guard.resolved.json"],
+      "harness_flags": [
+        "--wasm",
+        "targets/intents-honest/intents_honest.wasm",
+        "--wasm-label",
+        "intents_honest",
+        "--guard-config",
+        "tools/admission/configs/intents-guard.resolved.json"
+      ],
       "config_sha256": "abdadfaad7a72fbec252a59496ce99fc3755b57edb539b7ce9678db358924781",
       "intents_suite": true,
-      "doc": "targets/intents-honest; config = the resolved config arena check wrote on Nov 11 (evidence/check-intents-2026-11-11/intents-honest/guard-config.resolved.json, byte-identical copy)"
+      "doc": "targets/intents-honest; config = the resolved config arena check wrote on Nov 11 (evidence/check-intents-2026-11-11/intents-honest/guard-config.resolved.json, byte-identical copy)",
+      "target_label": "intents_honest"
     },
     "intents-planted": {
-      "kind": "known-bad", "flaw": "caller-chosen-intents-beneficiary", "matchable": true,
+      "kind": "known-bad",
+      "flaw": "caller-chosen-intents-beneficiary",
+      "matchable": true,
       "wasm": "targets/intents-planted/intents_planted.wasm",
       "wasm_sha256": "954d02cebb25eefe270bcb3376f1735cb7f5ddee8ff654984122fa9f2e3f169c",
-      "harness_flags": ["--wasm", "targets/intents-planted/intents_planted.wasm", "--wasm-label", "intents_planted", "--guard-config", "tools/admission/configs/intents-guard.resolved.json"],
+      "harness_flags": [
+        "--wasm",
+        "targets/intents-planted/intents_planted.wasm",
+        "--wasm-label",
+        "intents_planted",
+        "--guard-config",
+        "tools/admission/configs/intents-guard.resolved.json"
+      ],
       "config_sha256": "abdadfaad7a72fbec252a59496ce99fc3755b57edb539b7ce9678db358924781",
       "intents_suite": true,
-      "doc": "targets/intents-planted/CHANGES.diff is the whole difference from intents-honest: pay takes an optional receiver_id and credits THAT account inside NEAR Intents"
+      "doc": "targets/intents-planted/CHANGES.diff is the whole difference from intents-honest: pay takes an optional receiver_id and credits THAT account inside NEAR Intents",
+      "twin_of": "intents-honest",
+      "target_label": "intents_planted"
     },
-    "mutant:M1": {"kind": "known-bad", "flaw": "no-payee-check", "matchable": true, "wasm": "mutants/M1/vault_a.wasm", "wasm_sha256": "0e98bad3643860eb6ec43c079271468c5fb4bc727e975e7be7ad6f7e53caefb9", "harness_flags": ["--wasm", "mutants/M1/vault_a.wasm", "--wasm-label", "M1"], "doc": "tools/mutation/mutate.py M1: payee check in pay removed"},
-    "mutant:M2": {"kind": "known-bad", "flaw": "no-daily-cap-check", "matchable": true, "wasm": "mutants/M2/vault_a.wasm", "wasm_sha256": "f0f32f57f3d84bae90d7e971ce07fbbfa60f1ed623adaea6c10d199409dd2b4a", "harness_flags": ["--wasm", "mutants/M2/vault_a.wasm", "--wasm-label", "M2"], "doc": "tools/mutation/mutate.py M2: daily-cap check removed"},
-    "mutant:M3": {"kind": "known-bad", "flaw": "cap-per-payment-not-running-total", "matchable": true, "wasm": "mutants/M3/vault_a.wasm", "wasm_sha256": "24210b50854acf7e65daa4ad8a46391f325eb3ae489f7fd69c38a755a309c460", "harness_flags": ["--wasm", "mutants/M3/vault_a.wasm", "--wasm-label", "M3"], "doc": "tools/mutation/mutate.py M3: cap checked per payment, not as a running total"},
-    "mutant:M4": {"kind": "known-bad", "flaw": "no-already-paid-check", "matchable": true, "wasm": "mutants/M4/vault_a.wasm", "wasm_sha256": "f6cf63e2fd27027a810aea78cd835116f49800fa248a11f7521a455ee6c946a4", "harness_flags": ["--wasm", "mutants/M4/vault_a.wasm", "--wasm-label", "M4"], "doc": "tools/mutation/mutate.py M4: already-paid check removed"},
-    "mutant:M5": {"kind": "known-bad", "flaw": "no-reservation-before-transfer", "matchable": true, "wasm": "mutants/M5/vault_a.wasm", "wasm_sha256": "e92c54bb2744391ca9169c40827a2f71d3a55343a5df19dc28ee86168d3e5513", "harness_flags": ["--wasm", "mutants/M5/vault_a.wasm", "--wasm-label", "M5"], "doc": "tools/mutation/mutate.py M5: not marked Pending before the transfer"},
-    "mutant:M6": {"kind": "known-bad", "flaw": "no-expiry-check", "matchable": true, "wasm": "mutants/M6/vault_a.wasm", "wasm_sha256": "2a5d57d3025ad4b9525e40accea4215f7cae35d365f4fe19834cba51052dbd40", "harness_flags": ["--wasm", "mutants/M6/vault_a.wasm", "--wasm-label", "M6"], "doc": "tools/mutation/mutate.py M6: expiry check removed"},
-    "mutant:M7": {"kind": "known-bad", "flaw": "no-cancelled-check", "matchable": true, "wasm": "mutants/M7/vault_a.wasm", "wasm_sha256": "5a061c7ed0c72cd8bb82d759396f79420c3827a54267c266ee31de19eaf2323c", "harness_flags": ["--wasm", "mutants/M7/vault_a.wasm", "--wasm-label", "M7"], "doc": "tools/mutation/mutate.py M7: cancelled-invoice check removed"},
-    "mutant:M8": {"kind": "known-bad", "flaw": "no-agent-only-check", "matchable": true, "wasm": "mutants/M8/vault_a.wasm", "wasm_sha256": "6201435c7c4fe2838f4e9b6cef2a758dfc8c5ea7dcf96ef385992b3ab1e4a97d", "harness_flags": ["--wasm", "mutants/M8/vault_a.wasm", "--wasm-label", "M8"], "doc": "tools/mutation/mutate.py M8: agent-only check removed"},
-    "mutant:M9": {"kind": "known-bad", "flaw": "failed-transfer-double-release", "matchable": true, "wasm": "mutants/M9/vault_a.wasm", "wasm_sha256": "0f0f4dde0da28ad98580417db4ff6531b311cc888a0dbe08f0b260d1ea0fff88", "harness_flags": ["--wasm", "mutants/M9/vault_a.wasm", "--wasm-label", "M9"], "doc": "tools/mutation/mutate.py M9: a failed transfer releases the cap reservation twice"},
-    "mutant:M10": {"kind": "known-bad", "flaw": "payee-generation-ignored", "matchable": true, "wasm": "mutants/M10/vault_a.wasm", "wasm_sha256": "c81a6fbcc608c9118b5ffb4714a1e9e67662f57829e237310f5a0494b7fce038", "harness_flags": ["--wasm", "mutants/M10/vault_a.wasm", "--wasm-label", "M10"], "doc": "tools/mutation/mutate.py M10: payee generation ignored"}
+    "mutant:M1": {
+      "kind": "known-bad",
+      "flaw": "no-payee-check",
+      "matchable": true,
+      "wasm": "mutants/M1/vault_a.wasm",
+      "wasm_sha256": "0e98bad3643860eb6ec43c079271468c5fb4bc727e975e7be7ad6f7e53caefb9",
+      "harness_flags": [
+        "--wasm",
+        "mutants/M1/vault_a.wasm",
+        "--wasm-label",
+        "M1"
+      ],
+      "doc": "tools/mutation/mutate.py M1: payee check in pay removed",
+      "twin_of": "vault-a",
+      "target_label": "M1"
+    },
+    "mutant:M2": {
+      "kind": "known-bad",
+      "flaw": "no-daily-cap-check",
+      "matchable": true,
+      "wasm": "mutants/M2/vault_a.wasm",
+      "wasm_sha256": "f0f32f57f3d84bae90d7e971ce07fbbfa60f1ed623adaea6c10d199409dd2b4a",
+      "harness_flags": [
+        "--wasm",
+        "mutants/M2/vault_a.wasm",
+        "--wasm-label",
+        "M2"
+      ],
+      "doc": "tools/mutation/mutate.py M2: daily-cap check removed",
+      "twin_of": "vault-a",
+      "target_label": "M2"
+    },
+    "mutant:M3": {
+      "kind": "known-bad",
+      "flaw": "cap-per-payment-not-running-total",
+      "matchable": true,
+      "wasm": "mutants/M3/vault_a.wasm",
+      "wasm_sha256": "24210b50854acf7e65daa4ad8a46391f325eb3ae489f7fd69c38a755a309c460",
+      "harness_flags": [
+        "--wasm",
+        "mutants/M3/vault_a.wasm",
+        "--wasm-label",
+        "M3"
+      ],
+      "doc": "tools/mutation/mutate.py M3: cap checked per payment, not as a running total",
+      "twin_of": "vault-a",
+      "target_label": "M3"
+    },
+    "mutant:M4": {
+      "kind": "known-bad",
+      "flaw": "no-already-paid-check",
+      "matchable": true,
+      "wasm": "mutants/M4/vault_a.wasm",
+      "wasm_sha256": "f6cf63e2fd27027a810aea78cd835116f49800fa248a11f7521a455ee6c946a4",
+      "harness_flags": [
+        "--wasm",
+        "mutants/M4/vault_a.wasm",
+        "--wasm-label",
+        "M4"
+      ],
+      "doc": "tools/mutation/mutate.py M4: already-paid check removed",
+      "twin_of": "vault-a",
+      "target_label": "M4"
+    },
+    "mutant:M5": {
+      "kind": "known-bad",
+      "flaw": "no-reservation-before-transfer",
+      "matchable": true,
+      "wasm": "mutants/M5/vault_a.wasm",
+      "wasm_sha256": "e92c54bb2744391ca9169c40827a2f71d3a55343a5df19dc28ee86168d3e5513",
+      "harness_flags": [
+        "--wasm",
+        "mutants/M5/vault_a.wasm",
+        "--wasm-label",
+        "M5"
+      ],
+      "doc": "tools/mutation/mutate.py M5: not marked Pending before the transfer",
+      "twin_of": "vault-a",
+      "target_label": "M5"
+    },
+    "mutant:M6": {
+      "kind": "known-bad",
+      "flaw": "no-expiry-check",
+      "matchable": true,
+      "wasm": "mutants/M6/vault_a.wasm",
+      "wasm_sha256": "2a5d57d3025ad4b9525e40accea4215f7cae35d365f4fe19834cba51052dbd40",
+      "harness_flags": [
+        "--wasm",
+        "mutants/M6/vault_a.wasm",
+        "--wasm-label",
+        "M6"
+      ],
+      "doc": "tools/mutation/mutate.py M6: expiry check removed",
+      "twin_of": "vault-a",
+      "target_label": "M6"
+    },
+    "mutant:M7": {
+      "kind": "known-bad",
+      "flaw": "no-cancelled-check",
+      "matchable": true,
+      "wasm": "mutants/M7/vault_a.wasm",
+      "wasm_sha256": "5a061c7ed0c72cd8bb82d759396f79420c3827a54267c266ee31de19eaf2323c",
+      "harness_flags": [
+        "--wasm",
+        "mutants/M7/vault_a.wasm",
+        "--wasm-label",
+        "M7"
+      ],
+      "doc": "tools/mutation/mutate.py M7: cancelled-invoice check removed",
+      "twin_of": "vault-a",
+      "target_label": "M7"
+    },
+    "mutant:M8": {
+      "kind": "known-bad",
+      "flaw": "no-agent-only-check",
+      "matchable": true,
+      "wasm": "mutants/M8/vault_a.wasm",
+      "wasm_sha256": "6201435c7c4fe2838f4e9b6cef2a758dfc8c5ea7dcf96ef385992b3ab1e4a97d",
+      "harness_flags": [
+        "--wasm",
+        "mutants/M8/vault_a.wasm",
+        "--wasm-label",
+        "M8"
+      ],
+      "doc": "tools/mutation/mutate.py M8: agent-only check removed",
+      "twin_of": "vault-a",
+      "target_label": "M8"
+    },
+    "mutant:M9": {
+      "kind": "known-bad",
+      "flaw": "failed-transfer-double-release",
+      "matchable": true,
+      "wasm": "mutants/M9/vault_a.wasm",
+      "wasm_sha256": "0f0f4dde0da28ad98580417db4ff6531b311cc888a0dbe08f0b260d1ea0fff88",
+      "harness_flags": [
+        "--wasm",
+        "mutants/M9/vault_a.wasm",
+        "--wasm-label",
+        "M9"
+      ],
+      "doc": "tools/mutation/mutate.py M9: a failed transfer releases the cap reservation twice",
+      "twin_of": "vault-a",
+      "target_label": "M9"
+    },
+    "mutant:M10": {
+      "kind": "known-bad",
+      "flaw": "payee-generation-ignored",
+      "matchable": true,
+      "wasm": "mutants/M10/vault_a.wasm",
+      "wasm_sha256": "c81a6fbcc608c9118b5ffb4714a1e9e67662f57829e237310f5a0494b7fce038",
+      "harness_flags": [
+        "--wasm",
+        "mutants/M10/vault_a.wasm",
+        "--wasm-label",
+        "M10"
+      ],
+      "doc": "tools/mutation/mutate.py M10: payee generation ignored",
+      "twin_of": "vault-a",
+      "target_label": "M10"
+    }
   }
 }

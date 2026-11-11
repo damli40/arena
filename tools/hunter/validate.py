@@ -429,10 +429,13 @@ def recorded_step_count(steps):
 
 
 def matched_entries(spec, refs=None):
-    """The broke entries whose reference has exactly the flaw the entry names (the matched positive controls)."""
+    """The broke entries whose reference has exactly the flaw the entry names AND is the one-flaw copy
+    (twin_of) of a known-good the same spec expects to hold: the matched positive controls."""
     refs = load_references() if refs is None else refs
+    held = {e["reference"] for e in spec.get("expected", []) if e["outcome"] == "held"}
     return [e for e in spec.get("expected", []) if e["outcome"] == "broke"
-            and refs[e["reference"]]["matchable"] and refs[e["reference"]]["flaw"] == e.get("flaw")]
+            and refs[e["reference"]]["matchable"] and refs[e["reference"]]["flaw"] == e.get("flaw")
+            and refs[e["reference"]].get("twin_of") in held]
 
 
 def check_admission(meta, steps, root=ROOT):

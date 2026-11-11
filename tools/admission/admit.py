@@ -2,6 +2,7 @@
 """The attack admission gate: an attack counts as Validated only if this script says so.
 
   python3 -I tools/admission/admit.py <attack.json> [--runs 3] [--jobs 4] [--stamp] [--out-root DIR]
+      Fresh runs write to runs/evidence/admission/... (gitignored); ARENA_RECORD=1 writes to evidence/.
       Run the attack on every reference its meta.spec names (fresh local sandbox per run, through
       tools/hunter/runner.py:run_one, the hunter's own path), judge each run, write an evidence
       folder evidence/admission/<id>/<UTC stamp>/, print the class. --stamp also writes
@@ -36,10 +37,15 @@ counted, for a hold and a break alike. A missing trace, a missing height, a leg 
 no leg with a callback = "unproven", never "proven". A later pay checked in a block after an
 earlier callback = "not-overlapping" (two payments in a row, not a race).
 
+What a recheck does NOT prove: the stored runs are bound only by the sha256s inside admission.json, which
+is itself a file in the repo. Someone who writes plausible result JSON and recomputes those hashes passes
+the recheck. Nothing signs the evidence. What binds it is git history (the commit that added the folder)
+and re-running the gate, which anyone can do: python3 -I tools/admission/admit.py <attack> --runs 3.
+
 Everything that decides a class is in the pure functions below (judge_run, race_ordering,
 classify); the tests in tools/admission/tests/ run them on committed result files.
 """
-import argparse, datetime, hashlib, json, pathlib, shutil, subprocess, sys, tempfile
+import argparse, datetime, hashlib, json, os, pathlib, shutil, subprocess, sys, tempfile
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "hunter"))
@@ -94,7 +100,9 @@ def _over(result, receiver):
 
 
 def _outside(result, to):
-    rows = result.get("final", {}).get("paid_outside_receivers") or []
+    rows = result.get("final", {}).get("paid_outside_receivers")
+    if rows is None:
+        return None  # not measured in this result: never read as 0
     total, seen = 0, False
     for r in rows:
         label = str(r.get("to", ""))
@@ -180,6 +188,11 @@ def race_ordering(result, idxs):
     with_cb = [l for l in legs if l["callback_height"] is not None]
     if not with_cb:
         return {"status": "unproven", "why": "no race leg reached a callback: nothing for the other calls to overlap", "legs": legs}
+    first_pay = min(l["check_height"] for l in with_cb)
+    for y in legs:
+        if y["callback_height"] is None and y["check_height"] < first_pay:
+            return {"status": "not-overlapping", "legs": legs,
+                    "why": f"leg {y['step']} was refused in block {y['check_height']}, before any paying leg's check (block {first_pay}): it did not overlap a payment in flight"}
     for x in with_cb:
         for y in legs:
             if y is x or y["check_height"] < x["check_height"]:
@@ -197,7 +210,7 @@ def race_ordering(result, idxs):
             "why": "every later call's guard check ran in a block strictly before every earlier call's callback"}
 
 
-def judge_run(result, entry, spec, attack_steps, ref_sha256):
+def judge_run(result, entry, spec, attack_steps, ref_sha256, target_label=None):
     """One run on one reference -> {"outcome_ok", "reasons", "ordering", "counted"}.
     result None = the harness errored or timed out (never a hold)."""
     out = {"outcome_ok": False, "reasons": [], "ordering": None, "counted": False}
@@ -223,8 +236,12 @@ def judge_run(result, entry, spec, attack_steps, ref_sha256):
         if got != entry["beyond_policy"]:
             r.append(f"spec names receiver {entry['receiver']} over by {entry['beyond_policy']}, got {got}")
     _, races = recorded_layout(attack_steps)
+    if any(st.get("outcome") == "not-included" and st.get("kind") != "race-call" for st in result.get("steps", [])):
+        r.append("a call was not included in a block")
     if not races and any(st.get("outcome") == "not-included" for st in result.get("steps", [])):
         r.append("a call was not included in a block")
+    if target_label is not None and result.get("target") != target_label:
+        r.append(f"ran target {result.get('target')!r}, reference is {target_label!r} (same wasm, different mode?)")
     for p in entry["mechanism"]:
         ok, why = eval_pred(p, result)
         if not ok:
@@ -297,7 +314,21 @@ def rederive(doc, root=ROOT, refs=None):
         return None, None, [f"{a['evidence']}/admission.json missing or not JSON"]
     spec = meta["spec"]
     judged = {}
+    required = ev.get("runs_required")
+    if not isinstance(required, int) or required < DEFAULT_RUNS:
+        problems.append(f"admission.json runs_required {required!r} is below the gate's minimum {DEFAULT_RUNS}")
+        required = DEFAULT_RUNS
+    seen_files, seen_sha, seen_n = set(), set(), {}
     for run in ev.get("runs", []):
+        key = (run.get("reference"), run.get("n"))
+        if run.get("file") in seen_files or (run.get("file_sha256") and run.get("file_sha256") in seen_sha) or key in seen_n:
+            problems.append(f"stored run {key} repeats a file, a result or a run number: one run counted twice")
+            continue
+        seen_n[key] = True
+        if run.get("file"):
+            seen_files.add(run["file"])
+        if run.get("file_sha256"):
+            seen_sha.add(run["file_sha256"])
         ref = run.get("reference")
         if ref not in refs:
             problems.append(f"stored run names unknown reference {ref!r}")
@@ -316,8 +347,12 @@ def rederive(doc, root=ROOT, refs=None):
         if entry is None:
             problems.append(f"stored run on {ref}, which the spec does not name")
             continue
-        judged.setdefault(ref, []).append(judge_run(result, entry, spec, doc["steps"], refs[ref]["wasm_sha256"]))
-    cls, why = classify(spec, judged, refs, ev.get("runs_required", DEFAULT_RUNS))
+        judged.setdefault(ref, []).append(judge_run(result, entry, spec, doc["steps"], refs[ref]["wasm_sha256"], refs[ref].get("target_label")))
+    for ref in judged:
+        ns = sorted(n for (r, n) in seen_n if r == ref)
+        if ns != list(range(1, len(ns) + 1)):
+            problems.append(f"stored runs on {ref} are numbered {ns}, not 1..{len(ns)}")
+    cls, why = classify(spec, judged, refs, required)
     if ev.get("class") != cls:
         problems.append(f"admission.json says {ev.get('class')!r}, the stored runs give {cls!r} ({why})")
     if a.get("class") != cls:
@@ -372,6 +407,10 @@ def run_gate(attack_path, runs=DEFAULT_RUNS, jobs=4, stamp=False, out_root=None,
     before = check_reference_bytes(names, refs)  # A1
     stamp_utc = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     rel = f"evidence/admission/{meta['id']}/{stamp_utc}"
+    if not out_root and os.environ.get("ARENA_RECORD") != "1":
+        # the repo's rule for fresh runs: they go to runs/ (gitignored), never to tracked evidence/,
+        # unless ARENA_RECORD=1 (as verify.sh and run-arena.sh)
+        out_root = str(ROOT / "runs")
     folder = (pathlib.Path(out_root) if out_root else ROOT) / rel
     folder.mkdir(parents=True, exist_ok=False)
     head, clean = git_head()
@@ -404,7 +443,7 @@ def run_gate(attack_path, runs=DEFAULT_RUNS, jobs=4, stamp=False, out_root=None,
         while work:
             for ref, n, cell, res_file in ex.map(lambda t: one(*t), work):
                 result = json.loads((folder / res_file).read_text()) if res_file else None
-                j = judge_run(result, entries[ref], spec, doc["steps"], refs[ref]["wasm_sha256"])
+                j = judge_run(result, entries[ref], spec, doc["steps"], refs[ref]["wasm_sha256"], refs[ref].get("target_label"))
                 judged.setdefault(ref, []).append(j)
                 runs_rec.append({"reference": ref, "n": n, "file": res_file,
                                  "file_sha256": sha256_file(folder / res_file) if res_file else None,
@@ -446,7 +485,7 @@ def run_gate(attack_path, runs=DEFAULT_RUNS, jobs=4, stamp=False, out_root=None,
     (folder / "ADMISSION.md").write_text(render_md(ev, spec))
     if stamp:
         if out_root and attack_path.is_relative_to(ROOT):
-            raise SystemExit("--stamp with --out-root is only for attack files outside the repo (the private hidden set): a repo file must point at repo evidence")
+            raise SystemExit("--stamp on a repo file needs its evidence in evidence/: run with ARENA_RECORD=1 (and no --out-root)")
         a = {"class": cls, "evidence": rel, "date": ev["date"], "gate": GATE,
              "runs_counted": ev["runs_counted"], "runs_tried": ev["runs_tried"], "why": why[:400]}
         doc["meta"]["admission"] = a

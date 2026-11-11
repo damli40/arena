@@ -666,7 +666,7 @@
   "sequences-scripted/08-gas-starve-then-pay.json": "6f570e7a9769061eb5a8b5ebc7b5d5aae797a1c9103554f5e37c1f1b0682b297",
   "sequences-scripted/09-pay-over-cap.json": "19ed5614728595b1e74ef3bfeef0b3d4c230f0c267316acbe0053ebf8502f1e8",
   "sequences-scripted/10-race-two-invoices.json": "63d5de70679f9e784186548d453a7c0b6b95f376364da9d96fad80ba8b3627f4",
-  "tools/admission/references.json": "898760ebb35ebc9f22195e0910d3067966da0534ad8cab36101cfa585b847f47",
+  "tools/admission/references.json": "f425a38f2f7f7ae8b0d4dd94fd94c2c9df1af7c7848d6a59725bd5e21dd004e0",
   "tools/injection/scenarios.json": "409f0219e2bf017737a9266a9692364f0c00c055b7c67f6e2a24c31843eae82e"
  },
  "mutants": {

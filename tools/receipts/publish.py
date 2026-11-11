@@ -9,6 +9,10 @@ evidence_sha256 is computed from that file; harness_commit comes from `git rev-p
     python3 -I tools/receipts/publish.py --contract <id> --check   # only run the live `passes` calls
     python3 -I tools/receipts/publish.py --results --dry-run       # the same scores as code-hash-bound results
     python3 -I tools/receipts/publish.py --results --contract <id> # publish them with publish_result (clean tree only)
+    python3 -I tools/receipts/publish.py --hidden-set evidence/hidden-set/<run>.json ... --dry-run
+        # one result per hidden-set run (suite "hidden-set", suite_version = the committed set sha256)
+    python3 -I tools/receipts/publish.py --library-admission --dry-run
+        # one result binding the count manifest (suite "library-admission"); our guards only, no redeploy
 
 Results (added 2026-11-11) are what other contracts read with `arena_result(code_hash, suite, commit)`.
 Each names the exact Arena commit (a dirty tree is refused, by this script and by the contract) and
@@ -171,6 +175,45 @@ def suite_setup(suite: str):
 SUITE_VERSION = "1"  # bump when a suite's attacks change, so old results stay distinguishable
 
 
+# Hidden set and library admission (added 2026-11-12). Both reuse publish_result as deployed: suite and
+# suite_version are free text (receipts/contract/src/onchain.rs, MAX_TEXT 256). attestation_sha256 stays
+# empty: it is reserved for a hardware report and never carries the set hash.
+HIDDEN_SETUP = {"guard:fixed": "mode=fixed", "guard:vulnerable_fixture": "mode=vulnerable_fixture"}
+HEX40 = re.compile(r"[0-9a-f]{40}")
+
+
+def hidden_set_result(path: Path) -> dict:
+    """One public hidden-set run file (tools/hidden/hidden.py run) -> one ResultInput."""
+    path = path.resolve()
+    assert path.is_relative_to(EV / "hidden-set"), f"{path} is not under evidence/hidden-set/"
+    pub = json.loads(path.read_text())
+    commit = json.loads((ROOT / "hidden-set" / "COMMITMENT.json").read_text())
+    assert pub["suite"] == "hidden-set" and pub["set_sha256"] == commit["set_sha256"], "run file names a set other than the committed one"
+    assert pub["arena_tree_clean"] and HEX40.fullmatch(pub["arena_commit"] or ""), "the run was made on a dirty tree or without a commit: it cannot be published"
+    assert pub["guard_reference"] in json.loads((ROOT / "tools/admission/references.json").read_text())["references"], "only Arena's own reference guards are published"
+    ran = pub["held"] + pub["broke"] + pub["could_not_finish"]
+    status = "broke" if pub["beyond_policy"] > 0 else ("held" if ran > 0 and pub["held"] == ran else "incomplete")
+    return {"guard_code_hash": pub["guard_wasm_sha256"], "suite": "hidden-set", "suite_version": pub["set_sha256"], "status": status,
+            "attacks_ran": ran, "not_applicable": pub["inapplicable"], "beyond_policy": str(pub["beyond_policy"]), "against_intent": None,
+            "setup": HIDDEN_SETUP.get(pub["guard_reference"], "the reference guard's own setup (tools/admission/references.json)"),
+            "arena_commit": pub["arena_commit"], "evidence_sha256": sha256(path), "evidence_path": str(path.relative_to(ROOT)),
+            "attestation_sha256": None}
+
+
+def library_admission_result() -> dict:
+    """The count manifest, bound to a block time. guard_code_hash = sha256 of evidence/MANIFEST.json (the
+    'guard' here is the library itself); attacks_ran = attacks in the widest suite, held = validated."""
+    mf = EV / "MANIFEST.json"
+    m = json.loads(mf.read_text())
+    commit = harness_commit()
+    a = m["attacks"]
+    return {"guard_code_hash": sha256(mf), "suite": "library-admission", "suite_version": "validated=%d partially=%d unvalidated=%d of %d" % (
+                a["classes"]["validated"], a["classes"]["partially-validated"], a["classes"]["unvalidated"], a["library_intents"]),
+            "status": "incomplete", "attacks_ran": a["library_intents"], "not_applicable": 0, "beyond_policy": "0", "against_intent": None,
+            "setup": "not a guard: the attack library's admission counts", "arena_commit": commit,
+            "evidence_sha256": sha256(mf), "evidence_path": "evidence/MANIFEST.json", "attestation_sha256": None}
+
+
 def to_result(r: dict, attestation_sha256=None) -> dict:
     """One receipt -> one result for publish_result. held = every test held and nothing was lost."""
     beyond, against = int(r["beyond_policy"]), None if r["against_intent"] is None else int(r["against_intent"])
@@ -244,7 +287,25 @@ def main():
     ap.add_argument("--with-proof", action="store_true", help="also publish the proof-pay-race-inductive receipt (Nov 11 guard)")
     ap.add_argument("--results", action="store_true", help="publish code-hash-bound results (publish_result) instead of receipts")
     ap.add_argument("--attestations", help='JSON file {"<evidence_path>": "<attestation sha256>"} (optional; nothing writes it yet)')
+    ap.add_argument("--hidden-set", nargs="+", help="public hidden-set run files under evidence/hidden-set/ (tools/hidden/hidden.py run)")
+    ap.add_argument("--library-admission", action="store_true", help="one result binding evidence/MANIFEST.json")
     a = ap.parse_args()
+    if a.hidden_set or a.library_admission:
+        res = [hidden_set_result(Path(p)) for p in (a.hidden_set or [])] + ([library_admission_result()] if a.library_admission else [])
+        if a.dry_run or not a.contract:
+            print(json.dumps(res, indent=2))
+            if not a.dry_run:
+                print("(no --contract given: nothing sent)", file=sys.stderr)
+            return
+        if any(r["arena_commit"].endswith("-dirty") for r in res):
+            sys.exit("refusing to publish results from a dirty tree: a result must name the exact commit.")
+        tmp = ROOT / "receipts/host/target/results-to-publish.json"
+        tmp.write_text(json.dumps(res))
+        bad = 0
+        for line in cli("publish-results", a.contract, str(tmp)):
+            print(json.dumps(line))
+            bad += not line["ok"]
+        sys.exit(1 if bad else 0)
     rs = all_receipts(a.race_md, a.race_raw, a.with_proof)
     if a.results:
         att = json.loads(Path(a.attestations).read_text()) if a.attestations else None

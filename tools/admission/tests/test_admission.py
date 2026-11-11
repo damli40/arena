@@ -18,6 +18,8 @@ import admit as A  # noqa: E402
 MUT = ROOT / "evidence" / "mutation-2026-11-11"
 INT = ROOT / "evidence" / "check-intents-2026-11-11"
 REFS = V.load_references()
+# the gate's own committed runs for scripted-03 (three distinct results per reference)
+GATE03 = sorted((ROOT / "evidence" / "admission" / "scripted-03-sequential-second-pay").glob("*/"))[0]
 
 
 def load(p):
@@ -35,7 +37,7 @@ def entry(spec, ref):
 
 def judge(doc, ref, result):
     spec = doc["meta"]["spec"]
-    return A.judge_run(result, entry(spec, ref), spec, doc["steps"], REFS[ref]["wasm_sha256"])
+    return A.judge_run(result, entry(spec, ref), spec, doc["steps"], REFS[ref]["wasm_sha256"], REFS[ref].get("target_label"))
 
 
 def committed(name, ref):
@@ -127,6 +129,9 @@ class SpecRules(unittest.TestCase):
         self.assertEqual(V.matched_entries(s), [])
         s = self.mod(lambda s: s["expected"][1].update(reference="leaky-control-v2", flaw="several"))
         self.assertEqual(V.matched_entries(s), [], "leaky-control-v2 is never a matched reference")
+        # reviewer finding 8: a one-flaw copy counts only next to the known-good it was made from
+        s = self.mod(lambda s: s["expected"][0].update(reference="guard:fixed"))
+        self.assertEqual(V.matched_entries(s), [], "M4 is vault-a's twin, not guard:fixed's")
 
     def test_admission_needs_spec(self):
         meta = {**attack("03-sequential-second-pay")["meta"]}
@@ -169,8 +174,9 @@ class ForgedStamps(unittest.TestCase):
     def check(self, meta):
         V.check_admission(meta, self.doc["steps"], root=self.tmp)
 
-    GOOD = [("vault-a", n, MUT / "baseline-vault-a" / "03-sequential-second-pay.result.json") for n in (1, 2, 3)] + \
-           [("mutant:M4", n, MUT / "M4" / "03-sequential-second-pay.result.json") for n in (1, 2, 3)]
+    GATE03 = GATE03
+    GOOD = [("vault-a", n, GATE03 / f"run-vault-a-{n}.result.json") for n in (1, 2, 3)] + \
+           [("mutant:M4", n, GATE03 / f"run-mutant-m4-{n}.result.json") for n in (1, 2, 3)]
 
     def test_genuine_stamp_accepted(self):
         ev = self.write_evidence(self.GOOD, "validated")
@@ -185,7 +191,8 @@ class ForgedStamps(unittest.TestCase):
 
     def test_forged_validated_where_runs_do_not_support_it(self):
         # the "known-bad" runs are really vault-a holds: the forger wrote validated anyway, in both places
-        files = self.GOOD[:3] + [("mutant:M4", n, MUT / "baseline-vault-a" / "03-sequential-second-pay.result.json") for n in (1, 2, 3)]
+        files = self.GOOD[:3] + [("mutant:M4", n, self.GATE03 / f"run-vault-a-{n}.result.json") for n in (1, 2, 3)]
+        # (the same files twice would already be refused as duplicates; here the forger relabels distinct holds)
         ev = self.write_evidence(files, "validated")
         with self.assertRaises(V.Invalid) as cm:
             self.check(self.stamp("validated", ev))
@@ -196,6 +203,25 @@ class ForgedStamps(unittest.TestCase):
         with self.assertRaises(V.Invalid):
             self.check(self.stamp("validated", ev))
         self.check(self.stamp("partially-validated", ev))  # the honest stamp for the same runs passes
+
+    def test_forged_runs_required_zero(self):
+        # reviewer forgery 1: a race with 0 counted runs, runs_required set to 0, stamped validated
+        ev = self.write_evidence(self.GOOD, "validated")
+        ev["runs_required"] = 0
+        (self.folder / "admission.json").write_text(json.dumps(ev))
+        with self.assertRaises(V.Invalid) as cm:
+            self.check(self.stamp("validated", ev))
+        self.assertIn("below the gate's minimum", str(cm.exception))
+
+    def test_one_run_listed_three_times(self):
+        # reviewer forgery 2: one result per reference, listed as runs 1, 2, 3
+        ev = self.write_evidence(self.GOOD[:1] + self.GOOD[3:4], "validated", counted=6)
+        ev["runs"] = [dict(r, n=n) for r in ev["runs"] for n in (1, 2, 3)]
+        ev["runs_tried"] = 6
+        (self.folder / "admission.json").write_text(json.dumps(ev))
+        with self.assertRaises(V.Invalid) as cm:
+            self.check(self.stamp("validated", ev))
+        self.assertIn("counted twice", str(cm.exception))
 
     def test_stored_run_edited_after_the_gate(self):
         ev = self.write_evidence(self.GOOD, "validated")
@@ -252,6 +278,21 @@ class Judge(unittest.TestCase):
         j = A.judge_run(r, entry(d["meta"]["spec"], "mutant:M4"), d["meta"]["spec"], d["steps"], REFS["mutant:M7"]["wasm_sha256"])
         self.assertFalse(j["outcome_ok"])
         self.assertIn("pins", j["reasons"][0])
+
+    def test_mode_relabel_refused(self):
+        # reviewer finding 7: guard:fixed and guard:vulnerable_fixture share wasm bytes; the target label tells them apart
+        d = attack("02-race-double-pay")
+        r = copy.deepcopy(committed("02-race-double-pay", "mutant:M5"))
+        r["target"] = "guard-fixed"
+        r["target_wasm_sha256"] = REFS["guard:vulnerable_fixture"]["wasm_sha256"]
+        j = judge(d, "guard:vulnerable_fixture", r)
+        self.assertTrue(any("different mode" in x for x in j["reasons"]))
+
+    def test_missing_outside_data_is_not_zero(self):
+        r = copy.deepcopy(committed("intents-01-agent-names-outsider-beneficiary", "intents-honest"))
+        r["final"].pop("paid_outside_receivers")
+        ok, _ = A.eval_pred({"pred": "outside_equals", "to": "outsider", "amount": 0}, r)
+        self.assertFalse(ok)
 
     def test_error_is_never_a_hold(self):
         d = attack("03-sequential-second-pay")
@@ -357,6 +398,11 @@ class RaceOrdering(unittest.TestCase):
 
     def test_refusal_after_callback_is_not_a_race(self):
         r = with_receipts(self.good, trace(self.g, 111, 113), trace(self.g, 114, None, ok=False))
+        self.assertEqual(judge(self.doc, "vault-a", r)["ordering"]["status"], "not-overlapping")
+
+    def test_refusal_before_any_payment_started_is_not_a_race(self):
+        # reviewer finding 5: leg B refused at 100, leg A checks at 105, callback 110: no overlap
+        r = with_receipts(self.good, trace(self.g, 105, 110), trace(self.g, 100, None, ok=False))
         self.assertEqual(judge(self.doc, "vault-a", r)["ordering"]["status"], "not-overlapping")
 
     def test_unknown_height_unproven(self):

@@ -15,6 +15,10 @@ before any run, so a result that names the hash shows the set was fixed before t
       tools/hunter/runner.py. Write the full results to --private-out (they name the attacks) and a
       public summary that does not: rows h-01..h-N (sorted by leaf hash), family, verdict, amount.
 
+  python3 -I tools/hidden/hidden.py check-public
+      For outsiders (no private files, no network): every public run file in evidence/hidden-set/ names
+      the committed set hash, has one row per committed attack, and its totals add up.
+
 What it proves, and what it does not: see the `limits` field written into every public file.
 Local sandbox only. Nothing here touches a network.
 """
@@ -132,6 +136,12 @@ def cmd_run(a):
     d = pathlib.Path(a.set).resolve()
     docs = load_set(d)
     c = json.loads(COMMITMENT.read_text())
+    for p, doc in docs:  # steps must match their own hash, and each file must still be privately validated
+        try:
+            V._need(V.steps_hash(doc["steps"]) == doc["meta"]["steps_sha256"], f"{p.name}: steps differ from meta.steps_sha256")
+            check_file(p, doc, d.parent)
+        except V.Invalid as e:
+            sys.exit(f"refused: {e}")
     got = set_sha256(docs)
     if got != c["set_sha256"]:
         sys.exit(f"refused: the set on disk hashes to {got}, the committed set is {c['set_sha256']}")
@@ -188,6 +198,31 @@ def cmd_run(a):
     print(f"public: {base.with_suffix('.json').relative_to(ROOT)} (+ .md); private: {run_dir}")
 
 
+def cmd_check_public(a):
+    c = json.loads(COMMITMENT.read_text())
+    files = sorted((ROOT / "evidence" / "hidden-set").glob("*.json"))
+    bad = 0
+    for f in files:
+        p = json.loads(f.read_text())
+        rows = p["rows"]
+        probs = []
+        if p.get("set_sha256") != c["set_sha256"]:
+            probs.append("names another set")
+        if len(rows) != c["attack_count"] or [r["id"] for r in rows] != [f"h-{i:02d}" for i in range(1, c["attack_count"] + 1)]:
+            probs.append("rows do not match the committed count")
+        for k in ("held", "broke", "inapplicable"):
+            if p[k] != sum(r["verdict"] == k for r in rows):
+                probs.append(f"{k} total wrong")
+        if p["beyond_policy"] != sum(r["beyond_policy"] for r in rows) or any(r["verdict"] != "broke" and r["beyond_policy"] for r in rows):
+            probs.append("beyond-policy total wrong")
+        if sorted({r["family"] for r in rows}) != c["families_covered"]:
+            probs.append("families differ from the commitment")
+        bad += bool(probs)
+        print(f"{'ok ' if not probs else 'BAD'} {f.relative_to(ROOT)}: {p['guard_reference']} held {p['held']} broke {p['broke']} inapplicable {p['inapplicable']}" + (f" ({'; '.join(probs)})" if probs else ""))
+    print(f"hidden-set public files: {len(files) - bad} of {len(files)} consistent with set {c['set_sha256'][:16]}... ({c['attack_count']} attacks)")
+    return 1 if bad or not files else 0
+
+
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -199,8 +234,9 @@ def main(argv):
     r.add_argument("--reference", required=True)
     r.add_argument("--private-out", required=True)
     r.add_argument("--public-out", default="evidence/hidden-set")
+    sub.add_parser("check-public")
     a = ap.parse_args(argv)
-    return {"commit": cmd_commit, "run": cmd_run}[a.cmd](a) or 0
+    return {"commit": cmd_commit, "run": cmd_run, "check-public": cmd_check_public}[a.cmd](a) or 0
 
 
 if __name__ == "__main__":
