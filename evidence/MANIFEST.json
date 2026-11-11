@@ -575,7 +575,25 @@
   ],
   "with_spec": 8
  },
- "hidden_set": null,
+ "hidden_set": {
+  "attack_count": 9,
+  "capabilities_covered": [
+   "C1",
+   "C6"
+  ],
+  "created_at": "2026-11-11T20:48:28Z",
+  "disjoint_from_public_library": true,
+  "families_covered": [
+   "cancelled",
+   "double-pay-sequential",
+   "expired",
+   "intents-beneficiary",
+   "outsider-caller",
+   "over-cap",
+   "removed-payee"
+  ],
+  "set_sha256": "835729d9f34fa1239a0c150abae7d3ad8c4c294965c355e43e113cda693e2a7f"
+ },
  "hunts": {
   "attacks_deduped": 10,
   "attacks_proposed": 41,
@@ -597,6 +615,7 @@
   "evidence/hunts/2026-11-11-news-d340fd.json": "d6a0fe2beb8dbb5ad7d93c0df432aaaf139412c3b22cc62608cc563a6e6bc634",
   "evidence/hunts/2026-11-11-papers-e3db55.json": "ac6e7e3ed3ab167fff3b240989ea2071e17c7b881b5b90f74ba1c5dbd7807e6c",
   "evidence/mutation-2026-11-11/summary.tsv": "8d13af78efe4079e919a05ca8fa12dcf3ab99da9f05b62ab3055ac2b47339ab1",
+  "hidden-set/COMMITMENT.json": "058c1aa8bb0c416d1a23ed5335dafc4cea9902280779be4126bf5374efb61d3f",
   "sequences-ai/01-double-pay-race-retry.json": "d3ef873d355988d1b3c4e176edf9c627f3ea201bf8b746a221a6d61035fa2b4c",
   "sequences-ai/02-triple-race-cap-breach.json": "47b1db5d21e2be6f3117159f41ee1471bdcfc9a2426741b62288e7cb21dc07b1",
   "sequences-ai/03-mixed-invoice-race-cap.json": "1107d42881128f8ce6ec6ccf2c3a535079c5562ac671bde2fe97279742aa3959",
