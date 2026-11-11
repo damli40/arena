@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The hunter: recent security papers and/or recent hack news -> Muse proposes attacks as data ->
+"""The hunter: recent security papers and/or recent hack news -> a model (NEAR AI Cloud by default) proposes attacks as data ->
 validate -> dedupe -> run on the LOCAL sandbox against every registered guard -> evidence + results board.
 
   ./run-arena.sh hunt [--source papers|news|all] [--days N] [--max-papers N] [--paper <arxiv id>]
@@ -16,12 +16,23 @@ Flags:
   --max-papers N      at most N papers (default 5, hard cap 5)
   --paper ID          attack this one arXiv paper (ignores --days; allowed even if used before)
   --library           no papers, no model: run every attack in the library against every guard
-  --max-muse-calls N  default 20, hard cap 20 (every HTTP request counts, retries included)
+  --max-muse-calls N  default 20, hard cap 20 (every chat request counts, retries included; the name is
+                      kept from when Muse was the only model)
+  --provider P        nearai (default; NEAR AI Cloud private inference, attested) or muse (fallback).
+                      Env ARENA_MODEL_PROVIDER; ARENA_MODEL_BASE / ARENA_MODEL override base and model id
+  --model M           model id (default: the provider's default, see tools/hunter/muse.py PROVIDERS)
+  --allow-unattested  with nearai: run even if the model has no NEAR model attestation (recorded as such)
+  --news-provider P   the news job's model provider: muse (default, see NEWS_DEFAULT_PROVIDER) or nearai.
+                      Env ARENA_NEWS_MODEL_PROVIDER / ARENA_NEWS_MODEL. Both jobs share one call budget
+  --news-model M      the news job's model id
   --guards a,b        only these registry ids (default: every runnable guard)
+  --outside           also attack guards opted in ON CHAIN (NEAR testnet), after checking each one's live
+                      code hash matches its opt-in. Off by default (no network). An RPC error adds none.
+  --opt-in-contract C the contract holding the opt-ins (default: the Arena receipts contract on testnet)
   --jobs N            attempts in parallel (default 4)
   --timeout-min N     whole-hunt deadline (default 60); attempts not started by then are skipped
   --no-run            propose and validate only; run nothing
-  --offline-replies F JSON list of canned model replies (tests / CI dry run; no key, no network to Muse)
+  --offline-replies F JSON list of canned model replies (tests / CI dry run; no key, no network to the model)
   --papers-file F     JSON list of papers instead of the arXiv API (tests / CI dry run)
   --out-dir D         evidence directory (default evidence/hunts)
   --board-out D       where board-data.json / board.html go (default site/)
@@ -34,11 +45,16 @@ import argparse, datetime, hashlib, json, os, pathlib, secrets, subprocess, sys,
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import arxiv, board, catalog, memory, muse, news, proposals, registry, runner  # noqa: E402
+import arxiv, board, catalog, memory, muse, nearai, news, proposals, registry, runner  # noqa: E402
 import validate as V  # noqa: E402
 
 ROOT = HERE.parents[1]
 HARD_MAX_PAPERS, HARD_MAX_CALLS, HARD_MAX_NEWS_ITEMS, MAX_NEWS_SCORED = 5, 20, 5, 20
+# Per-job model defaults, set by the 2026-11-11 quality gate (evidence/nearai-2026-11-11.md): a job moves
+# to NEAR AI Cloud only if its best attested model stays within about 10% of Muse with no new failure type.
+# Papers: NEAR AI (muse.DEFAULT_PROVIDER). News: Muse, because the attested model's news replies failed the
+# validator more often than Muse's did. NEAR AI stays selectable for news with --news-provider nearai.
+NEWS_DEFAULT_PROVIDER = "muse"
 NEWS_CAVEAT = ("Each news item is an Elfa AI summary of posts on X and Telegram: an unchecked lead. It says people posted "
                "about a hack, not that the hack happened as told. The links are recorded as text and were never fetched.")
 CANARY = ROOT / "sequences-scripted" / "02-race-double-pay.json"
@@ -71,7 +87,14 @@ def parse_args(argv):
     ap.add_argument("--paper")
     ap.add_argument("--library", action="store_true")
     ap.add_argument("--max-muse-calls", type=int, default=20)
+    ap.add_argument("--provider", choices=tuple(muse.PROVIDERS), default=None)
+    ap.add_argument("--model", default=None)
+    ap.add_argument("--allow-unattested", action="store_true")
+    ap.add_argument("--news-provider", choices=tuple(muse.PROVIDERS), default=None)
+    ap.add_argument("--news-model", default=None)
     ap.add_argument("--guards")
+    ap.add_argument("--outside", action="store_true")
+    ap.add_argument("--opt-in-contract", default=None)
     ap.add_argument("--jobs", type=int, default=4)
     ap.add_argument("--timeout-min", type=float, default=60)
     ap.add_argument("--no-run", action="store_true")
@@ -81,7 +104,7 @@ def parse_args(argv):
     ap.add_argument("--board-out", default=str(ROOT / "site"))
     ap.add_argument("--no-save", action="store_true")
     ap.add_argument("--candidates", type=int, default=10, help="papers scored before the top --max-papers are attacked")
-    ap.add_argument("--combine", type=int, default=None, help="combined attacks to ask for (0 = off; 1 Muse call; default 2, 0 for --source news)")
+    ap.add_argument("--combine", type=int, default=None, help="combined attacks to ask for (0 = off; 1 model call; default 2, 0 for --source news)")
     ap.add_argument("--memory-picks", type=int, default=None, help="library attacks re-run where the memory says (0 = off; default 6, 0 for --source news)")
     ap.add_argument("--source", choices=("papers", "news", "all"), default="papers")
     ap.add_argument("--news-window", choices=news.WINDOWS, default="7d")
@@ -174,14 +197,14 @@ def fetch_news(a, H, raw, used, today):
 
 
 def attack_news(a, H, raw, client, author, fresh, used, fam_counts, add_new, today, hunt_id, deadline):
-    """Score the fresh items in one Muse call; items that do not map to a payment guard are logged
+    """Score the fresh items in one model call; items that do not map to a payment guard are logged
     with the reason and never attacked. The top --max-news-items that map get one propose call each."""
     NW = H["news"]
     cand, later = fresh[:MAX_NEWS_SCORED], fresh[MAX_NEWS_SCORED:]
     scores, why_fallback = {}, None
     try:
         sobj, sraw, serr = muse.score_news(client, cand)
-        (raw / "muse-news-scores.txt").write_text(sraw)
+        (raw / "model-news-scores.txt").write_text(sraw)
         if sobj is None:
             why_fallback = f"scoring reply unusable: {serr}"
         else:
@@ -245,8 +268,8 @@ def attack_news(a, H, raw, client, author, fresh, used, fam_counts, add_new, tod
         except muse.MuseError as e:
             r["status"] = f"model call failed: {e}"
             continue
-        (raw / f"muse-{it['item_id']}.txt").write_text("\n\n----- next reply -----\n\n".join(raws))
-        r["raw_replies"] = rel(raw / f"muse-{it['item_id']}.txt")
+        (raw / f"model-{it['item_id']}.txt").write_text("\n\n----- next reply -----\n\n".join(raws))
+        r["raw_replies"] = rel(raw / f"model-{it['item_id']}.txt")
         if obj is None:
             r["status"] = f"reply unusable: {err}"
             H["rejections"].append({"paper": it["item_id"], "index": None, "name": None, "reason": err})
@@ -263,13 +286,23 @@ def attack_news(a, H, raw, client, author, fresh, used, fam_counts, add_new, tod
                 r["attacks"].append(x["doc"]["meta"]["id"])
         r.update(status="attacked", proposed=n_prop, accepted=len(acc), rejected=len(rej), new_after_dedupe=kept)
         if n_prop == 0:
-            r["status"] = "doesn't map (said by Muse when asked for attacks)"
+            r["status"] = "doesn't map (said by the model when asked for attacks)"
             r["maps"] = False
-            r["reason"] = f"doesn't map: {_plain(obj.get('doesnt_map'), 240) or 'Muse returned no attacks and no reason'}"
+            r["reason"] = f"doesn't map: {_plain(obj.get('doesnt_map'), 240) or 'the model returned no attacks and no reason'}"
 
 
 def main(argv):
     a = parse_args(argv)
+    try:
+        MS = muse.settings(provider=a.provider, model=a.model)  # papers job: provider, base, model
+        NS = muse.settings(env={},  # news job: its own provider and model (never ARENA_MODEL_*), default NEWS_DEFAULT_PROVIDER
+                           provider=a.news_provider or os.environ.get("ARENA_NEWS_MODEL_PROVIDER") or NEWS_DEFAULT_PROVIDER,
+                           model=a.news_model or os.environ.get("ARENA_NEWS_MODEL") or None)
+        if a.source == "news":
+            MS = NS  # a news-only hunt has no papers job: its one model is the news model (the record must not name another)
+    except ValueError as e:
+        print(str(e), file=sys.stderr)
+        return 2
     t_start = time.time()
     deadline = t_start + a.timeout_min * 60
     now = datetime.datetime.now(datetime.timezone.utc)
@@ -288,7 +321,8 @@ def main(argv):
          "command": "hunt " + " ".join(argv), "git_head": sh("git", "rev-parse", "HEAD"),
          "git_dirty_files": len([l for l in sh("git", "status", "--porcelain").splitlines() if l.strip()]),
          "harness_sha256": registry.sha256(runner.HARNESS) if runner.HARNESS.exists() else None,
-         "model": None if a.library else {"base": muse.BASE, "model": muse.MODEL, "offline": bool(a.offline_replies)},
+         "model": None if a.library else {"provider": MS["provider"], "base": MS["base"], "model": MS["model"], "offline": bool(a.offline_replies)},
+         "news_model": None if a.library or not do_news else {"provider": NS["provider"], "base": NS["base"], "model": NS["model"], "offline": bool(a.offline_replies)},
          "bounds": {"max_papers": a.max_papers, "max_attacks_per_paper": proposals.MAX_PER_PAPER,
                     "max_muse_calls": a.max_muse_calls, "attempt_timeout_s": runner.ATTEMPT_TIMEOUT_S,
                     "hunt_timeout_min": a.timeout_min, "days": a.days,
@@ -297,12 +331,26 @@ def main(argv):
          "papers": [], "attacks": [], "rejections": [], "duplicates": [], "notes": [], "trusted": True,
          "design_credit": DESIGN_CREDIT}
 
+    # Filled in just before the first model call (see "the model" below); stays this when no call is made.
+    attestation = None
+    if H["model"]:
+        H["attestation"] = {"provider": MS["provider"], "attested": False,
+                            "why": "offline canned replies: no model call, no attestation" if a.offline_replies else
+                                   f"provider {MS['provider']} has no attestation" if MS["provider"] != "nearai" else
+                                   "no call to this NEAR AI model was needed in this hunt, so no report was fetched"}
+        H["attestation_sha256"] = None
+
     # ---- guards: registry + fingerprints (refuse to run on changed bytes)
     try:
         guards_all = registry.load()
     except registry.RegistryError as e:
         print(f"REGISTRY INVALID: {e}", file=sys.stderr)
         return 2
+    if a.outside:
+        def chain_log(msg):
+            print(msg, flush=True)
+            H["notes"].append(msg)
+        guards_all += registry.outside_guards(guards_all, contract=a.opt_in_contract or registry.OPT_IN_CONTRACT, log=chain_log)
     want = set(a.guards.split(",")) if a.guards else None
     if want and not want <= {g["id"] for g in guards_all}:
         print(f"unknown guard ids: {sorted(want - {g['id'] for g in guards_all})}", file=sys.stderr)
@@ -397,32 +445,85 @@ def main(argv):
         else:
             H["search"] = {"source": "not asked (--source news)"}
 
-        # ---- news (Elfa AI): at most 2 event-summary calls; raw replies cached next to the evidence
-        news_fresh = fetch_news(a, H, raw, used, today) if do_news else []
+        # ---- news (Elfa AI): at most 2 event-summary calls; raw replies cached next to the evidence.
+        # The news model's key is checked first, so a missing key skips news before any Elfa credit is spent.
+        news_fresh = []
+        if (do_news and not a.offline_replies and (a.news_file or news.load_key())
+                and not muse.load_key(NS["provider"])):
+            p = muse.PROVIDERS[NS["provider"]]
+            msg = (f"news source skipped: the news model ({NS['provider']}) needs {p['key_env']} (env or "
+                   f"~/.config/arena/{p['key_file']}); the rest of the hunt runs")
+            print(msg, flush=True)
+            H["notes"].append(msg)
+            H["news"] = {"caveat": NEWS_CAVEAT, "skipped": msg, "calls": 0, "credits_estimate": 0, "items": [], "log": []}
+        elif do_news:
+            news_fresh = fetch_news(a, H, raw, used, today)
 
-        # ---- Muse
-        key = None
+        # ---- the models, chosen per job by the 2026-11-11 quality gate (evidence/nearai-2026-11-11.md):
+        # papers (and paper scoring and combining) use MS, news items use NS. One call budget for both.
         replies = None
         if a.offline_replies:
             replies = json.loads(pathlib.Path(a.offline_replies).read_text())
             if not isinstance(replies, list):
                 print("--offline-replies must be a JSON list of strings", file=sys.stderr)
                 return 2
-        elif picked or news_fresh or a.combine:
-            key = muse.load_key()
-            if not key:
-                print("MUSE_API_KEY not set and ~/.config/arena/model.env has none", file=sys.stderr)
-                return 2
-        client = muse.Client(a.max_muse_calls, key=key, replies=replies)
-        author = f"{muse.MODEL} via tools/hunter" + (" (offline canned reply)" if replies is not None else "")
+        budget = {"n": 0}
+
+        def make_client(S, needed, label):
+            """Key, then (nearai) attestation before the first call. Returns (client, attestation) or an int exit code."""
+            key, att = None, None
+            if replies is None and needed:
+                key = muse.load_key(S["provider"])
+                if not key:
+                    p = muse.PROVIDERS[S["provider"]]
+                    print(f"{p['key_env']} not set and ~/.config/arena/{p['key_file']} has none", file=sys.stderr)
+                    return 2
+                # ---- NEAR AI Cloud attestation, once per model, before its first call: which model, in which
+                # sealed machine. Refuses an unattested model (unless --allow-unattested) and any report whose
+                # nonce or bindings do not match. Nothing has been sent to the model yet when this refuses.
+                if S["provider"] == "nearai":
+                    d = raw if label == "main" else raw / f"{label}-attestation"
+                    d.mkdir(parents=True, exist_ok=True)
+                    try:
+                        att = nearai.preflight(S["base"], S["model"], d, secrets.token_hex(32), allow_unattested=a.allow_unattested)
+                    except nearai.AttestationError as e:
+                        print(f"REFUSED: NEAR AI attestation for {S['model']}: {e}. Nothing was sent to the model. "
+                              f"(--allow-unattested runs anyway and says so in the record.)", file=sys.stderr)
+                        return 2
+                    if not att.get("attested"):
+                        H["notes"].append(f"UNATTESTED MODEL ({S['model']}), run with --allow-unattested: {'; '.join(att.get('unattested_why', []))}")
+                    print(f"attestation: {S['model']} attested={att['attested']} report sha256 {att.get('report_sha256')} "
+                          f"intel quote verified here={att.get('intel_quote_verified')}", flush=True)
+            c = muse.Client(a.max_muse_calls, key=key, replies=replies, provider=S["provider"], base=S["base"], model=S["model"],
+                            attestation=att, save_dir=(raw / ("nearai" if label == "main" else f"nearai-{label}")) if S["provider"] == "nearai" else None,
+                            counter=budget)
+            return c, att
+
+        same = replies is not None or (NS["provider"], NS["base"], NS["model"]) == (MS["provider"], MS["base"], MS["model"])
+        r_ = make_client(MS, bool(picked or a.combine or (same and news_fresh)), "main")
+        if isinstance(r_, int):
+            return r_
+        client, attestation = r_
+        if attestation:
+            H["attestation"], H["attestation_sha256"] = attestation, attestation.get("report_sha256")
+        news_client, news_att = client, attestation
+        if not same:
+            r_ = make_client(NS, bool(news_fresh), "news")
+            if isinstance(r_, int):
+                return r_
+            news_client, news_att = r_
+            if news_att:
+                H["news_attestation"], H["news_attestation_sha256"] = news_att, news_att.get("report_sha256")
+        author = f"{MS['model']} via tools/hunter" + (" (offline canned reply)" if replies is not None else "")
+        news_author = f"{(MS if same else NS)['model']} via tools/hunter" + (" (offline canned reply)" if replies is not None else "")
         # ---- score papers before attacking (AutoRedTeamer idea 1): novelty + distance from the
-        # library + reported success, 0-15. The Muse budget goes to the top-scored papers first.
+        # library + reported success, 0-15. The model budget goes to the top-scored papers first.
         H["paper_scores"] = []
         if len(picked) > 1:
             scores, why_fallback = {}, None
             try:
                 sobj, sraw, serr = muse.score_papers(client, picked)
-                (raw / "muse-scores.txt").write_text(sraw)
+                (raw / "model-scores.txt").write_text(sraw)
                 if sobj is None:
                     why_fallback = f"scoring reply unusable: {serr}"
                 else:
@@ -468,8 +569,8 @@ def main(argv):
             except muse.MuseError as e:
                 pe["status"] = f"model call failed: {e}"
                 continue
-            (raw / f"muse-{p['base_id']}.txt").write_text("\n\n----- next reply -----\n\n".join(raws))
-            pe["raw_replies"] = rel(raw / f"muse-{p['base_id']}.txt")
+            (raw / f"model-{p['base_id']}.txt").write_text("\n\n----- next reply -----\n\n".join(raws))
+            pe["raw_replies"] = rel(raw / f"model-{p['base_id']}.txt")
             if not a.no_save:
                 used[p["base_id"]] = {"hunt_id": hunt_id, "date": today, "title": p["title"][:120]}
             if obj is None:
@@ -487,7 +588,7 @@ def main(argv):
             pe.update(status="attacked", proposed=n_prop, accepted=len(acc), rejected=len(rej), new_after_dedupe=kept)
         # ---- news items: score (maps to a payment guard? novelty + distance + reported success), then attack the top ones
         if news_fresh:
-            attack_news(a, H, raw, client, author, news_fresh, used, fam_counts, add_new, today, hunt_id, deadline)
+            attack_news(a, H, raw, news_client, news_author, news_fresh, used, fam_counts, add_new, today, hunt_id, deadline)
         # ---- combine library attacks (AutoRedTeamer idea 3): one call, source=combined, parents listed.
         if a.combine and time.time() < deadline:
             lines, offered = [], set()
@@ -498,7 +599,7 @@ def main(argv):
             ce = {"offered": len(offered), "asked_for": a.combine}
             try:
                 cobj, craw, cerr = muse.combine(client, lines, a.combine)
-                (raw / "muse-combine.txt").write_text(craw)
+                (raw / "model-combine.txt").write_text(craw)
                 if cobj is None:
                     ce["status"] = f"reply unusable: {cerr}"
                 else:
@@ -515,7 +616,25 @@ def main(argv):
             except muse.MuseError as e:
                 ce["status"] = f"model call failed: {e}"
             H["combine"] = ce
-        H["muse"] = {"cap": a.max_muse_calls, "calls": client.calls, "log": client.log}
+        # The key "muse" is kept so older hunt files and readers line up; it holds the calls of every model that ran.
+        clients = [("papers", client)] + ([("news", news_client)] if news_client is not client else [])
+        log = [dict(e, job=job, model=c.model, provider=c.provider) for job, c in clients for e in c.log]
+        costs = [e.get("cost_usd") for e in log if e.get("provider") == "nearai"]
+        H["muse"] = {"cap": a.max_muse_calls, "calls": sum(c.calls for _, c in clients), "log": log,
+                     "models": sorted({f"{c.provider}:{c.model}" for _, c in clients if c.calls}),
+                     "signature_requests": sum(c.signature_requests for _, c in clients),
+                     "cost_usd": round(sum(x or 0 for x in costs), 6) if costs and not client.offline else None}
+        for job, c in clients:
+            A = attestation if c is client else news_att
+            if A and not c.offline:
+                sigs = [e.get("signature") or {} for e in c.log if e.get("ok")]
+                A["replies"] = {"total": len(sigs), "signature_verified": sum(1 for s in sigs if s.get("verified")),
+                                "unverified": [{"n": e["n"], "why": (e.get("signature") or {}).get("why")} for e in c.log
+                                               if e.get("ok") and not (e.get("signature") or {}).get("verified")]}
+                A["all_replies_signed_by_attested_model"] = bool(sigs) and all(s.get("verified") for s in sigs)
+        if news_client is not client and news_client.calls and news_client.provider != "nearai":
+            H["notes"].append(f"News items were attacked by {news_client.model} ({news_client.provider}, no attestation), "
+                              f"papers by {client.model} ({client.provider}); see the Attestation section for which replies are covered.")
         if not a.no_save and not a.offline_replies and not a.news_file:
             arxiv.save_used(used_path, used)
 
@@ -631,7 +750,10 @@ def main(argv):
         "saved_valid_nothing_broke": sum(1 for e in H["attacks"] if e.get("saved_to") and e.get("validation") == "valid-nothing-broke"),
         "combined_run": sum(1 for e in H["attacks"] if e["source"] == "combined" and e["results"]),
         "memory_reruns": len(H["memory_picks"]),
-        "muse_calls": H.get("muse", {}).get("calls", 0),
+        "muse_calls": H.get("muse", {}).get("calls", 0),   # = model_calls; old name kept for older readers
+        "model_calls": H.get("muse", {}).get("calls", 0),
+        "model_cost_usd": H.get("muse", {}).get("cost_usd"),
+        "replies_signature_verified": ((H.get("attestation") or {}).get("replies") or {}).get("signature_verified"),
         "elfa_calls": NW.get("calls", 0),
         "elfa_credits_estimate": NW.get("credits_estimate", 0),
         "news_items_returned": NW.get("returned", 0),
@@ -689,9 +811,9 @@ def render_news(NW):
     for q in NW["log"]:
         L.append(f"- Elfa call #{q['n']} `{q['query']}` ({', '.join(q['keywords'])}): {'ok' if q['ok'] else 'FAILED ' + q.get('error', '')}, "
                  f"{q.get('seconds')} s, {q.get('items', 0)} item(s), about {q.get('credits_estimate', 0)} credits")
-    L += ["", "Each new item was scored before attacking: does it map to a payment guard at all; if so, novelty (0-5, Muse) + "
-          "distance from attacks already in the library (0-5, computed here) + reported success (0-5, Muse). An item maps only if "
-          "Muse says so AND names a mechanism a payment guard has (decided by code).", "",
+    L += ["", "Each new item was scored before attacking: does it map to a payment guard at all; if so, novelty (0-5, the model) + "
+          "distance from attacks already in the library (0-5, computed here) + reported success (0-5, the model). An item maps only if "
+          "the model says so AND names a mechanism a payment guard has (decided by code).", "",
           "| item | query | maps? | score | status | why |", "|---|---|---|---|---|---|"]
     for r in NW["items"]:
         maps = {True: "yes", False: "no", None: "-"}[r.get("maps")]
@@ -705,6 +827,46 @@ def render_news(NW):
         if r.get("instruction_like_text") or r.get("markers_removed"):
             L.append(f"  - instruction-like text flagged: {_md(', '.join(r.get('instruction_like_text') or []))}; quote markers removed: {r.get('markers_removed', 0)}")
         L.append(f"  - attacks made: {', '.join('`' + x + '`' for x in r.get('attacks') or []) or 'none'}")
+    return L
+
+
+def render_attestation(H):
+    """The provenance record, in plain words: what was checked here and what was not."""
+    A = H.get("attestation")
+    if not A:
+        return []
+    if A.get("provider") != "nearai" or "nonce" not in A:
+        return ["", "## Attestation", "", f"None: {A.get('why', 'no attestation')}."]
+    L = ["", "## Attestation (NEAR AI Cloud)", "",
+         f"**Attestation report sha256: `{A.get('report_sha256')}`** (file `{A.get('report_file')}` in this hunt's folder, the exact bytes NEAR returned). "
+         "This hash is what an on-chain result for this hunt would carry.", ""]
+    if not A.get("attested"):
+        L += [f"**UNATTESTED.** This hunt ran with --allow-unattested: {_md('; '.join(A.get('unattested_why') or []))}. "
+              "Nothing below ties the replies to sealed hardware.", ""]
+        return L
+    L += ["What it is: before the first model call, the hunt asked NEAR AI Cloud for a report signed inside the sealed "
+          "machine (Intel TDX, with NVIDIA GPU evidence), with a fresh random nonce. After each reply it asked NEAR for that "
+          "reply's signature and checked who signed it.", "",
+          f"- model `{A['model']}` (owned_by `{A.get('owned_by')}`), nonce `{A['nonce']}`, fetched {A.get('fetched_utc')}",
+          f"- model signing address(es): {', '.join('`' + x + '`' for x in A.get('model_signing_addresses', []))}; gateway signing address `{A.get('gateway_signing_address')}`"]
+    for r in A.get("reports", []):
+        c = r["checks"]
+        iq = r.get("intel_quote") or {}
+        L.append(f"- {r['which']}: nonce echoed {c['nonce_echoed']}, report_data binds signer + nonce {c['report_data_binds_signer_and_nonce']}, "
+                 f"config hash matches {c['mrconfigid_matches_app_compose']}, event log replays {c['rtmr3_replays']}, debug off {c['debug_mode_off']}; "
+                 + (f"Intel quote verified here with {iq.get('tool')}: TCB status {iq.get('tcb_status')}"
+                    + ("" if iq.get("tcb_accepted") else " (NOT UpToDate: see advisories " + ", ".join(iq.get("advisory_ids") or []) + ")")
+                    if iq.get("ran") and iq.get("ok") else "**Intel quote not verified here** (" + str(iq.get("why", "skipped")) + ")")
+                 + ("" if r["which"] == "gateway" else
+                    f"; GPU evidence (NVIDIA NRAS): {'true' if (r.get('gpu') or {}).get('ok') else 'not verified (' + str((r.get('gpu') or {}).get('why', (r.get('gpu') or {}).get('overall_result'))) + ')'}"))
+    rp = A.get("replies")
+    if rp:
+        L.append(f"- replies: {rp['signature_verified']} of {rp['total']} carry a `provider_tee` signature over our exact request and response bytes "
+                 f"that recovers to the attested model signing address" + (f"; unverified: {_md(json.dumps(rp['unverified']))}" if rp["unverified"] else ""))
+    L += ["", "What this shows: which model, in which sealed machine with which measured configuration, wrote the replies above. "
+          "What it does not show: that any attack is good, that a guard result is right, or that the software inside the machine "
+          "has no bugs. NEAR's docs say instances of one model share one signing key, so a matching signer does not prove the report "
+          "and a reply came from the same server instance. The scoring is plain code on a local sandbox and is not attested."]
     return L
 
 
@@ -725,16 +887,20 @@ def render_md(H):
               f"Broke: {c['cells_broke']} cells, {c['cells_broke_subjects']} of them on guards that are not leaky on purpose. "
               f"Added to the library (sequences-paper/) after running cleanly: {c['attacks_saved']} ({c['saved_broke']} broke a guard, {c['saved_valid_nothing_broke']} valid but nothing broke). "
               f"Combined attacks run: {c['combined_run']}. Library attacks re-run because of the memory: {c['memory_reruns']}. "
-              f"Muse calls: {c['muse_calls']} of {H['bounds']['max_muse_calls']}.**", ""]
+              f"Model calls: {c['muse_calls']} of {H['bounds']['max_muse_calls']}.**", ""]
     can = H.get("canary")
     if can:
         L += [f"Pipe check (canary): the known double-pay race on every guard: **{'OK' if can['ok'] else 'PROBLEM'}**, {can['why']}.", ""]
     L += [f"Trusted: **{'yes' if H['trusted'] else 'NO'}** (guard bytes unchanged before/after, canary not blind).", ""]
+    if H.get("attestation_sha256"):
+        A = H["attestation"]
+        L += [f"Model attestation: **{'attested' if A.get('attested') else 'UNATTESTED'}**, report sha256 `{H['attestation_sha256']}` "
+              f"(details under Attestation below).", ""]
     L += ["## What this is", "",
           "One run of the paper hunter (`tools/hunter/hunt.py`). " +
           ("It ran every attack already in the library against every registered guard, with no model." if H["mode"] == "library" else
            ("Sources: " + (" and ".join(H.get("sources") or ["papers"])) + ". "
-            "Muse read each paper's title and abstract, and/or each news summary, and proposed attacks as data in the bench's step format. Each was validated, checked for duplicates, and run on a fresh local NEAR sandbox against every registered guard, scored by the existing scorer from final balances.")),
+            "The model (named below) read each paper's title and abstract, and/or each news summary, and proposed attacks as data in the bench's step format. Each was validated, checked for duplicates, and run on a fresh local NEAR sandbox against every registered guard, scored by the existing scorer from final balances.")),
           "A guard **broke** when a receiver got tokens beyond what that guard's own policy allows. **held** = 0 beyond policy. Leaky-on-purpose controls are expected to break on the double-pay race.", "",
           f"- started {H['started_utc']}, finished {H['finished_utc']} ({H['wall_seconds']} s)",
           f"- command: `{H['command'].strip()}`",
@@ -742,6 +908,11 @@ def render_md(H):
           ]
     if H.get("model"):
         L.append(f"- model: {H['model']['model']} at {H['model']['base']}" + (" (OFFLINE canned replies, not a real model call)" if H["model"]["offline"] else ""))
+        if H.get("news_model") and (H["news_model"]["provider"], H["news_model"]["model"]) != (H["model"]["provider"], H["model"]["model"]):
+            L.append(f"- news items: model {H['news_model']['model']} at {H['news_model']['base']} (the news job's own default; see evidence/nearai-2026-11-11.md)")
+        L += render_attestation(H)
+        if H.get("news_attestation"):
+            L += [x.replace("## Attestation (NEAR AI Cloud)", "## Attestation for the news model (NEAR AI Cloud)") for x in render_attestation({"attestation": H["news_attestation"]})]
     L += ["", "## Guards", "", "| guard | role | fingerprint (sha256) | ran? |", "|---|---|---|---|"]
     for g in H["guards"]:
         fp = g["fingerprint_before"]
@@ -765,14 +936,14 @@ def render_md(H):
                      + (f"; instruction-like text in the abstract: {p['instruction_like_text']}" if p.get("instruction_like_text") else ""))
     if H.get("paper_scores"):
         L += ["", "## How papers were ranked before attacking", "",
-              "Each candidate got a score of 0-15: novelty (0-5, from Muse) + distance from attacks already in the library (0-5, computed here from attack families) + attack success the paper reports (0-5, from Muse). The Muse budget went to the top-scored papers first.", "",
+              "Each candidate got a score of 0-15: novelty (0-5, from the model) + distance from attacks already in the library (0-5, computed here from attack families) + attack success the paper reports (0-5, from the model). The model budget went to the top-scored papers first.", "",
               "| paper | score | attacked? | why |", "|---|---|---|---|"]
         for x in H["paper_scores"]:
             L.append(f"| {x['arxiv_id']} {x['title'][:70]} | {x['score'] if x['score'] is not None else '-'} | {'yes' if x.get('chosen') else 'no'} | {x['reason'][:300]} |")
     if H.get("combine"):
         ce = H["combine"]
         L += ["", "## Combined attacks", "",
-              f"Muse was shown {ce.get('offered')} library attacks with their families and past results, and asked for {ce.get('asked_for')} attacks that join two or more of them. "
+              f"The model was shown {ce.get('offered')} library attacks with their families and past results, and asked for {ce.get('asked_for')} attacks that join two or more of them. "
               f"Result: {ce.get('status')}" + (f"; proposed {ce.get('proposed')}, accepted {ce.get('accepted')}, rejected {ce.get('rejected')}, new after dedupe {ce.get('new_after_dedupe')}." if ce.get("status") == "ok" else ".")]
     if H.get("memory_picks") is not None and H["mode"] != "library":
         mb = H.get("memory_before", {})
@@ -805,19 +976,20 @@ def render_md(H):
     L += ["", "## Duplicates (same steps as an attack we already had)", ""]
     L += [f"- `{d['attack']}` = `{d['same_steps_as']}` ({d['where']})" for d in H["duplicates"]] or ["None."]
     if H.get("muse"):
-        L += ["", "## Muse calls", "", f"{H['muse']['calls']} of a hard cap of {H['muse']['cap']} (every HTTP request counts).", ""]
+        L += ["", "## Model calls", "", f"{H['muse']['calls']} of a hard cap of {H['muse']['cap']} (every chat request counts)."
+              + (f" Signature lookups (no tokens): {H['muse'].get('signature_requests')}. Cost from NEAR's listed prices: ${H['muse']['cost_usd']:.4f}." if H['muse'].get('cost_usd') is not None else ""), ""]
         for m in H["muse"]["log"]:
             u = m.get("usage") or {}
-            L.append(f"- #{m['n']} {m['purpose']}: {'ok' if m['ok'] else 'FAILED ' + m.get('error', '')}, {m.get('seconds')} s"
+            L.append(f"- #{m['n']}{' ' + m['job'] + ' job, ' + m['model'] if m.get('model') else ''} {m['purpose']}: {'ok' if m['ok'] else 'FAILED ' + m.get('error', '')}, {m.get('seconds')} s"
                      + (f", tokens in/out {u.get('prompt_tokens')}/{u.get('completion_tokens')}" if u else "") + (" (offline)" if m.get("offline") else ""))
     if H["notes"] or H.get("library_problems"):
         L += ["", "## Notes", ""] + [f"- {n}" for n in H["notes"]] + [f"- library problem: {p}" for p in H.get("library_problems", [])]
     L += ["", "## Limits", "",
           "- A guard that held shows these attempts found nothing. It does not show the guard is safe.",
-          "- Muse reads only the title and abstract (no full text), and may map a paper loosely; the paper link says where the idea came from, not that the paper endorses the attack.",
+          "- The model reads only the title and abstract (no full text), and may map a paper loosely; the paper link says where the idea came from, not that the paper endorses the attack.",
           "- Injection attacks run as the pays a fully fooled agent would make (no model plays the victim here).",
           "- Local sandbox only. Raw per-attempt logs and result JSON: `" + rel(pathlib.Path(H['hunt_id'])) + "/` next to this file.",
-          "- Paper scores come from one Muse call reading abstracts; a high score is a reason to spend budget, not a measure of the paper.",
+          "- Paper scores come from one model call reading abstracts; a high score is a reason to spend budget, not a measure of the paper.",
           "- " + NEWS_CAVEAT + " A news attack shows a mechanism someone posted about can be tried against a guard; it is not a reproduction of that incident.",
           "", "## Design credit", "", H.get("design_credit", DESIGN_CREDIT), ""]
     return "\n".join(L)

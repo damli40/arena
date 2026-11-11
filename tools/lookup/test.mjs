@@ -3,7 +3,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { lookup, base58ToHex, STATUS, CAVEAT, DEFAULTS } from "./arena-lookup.mjs";
+import { lookup, base58ToHex, STATUS, CAVEAT, DEFAULTS, OPT_IN, resolveOnchainResults } from "./arena-lookup.mjs";
 
 const HASH = "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e";
 const HASH_B58 = "EhCoUXADTgdLnHXseYdoxREYUomy9pocMjKfHNYKGh3";
@@ -27,7 +27,7 @@ const bytes = (v) => [...new TextEncoder().encode(JSON.stringify(v))];
 const execError = (msg) => ok({ error: `wasm execution failed with error: ${msg}`, logs: [] });
 
 /**
- * handlers: { account, receipts, mode, keys } each either a value, a full RPC body (object with
+ * handlers: { account, receipts, mode, keys, optin, results } each either a value, a full RPC body (object with
  * `error` or `result`), or a function returning one; `throw` simulates a network failure.
  */
 function stubFetch(h) {
@@ -40,6 +40,8 @@ function stubFetch(h) {
     else if (p.request_type === "view_access_key_list") key = "keys";
     else if (p.method_name === "receipts_for") key = "receipts";
     else if (p.method_name === "get_mode") key = "mode";
+    else if (p.method_name === "opt_in_of") key = "optin";
+    else if (p.method_name === "arena_results_for") key = "results";
     let v = h[key];
     if (typeof v === "function") v = v(p);
     if (v === "throw") throw new TypeError("fetch failed");
@@ -196,6 +198,120 @@ describe("unit (stubbed fetch)", () => {
     assert.equal(a.receipts[0].publish_tx, null);
     assert.equal(a.receipts[0].publish_tx_url, `${DEFAULTS.explorer}/address/${DEFAULTS.receiptsContract}`);
     assert.ok(a.receipts[0].publish_tx_note);
+  });
+
+  const OPT = { guard: GUARD, code_hash: HASH, contact: null, expires_at: null, pays_in: "token",
+    signed_by: GUARD, signer_role: "guard", opted_in_at: "1", active: true };
+  const RES = (over = {}) => ({ guard_code_hash: HASH, status: "held", status_means: "held: ...", suite: "race-double-pay:mode=fixed",
+    suite_version: "1", attacks_ran: 5, not_applicable: 0, beyond_policy: "0", against_intent: null, setup: "mode=fixed",
+    arena_commit: "c".repeat(40), evidence_sha256: "e".repeat(64), evidence_path: "evidence/x.md", attestation_sha256: null,
+    published_at: "1", ...over });
+
+  test("opt-in: matching code -> opted_in; changed code -> code_changed; expired; none; never changes status", async () => {
+    const cases = [
+      [OPT, OPT_IN.OPTED_IN], [{ ...OPT, code_hash: "ab".repeat(32) }, OPT_IN.CODE_CHANGED],
+      [{ ...OPT, active: false }, OPT_IN.EXPIRED], [null, OPT_IN.NOT_OPTED_IN], ["throw", OPT_IN.UNKNOWN],
+      [{ ...OPT, guard: "other.testnet" }, OPT_IN.UNKNOWN],
+    ];
+    for (const [optin, want] of cases) {
+      const { a } = await run({ receipts: [RACE_FIXED], mode: "fixed", optin, results: [RES()] });
+      assert.equal(a.opt_in.status, want, JSON.stringify(optin));
+      assert.equal(a.status, STATUS.HELD, "opt-in never changes the answer");
+      assert.equal(typeof a.opt_in.sentence, "string");
+    }
+    const { a } = await run({ receipts: [RACE_FIXED], mode: "fixed", optin: { ...OPT, signer_role: "parent", signed_by: "parent.testnet" } });
+    assert.match(a.opt_in.sentence, /created this guard \(parent\.testnet\)/);
+  });
+
+  test("on-chain result: shown as read, bound to this code hash, never says safe", async () => {
+    for (const st of ["held", "broke", "incomplete"]) {
+      const { a } = await run({ receipts: [RACE_FIXED], mode: "fixed", optin: null, results: [RES({ status: st })] });
+      assert.equal(a.onchain_result.status, st);
+      assert.doesNotMatch(a.onchain_result.sentence, /\bsafe\b|\bsecure\b/i);
+    }
+    // no result stored for this code -> not_tested
+    const none = (await run({ receipts: [RACE_FIXED], mode: "fixed", results: [] })).a.onchain_result;
+    assert.equal(none.status, "not_tested");
+    assert.equal(none.sentence, "Arena has no result on chain for this exact code yet.");
+    const held = (await run({ receipts: [RACE_FIXED], mode: "fixed", results: [RES()] })).a.onchain_result;
+    assert.match(held.sentence, /found no way past it\. Attacks Arena did not run might\./);
+    assert.match(held.sentence, /set up like this: mode=fixed/);
+    assert.deepEqual(held.other_setups, []);
+    // a result for another code hash, a status the contract never stores, a non-list, or a failed read -> unknown
+    for (const results of [[RES({ guard_code_hash: "ab".repeat(32) })], [RES({ status: "safe" })], [RES({ status: "not_tested" })],
+      [RES(), null], [RES({ suite: 7 })], [RES({ setup: 7 })], RES(), "throw"]) {
+      const { a } = await run({ receipts: [RACE_FIXED], mode: "fixed", results });
+      assert.equal(a.onchain_result.status, "unknown", JSON.stringify(results));
+      assert.equal(a.status, STATUS.HELD, "the on-chain result never changes the answer");
+    }
+    // an old contract without the method: unknown, and the receipts answer is unchanged
+    const { a } = await run({ receipts: [RACE_FIXED], mode: "fixed", results: execError("MethodNotFound") });
+    assert.equal(a.onchain_result.status, "unknown");
+    assert.equal(a.status, STATUS.HELD);
+  });
+
+  // The planted-flaw guard and the fixed guard run the same wasm. Each must see only its own mode's result.
+  const R_VULN = RES({ status: "broke", suite: "race-double-pay:mode=vulnerable_fixture", setup: "mode=vulnerable_fixture", beyond_policy: "100" });
+  const R_FIXED = RES();
+  const R_PROOF = RES({ suite: "proof-pay-race-inductive", attacks_ran: 30 });
+
+  test("on-chain result, shared wasm: the fixed guard is not told 'broke' because the planted-flaw mode broke", async () => {
+    const { a } = await run({ receipts: [RACE_VULN, RACE_FIXED, PROOF], mode: "fixed", results: [R_VULN, R_FIXED, R_PROOF] });
+    const r = a.onchain_result;
+    assert.equal(r.status, "held");
+    assert.equal(r.setup, "mode=fixed");
+    assert.equal(r.suites_considered, 2);
+    assert.deepEqual(r.other_setups, [{ suite: "race-double-pay:mode=vulnerable_fixture", setup: "mode=vulnerable_fixture", status: "broke" }]);
+    assert.match(r.sentence, /is "held"/);
+    assert.match(r.sentence, /set up another way \(mode=vulnerable_fixture: broke\)\. Those do not count for this guard/);
+  });
+
+  test("on-chain result, shared wasm: the planted-flaw guard is told 'broke', and does not inherit the fixed 'held'", async () => {
+    const { a } = await run({ receipts: [RACE_VULN, RACE_FIXED, PROOF], mode: "vulnerable_fixture", results: [R_VULN, R_FIXED, R_PROOF] });
+    const r = a.onchain_result;
+    assert.equal(r.status, "broke");
+    assert.equal(r.suite, "race-double-pay:mode=vulnerable_fixture");
+    assert.equal(r.other_setups.length, 2);
+    assert.ok(r.other_setups.every((o) => o.status === "held"));
+  });
+
+  test("on-chain result: only another mode's result exists -> not_tested for this guard, and the other is named", async () => {
+    const { a } = await run({ receipts: [RACE_FIXED], mode: "fixed", results: [R_VULN] });
+    assert.equal(a.onchain_result.status, "not_tested");
+    assert.match(a.onchain_result.sentence, /no result on chain for this exact code set up the way this guard is \(mode "fixed"\)/);
+    assert.match(a.onchain_result.sentence, /mode=vulnerable_fixture: broke/);
+    const { a: b } = await run({ receipts: [RACE_VULN], mode: "vulnerable_fixture", results: [R_FIXED, R_PROOF] });
+    assert.equal(b.onchain_result.status, "not_tested", "a held for the fixed mode is never shown as this guard's result");
+  });
+
+  test("on-chain result: the guard's mode can't be read -> unclear_setting, never held", async () => {
+    for (const mode of [execError("MethodResolveError(MethodNotFound)"), execError("panic"), 7, null, "throw"]) {
+      const { a } = await run({ receipts: [RACE_FIXED], mode, results: [R_FIXED, R_PROOF] });
+      assert.equal(a.onchain_result.status, "unclear_setting", JSON.stringify(mode));
+      assert.match(a.onchain_result.sentence, /could not read how this guard is set up/);
+      assert.notEqual(a.status, STATUS.HELD);
+    }
+  });
+
+  test("on-chain result: worst counted suite decides, newest per suite wins, a result with no setup always counts", async () => {
+    const m = { mode_read: "ok", mode: "fixed" };
+    // newest per suite: an older broke replaced by a newer held
+    assert.equal(resolveOnchainResults([RES({ status: "broke" }), RES()], HASH, null, m).status, "held");
+    assert.equal(resolveOnchainResults([RES(), RES({ status: "broke" })], HASH, null, m).status, "broke");
+    // worst of the counted suites
+    assert.equal(resolveOnchainResults([R_FIXED, RES({ suite: "proof-pay-race-inductive", status: "incomplete" })], HASH, null, m).status, "incomplete");
+    assert.equal(resolveOnchainResults([R_FIXED, RES({ suite: "s2", status: "broke" }), RES({ suite: "s3", status: "incomplete" })], HASH, null, m).status, "broke");
+    // a result with no setup is not tied to a mode, so it counts even when the mode can't be read
+    const noSetup = RES({ suite: "whole-library", setup: null, status: "broke" });
+    assert.equal(resolveOnchainResults([noSetup], HASH, null, { mode_read: "no_get_mode", mode: null }).status, "broke");
+    assert.equal(resolveOnchainResults([noSetup, R_FIXED], HASH, null, m).status, "broke");
+    // the suite filter narrows what is looked at
+    const f = resolveOnchainResults([R_VULN, R_FIXED], HASH, "race-double-pay:mode=vulnerable_fixture", m);
+    assert.equal(f.status, "not_tested");
+    assert.equal(f.other_setups.length, 1);
+    // a near-miss setup string never counts
+    assert.equal(resolveOnchainResults([RES({ setup: "mode=fixed " })], HASH, null, m).status, "not_tested");
+    assert.equal(resolveOnchainResults([RES({ setup: "mode=fixed_v2" })], HASH, null, m).status, "not_tested");
   });
 
   test("bad account id -> bad_input, no network call", async () => {

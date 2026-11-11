@@ -7,6 +7,13 @@ evidence_sha256 is computed from that file; harness_commit comes from `git rev-p
     python3 -I tools/receipts/publish.py --dry-run             # print the receipts, send nothing
     python3 -I tools/receipts/publish.py --contract <id>        # publish (signed by <id>'s key in ~/.near-credentials/testnet)
     python3 -I tools/receipts/publish.py --contract <id> --check   # only run the live `passes` calls
+    python3 -I tools/receipts/publish.py --results --dry-run       # the same scores as code-hash-bound results
+    python3 -I tools/receipts/publish.py --results --contract <id> # publish them with publish_result (clean tree only)
+
+Results (added 2026-11-11) are what other contracts read with `arena_result(code_hash, suite, commit)`.
+Each names the exact Arena commit (a dirty tree is refused, by this script and by the contract) and
+may carry `attestation_sha256`: the sha256 of a hardware attestation report for the run. Nothing
+fills that field yet; pass --attestations FILE ({"<evidence_path>": "<sha256>"}) once a hunt saves one.
 
 The chain calls go through receipts/host (receipts-cli, near-workspaces 0.24), the same tooling as the
 Nov 9 testnet race. Testnet only.
@@ -150,6 +157,46 @@ def proof(commit: str):
                     against_intent=None, tests_run=held + failed, tests_held=held)]
 
 
+# What a result's setup condition is, per suite. A result applies only to a guard set up this way.
+# "mode=<m>" is readable on chain (get_mode); the others name a setting no contract can read.
+def suite_setup(suite: str):
+    if suite.startswith("race-double-pay:mode="):
+        return "mode=" + suite.split("=", 1)[1]
+    return {"proof-pay-race-inductive": "mode=fixed",
+            "injection-scripted": "spending policy set by the vault owner (not readable on chain)",
+            "injection-scripted-narrow": "spending policy set by the vault owner (not readable on chain)",
+            "claims-coverage": "setup arguments the guard was started with (not readable on chain)"}.get(suite, "unknown setup (not readable on chain)")
+
+
+SUITE_VERSION = "1"  # bump when a suite's attacks change, so old results stay distinguishable
+
+
+def to_result(r: dict, attestation_sha256=None) -> dict:
+    """One receipt -> one result for publish_result. held = every test held and nothing was lost."""
+    beyond, against = int(r["beyond_policy"]), None if r["against_intent"] is None else int(r["against_intent"])
+    lost = beyond > 0 or (against or 0) > 0
+    if lost:
+        status = "broke"
+    elif r["tests_run"] > 0 and r["tests_held"] == r["tests_run"]:
+        status = "held"
+    else:
+        status = "incomplete"
+    if attestation_sha256 is not None:
+        assert HEX64.fullmatch(attestation_sha256), f"attestation_sha256 must be 64 lowercase hex: {attestation_sha256!r}"
+    return {"guard_code_hash": r["guard_code_hash"], "suite": r["suite"], "suite_version": SUITE_VERSION, "status": status,
+            "attacks_ran": r["tests_run"], "not_applicable": 0, "beyond_policy": r["beyond_policy"],
+            "against_intent": r["against_intent"], "setup": suite_setup(r["suite"]), "arena_commit": r["harness_commit"],
+            "evidence_sha256": r["evidence_sha256"], "evidence_path": r["evidence_path"],
+            "attestation_sha256": attestation_sha256}
+
+
+def all_results(rs, attestations=None):
+    att = attestations or {}
+    unknown = set(att) - {r["evidence_path"] for r in rs}
+    assert not unknown, f"--attestations names evidence files with no receipt: {sorted(unknown)}"
+    return [to_result(r, att.get(r["evidence_path"])) for r in rs]
+
+
 def all_receipts(race_md: str = RACE_MD, race_raw=None, with_proof: bool = False):
     commit = harness_commit()
     va = vault_a_hash()
@@ -191,8 +238,27 @@ def main():
     ap.add_argument("--race-md", default=RACE_MD, help="testnet race evidence file in evidence/ (default: the Nov 9 run)")
     ap.add_argument("--race-raw", nargs="+", default=None, help="that run's raw JSON files in evidence/")
     ap.add_argument("--with-proof", action="store_true", help="also publish the proof-pay-race-inductive receipt (Nov 11 guard)")
+    ap.add_argument("--results", action="store_true", help="publish code-hash-bound results (publish_result) instead of receipts")
+    ap.add_argument("--attestations", help='JSON file {"<evidence_path>": "<attestation sha256>"} (optional; nothing writes it yet)')
     a = ap.parse_args()
     rs = all_receipts(a.race_md, a.race_raw, a.with_proof)
+    if a.results:
+        att = json.loads(Path(a.attestations).read_text()) if a.attestations else None
+        res = all_results(rs, att)
+        if a.dry_run or not a.contract:
+            print(json.dumps(res, indent=2))
+            if not a.dry_run:
+                print("(no --contract given: nothing sent)", file=sys.stderr)
+            return
+        if res[0]["arena_commit"].endswith("-dirty"):
+            sys.exit("refusing to publish results from a dirty tree: a result must name the exact commit. Commit, or publish from a clean worktree.")
+        tmp = ROOT / "receipts/host/target/results-to-publish.json"
+        tmp.write_text(json.dumps(res))
+        bad = 0
+        for line in cli("publish-results", a.contract, str(tmp)):
+            print(json.dumps(line))
+            bad += not line["ok"]
+        sys.exit(1 if bad else 0)
     if a.dry_run or not a.contract:
         print(json.dumps(rs, indent=2))
         if not a.dry_run:

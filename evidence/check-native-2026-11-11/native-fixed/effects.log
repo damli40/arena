@@ -1,0 +1,24 @@
+EFFECTS target=native-fixed (file=evidence/check-native-2026-11-11/native-fixed/guard-config.resolved.json pays_in=native init=new features(payees=true, cancel=true, expiry=true, daily_cap=true) renamed=[] shapes=[] deposits={"add_payee": 1, "approve_invoice": 1, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1})
+ADAPTER init: new({"agent":"dev-20261111001620-99224955657177.test.near","daily_cap":"500000000000000000000000","owner":"dev-20261111001620-11512061803634.test.near","token":"dev-20261111001623-26769050396140.test.near"})
+{
+  "add_payee": {
+    "detail": "`is_payee` says sam is a payee after the owner added sam",
+    "result": "confirmed"
+  },
+  "cancel_invoice": {
+    "detail": "`get_invoice` shows inv-cancel as \"Cancelled\" and its uncancelled twin inv-mid as \"Approved\"",
+    "result": "confirmed"
+  },
+  "remove_payee": {
+    "detail": "`is_payee` says lin is not a payee after the owner removed lin",
+    "result": "confirmed"
+  },
+  "set_agent": {
+    "detail": "`get_config` showed the agent, then the new account after the owner changed it",
+    "result": "confirmed"
+  },
+  "set_daily_cap": {
+    "detail": "`get_config` showed 500000000000000000000000, then 400000000000000000000000 after the owner set 400000000000000000000000",
+    "result": "confirmed"
+  }
+}

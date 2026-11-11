@@ -1,0 +1,73 @@
+{
+  "name": "p261112572-2-outsider-authz-race",
+  "steps": [
+    {
+      "race": [
+        {
+          "actor": "agent",
+          "target": "vault",
+          "method": "pay",
+          "args": {
+            "id": "inv-pay"
+          }
+        },
+        {
+          "actor": "outsider",
+          "target": "vault",
+          "method": "pay",
+          "args": {
+            "id": "inv-pay"
+          }
+        },
+        {
+          "actor": "outsider",
+          "target": "vault",
+          "method": "pay",
+          "args": {
+            "id": "inv-small"
+          }
+        },
+        {
+          "actor": "outsider",
+          "target": "vault",
+          "method": "pay",
+          "args": {
+            "id": "inv-big"
+          }
+        }
+      ]
+    },
+    {
+      "view": {
+        "target": "vault",
+        "method": "paid_today",
+        "args": {}
+      }
+    },
+    {
+      "view": {
+        "target": "token",
+        "method": "ft_balance_of",
+        "args": {
+          "account_id": "sam"
+        }
+      }
+    }
+  ],
+  "meta": {
+    "id": "p261112572-2-outsider-authz-race",
+    "title": "Race outsider pay calls against the agent's pay",
+    "source": "paper",
+    "kind": "sequence",
+    "breaks": "Tries to make the guard perform transfers initiated by the outsider, or double-pay inv-pay by interleaving outsider and agent calls inside one in-flight transfer window.",
+    "expected_safe_result": "Every outsider pay call is rejected because only the agent holds the payer association; each invoice pays at most once, so sam ends with exactly 100 and no other receiver gains tokens.",
+    "added": "2026-11-11",
+    "author": "z-ai/glm-5.3-flash via tools/hunter",
+    "paper": {
+      "arxiv_id": "2611.12572v1",
+      "title": "Text2NGAC: a multi-LLM pipeline for NGAC policy extraction with mutation-based verification",
+      "url": "https://arxiv.org/abs/2611.12572v1"
+    },
+    "steps_sha256": "0aff8191febf45684112a61520d4733e8335b75ebc6ed3cd1be6c2ec20f1cc16"
+  }
+}

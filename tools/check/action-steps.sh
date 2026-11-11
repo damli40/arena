@@ -3,7 +3,7 @@
 # local test exercises exactly these lines.
 #
 # Reads only environment variables (set by action.yml from the inputs):
-#   ARENA_WASM (required), ARENA_CONFIG, ARENA_MAPPING, ARENA_FAIL_ON, ARENA_JOBS, MUSE_API_KEY,
+#   ARENA_WASM (required), ARENA_CONFIG, ARENA_MAPPING, ARENA_PAYS_IN, ARENA_FAIL_ON, ARENA_JOBS, MUSE_API_KEY,
 #   ARENA_REPO_URL, ARENA_REPO_REF,
 #   GITHUB_WORKSPACE, GITHUB_ACTION_PATH, GITHUB_STEP_SUMMARY, GITHUB_OUTPUT.
 # Never fails on its own: it records the check's exit code in $GITHUB_OUTPUT (exit_code), so the
@@ -49,6 +49,9 @@ case "${ARENA_FAIL_ON:-beyond-policy}" in beyond-policy|against-intent|never) ;;
   give_up "fail-on must be beyond-policy, against-intent or never (got '${ARENA_FAIL_ON}')";;
 esac
 case "${ARENA_JOBS:-2}" in ''|*[!0-9]*|0) give_up "jobs must be a whole number of at least 1";; esac
+case "${ARENA_PAYS_IN:-}" in ''|token|native) ;; *)
+  give_up "pays-in must be token, native or empty (got '${ARENA_PAYS_IN}')";;
+esac
 
 # Install the exact toolchains Arena pins (rust-toolchain.toml in each folder): stable for the
 # harness, 1.86.0 + wasm32-unknown-unknown for the contracts. Recent rustup no longer does this
@@ -76,6 +79,7 @@ export ARENA_REPO_URL="${ARENA_REPO_URL:-}" ARENA_REPO_REF="${ARENA_REPO_REF:-}"
 args=(check "$ARENA_WASM" --out "$OUT" --fail-on "${ARENA_FAIL_ON:-beyond-policy}" --jobs "${ARENA_JOBS:-2}")
 [ -n "${ARENA_CONFIG:-}" ] && args+=(--config "$ARENA_CONFIG")
 [ -n "${ARENA_MAPPING:-}" ] && args+=(--mapping "$ARENA_MAPPING")
+[ -n "${ARENA_PAYS_IN:-}" ] && args+=(--pays-in "$ARENA_PAYS_IN")
 [ -z "${MUSE_API_KEY:-}" ] && args+=(--no-muse)
 export MUSE_API_KEY="${MUSE_API_KEY:-}"
 
@@ -108,6 +112,7 @@ print(f"badge={one((r.get('badge') or {}).get('message', ''))}")
 print(f"full={'true' if (r.get('badge') or {}).get('color') == 'brightgreen' else 'false'}")
 print(f"beyond_policy={one(t.get('beyond_policy', ''))}")
 print(f"against_intent={one(t.get('against_intent', ''))}")
+print(f"units={'milliNEAR' if r.get('pays_in') == 'native' else 'tokens'}")
 PY
 else
   echo "arena check wrote no report this run. Exit code $(meaning "$code")." >> "$GITHUB_STEP_SUMMARY"

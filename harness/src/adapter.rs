@@ -76,7 +76,14 @@ pub struct GuardConfig {
     pub shapes: BTreeMap<String, String>,
     /// owner role -> yoctoNEAR to attach (0 or 1)
     pub deposits: BTreeMap<String, u8>,
+    /// `"pays_in": "native"` (2026-11-11): the guard pays receivers in plain NEAR, not NEP-141
+    /// tokens. Amounts it is given are then yoctoNEAR (`setup::NATIVE_UNIT` per Arena unit), and
+    /// it is scored from receivers' native balances (scorer.rs). Default false ("token").
+    pub native: bool,
 }
+
+/// The values `pays_in` may take. Mirrored in tools/check/guard_config.py (PAYS_IN).
+pub const PAYS_IN: [&str; 2] = ["token", "native"];
 
 fn method_name_ok(s: &str) -> bool {
     let b = s.as_bytes();
@@ -120,6 +127,7 @@ impl GuardConfig {
             methods,
             shapes,
             deposits,
+            native: false,
         }
     }
 
@@ -136,10 +144,15 @@ impl GuardConfig {
     pub fn from_value(file: &str, v: &Value) -> Result<Self> {
         let mut c = Self::vault_a_default(file);
         let top = obj(v, "guard config")?;
-        no_unknown(top, &["arena_guard_config", "init", "features", "methods", "shapes", "deposits"], "guard config")?;
+        no_unknown(top, &["arena_guard_config", "pays_in", "init", "features", "methods", "shapes", "deposits"], "guard config")?;
         if top.get("arena_guard_config") != Some(&json!(1)) {
             bail!("guard config: \"arena_guard_config\": 1 is required");
         }
+        c.native = match top.get("pays_in") {
+            None => false,
+            Some(Value::String(s)) if PAYS_IN.contains(&s.as_str()) => s == "native",
+            Some(other) => bail!("pays_in: {other} is not allowed; use \"token\" or \"native\""),
+        };
         if let Some(init) = top.get("init") {
             let init = obj(init, "init")?;
             no_unknown(init, &["method", "args"], "init")?;
@@ -247,7 +260,45 @@ impl GuardConfig {
                 }
             }
         }
+        // Native amounts are yoctoNEAR: inv-pay alone is 10^23 and the cap 5 * 10^23, past what a
+        // JSON number (u64) can hold. A number would be cut or refused, so both are refused here.
+        if c.native {
+            if c.init_args.values().any(|v| v.as_str() == Some("$daily_cap_number")) {
+                bail!("init.args: \"$daily_cap_number\" cannot be used with \"pays_in\": \"native\" (the cap in yoctoNEAR does not fit in a JSON number); use \"$daily_cap\"");
+            }
+            if c.shape("amount_encoding") == "number" {
+                bail!("shapes.amount_encoding \"number\" cannot be used with \"pays_in\": \"native\" (yoctoNEAR amounts do not fit in a JSON number); use \"u128_string\"");
+            }
+        }
         Ok(c)
+    }
+
+    /// Native guards only: an attack's own amounts (`amount`, `daily_cap` in a vault call's
+    /// arguments) are written in Arena units. Scale them to yoctoNEAR, as setup does for its own
+    /// calls, so "5000" means 5000 units (5 NEAR) and not 5000 yoctoNEAR. Returns the new
+    /// arguments and one line per value changed (printed, never silent). Values that are not a
+    /// whole number, or would overflow, pass through unchanged and are named in the lines.
+    pub fn native_amounts(args: &Value, unit: u128) -> (Value, Vec<String>) {
+        let mut out = args.clone();
+        let mut notes = Vec::new();
+        if let Value::Object(m) = &mut out {
+            for k in ["amount", "daily_cap"] {
+                let Some(v) = m.get(k) else { continue };
+                let n: Option<u128> = match v {
+                    Value::String(s) if !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit()) => s.parse().ok(),
+                    Value::Number(n) => n.as_u64().map(u128::from),
+                    _ => None,
+                };
+                match n.and_then(|n| n.checked_mul(unit)) {
+                    Some(y) => {
+                        notes.push(format!("{k} {v} Arena units -> {y} yoctoNEAR"));
+                        m.insert(k.to_string(), Value::String(y.to_string()));
+                    }
+                    None => notes.push(format!("{k} {v} left as sent (not a whole number of Arena units)")),
+                }
+            }
+        }
+        (out, notes)
     }
 
     fn shape(&self, k: &str) -> &str {
@@ -374,8 +425,9 @@ impl GuardConfig {
             .map(|(k, _)| format!("{k}={}", self.shape(k)))
             .collect();
         format!(
-            "file={} init={} features(payees={}, cancel={}, expiry={}, daily_cap={}) renamed=[{}] shapes=[{}] deposits={:?}",
+            "file={} pays_in={} init={} features(payees={}, cancel={}, expiry={}, daily_cap={}) renamed=[{}] shapes=[{}] deposits={:?}",
             self.file,
+            if self.native { "native" } else { "token" },
             self.init_method,
             self.features.payees,
             self.features.cancel,
@@ -458,6 +510,37 @@ mod tests {
     }
 
     #[test]
+    fn pays_in_native() {
+        assert!(!cfg(json!({"arena_guard_config": 1})).unwrap().native);
+        assert!(!cfg(json!({"arena_guard_config": 1, "pays_in": "token"})).unwrap().native);
+        assert!(cfg(json!({"arena_guard_config": 1, "pays_in": "native"})).unwrap().native);
+        for bad in [json!("Native"), json!("near"), json!(1), json!(true), json!(null), json!(["native"])] {
+            assert!(cfg(json!({"arena_guard_config": 1, "pays_in": bad.clone()})).is_err(), "should refuse {bad}");
+        }
+        // yoctoNEAR does not fit a JSON number
+        assert!(cfg(json!({"arena_guard_config": 1, "pays_in": "native", "init": {"args": {"cap": "$daily_cap_number"}}})).is_err());
+        assert!(cfg(json!({"arena_guard_config": 1, "pays_in": "native", "shapes": {"amount_encoding": "number"}})).is_err());
+        assert!(cfg(json!({"arena_guard_config": 1, "pays_in": "native", "init": {"args": {"cap": "$daily_cap"}}})).is_ok());
+    }
+
+    #[test]
+    fn native_amounts_scale_attack_values() {
+        let u: u128 = 1_000_000_000_000_000_000_000;
+        let (v, notes) = GuardConfig::native_amounts(&json!({"id": "x", "amount": "5000", "daily_cap": 7}), u);
+        assert_eq!(v, json!({"id": "x", "amount": "5000000000000000000000000", "daily_cap": "7000000000000000000000"}));
+        assert_eq!(notes.len(), 2);
+        let (v, notes) = GuardConfig::native_amounts(&json!({"amount": "-1", "receiver": "sam"}), u);
+        assert_eq!(v, json!({"amount": "-1", "receiver": "sam"}));
+        assert!(notes[0].contains("left as sent"));
+        let (v, notes) = GuardConfig::native_amounts(&json!({"id": "inv-pay"}), u);
+        assert_eq!(v, json!({"id": "inv-pay"}));
+        assert!(notes.is_empty());
+        // overflow is not wrapped
+        let (_, notes) = GuardConfig::native_amounts(&json!({"amount": "340282366920938463463374607431768211455"}), u);
+        assert!(notes[0].contains("left as sent"));
+    }
+
+    #[test]
     fn expiry_in_seconds_is_exact_on_both_sides() {
         // 20.7 s after a whole second: a guard told "s" sees 20 s; the scorer must use 20 s too.
         let c = cfg(json!({"arena_guard_config": 1, "shapes": {"expiry_unit": "s"}})).unwrap();
@@ -509,6 +592,7 @@ mod tests {
             json!({"arena_guard_config": true}),
             json!({"arena_guard_config": 1.0}),
             json!({"arena_guard_config": 1, "deposits": {"approve_invoice": 1.0}}),
+            json!({"arena_guard_config": 1, "pays_in": "nep141"}),
         ];
         for b in bad {
             assert!(cfg(b.clone()).is_err(), "should refuse {b}");

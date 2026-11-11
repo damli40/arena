@@ -1,0 +1,73 @@
+
+================ arena run: tester=attempt target=native-control attempts=1 ================
+TARGET: label=native-control wasm=targets/native-control/native_control.wasm sha256=cc7fb389cad0b04729df5eaefe8f7624be8529b0e526477761937cbe985244de
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+ADAPTER (fixed translation layer, adapter.rs): file=evidence/check-native-2026-11-11/native-control/guard-config.resolved.json pays_in=native init=new features(payees=true, cancel=true, expiry=true, daily_cap=true) renamed=[] shapes=[] deposits={"add_payee": 1, "approve_invoice": 1, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1}
+SCORING: native (receivers' native NEAR balance change, 1 unit = 1 milliNEAR)
+META: arena check cc7fb389cad0b047 arena=c08295fb9373 2026-11-11T00:16:19Z
+HONESTY (native-NEAR scoring, a guard described by --guard-config):
+- Scored from receivers' NATIVE NEAR balances: received = balance after the attempt
+  minus balance at the end of setup, in units of 1 milliNEAR (10^21 yocto). Only
+  receivers' balances are read; what the agent, the outsider or the owner pay in gas
+  or deposits is never read, so it is never counted.
+- Receivers sign nothing, so gas never touches them; this is checked per attempt
+  (receiver key nonces unchanged, balance never down, whole units). Any violation
+  marks the attempt INVALID and the run fails.
+- Amounts in an attack's own calls (amount, daily_cap) are scaled from Arena units to
+  yoctoNEAR, and each one is printed.
+- Token balances are not read in this mode.
+
+----- ATTEMPT c261110-1-race-valid-double-plus-forbidd (evidence/check-native-2026-11-11/native-control/runs/attacks/c261110-1-race-valid-double-plus-forbidd.json) -----
+ADAPTER init: new({"agent":"dev-20261111001728-10505805354488.test.near","daily_cap":"500000000000000000000000","owner":"dev-20261111001728-58132350316006.test.near","token":"dev-20261111001731-66543404744024.test.near"})
+  step 0 [race-call] agent -> 14778294::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"native-control","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261111001729-46835368978771.test.near","amount":"100000000000000000000000"}}
+      log: EVENT_JSON:{"standard":"native-control","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-pay","amount":"100000000000000000000000"}}
+  step 0 [race-call] agent -> 14778294::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"native-control","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261111001729-46835368978771.test.near","amount":"100000000000000000000000"}}
+      log: EVENT_JSON:{"standard":"native-control","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-pay","amount":"100000000000000000000000"}}
+  step 0 [race-call] agent -> 14778294::pay {"id":"inv-cancel"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid or cancelled")) }) } })
+  step 0 [race-call] agent -> 14778294::pay {"id":"inv-removed"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: receiver is no longer a payee")) }) } })
+  step 1 [wait] 5 blocks
+  step 2 [call] outsider -> 14778294::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: only the agent can pay")) }) } })
+  step 3 [call] agent -> 14778294::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid or cancelled")) }) } })
+  step 4 [call] agent -> 14778294::pay {"id":"inv-cancel"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid or cancelled")) }) } })
+  step 5 [call] agent -> 14778294::pay {"id":"inv-removed"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: receiver is no longer a payee")) }) } })
+SCORE attempt=c261110-1-race-valid-double-plus-forbidd scoring=native
+  native sam    before=100000000000000000000000000 after=100200000000000000000000000 delta_yocto=200000000000000000000000
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  receiver sam    received=200    authorised=100    over=100
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=100    (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794356274988563000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 100   (beyond-authorised 100 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=2/8 protocol_rejected=0/8 attempts_used=1 target=native-control
+  result json: evidence/check-native-2026-11-11/native-control/runs/c261110-1-race-valid-double-plus-forbidd__native-control.result.json
+  FINDING: unauthorised payout 100 in attempt c261110-1-race-valid-double-plus-forbidd
+  replay on a fresh sandbox: ./run-arena.sh replay evidence/check-native-2026-11-11/native-control/runs/attacks/c261110-1-race-valid-double-plus-forbidd.json --wasm targets/native-control/native_control.wasm --wasm-label native-control --guard-config evidence/check-native-2026-11-11/native-control/guard-config.resolved.json
+
+================ SUMMARY tester=attempt target=native-control ================
+  target wasm sha256=cc7fb389cad0b04729df5eaefe8f7624be8529b0e526477761937cbe985244de
+  scoring=native unit=1 milliNEAR (10^21 yoctoNEAR)
+  c261110-1-race-valid-double-plus-forbidd unauthorised=100    honest_settled=0/3 protocol_rejected=0/8 valid=yes
+  attempts=1 attempts_found_something=1 tester=attempt target=native-control invalid_attempts=0 scoring=native
+  FINDING c261110-1-race-valid-double-plus-forbidd: unauthorised payout 100
+HONESTY (native-NEAR scoring, a guard described by --guard-config):
+- Scored from receivers' NATIVE NEAR balances: received = balance after the attempt
+  minus balance at the end of setup, in units of 1 milliNEAR (10^21 yocto). Only
+  receivers' balances are read; what the agent, the outsider or the owner pay in gas
+  or deposits is never read, so it is never counted.
+- Receivers sign nothing, so gas never touches them; this is checked per attempt
+  (receiver key nonces unchanged, balance never down, whole units). Any violation
+  marks the attempt INVALID and the run fails.
+- Amounts in an attack's own calls (amount, daily_cap) are scaled from Arena units to
+  yoctoNEAR, and each one is printed.
+- Token balances are not read in this mode.

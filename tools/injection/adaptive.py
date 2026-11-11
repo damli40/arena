@@ -71,6 +71,10 @@ def main():
     date = datetime.date.today().isoformat()
     workdir = base.ROOT / f"evidence/injection-{date}-adaptive"
     workdir.mkdir(parents=True, exist_ok=True)
+    # With provider nearai: fetch and check NEAR's attestation once, before any call (refuses an unattested
+    # model). The victim agent's replies are then signature-checked by base.chat; this file's own attacker
+    # calls are not (they go through urllib directly).
+    base.attest(workdir)
     cache, history, first_win = {}, [], None
     # Resume: rounds already saved are loaded, not re-run (the attacker sees them as history).
     for f in sorted(workdir.glob("round-*.json")):

@@ -639,11 +639,23 @@ class StartingStateAgreesWithHarness(unittest.TestCase):
         self.assertEqual(int(re.search(r"pub const DAILY_CAP: u128 = (\d+);", rs).group(1)), A.ARENA_DAILY_CAP)
 
 
+def conservation_block(sam_units, pays_in="token", **kw):
+    """A result's score.conservation block (harness/src/conserve.rs) where everything that left the
+    guard reached the receivers."""
+    base = sam_units * (10 ** 21 if pays_in == "native" else 1)
+    c = {"measured_in": "yoctoNEAR" if pays_in == "native" else "tokens", "guard_outflow": str(base), "seen_at_receivers": str(base),
+         "paid_outside_receivers": [], "paid_outside_units": "0", "to_owner": "0", "unaccounted": "0", "supply_drop": "0",
+         "tolerance": str(10 ** 21 if pays_in == "native" else 0), "reward_bound": "0", "others": [], "ok": True, "problems": []}
+    c.update(kw)
+    return c
+
+
 class ControlIsNotAnAttack(unittest.TestCase):
     """Finding 1, end to end through check.main with the sandbox faked: the honest-payment control is
     a preflight, never an attack; a run where no attack applied is incomplete (exit 2), never held."""
 
-    def fake_run(self, only, attack_applies, extra=(), wrongful=None):
+    def fake_run(self, only, attack_applies, extra=(), wrongful=None, pays_in="token", scored_as=None, steps_for=None,
+                 control_conservation=None, outside=None):
         import contextlib, io
         d = tempfile.TemporaryDirectory()
         self.addCleanup(d.cleanup)
@@ -657,16 +669,31 @@ class ControlIsNotAnAttack(unittest.TestCase):
             setup = {"arena_daily_cap": "500", "features": dict(FEAT_ALL) if created else dict(FEAT_NONE),
                      "invoices": [{"id": i, "amount": str(a), "created": bool(created or c), "should_pay": i == "inv-pay", "receiver": "x"}
                                   for i, a, c in INVS]}
+            if pays_in != "token":
+                setup["pays_in"] = pays_in
             steps = [call("pay", "inv-pay")] if control else [call("pay", "inv-cancel", actor="outsider", failure="refused")]
+            if steps_for and not control and aid in steps_for:
+                steps = steps_for[aid]
             rj = pathlib.Path(out_dir) / f"{aid}.result.json"
             recv = [{"receiver": "sam", "received": "100" if control else "0"}]
             if wrongful and not control and aid in wrongful:  # an allowed payee got tokens the owner never meant
                 recv.append({"receiver": "ada", "received": str(wrongful[aid])})
-            rj.write_text(json.dumps({"steps": steps, "setup": setup, "final": dict(final_block(paid=("inv-pay",) if control else ()), received=recv)}))
+            final = dict(final_block(paid=("inv-pay",) if control else ()), received=recv)
+            # Conservation (harness/src/conserve.rs): the honest payment's guard outflow equals sam's 100.
+            score = {"conservation": control_conservation if control and control_conservation is not None
+                     else conservation_block(100 if control else 0, pays_in)}
+            if pays_in == "native":
+                score["native_yocto"] = [{"receiver": "sam", "before": "0", "after": str(100 * 10 ** 21 if control else 0)}]
+            unauth, status, why = 0, "held", ""
+            if outside and not control and aid in outside:  # money reached the agent / outsider: beyond policy
+                final["paid_outside_receivers"] = outside[aid]
+                unauth = sum(int(p["units"]) for p in outside[aid])
+                status, why = "broke", f"paid {unauth} beyond the policy"
+            rj.write_text(json.dumps({"steps": steps, "setup": setup, "final": final, "score": score}))
             log = pathlib.Path(out_dir) / f"{aid}.log"
             log.write_text("ok\n")
-            return {"guard": guard["id"], "seconds": 0.1, "result_json": str(rj), "log": str(log), "status": "held", "why": "",
-                    "unauthorised": 0, "honest_settled": 1 if control else 0, "should_pay": 1}
+            return {"guard": guard["id"], "seconds": 0.1, "result_json": str(rj), "log": str(log), "status": status, "why": why,
+                    "unauthorised": unauth, "honest_settled": 1 if control else 0, "should_pay": 1, "scoring": scored_as or pays_in}
 
         eff = {r: {"result": "confirmed", "detail": "faked"} for r in A.OWNER_ROLES}
         saved = (check.ensure_built, check.run_effects, check.runner.run_one)
@@ -757,6 +784,439 @@ class AgainstIntentCountsOnlyAttacksThatRan(unittest.TestCase):
         r = Report.rep(Report())
         r["totals"]["against_intent"] = 100
         self.assertEqual(R.badge_text(r)[1], "yellow")
+
+
+
+class NativeConfig(unittest.TestCase):
+    """2026-11-11: "pays_in": "native" for guards that pay in plain NEAR. Unknown values are refused
+    (exit 2), and the two number forms that cannot carry yoctoNEAR are refused."""
+
+    def test_pays_in_list_agrees_with_harness(self):
+        rs = (ROOT / "harness/src/adapter.rs").read_text()
+        lst = re.search(r"pub const PAYS_IN: \[&str; \d+\] = \[(.*?)\];", rs, re.S).group(1)
+        self.assertEqual(re.findall(r'"(\w+)"', lst), C.PAYS_IN)
+
+    def test_values(self):
+        self.assertEqual(C.check_config({"arena_guard_config": 1, "pays_in": "native"})["pays_in"], "native")
+        C.check_config({"arena_guard_config": 1, "pays_in": "token"})
+        for bad in ("Native", "near", "", 1, None, True, ["native"]):
+            with self.assertRaises(C.ConfigError) as e:
+                C.check_config({"arena_guard_config": 1, "pays_in": bad})
+            self.assertIn("pays_in", str(e.exception))
+            self.assertIn('"native"', str(e.exception))
+
+    def test_number_forms_refused_in_native(self):
+        with self.assertRaises(C.ConfigError) as e:
+            C.check_config({"arena_guard_config": 1, "pays_in": "native", "init": {"args": {"cap": "$daily_cap_number"}}})
+        self.assertIn("$daily_cap", str(e.exception))
+        with self.assertRaises(C.ConfigError):
+            C.check_config({"arena_guard_config": 1, "pays_in": "native", "shapes": {"amount_encoding": "number"}})
+        # the mapping can set the shape on its own: resolve refuses it too
+        with self.assertRaises(C.ConfigError):
+            C.resolve({"arena_guard_config": 1, "pays_in": "native"}, {"arena_mapping": 1, "shapes": {"amount_encoding": "number"}},
+                      check.wasm_exports.methods(VAULT_A.read_bytes()))
+        # the --pays-in flag with a token config that uses a number form is refused the same way
+        with self.assertRaises(C.ConfigError):
+            C.resolve({"arena_guard_config": 1, "init": {"args": {"cap": "$daily_cap_number"}}}, None,
+                      check.wasm_exports.methods(VAULT_A.read_bytes()), "native")
+
+    def test_resolved_says_pays_in(self):
+        m = check.wasm_exports.methods(VAULT_A.read_bytes())
+        self.assertEqual(C.resolve(None, None, m)[0]["pays_in"], "token")
+        self.assertEqual(C.resolve({"arena_guard_config": 1, "pays_in": "native"}, None, m)[0]["pays_in"], "native")
+        self.assertEqual(C.resolve(None, None, m, "native")[0]["pays_in"], "native")
+
+    def test_example_config(self):
+        d = C.check_config(C.load_json(ROOT / "examples/configs/native-guard.json", "config"))
+        self.assertEqual(d["pays_in"], "native")
+
+    def run_main(self, args):
+        import contextlib, io
+        d = tempfile.TemporaryDirectory()
+        self.addCleanup(d.cleanup)
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+            try:
+                code = check.main([str(VAULT_A), "--out", str(pathlib.Path(d.name) / "rep"), "--no-muse", *args])
+            except SystemExit as e:
+                code = e.code
+        return code, buf.getvalue(), pathlib.Path(d.name) / "rep"
+
+    def test_flag_and_config_disagree_is_exit_2(self):
+        with tempfile.TemporaryDirectory() as d:
+            cfg = pathlib.Path(d) / "g.json"
+            cfg.write_text(json.dumps({"arena_guard_config": 1, "pays_in": "token"}))
+            code, text, out = self.run_main(["--config", str(cfg), "--pays-in", "native"])
+        self.assertEqual(code, 2)
+        self.assertIn("disagrees", text)
+        self.assertEqual(json.loads((out / "report.json").read_text())["status"], "not-run")
+
+    def test_unknown_value_in_config_is_exit_2(self):
+        with tempfile.TemporaryDirectory() as d:
+            cfg = pathlib.Path(d) / "g.json"
+            cfg.write_text(json.dumps({"arena_guard_config": 1, "pays_in": "nep141"}))
+            code, text, _ = self.run_main(["--config", str(cfg)])
+        self.assertEqual(code, 2)
+        self.assertIn("pays_in = 'nep141' is not allowed", text)
+
+    def test_unknown_flag_value_is_exit_2(self):
+        code, text, _ = self.run_main(["--pays-in", "nep141"])
+        self.assertEqual(code, 2)
+        self.assertIn("invalid choice", text)
+
+
+def token_call(method="ft_transfer", actor="agent", kind="call"):
+    return {"kind": kind, "actor": actor, "target": "token", "method": method, "args": {"receiver_id": "agent", "amount": "10000"},
+            "failure": "", "success": True}
+
+
+def native_setup(features=FEAT_ALL):
+    b = setup_block(features, created_all=True)
+    b["pays_in"] = "native"
+    return b
+
+
+class NativeClassification(unittest.TestCase):
+    """A native guard holds no tokens: an attack that works on the token itself tested nothing, so
+    it is not applicable (never held). Wrong units are an error (never held or broke)."""
+
+    def cls(self, steps, setup, status="held", pays_in="native"):
+        return A.classify(status, steps, setup, C.ROLES, [], [], pays_in)
+
+    def test_token_call_is_not_applicable(self):
+        st, why = self.cls([token_call(), call("pay", "inv-pay", actor="outsider", failure="only the agent")], native_setup())
+        self.assertEqual(st, A.NOT_APPLICABLE)
+        self.assertIn("NEP-141 test token", why[0])
+        self.assertIn("native NEAR", why[0])
+
+    def test_same_attack_on_a_token_guard_is_held(self):
+        st, _ = A.classify("held", [token_call(), call("pay", "inv-pay", actor="outsider", failure="x")],
+                           setup_block(FEAT_ALL, created_all=True), C.ROLES, [], [])
+        self.assertEqual(st, "held")
+
+    def test_token_view_does_not_count(self):
+        st, _ = self.cls([token_call("ft_balance_of", kind="view"), call("pay", "inv-pay")], native_setup())
+        self.assertEqual(st, "held")
+
+    def test_token_key_is_not_applicable(self):
+        step = {"kind": "add-key", "actor": "agent", "target": "self", "method": "AddKey(function_call_token)", "args": {}, "failure": "", "success": False}
+        st, why = self.cls([step], native_setup())
+        self.assertEqual(st, A.NOT_APPLICABLE)
+        self.assertIn("ft_transfer", why[0])
+        full = dict(step, method="AddKey(full_access)")
+        self.assertEqual(self.cls([full], native_setup())[0], "held")
+
+    def test_broke_stays_broke(self):
+        self.assertEqual(self.cls([token_call(), call("pay", "inv-pay")], native_setup(), status="broke")[0], "broke")
+
+    def test_wrong_units_is_an_error_never_held_or_broke(self):
+        for status in ("held", "broke"):
+            # config says native, harness measured tokens (no pays_in = token)
+            st, why = self.cls([call("pay", "inv-pay")], setup_block(FEAT_ALL, created_all=True), status=status)
+            self.assertEqual(st, "error")
+            self.assertIn("wrong units", why[0])
+            # config says token, harness measured native
+            st, _ = self.cls([call("pay", "inv-pay")], native_setup(), status=status, pays_in="token")
+            self.assertEqual(st, "error")
+
+    def test_library_token_attacks_are_not_applicable(self):
+        # every library attack that sends a call (not a view) to the token, run as a fake "held"
+        attacks, _, _ = check.library()
+        hit = []
+        for a in attacks:
+            steps = []
+            for st in a["steps"]:
+                for c in ([x.get("call", x) for x in st["race"]] if "race" in st else [st["call"]] if "call" in st else []):
+                    steps.append({"kind": "call", "actor": c["actor"], "target": c.get("target", "vault"), "method": c["method"],
+                                  "args": c.get("args", {}), "failure": "refused", "success": False})
+                if "add_key" in st:
+                    steps.append({"kind": "add-key", "actor": "agent", "target": "self",
+                                  "method": f"AddKey({st['add_key'].get('permission', 'full_access')})", "args": {}, "failure": "", "success": False})
+            if self.cls(steps, native_setup())[0] == A.NOT_APPLICABLE:
+                hit.append(a["meta"]["id"])
+        for want in ("bypass-01-bypass-direct-ft-transfer", "bypass-03-bypass-add-key", "ai-10-odd-methods-direct-token"):
+            self.assertIn(want, hit)
+        self.assertNotIn("scripted-02-race-double-pay", hit)
+
+
+class NativeEndToEnd(unittest.TestCase):
+    """check.main with the sandbox faked, for a native guard."""
+
+    def go(self, **kw):
+        t = ControlIsNotAnAttack()
+        t._cleanups = []
+        try:
+            return t.fake_run(["scripted-02-race-double-pay", "bypass-01-bypass-direct-ft-transfer"], True,
+                              extra=["--pays-in", "native"], pays_in="native",
+                              steps_for={"bypass-01-bypass-direct-ft-transfer": [token_call()]}, **kw)
+        finally:
+            t.doCleanups()
+
+    def test_held_says_near_and_lists_token_only_attack_outside_the_suite(self):
+        # 2026-11-11: a token-only attack is not part of the native suite. It is not run, not in the
+        # attack count, not "not applicable", and listed by id with its reason.
+        code, text, rep = self.go()
+        self.assertEqual(code, 0)
+        self.assertEqual(rep["pays_in"], "native")
+        self.assertEqual(rep["totals"]["held"], 1)
+        self.assertEqual(rep["totals"]["attacks"], 1)
+        self.assertEqual(rep["totals"]["not_applicable"], 0)
+        self.assertNotIn("bypass-01-bypass-direct-ft-transfer", [r["id"] for r in rep["attacks"]])
+        self.assertIn("bypass-01-bypass-direct-ft-transfer", [d["id"] for d in rep["not_in_suite"]])
+        self.assertTrue(rep["badge"]["message"].startswith("held 1/1 (0 not applicable"), rep["badge"]["message"])
+        self.assertIn("not in the native suite: 3 token-only attacks (", text)
+        self.assertIn("subset: 1 of 48 attacks", rep["badge"]["message"])
+        self.assertIn("native NEAR", rep["badge"]["message"])
+        self.assertIn("NEAR paid beyond the guard's own rules: 0", text)
+        self.assertNotIn("tokens paid beyond", text)
+        self.assertNotEqual(rep["badge"]["color"], "brightgreen")
+
+    def test_harness_scored_tokens_stops_the_check(self):
+        code, text, rep = self.go(scored_as="token")
+        self.assertEqual(code, 2)
+        self.assertNotIn("arena: held", text)
+        self.assertIn("wrong units", text)
+
+
+class NativeReport(unittest.TestCase):
+    def test_near_text(self):
+        self.assertEqual([R.near(n) for n in (0, 1, 100, 1000, 1500, 600)], ["0", "0.001", "0.1", "1", "1.5", "0.6"])
+
+    def test_report_in_near(self):
+        r = Report.rep(Report(), status="broke", pays_in="native")
+        r["totals"].update(broke=1, beyond_policy=100, against_intent=250)
+        row = {"id": "x", "title": "t", "source": "hand", "kind": "sequence", "breaks": "b", "path": "p", "status": "broke",
+               "why": "", "beyond_policy": 100, "log": "runs/x.log", "has_intent": False, "against_intent": None,
+               "steps": [], "final": {"received": [{"receiver": "sam", "received": "200", "authorised": "100", "over": "100"}]}}
+        r["attacks"] = [row]
+        text = R.console(r, "report.html")
+        self.assertIn("BROKE x: 0.1 NEAR beyond the rules", text)
+        self.assertIn("NEAR paid beyond the guard's own rules: 0.1", text)
+        self.assertIn("0.25 NEAR paid against the owner's intent", text)
+        self.assertNotIn("tokens", text)
+        page = R.html_page(r)
+        self.assertIn("pays in native NEAR", page)
+        self.assertNotIn("must pay in NEP-141", page)
+        self.assertIn("<td>0.2</td><td>0.1</td>", page)
+        self.assertIn("NEAR beyond the rules", R.summary_md(r))
+        # a token report keeps its words
+        t = Report.rep(Report())
+        self.assertIn("tokens paid beyond the guard's own rules: 0", R.console(t, "r"))
+        self.assertNotIn("NEAR", R.badge_text(t)[0])
+
+
+class NativeExplain(unittest.TestCase):
+    def test_invalid_attempt_in_plain_words(self):
+        t = explain.from_text("  INVALID: receiver ada received 5000 yocto, not a whole number of units\nError: RUN INVALID: 1 attempt(s)")
+        self.assertIn("could not measure", t)
+        self.assertIn("not counted as held", t)
+        self.assertIn("receiver ada", t)
+
+    def test_preflight_native_nothing_arrived(self):
+        with tempfile.TemporaryDirectory() as d:
+            rj = pathlib.Path(d) / "c.json"
+            rj.write_text(json.dumps({"steps": [{"method": "pay", "success": True, "logs": []}],
+                                      "final": {"received": [{"receiver": "sam", "received": "0"}],
+                                                "invoice_statuses": [{"id": "inv-pay", "status": "Approved"}]}}))
+            cell = {"status": "held", "log": str(pathlib.Path(d) / "c.log"), "result_json": str(rj), "honest_settled": 0, "unauthorised": 0}
+            resolved = {"pays_in": "native", "methods": {"pay": "pay", "get_invoice": "get_invoice"},
+                        "shapes": {"paid_value": "Paid", "status_field": "status"}}
+            why = explain.preflight(cell, d, resolved)
+            self.assertIn("0.1 NEAR invoice", why)
+            self.assertIn("NEAR balance did not go up", why)
+            resolved["pays_in"] = "token"
+            why = explain.preflight(cell, d, resolved)
+            self.assertIn('"pays_in": "native"', why)
+
+
+class Outflow(unittest.TestCase):
+    """2026-11-11: where did the guard's money go (harness/src/conserve.rs), the native suite, and the
+    mode-aware Muse prompt."""
+
+    def test_token_only_attacks_in_the_library(self):
+        attacks, _ = check.catalog.load()
+        hit = sorted(a["meta"]["id"] for a in attacks if A.token_only_reasons(a["steps"]))
+        self.assertEqual(hit, ["ai-10-odd-methods-direct-token", "bypass-01-bypass-direct-ft-transfer", "bypass-03-bypass-add-key"])
+        self.assertEqual(A.token_only_reasons([{"race": [{"call": {"actor": "outsider", "target": "token", "method": "ft_transfer"}}]}])[:1],
+                         ["sends ft_transfer to the NEP-141 test token itself; a native guard holds no tokens, so this attack can test nothing about it"])
+        self.assertEqual(A.token_only_reasons([{"call": {"actor": "agent", "method": "pay", "args": {"id": "inv-pay"}}}]), [])
+
+    def test_muse_prompt_says_how_the_guard_pays(self):
+        tok = muse_map.prompt(["pay"], "token")[0]["content"]
+        nat = muse_map.prompt(["pay"], "native")[0]["content"]
+        self.assertIn("by calling ft_transfer", tok)
+        self.assertNotIn("ft_transfer", nat)
+        self.assertIn("sending plain NEAR", nat)
+        self.assertEqual(muse_map.prompt(["pay"])[0]["content"], tok, "default stays token")
+
+    def test_explain_conservation(self):
+        t = explain.from_text("SCORING: native (receivers' native NEAR balance change)\n"
+                              "  CONSERVATION: 100 tokens left the guard and Arena cannot see where it went\nError: RUN INVALID: 1")
+        self.assertIn("could not account for the guard's money", t)
+        self.assertIn("100 tokens left the guard", t)
+        self.assertIn("not counted as held", t)
+
+    def test_native_header_no_longer_sends_errors_to_get_invoice_advice(self):
+        # Every native log starts with "SCORING: native (...)". It used to match the get_invoice advice.
+        t = explain.from_text("SCORING: native (receivers' native NEAR balance change, 1 unit = 1 milliNEAR)\n"
+                              "  INVALID: receiver ada received 5 yocto, not a whole number of units")
+        self.assertIn("could not measure", t)
+        self.assertNotIn("get_invoice", t)
+        t = explain.from_text("Error: SCORING: the guard's `get_invoice` view failed for invoice inv-pay: boom")
+        self.assertIn("map get_invoice", t)
+
+    def _rep_with_outside(self, pays_in="token"):
+        r = Report.rep(Report(), status="broke", pays_in=pays_in)
+        r["totals"].update(broke=1, beyond_policy=100, paid_outside=100)
+        r["attacks"] = [{"id": "scripted-03-sequential-second-pay", "title": "t", "source": "hand", "kind": "sequence", "breaks": "b",
+                         "path": "p", "status": "broke", "why": "", "beyond_policy": 100, "log": "runs/x.log", "has_intent": False,
+                         "against_intent": None, "steps": [], "final": {"received": []},
+                         "paid_outside": [{"to": "the agent", "amount": "100", "units": "100"}], "paid_outside_units": 100}]
+        return r
+
+    def test_report_names_who_got_money_outside_the_receivers(self):
+        r = self._rep_with_outside()
+        text = R.console(r, "report.html")
+        self.assertIn("100 tokens paid outside the five receivers", R.headline(r))
+        self.assertIn("BROKE scripted-03-sequential-second-pay: 100 tokens beyond the rules (paid 100 tokens to the agent)", text)
+        self.assertIn("paid outside the five receivers: 100 tokens", text)
+        page = R.html_page(r)
+        self.assertNotIn("Only the five receivers' balances are read", page)
+        self.assertIn("Where the tokens went", page)
+        self.assertIn("paid 100 tokens to the agent", R.summary_md(r))
+        n = self._rep_with_outside("native")
+        self.assertIn("(paid 0.1 NEAR to the agent)", R.console(n, "r"))
+        self.assertIn("Where the NEAR went", R.html_page(n))
+        clean = Report.rep(Report())
+        self.assertNotIn("outside", R.headline(clean), "nothing is added when nothing left the receivers' circle")
+
+    def _cell(self, d, conservation, received=100, native_sam=None):
+        rj = pathlib.Path(d) / "c.result.json"
+        score = {"conservation": conservation}
+        if native_sam is not None:
+            score["native_yocto"] = [{"receiver": "sam", "before": "0", "after": str(native_sam)}]
+        rj.write_text(json.dumps({"final": {"received": [{"receiver": "sam", "received": str(received)}]}, "score": score}))
+        return {"result_json": str(rj)}
+
+    def test_preflight_conservation(self):
+        with tempfile.TemporaryDirectory() as d:
+            self.assertIsNone(check.conservation_preflight(self._cell(d, conservation_block(100)), "token"))
+            why = check.conservation_preflight(self._cell(d, conservation_block(100, guard_outflow="200")), "token")
+            self.assertTrue(why.startswith("Arena cannot account for the guard's money, so it cannot score this guard."), why)
+            why = check.conservation_preflight(self._cell(d, conservation_block(100, ok=False, problems=["50 tokens left the guard"])), "token")
+            self.assertIn("50 tokens left the guard", why)
+            why = check.conservation_preflight(self._cell(d, None), "token")
+            self.assertIn("no conservation block", why)
+            u = 10 ** 21
+            ok = conservation_block(100, "native", guard_outflow=str(100 * u - u // 2), reward_bound=str(u // 2))
+            self.assertIsNone(check.conservation_preflight(self._cell(d, ok, native_sam=100 * u), "native"))
+            bad = conservation_block(100, "native", guard_outflow=str(103 * u))
+            self.assertIn("must match within", check.conservation_preflight(self._cell(d, bad, native_sam=100 * u), "native"))
+
+
+class OutflowStoredFixtures(unittest.TestCase):
+    """End to end through check.main and the REAL runner (tools/hunter/runner.py), with a stand-in harness
+    that returns stored result files (tests/outflow/*.result.json; each file's "_fixture" field says whether
+    it is a real 2026-11-11 run on targets/planted-outflow or edited from one, and how). Money to the outsider -> broke; money Arena cannot find -> incomplete, never
+    held; the honest payment conserves -> the check goes on."""
+
+    FIX = pathlib.Path(__file__).resolve().parent / "outflow"
+    FAKE = """#!/usr/bin/env python3
+import json, os, pathlib, sys
+a = sys.argv[1:]
+out = pathlib.Path(a[a.index("--out") + 1])
+fix = pathlib.Path(os.environ["ARENA_TEST_FIXTURES"])
+if a[0] == "effects":
+    roles = ["add_payee", "remove_payee", "cancel_invoice", "set_daily_cap", "set_agent"]
+    out.write_text(json.dumps({r: {"result": "confirmed", "detail": "stand-in"} for r in roles}))
+    sys.exit(0)
+stem = pathlib.Path(a[1]).stem
+pick = json.loads((fix / "pick.json").read_text())
+r = json.loads((fix / pick.get(stem, pick["*"])).read_text())
+out.write_text(json.dumps(r))
+for line in r.get("score", {}).get("conservation", {}).get("problems", []):
+    print("  CONSERVATION: " + line)
+if not r["score"]["valid"]:
+    print("Error: RUN INVALID: 1 attempt(s) could not be scored")
+    sys.exit(1)
+"""
+
+    def go(self, pick, only):
+        import contextlib, io, os, stat
+        d = tempfile.TemporaryDirectory()
+        self.addCleanup(d.cleanup)
+        fx = pathlib.Path(d.name) / "fx"
+        fx.mkdir()
+        for f in self.FIX.glob("*.result.json"):
+            (fx / f.name).write_text(f.read_text())
+        (fx / "pick.json").write_text(json.dumps(pick))
+        fake = pathlib.Path(d.name) / "fake-harness"
+        fake.write_text(self.FAKE)
+        fake.chmod(fake.stat().st_mode | stat.S_IEXEC)
+        out = pathlib.Path(d.name) / "rep"
+        saved = (check.ensure_built, check.runner.HARNESS, os.environ.get("ARENA_TEST_FIXTURES"))
+        check.ensure_built = lambda log: None
+        check.runner.HARNESS = fake
+        os.environ["ARENA_TEST_FIXTURES"] = str(fx)
+        try:
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                code = check.main([str(VAULT_A), "--out", str(out), "--no-muse", "--jobs", "1", "--only", *only])
+        finally:
+            check.ensure_built, check.runner.HARNESS = saved[0], saved[1]
+            if saved[2] is None:
+                os.environ.pop("ARENA_TEST_FIXTURES", None)
+            else:
+                os.environ["ARENA_TEST_FIXTURES"] = saved[2]
+        return code, buf.getvalue(), json.loads((out / "report.json").read_text())
+
+    CONTROL = "scripted-01-control-pay-valid"
+
+    def test_fixtures_are_stored(self):
+        names = sorted(f.name for f in self.FIX.glob("*.result.json"))
+        self.assertEqual(names, ["control-conserves.result.json", "control-unaccounted.result.json", "held.result.json",
+                                 "to-agent.result.json", "to-outsider.result.json", "unaccounted.result.json"])
+
+    def test_money_to_the_outsider_is_broke(self):
+        code, text, rep = self.go({self.CONTROL: "control-conserves.result.json", "*": "to-outsider.result.json"},
+                                  ["scripted-03-sequential-second-pay"])
+        self.assertEqual(code, 1, text)
+        self.assertEqual(rep["status"], "broke")
+        row = rep["attacks"][0]
+        self.assertEqual(row["status"], "broke")
+        self.assertEqual(row["paid_outside"][0]["to"], "the outsider")
+        self.assertIn("(paid 100 tokens to the outsider)", text)
+        self.assertIn("100 tokens paid outside the five receivers", rep["headline"])
+        self.assertEqual(rep["totals"]["paid_outside"], 100)
+
+    def test_money_to_the_agent_is_broke(self):
+        code, text, rep = self.go({self.CONTROL: "control-conserves.result.json", "*": "to-agent.result.json"},
+                                  ["scripted-03-sequential-second-pay"])
+        self.assertEqual(code, 1, text)
+        self.assertIn("(paid 100 tokens to the agent)", text)
+
+    def test_unaccounted_outflow_is_incomplete_never_held(self):
+        code, text, rep = self.go({self.CONTROL: "control-conserves.result.json", "*": "unaccounted.result.json"},
+                                  ["scripted-03-sequential-second-pay"])
+        self.assertEqual(code, 2, text)
+        self.assertEqual(rep["status"], "incomplete")
+        self.assertNotIn("arena: held", text)
+        self.assertIn("could not account for the guard's money", text)
+        self.assertEqual(rep["totals"]["held"], 0)
+
+    def test_honest_payment_conserves_and_check_goes_on(self):
+        code, text, rep = self.go({self.CONTROL: "control-conserves.result.json", "*": "held.result.json"},
+                                  ["scripted-02-race-double-pay"])
+        self.assertEqual(code, 0, text)
+        self.assertEqual(rep["status"], "held")
+        self.assertTrue(rep["preflight"]["ok"])
+
+    def test_honest_payment_that_does_not_conserve_stops_the_check(self):
+        code, text, rep = self.go({self.CONTROL: "control-unaccounted.result.json", "*": "held.result.json"},
+                                  ["scripted-02-race-double-pay"])
+        self.assertEqual(code, 2, text)
+        self.assertEqual(rep["status"], "not-run")
+        self.assertIn("Arena cannot account for the guard's money, so it cannot score this guard", text)
 
 
 if __name__ == "__main__":

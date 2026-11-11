@@ -4,3 +4,5 @@ evidence/verify-*.out
 .DS_Store
 __pycache__/
 *.pyc
+guards/outside/
+arena-report/

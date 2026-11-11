@@ -2,9 +2,9 @@
 # Local dry run of .github/workflows/hunt.yml: the same ci-steps.sh steps, in the same order.
 #
 #   tools/hunter/ci-local.sh          offline: canned paper + canned news (stand-in for Elfa, no network)
-#                                     + canned model replies (no key, no Muse call), but REAL sandbox runs
+#                                     + canned model replies (no key, no model call), but REAL sandbox runs
 #                                     against every guard; writes to a temp dir only
-#   tools/hunter/ci-local.sh --real   same, with a real arXiv search, real Elfa calls and real Muse calls
+#   tools/hunter/ci-local.sh --real   same, with a real arXiv search, real Elfa calls and real model calls
 #                                     (still a temp dir)
 #
 # It first checks that the workflow still calls exactly these steps, so the two cannot drift apart.

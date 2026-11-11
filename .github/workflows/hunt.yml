@@ -1,6 +1,16 @@
-# Daily hunt: Muse reads recent security papers and recent hack news (Elfa AI summaries of posts on
+# Daily hunt: a model reads recent security papers and recent hack news (Elfa AI summaries of posts on
 # X/Telegram), proposes attacks as data, and the bench runs them on a LOCAL sandbox (inside this
 # runner) against every opt-in guard in guards/registry.json.
+#
+# Which model, per job (chosen by the 2026-11-11 quality gate, evidence/nearai-2026-11-11.md):
+#   papers: z-ai/glm-5.3-flash on NEAR AI Cloud private inference. Before its first call the hunt
+#           fetches NEAR's attestation report (fresh nonce), checks it, and saves it with its sha256 in
+#           the hunt record; every reply's NEAR signature is checked against the attested model key.
+#           The Intel quote is checked with dcap-qvl (pinned, installed by ci-steps.sh build).
+#   news:   Meta Muse Spark (no attestation). The attested model's news replies failed the
+#           validator more often, so news stays on Muse. ARENA_NEWS_MODEL_PROVIDER=nearai switches it.
+# The scoring is plain code on the local sandbox; the attestation says which model wrote the
+# attacks, not whether they are good or whether a guard result is right.
 #
 # Results leave as a workflow ARTIFACT only. This job never pushes. Why not commit to a
 # hunt-results branch: that needs `contents: write`, and this job feeds untrusted text (paper
@@ -12,16 +22,24 @@
 # The used list (papers and news post links) survives between runs through actions/cache, so a
 # paper or news item is not re-attacked every day even though nothing is committed.
 #
-# Needs one repository secret: MUSE_API_KEY. ELFA_API_KEY is optional: without it the news source is
-# skipped with a log line and the paper hunt still runs. Each news hunt makes at most 2 Elfa calls
+# Repository secrets: NEARAI_API_KEY (papers), MUSE_API_KEY (news; without it the news source is
+# skipped with a log line and the paper hunt still runs), ELFA_API_KEY (optional: without it the news
+# source is skipped too). Each news hunt makes at most 2 Elfa calls
 # (about 5 credits each; the free tier fails closed and never bills). The schedule below runs 4 news
 # hunts a day (one with papers, three news-only), so at most 8 Elfa calls, about 40 credits, a day.
+#
+# Model cost. All model calls in one hunt share a hard cap of 20. The 01:17 run makes 0-12 NEAR calls
+# (1 paper scoring + up to 5 papers, each with at most 1 repair + 1 combine) and 0-11 Muse calls for
+# news (1 scoring + up to 5 items with at most 1 repair). The 3 news-only runs make 0-11 Muse calls
+# each and 0 NEAR calls. Measured on 2026-11-11: about $0.0015 per glm-5.3-flash call at NEAR's listed
+# prices (0.08 / 0.50 USD per million tokens in / out), so at most about $0.02 of NEAR AI a day (about
+# $0.60 a month); a day with no new papers costs $0. Muse usage is unchanged for news.
 #
 # Schedule, chosen to be quick without wasting runs:
 #   01:17 UTC  papers + news. arXiv releases new papers at 20:00 US Eastern: 01:00 UTC in winter,
 #              00:00 UTC in summer, so this run is the first one after each release.
 #   07:17, 13:17, 19:17 UTC  news only (posts arrive all day; papers do not). A news-only run with
-#              no new news item does not call Muse and does not start the canary's sandboxes. All logic is in tools/hunter/ci-steps.sh
+#              no new news item makes no model call and does not start the canary's sandboxes. All logic is in tools/hunter/ci-steps.sh
 # (tools/hunter/ci-local.sh runs the same steps locally and fails if this file drifts).
 name: paper-hunt
 
@@ -91,7 +109,8 @@ jobs:
 
       - name: Hunt
         env:
-          MUSE_API_KEY: ${{ secrets.MUSE_API_KEY }}
+          NEARAI_API_KEY: ${{ secrets.NEARAI_API_KEY }}   # papers job (NEAR AI Cloud, attested)
+          MUSE_API_KEY: ${{ secrets.MUSE_API_KEY }}       # news job; missing = news skipped
           ELFA_API_KEY: ${{ secrets.ELFA_API_KEY }}   # optional; missing = news skipped
           # Inputs go through env, never pasted into the script; ci-steps.sh validates each.
           HUNT_DAYS: ${{ inputs.days || '7' }}

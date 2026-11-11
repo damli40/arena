@@ -216,6 +216,155 @@ function datesOf(ds) {
   return joinAnd([...new Set(ds.map((d) => d.published_date))]);
 }
 
+// ---------- opt-in and on-chain result (added 2026-11-11) ----------
+// Both are read from the same Arena contract, at the same block. Neither ever changes `status`:
+// they are shown next to the answer. A failed read says "could not read", never "opted in".
+
+export const OPT_IN = Object.freeze({
+  OPTED_IN: "opted_in",
+  EXPIRED: "expired",
+  CODE_CHANGED: "code_changed",
+  NOT_OPTED_IN: "not_opted_in",
+  UNKNOWN: "unknown",
+});
+
+function optInSentence(o) {
+  switch (o.status) {
+    case OPT_IN.OPTED_IN:
+      return o.signer_role === "guard"
+        ? "This guard's own account signed a note on chain saying Arena may test it."
+        : `The account that created this guard (${o.signed_by}) signed a note on chain saying Arena may test it.`;
+    case OPT_IN.EXPIRED:
+      return "This guard once said on chain that Arena may test it, but that permission has run out.";
+    case OPT_IN.CODE_CHANGED:
+      return "This guard said on chain that Arena may test it, but its code has changed since. The permission was for the old code, not the code it runs now.";
+    case OPT_IN.NOT_OPTED_IN:
+      return "This guard has not said on chain that Arena may test it.";
+    default:
+      return "Could not read whether this guard said on chain that Arena may test it.";
+  }
+}
+
+// One wasm can run in more than one mode (the planted-flaw guard and the fixed guard share their
+// code), so "the result for this code hash" is not one answer. A stored result counts for THIS
+// guard only when its `setup` is empty or is exactly `mode=<what this guard's get_mode() says>`.
+// A result stored for another setup is listed, and never decides the status.
+function setupList(others) {
+  return others.map((o) => `${o.setup}: ${o.status}`).join("; ");
+}
+
+function otherSetupsWords(others) {
+  if (!others || others.length === 0) return "";
+  return ` Arena also has results on chain for this same code set up another way (${setupList(others)}). Those do not count for this guard as it is set up now.`;
+}
+
+function resultSentence(r) {
+  const setup = r.setup ? ` It only counts for a guard set up like this: ${r.setup}.` : "";
+  const others = otherSetupsWords(r.other_setups);
+  switch (r.status) {
+    case "held":
+      return `On chain, Arena's newest result for this exact code is "held": the attacks Arena ran found no way past it. Attacks Arena did not run might.${setup}${others}`;
+    case "broke":
+      return `On chain, Arena's newest result for this exact code is "broke": an attack Arena ran got money out.${setup}${others}`;
+    case "incomplete":
+      return `On chain, Arena's newest result for this exact code is "incomplete", so it says nothing either way.${setup}${others}`;
+    case "not_tested":
+      if (r.other_setups && r.other_setups.length) {
+        return `Arena has no result on chain for this exact code set up the way this guard is${r.guard_mode ? ` (mode "${r.guard_mode}")` : ""}.${others}`;
+      }
+      return "Arena has no result on chain for this exact code yet.";
+    case "unclear_setting":
+      return `Arena has results on chain for this exact code, but each one only counts for a guard set up a certain way (${setupList(r.other_setups || [])}), and this lookup could not read how this guard is set up. So none of them can be pinned on this guard.`;
+    default:
+      return "Could not read Arena's on-chain result for this code.";
+  }
+}
+
+// What the contract stores. "not_tested" is only ever an answer, never a stored result.
+const STORED_STATUSES = new Set(["held", "broke", "incomplete"]);
+const WORST_FIRST = { broke: 0, incomplete: 1, held: 2 };
+
+/**
+ * Turn the contract's full list of results for one code hash into the one answer for this guard.
+ * `modeRead` is the outcome of reading the guard's get_mode() (see readMode). Pure: no network.
+ */
+export function resolveOnchainResults(list, codeHash, suiteFilter, modeRead) {
+  const bad = (error) => ({ status: "unknown", error });
+  if (!Array.isArray(list)) return bad("arena_results_for did not return a list");
+  for (const r of list) {
+    if (!r || typeof r !== "object" || r.guard_code_hash !== codeHash || !STORED_STATUSES.has(r.status) ||
+        typeof r.suite !== "string" || !(r.setup === null || r.setup === undefined || typeof r.setup === "string")) {
+      return bad("arena_results_for returned a result for a different code hash or in an unexpected shape");
+    }
+  }
+  const latest = new Map();
+  list.forEach((r, i) => latest.set(r.suite, { r, i })); // the list is oldest first, so later wins
+  let picked = [...latest.values()];
+  if (suiteFilter) picked = picked.filter((p) => p.r.suite === suiteFilter);
+  const modeOk = Boolean(modeRead) && modeRead.mode_read === "ok";
+  const guardMode = modeOk ? modeRead.mode : null;
+  const applies = (r) => !r.setup || (modeOk && r.setup === `mode=${guardMode}`);
+  const counted = picked.filter((p) => applies(p.r));
+  const other_setups = picked.filter((p) => !applies(p.r)).map((p) => ({ suite: p.r.suite, setup: p.r.setup, status: p.r.status }));
+  const empty = { suite: null, setup: null, arena_commit: null, attacks_ran: null, not_applicable: null, beyond_policy: null,
+    against_intent: null, evidence_path: null, evidence_sha256: null, attestation_sha256: null, published_at_ns: null };
+  if (counted.length === 0) {
+    const status = other_setups.length && !modeOk ? "unclear_setting" : "not_tested";
+    return { status, ...empty, suites_considered: 0, other_setups, guard_mode: guardMode };
+  }
+  // The worst counted result decides (broke, then incomplete, then held); the newer one wins a tie.
+  counted.sort((a, b) => WORST_FIRST[a.r.status] - WORST_FIRST[b.r.status] || b.i - a.i);
+  const r = counted[0].r;
+  return { status: r.status, suite: r.suite, setup: r.setup ?? null, arena_commit: r.arena_commit, attacks_ran: r.attacks_ran,
+    not_applicable: r.not_applicable, beyond_policy: r.beyond_policy, against_intent: r.against_intent,
+    evidence_path: r.evidence_path, evidence_sha256: r.evidence_sha256, attestation_sha256: r.attestation_sha256,
+    published_at_ns: r.published_at, suites_considered: counted.length, other_setups, guard_mode: guardMode };
+}
+
+// The guard's mode, read once and used twice: for the on-chain result and for the receipts.
+// A network failure is kept in `fatal` and only ends the lookup where the receipts need the mode.
+async function readMode(rpc, at, accountId) {
+  try {
+    const m = await viewCall(rpc, at, accountId, "get_mode", {});
+    if (typeof m === "string" && m.length > 0) return { mode: m, mode_read: "ok" };
+    return { mode: null, mode_read: "unreadable", note: `get_mode() returned ${JSON.stringify(m)}, which is not a mode name.` };
+  } catch (e) {
+    if (e.kind !== "exec") return { mode: null, mode_read: "unreadable", fatal: e };
+    if (/MethodNotFound/i.test(e.message)) return { mode: null, mode_read: "no_get_mode" };
+    return { mode: null, mode_read: "unreadable", note: `get_mode() failed: ${e.message}` };
+  }
+}
+
+async function readOnchain(rpc, at, opts, accountId, codeHash, modeRead) {
+  let optIn;
+  try {
+    const o = await viewCall(rpc, at, opts.receiptsContract, "opt_in_of", { guard: accountId });
+    if (o === null) optIn = { status: OPT_IN.NOT_OPTED_IN };
+    else if (!o || o.guard !== accountId || typeof o.code_hash !== "string" || typeof o.active !== "boolean") {
+      optIn = { status: OPT_IN.UNKNOWN, error: "opt_in_of returned an unexpected shape" };
+    } else {
+      const status = !o.active ? OPT_IN.EXPIRED : o.code_hash !== codeHash ? OPT_IN.CODE_CHANGED : OPT_IN.OPTED_IN;
+      optIn = { status, signed_by: o.signed_by, signer_role: o.signer_role, code_hash: o.code_hash, contact: o.contact ?? null,
+        expires_at: o.expires_at ?? null, opted_in_at: o.opted_in_at, pays_in: o.pays_in ?? null };
+    }
+  } catch (e) {
+    optIn = { status: OPT_IN.UNKNOWN, error: e.message };
+  }
+  optIn.sentence = optInSentence(optIn);
+
+  let res;
+  try {
+    // Every result for this code, not the contract's one-line arena_result: with no suite named that
+    // returns the worst result of every suite, which for a shared wasm is the planted-flaw mode's.
+    const list = await viewCall(rpc, at, opts.receiptsContract, "arena_results_for", { guard_code_hash: codeHash });
+    res = resolveOnchainResults(list, codeHash, opts.suite || null, modeRead);
+  } catch (e) {
+    res = { status: "unknown", error: e.message };
+  }
+  res.sentence = resultSentence(res);
+  return { optIn, res };
+}
+
 // ---------- the lookup ----------
 
 /**
@@ -245,6 +394,8 @@ export async function lookup(accountId, options = {}) {
     error: null,
     receipts_contract: opts.receiptsContract,
     rpc: opts.rpcUrl,
+    opt_in: null, // { status, sentence, ... } once the code hash is known; never changes `status`
+    onchain_result: null, // arena_result for this exact code hash; never changes `status`
   };
   const done = (status, sentence, extra = {}) => ({ ...base, ...extra, status, sentence });
 
@@ -284,6 +435,13 @@ export async function lookup(accountId, options = {}) {
     return done(STATUS.NO_CONTRACT, `${accountId} has no contract deployed, so there is no guard code to look up.`);
   }
   base.code_hash = codeHash;
+  // The guard's mode is read here, once, so the on-chain result below can be matched to it.
+  const modeRead = await readMode(rpc, at, accountId);
+  {
+    const { optIn, res } = await readOnchain(rpc, at, opts, accountId, codeHash, modeRead);
+    base.opt_in = optIn;
+    base.onchain_result = res;
+  }
 
   // 2. Every receipt Arena published for this code (oldest first), then the newest per suite,
   //    which is what the contract's own latest(hash, suite) returns.
@@ -320,24 +478,11 @@ export async function lookup(accountId, options = {}) {
   base.receipts = described;
 
   // 3. The guard's mode. The broken and the fixed guard can share one wasm; only get_mode() tells them apart.
-  try {
-    const m = await viewCall(rpc, at, accountId, "get_mode", {});
-    if (typeof m === "string" && m.length > 0) {
-      base.mode = m;
-      base.mode_read = "ok";
-    } else {
-      base.mode_read = "unreadable";
-      base.notes.push(`get_mode() returned ${JSON.stringify(m)}, which is not a mode name.`);
-    }
-  } catch (e) {
-    if (e.kind !== "exec") return failed(new Error(`reading the guard's mode: ${e.message}`));
-    if (/MethodNotFound/i.test(e.message)) {
-      base.mode_read = "no_get_mode";
-    } else {
-      base.mode_read = "unreadable";
-      base.notes.push(`get_mode() failed: ${e.message}`);
-    }
-  }
+  //    (Read earlier, in readMode. A network failure there ends the lookup here, as it always did.)
+  if (modeRead.fatal) return failed(new Error(`reading the guard's mode: ${modeRead.fatal.message}`));
+  base.mode = modeRead.mode;
+  base.mode_read = modeRead.mode_read;
+  if (modeRead.note) base.notes.push(modeRead.note);
 
   // 4. Count only the results whose setting this lookup can read and that match this guard.
   for (const d of described) {
@@ -408,6 +553,8 @@ export function formatAnswer(a) {
     lines.push(`  published ${d.published_at}  tx ${d.publish_tx_url}`);
     lines.push(`  evidence  ${d.evidence_path}  sha256 ${d.evidence_sha256}`);
   }
+  if (a.opt_in) lines.push("", `opt-in:    ${a.opt_in.status}. ${a.opt_in.sentence}`);
+  if (a.onchain_result) lines.push(`on chain:  ${a.onchain_result.status}. ${a.onchain_result.sentence}`);
   if (a.notes.length) {
     lines.push("");
     for (const n of a.notes) lines.push(`note: ${n}`);

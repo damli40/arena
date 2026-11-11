@@ -1,0 +1,13 @@
+[package]
+name = "arena-example-caller"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+# A tiny example of an agent wallet asking Arena before paying. Sandbox test only; never deployed.
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+near-sdk.workspace = true

@@ -1,0 +1,37 @@
+{
+ "name": "pay-expired",
+ "steps": [
+  {
+   "wait_seconds": 30
+  },
+  {
+   "call": {
+    "actor": "agent",
+    "method": "pay",
+    "args": {
+     "id": "inv-expire"
+    }
+   }
+  },
+  {
+   "call": {
+    "actor": "agent",
+    "method": "pay",
+    "args": {
+     "id": "inv-expire"
+    }
+   }
+  }
+ ],
+ "meta": {
+  "id": "scripted-05-pay-expired",
+  "title": "Wait past expiry, then pay",
+  "source": "hand",
+  "kind": "sequence",
+  "breaks": "Pays an invoice after its expiry time.",
+  "expected_safe_result": "both calls refused after expiry; nothing paid",
+  "added": "2026-11-09",
+  "author": "scripted tester (harness/src/scripted.rs), written by hand from INTERFACE.md",
+  "steps_sha256": "33e96506259da3840de4153167747ad29a4d72aaae8039f6751155a3764e0c58"
+ }
+}

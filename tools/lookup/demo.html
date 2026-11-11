@@ -36,6 +36,9 @@
   .meta, .notes { font: 12px/1.6 var(--mono); color: var(--muted); overflow-wrap: anywhere; }
   .notes { border-top: 1px solid var(--line); padding-top: 12px; }
   .notes p { margin: 6px 0 0; }
+  .onchain { border-top: 1px solid var(--line); padding: 12px 0; font-size: 14px; overflow-wrap: anywhere; }
+  .onchain p { margin: 6px 0 0; }
+  .onchain p.label { font: 12px/1.6 var(--mono); color: var(--muted); margin: 0; }
   @media (max-width: 640px) { main.lookup { padding-top: 36px; } .card { padding: 18px 16px; } }
 </style>
 </head>
@@ -74,8 +77,8 @@
   "mode": "fixed",
   "mode_read": "ok",
   "block": {
-   "height": 277112853,
-   "hash": "6QNZEiPBq72aNNJbWK86phvDgiZaeTsJ5oWXBmKgrwH5"
+   "height": 277140123,
+   "hash": "5u3HkC2X3UhRgrbGJGBk9cMaRMfVW2JHsCTdchmYHWHy"
   },
   "suite_filter": null,
   "receipts": [
@@ -155,7 +158,34 @@
   ],
   "error": null,
   "receipts_contract": "receipts.dev-20261109195231-98743803426969.testnet",
-  "rpc": "https://rpc.testnet.fastnear.com"
+  "rpc": "https://rpc.testnet.fastnear.com",
+  "opt_in": {
+   "status": "opted_in",
+   "signed_by": "r11cfx4-guard.arena-race-funder-1111.testnet",
+   "signer_role": "guard",
+   "code_hash": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+   "contact": "Arena bench (Dami)",
+   "expires_at": null,
+   "opted_in_at": "1794356028614461530",
+   "pays_in": "token",
+   "sentence": "This guard's own account signed a note on chain saying Arena may test it."
+  },
+  "onchain_result": {
+   "status": "not_tested",
+   "suite": null,
+   "setup": null,
+   "arena_commit": null,
+   "attacks_ran": null,
+   "not_applicable": null,
+   "beyond_policy": null,
+   "against_intent": null,
+   "evidence_path": null,
+   "evidence_sha256": null,
+   "attestation_sha256": null,
+   "published_at_ns": null,
+   "suites_considered": 0,
+   "sentence": "Arena has no result on chain for this exact code yet."
+  }
  },
  {
   "account": "r11bvf3-guard.arena-race-funder-1111.testnet",
@@ -167,8 +197,8 @@
   "mode": "vulnerable_fixture",
   "mode_read": "ok",
   "block": {
-   "height": 277112854,
-   "hash": "Hv9HdAFhcxZ372d7iGNzsi1GrbRA7UnAGzhDgwuWbr99"
+   "height": 277140125,
+   "hash": "7jsYJE63RJPiG5fidy6oynAzMRMZdTfL3Ac2Vby5JE45"
   },
   "suite_filter": null,
   "receipts": [
@@ -247,7 +277,34 @@
   ],
   "error": null,
   "receipts_contract": "receipts.dev-20261109195231-98743803426969.testnet",
-  "rpc": "https://rpc.testnet.fastnear.com"
+  "rpc": "https://rpc.testnet.fastnear.com",
+  "opt_in": {
+   "status": "opted_in",
+   "signed_by": "arena-race-funder-1111.testnet",
+   "signer_role": "parent",
+   "code_hash": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+   "contact": "Arena bench (Dami)",
+   "expires_at": "1802131200000000000",
+   "opted_in_at": "1794356031621288940",
+   "pays_in": "token",
+   "sentence": "The account that created this guard (arena-race-funder-1111.testnet) signed a note on chain saying Arena may test it."
+  },
+  "onchain_result": {
+   "status": "not_tested",
+   "suite": null,
+   "setup": null,
+   "arena_commit": null,
+   "attacks_ran": null,
+   "not_applicable": null,
+   "beyond_policy": null,
+   "against_intent": null,
+   "evidence_path": null,
+   "evidence_sha256": null,
+   "attestation_sha256": null,
+   "published_at_ns": null,
+   "suites_considered": 0,
+   "sentence": "Arena has no result on chain for this exact code yet."
+  }
  }
 ]
 </script>
@@ -269,6 +326,26 @@ function el(tag, attrs = {}, ...kids) {
   return e;
 }
 function link(href, text) { return el("a", { href, target: "_blank", rel: "noopener" }, text); }
+const OPT_LABEL = {
+  opted_in: "Agreed to be tested", expired: "Agreement ran out", code_changed: "Code changed since it agreed",
+  not_opted_in: "Has not agreed to be tested", unknown: "Could not read",
+};
+function renderOnchain(a, card) {
+  if (!a.opt_in && !a.onchain_result) return;
+  const oc = el("div", { class: "onchain" });
+  oc.append(el("p", { class: "label" }, "Read from the Arena contract on NEAR testnet"));
+  if (a.opt_in) oc.append(el("p", {}, el("strong", {}, `${OPT_LABEL[a.opt_in.status] || a.opt_in.status}. `), a.opt_in.sentence));
+  if (a.onchain_result) {
+    const r = a.onchain_result;
+    const p = el("p", {}, el("strong", {}, "Result stored on chain. "), r.sentence);
+    if (r.arena_commit) {
+      p.append(el("br"), el("span", { class: "meta" }, `Arena commit ${r.arena_commit.slice(0, 12)}… · ${r.attacks_ran} attacks ran · evidence `),
+        el("code", {}, r.evidence_path), el("span", { class: "meta" }, ` sha256 ${r.evidence_sha256.slice(0, 12)}…`));
+    }
+    oc.append(p);
+  }
+  card.append(oc);
+}
 
 function render(a, offlineNote) {
   out.replaceChildren();
@@ -284,6 +361,7 @@ function render(a, offlineNote) {
   if (a.mode_read) meta.push(a.mode_read === "ok" ? `mode ${a.mode}` : a.mode_read === "no_get_mode" ? "no get_mode()" : "mode unreadable");
   if (a.block) meta.push(`read at block ${a.block.height}`);
   card.append(el("p", { class: "meta" }, meta.join(" · ")));
+  renderOnchain(a, card);
   if (a.receipts.length) {
     const ul = el("ul", { class: "receipts" });
     for (const d of a.receipts) {

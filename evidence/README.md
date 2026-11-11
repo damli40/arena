@@ -4,15 +4,17 @@ Every number in the top-level README points at a file in this folder. This page 
 
 ## Read this first: the `2026-11-11` tag is not a date
 
-Files and folders ending in `-2026-11-11` were made on **Nov 10 2026**.
+Files and folders ending in `-2026-11-11` were made on **Nov 10 or Nov 11 2026**. The tag marks the run, not the day.
 
-On Nov 10 we fixed a bug in the guard and re-ran everything on the same day. To stop the second run from overwriting the first run's logs, the second run was given the tag `2026-11-11` (`ARENA_DATE` in `verify.sh`; the reason is written down in `fix-plan-2026-11-11.md`, step 3). So:
+On Nov 10 we fixed a bug in the guard and re-ran everything on the same day. To stop the second run from overwriting the first run's logs, the second run was given the tag `2026-11-11` (`ARENA_DATE` in `verify.sh`; the reason is written down in `fix-plan-2026-11-11.md`, step 3). Work done on Nov 11 kept the same tag. So:
 
 | Tag in the file name | When it was made | Guard build |
 |---|---|---|
 | `2026-11-08`, `2026-11-09` | those days | `fcce82bf…` |
 | `2026-11-10` | Nov 10, before the fix | `fcce82bf…` |
-| `2026-11-11` | Nov 10, after the fix | `0382023b…` (current) |
+| `2026-11-11` | Nov 10 after the fix, or Nov 11 | `0382023b…` (current) |
+
+Made on Nov 11: `check-native-2026-11-11.md`, `check-outflow-2026-11-11.md`, `onchain-2026-11-11.md`, `nearai-2026-11-11.md`, `injection-2026-11-11-nearai-model.md`, and the two hunt records whose names start `hunts/2026-11-11-`. Every other file with this tag was made on Nov 10.
 
 The names are kept because the receipts saved on NEAR testnet point at these paths and carry a hash of each file. Renaming a file, or editing its text, would break that link. The same tag appears in some code comments for the same reason.
 
@@ -29,7 +31,14 @@ The names are kept because the receipts saved on NEAR testnet point at these pat
 | What is saved on NEAR testnet? | `receipts-testnet-2026-11-11.md` (current build), `receipts-testnet-2026-11-10.md` (first set) |
 | Did the full check suite pass on the current build? | `verify-2026-11-11.md`, `verify-summary.log` |
 | What did the paper-driven and news-driven attack runs find? | `hunts/` (one `.md` and one `.json` per run) |
-| What does a one-command guard check produce? | `check-2026-11-11/` (one report card per guard) |
+| Which model writes the hunter's attacks, where does it run, and what does NEAR AI's attestation show? | `nearai-2026-11-11.md`; re-check a saved report offline with `python3 -I tools/hunter/recheck_attestation.py evidence/hunts/2026-11-11-papers-e3db55.json` |
+| What does a one-command guard check produce? | `check-2026-11-11.md`, `check-2026-11-11/` (one report card per guard). These say `52/52`: that count included the honest payment made before the attacks. There are 51 attacks; `check-fixes-2-2026-11-11.md` records the correction |
+| What did the reviews of the one-command check find, and what was fixed? | `check-fixes-2026-11-11.md`, `check-fixes-2-2026-11-11.md` |
+| Does the check score a guard that pays in plain NEAR and not a token? | `check-native-2026-11-11.md` |
+| What happens when a guard pays an account the check was not watching? | `check-outflow-2026-11-11.md` |
+| How does a guard owner opt in on chain, and how does a contract ask for a result before it pays? | `onchain-2026-11-11.md` (what is live on testnet), `../docs/ON-CHAIN.md` (how to use it) |
+| Does the model on NEAR AI resist the same injections as the first model? | `injection-2026-11-11-nearai-model.md` |
+| How long from a paper or a hack report to a tested attack? | `response-time-2026-11-11.md` (a replay of the planned schedule, not a measurement of it) |
 
 ## Plans come before runs
 

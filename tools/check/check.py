@@ -3,6 +3,19 @@
 
   ./arena check <guard.wasm> [--config guard.json] [--mapping mapping.json] [--out arena-report]
                 [--fail-on beyond-policy|against-intent|never] [--jobs 4] [--no-muse] [--label NAME]
+                [--pays-in token|native]
+
+Token or native NEAR. A guard pays in NEP-141 tokens ("pays_in": "token", the default) or in plain
+NEAR ("pays_in": "native" in the config, or --pays-in native). Native guards are scored from
+receivers' NEAR balances; every amount in report.json is then in Arena units of 1 milliNEAR
+(10^21 yoctoNEAR), and the report shows NEAR. Receivers sign nothing, so gas never touches them.
+
+Where the money went (2026-11-11, harness/src/conserve.rs): every attempt also accounts for all the
+money that left the guard. Money at the agent, the outsider or an account the attack named is paid
+beyond the rules (broke); money Arena cannot find makes the attempt not finish (never held). The
+honest-payment preflight checks that this accounting works on the guard (conservation_preflight).
+For a native guard, attacks that work only on the test token are not part of the suite: they are
+listed in report.json "not_in_suite", not run, and in no count.
 
 What it does, in order:
  0. deletes the report files of any earlier run in --out, so a stale badge can never survive;
@@ -36,6 +49,7 @@ import guard_config as C, muse_map, report as R, explain, wasm_exports, applicab
 CONTROL_ID = "scripted-01-control-pay-valid"
 TOKEN_WASM = ROOT / "contracts/target/wasm32-unknown-unknown/release/test_token.wasm"
 FAIL_ON = ("beyond-policy", "against-intent", "never")
+YOCTO_PER_UNIT = {"token": 1, "native": 10 ** 21}  # harness/src/setup.rs NATIVE_UNIT
 REPORT_FILES = ("report.json", "report.html", "badge.svg", "shields.json", "summary.md", "mapping.json",
                 "guard-config.resolved.json", "effects.json", "effects.log", "build.log")
 # Sources each built file depends on. A source newer than the built file means rebuild.
@@ -133,6 +147,43 @@ def library():
     return uniq, problems, dups
 
 
+def outside_text(paid, native):
+    """Who outside the five receivers got the guard's money, in words: "100 tokens to the agent".
+    `paid` is the result's final.paid_outside_receivers list (units are Arena units)."""
+    unit = (lambda u: f"{R.near(u)} NEAR") if native else (lambda u: f"{u} tokens")
+    return ", ".join(f"{unit(int(p.get('units', 0)))} to {p.get('to', '?')}" for p in paid or [])
+
+
+def conservation_preflight(cell, pays_in):
+    """None if Arena could account for every bit of the guard's money on the honest payment; else a
+    plain reason (the check then stops, exit 2). Token: the guard's outflow must equal sam's 100
+    exactly. Native: within the tolerance plus the guard's gas-reward bound (conserve.rs)."""
+    head = "Arena cannot account for the guard's money, so it cannot score this guard. "
+    rj = pathlib.Path(cell["result_json"]) if cell.get("result_json") else None
+    rj = (rj if rj.is_absolute() else ROOT / rj) if rj else None
+    if not rj or not rj.exists():
+        return head + "The honest payment wrote no result file."
+    r = json.loads(rj.read_text())
+    c = (r.get("score") or {}).get("conservation")
+    if not c:
+        return head + "The honest payment's result has no conservation block (is the harness up to date?). This is a problem in Arena."
+    if not c.get("ok") or c.get("paid_outside_receivers"):
+        return head + "On the honest payment: " + "; ".join(c.get("problems") or ["money reached an account other than sam"]) + "."
+    out, seen = int(c["guard_outflow"]), int(c["seen_at_receivers"])
+    if pays_in == "native":
+        sam = next(((int(x["after"]) - int(x["before"])) for x in r["score"].get("native_yocto", []) if x["receiver"] == "sam"), 0)
+        slack = int(c["tolerance"]) + int(c["reward_bound"])
+        if seen != sam or abs(out - sam) > slack:
+            return head + (f"On the honest payment the guard's NEAR went down by {out} yocto (after deposits it kept) and sam got "
+                           f"{sam} yocto; they must match within {slack} yocto (1 milliNEAR plus the guard's gas-reward bound).")
+        return None
+    sam = next((int(x["received"]) for x in r["final"]["received"] if x["receiver"] == "sam"), 0)
+    if not (out == seen == sam == 100):
+        return head + (f"On the honest payment the guard's token balance went down by {out}, the receivers got {seen} and sam "
+                       f"got {sam}; all three must be exactly 100.")
+    return None
+
+
 def write_attack_file(a, d):
     p = d / f"{a['meta']['id']}.json"
     p.write_text(json.dumps({"name": a["name"], "steps": a["steps"], "meta": a["meta"]}, indent=1))
@@ -220,6 +271,9 @@ def main(argv=None):
     ap.add_argument("--jobs", type=int, default=4)
     ap.add_argument("--no-muse", action="store_true", help="never ask Muse for a mapping")
     ap.add_argument("--label", default=None, help="a short name for the guard in logs (default: the wasm file name)")
+    ap.add_argument("--pays-in", choices=C.PAYS_IN, default=None,
+                    help="token (the guard pays with ft_transfer on a NEP-141 token) or native (it sends plain NEAR). "
+                         "Default: the config's pays_in, else token")
     ap.add_argument("--only", nargs="*", help=argparse.SUPPRESS)  # attack ids (for debugging; the report says so)
     a = ap.parse_args(argv)
 
@@ -276,17 +330,24 @@ def _check(a, out, rep, started, finish):
                         "bytes": len(data), "exported_methods": methods}
 
         config = C.check_config(C.load_json(a.config, "config")) if a.config else None
+        if a.pays_in and config and "pays_in" in config and config["pays_in"] != a.pays_in:
+            raise explain.CheckError(f"--pays-in {a.pays_in} disagrees with \"pays_in\": \"{config['pays_in']}\" in {disp(a.config)}. "
+                                     "Say it in one place (the config, or the flag), so the report cannot measure the wrong money.")
+        pays_in = a.pays_in or (config or {}).get("pays_in", "token")
+        rep["pays_in"] = pays_in
+        rep["units"] = ({"pays_in": "token", "amounts": "tokens (the test token's own units)"} if pays_in == "token" else
+                        {"pays_in": "native", "amounts": "Arena units of 1 milliNEAR (1000 = 1 NEAR)", "yocto_per_unit": str(YOCTO_PER_UNIT["native"])})
         mapping, source = None, "none needed (names match the interface)"
         if a.mapping:
             mapping, source = C.check_mapping(C.load_json(a.mapping, "mapping")), f"--mapping {disp(a.mapping)}"
-        resolved, problems = C.resolve(config, mapping, methods)
+        resolved, problems = C.resolve(config, mapping, methods, pays_in)
         if problems and not a.mapping and not a.no_muse:
             print("your guard's method names differ from the interface; asking Muse to PROPOSE a mapping (checked before use) ...", flush=True)
-            proposal, mlog = muse_map.propose(methods, config or {})
+            proposal, mlog = muse_map.propose(methods, config or {}, pays_in=pays_in)
             rep["muse"] = mlog
             if proposal:
                 mapping, source = proposal, "Muse proposal (checked against the closed lists and your wasm's exports; review mapping.json)"
-                resolved, problems = C.resolve(config, mapping, methods)
+                resolved, problems = C.resolve(config, mapping, methods, pays_in)
             else:
                 problems.append(f"Muse could not supply a usable mapping ({mlog['result']}). Write one by hand: see docs/CHECK-YOUR-GUARD.md.")
         missing = C.missing_roles(resolved, methods)
@@ -306,6 +367,11 @@ def _check(a, out, rep, started, finish):
         # The control (one honest payment) is a preflight, not an attack: never counted as one.
         rep["library"] = {"attacks": sum(x["meta"]["id"] != CONTROL_ID for x in attacks), "control": CONTROL_ID, "problems": lib_problems,
                           "duplicates_skipped": [[d["meta"]["id"], o["meta"]["id"]] for d, o in dups]}
+        if pays_in == "native":
+            rep["not_in_suite"] = [{"id": x["meta"]["id"], "title": x["meta"]["title"], "path": x["path"], "reasons": why}
+                                   for x in attacks if x["meta"]["id"] != CONTROL_ID
+                                   for why in [A.token_only_reasons(x["steps"])] if why]
+            rep["library"]["native_suite"] = rep["library"]["attacks"] - len(rep["not_in_suite"])
         if lib_problems:
             raise explain.CheckError("Arena's attack library has files it could not load, so this would not be a full check:\n  - "
                                      + "\n  - ".join(str(p) for p in lib_problems))
@@ -320,6 +386,15 @@ def _check(a, out, rep, started, finish):
             rep["only"] = {"asked": a.only, "of": rep["library"]["attacks"]}
             attacks = [x for x in attacks if x["meta"]["id"] in set(a.only) | {CONTROL_ID}]
             rep["only"]["ran"] = sum(x["meta"]["id"] != CONTROL_ID for x in attacks)
+        if pays_in == "native":
+            # The native suite: attacks that work only on the NEP-141 test token are not run on a native
+            # guard. They are listed by id with the reason, outside every count (not "not applicable":
+            # they are not a gap in what the guard covers). Taken from the whole library, so the list is
+            # the same with or without --only.
+            skip = {d["id"] for d in rep["not_in_suite"]}
+            attacks = [x for x in attacks if x["meta"]["id"] not in skip]
+            if rep.get("only"):
+                rep["only"].update(of=rep["library"]["native_suite"], ran=sum(x["meta"]["id"] != CONTROL_ID for x in attacks))
         adir = out / "runs" / "attacks"
         adir.mkdir(parents=True, exist_ok=True)
         guard = {"id": label, "harness_flags": ["--wasm", str(wasm), "--wasm-label", label, "--guard-config", str(cfg_path)]}
@@ -335,6 +410,11 @@ def _check(a, out, rep, started, finish):
             f_eff = ex.submit(run_effects, guard, out)
             cell, (eff, eff_why) = f_cell.result(), f_eff.result()
         why = explain.preflight(cell, out, resolved)
+        if not why and cell.get("scoring") != pays_in:
+            why = (f"Preflight: the harness measured the honest payment as a {cell.get('scoring')} guard, but this check is for a "
+                   f"{pays_in} guard. Arena stops rather than score in the wrong units. This is a problem in Arena; please report it.")
+        if not why:
+            why = conservation_preflight(cell, pays_in)
         if why:
             rep["preflight"] = {"ok": False, "cell": cell}
             raise explain.CheckError(why)
@@ -353,7 +433,16 @@ def _check(a, out, rep, started, finish):
             rj = (rj if rj.is_absolute() else ROOT / rj) if rj else None
             result = json.loads(rj.read_text()) if rj and rj.exists() and c["status"] not in ("error", "skipped") else None
             st, reasons = A.classify(c["status"], (result or {}).get("steps", []), (result or {}).get("setup"),
-                                     C.ROLES, missing, unconfirmed)
+                                     C.ROLES, missing, unconfirmed, pays_in)
+            # Second guard on units: the score block says what the scorer read (token or native).
+            if st in ("held", "broke", A.NOT_APPLICABLE) and c.get("scoring") != pays_in:
+                st, reasons = "error", [f"the scorer read {c.get('scoring')} balances, but the config says {pays_in}"]
+                c["why"] = reasons[0]
+            if st == "broke" and pays_in == "native":  # the runner words it in Arena units; say NEAR
+                c["why"] = f"paid {R.near(c.get('unauthorised', 0))} NEAR beyond the policy"
+            paid = ((result or {}).get("final") or {}).get("paid_outside_receivers") or []
+            if st == "broke" and paid:
+                c["why"] += f" ({outside_text(paid, pays_in == 'native')}, outside the five receivers)"
             return st, reasons, result
 
         # The honest payment settled (explain.preflight stops the check otherwise). It is shown on
@@ -378,10 +467,14 @@ def _check(a, out, rep, started, finish):
                    "status": c["final_status"], "runner_status": c["status"], "not_applicable_because": c["na_reasons"],
                    "why": c.get("why", ""), "beyond_policy": c.get("unauthorised", 0),
                    "honest_settled": c.get("honest_settled"), "should_pay": c.get("should_pay"),
+                   "paid_outside": [], "paid_outside_units": 0,
                    "seconds": c.get("seconds"), "log": _rel(c.get("log"), out), "result_json": _rel(c.get("result_json"), out),
                       "has_intent": x["has_intent"], "against_intent": None, "honest_tried": [], "honest_refused": []}
             r = c.get("result")
             if r:
+                if row["status"] in ("held", "broke"):
+                    row["paid_outside"] = (r.get("final") or {}).get("paid_outside_receivers") or []
+                    row["paid_outside_units"] = sum(int(p.get("units", 0)) for p in row["paid_outside"])
                 row["steps"] = r.get("steps", [])
                 row["final"] = _final(r.get("final", {}))
                 if row["status"] in ("held", "broke"):
@@ -408,6 +501,9 @@ def _check(a, out, rep, started, finish):
             # attack tested nothing the guard claims, so what it paid is shown on its own
             # (against_intent_not_applicable) and never trips --fail-on.
             "beyond_policy": sum(int(r["beyond_policy"] or 0) for r in rows if r["status"] in ("held", "broke")),
+            # Part of beyond_policy: what reached the agent, the outsider or an account the attack named
+            # (harness/src/conserve.rs). Shown on its own so a reader sees money left the receivers' circle.
+            "paid_outside": sum(r["paid_outside_units"] for r in rows if r["status"] in ("held", "broke")),
             "against_intent": sum(r["against_intent"] or 0 for r in rows if r["status"] in ("held", "broke")),
             "intent_attacks": sum(r["against_intent"] is not None for r in rows if r["status"] in ("held", "broke")),
             "against_intent_not_applicable": sum(r["against_intent"] or 0 for r in rows if r["status"] == A.NOT_APPLICABLE),

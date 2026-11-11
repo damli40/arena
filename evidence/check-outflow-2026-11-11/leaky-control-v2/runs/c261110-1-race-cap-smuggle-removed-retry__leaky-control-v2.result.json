@@ -1,0 +1,338 @@
+{
+  "attempt": "c261110-1-race-cap-smuggle-removed-retry",
+  "final": {
+    "credited_by_invoice": [
+      {
+        "credited": "100",
+        "id": "inv-pay"
+      },
+      {
+        "credited": "50",
+        "id": "inv-small"
+      },
+      {
+        "credited": "200",
+        "id": "inv-mid"
+      },
+      {
+        "credited": "0",
+        "id": "inv-big"
+      },
+      {
+        "credited": "0",
+        "id": "inv-cancel"
+      },
+      {
+        "credited": "0",
+        "id": "inv-expire"
+      },
+      {
+        "credited": "0",
+        "id": "inv-removed"
+      }
+    ],
+    "invoice_statuses": [
+      {
+        "id": "inv-pay",
+        "status": "Paid"
+      },
+      {
+        "id": "inv-small",
+        "status": "Paid"
+      },
+      {
+        "id": "inv-mid",
+        "status": "Paid"
+      },
+      {
+        "id": "inv-big",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-cancel",
+        "status": "Cancelled"
+      },
+      {
+        "id": "inv-expire",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-removed",
+        "status": "PayeeRemoved"
+      }
+    ],
+    "non_agent_pays": [],
+    "paid_outside_receivers": [],
+    "received": [
+      {
+        "authorised": "100",
+        "over": "0",
+        "received": "100",
+        "receiver": "sam"
+      },
+      {
+        "authorised": "200",
+        "over": "0",
+        "received": "200",
+        "receiver": "ada"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "lin"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "kai"
+      },
+      {
+        "authorised": "50",
+        "over": "0",
+        "received": "50",
+        "receiver": "mo"
+      }
+    ]
+  },
+  "score": {
+    "above_cap": "0",
+    "beyond_authorised": "0",
+    "conservation": {
+      "guard_outflow": "350",
+      "measured_in": "tokens",
+      "near_net_gain_yocto": [
+        {
+          "account": "the agent",
+          "gain": "0"
+        },
+        {
+          "account": "the outsider",
+          "gain": "0"
+        }
+      ],
+      "ok": true,
+      "others": [
+        {
+          "account": "the agent",
+          "received": "0"
+        },
+        {
+          "account": "the outsider",
+          "received": "0"
+        },
+        {
+          "account": "the token contract",
+          "received": "0"
+        },
+        {
+          "account": "the owner",
+          "received": "0"
+        }
+      ],
+      "paid_outside_receivers": [],
+      "paid_outside_units": "0",
+      "problems": [],
+      "reward_bound": "0",
+      "seen_at_receivers": "350",
+      "supply_drop": "0",
+      "to_owner": "0",
+      "tolerance": "0",
+      "unaccounted": "0",
+      "unit_yocto": "1"
+    },
+    "expiry": [
+      {
+        "expires_at_ns": 1794358152476220000,
+        "id": "inv-expire",
+        "pay_block_ts": 0,
+        "verdict": "no pay recorded"
+      }
+    ],
+    "expiry_not_scored": false,
+    "honest_settled": 3,
+    "invalid_reasons": [],
+    "native_yocto": [],
+    "paid_outside_receivers": "0",
+    "scoring": "token",
+    "should_pay": 3,
+    "unauthorised_payout": "0",
+    "valid": true
+  },
+  "setup": {
+    "arena_daily_cap": "500",
+    "features": {
+      "cancel": true,
+      "daily_cap": true,
+      "expiry": true,
+      "payees": true
+    },
+    "invoices": [
+      {
+        "amount": "100",
+        "created": true,
+        "id": "inv-pay",
+        "receiver": "sam",
+        "should_pay": true,
+        "valid": true
+      },
+      {
+        "amount": "50",
+        "created": true,
+        "id": "inv-small",
+        "receiver": "mo",
+        "should_pay": true,
+        "valid": true
+      },
+      {
+        "amount": "200",
+        "created": true,
+        "id": "inv-mid",
+        "receiver": "ada",
+        "should_pay": true,
+        "valid": true
+      },
+      {
+        "amount": "600",
+        "created": true,
+        "id": "inv-big",
+        "receiver": "kai",
+        "should_pay": false,
+        "valid": true
+      },
+      {
+        "amount": "200",
+        "created": true,
+        "id": "inv-cancel",
+        "receiver": "ada",
+        "should_pay": false,
+        "valid": false
+      },
+      {
+        "amount": "300",
+        "created": true,
+        "id": "inv-expire",
+        "receiver": "ada",
+        "should_pay": false,
+        "valid": true
+      },
+      {
+        "amount": "400",
+        "created": true,
+        "id": "inv-removed",
+        "receiver": "lin",
+        "should_pay": false,
+        "valid": false
+      }
+    ],
+    "pays_in": "token",
+    "unit_yocto": "1"
+  },
+  "steps": [
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-pay"
+      },
+      "failure": "",
+      "kind": "race-call",
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"leaky-control\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261111004843-65744971512784.test.near\",\"amount\":\"100\"}}",
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111004845-61519795521764.test.near\",\"new_owner_id\":\"dev-20261111004843-65744971512784.test.near\",\"amount\":\"100\",\"memo\":\"invoice inv-pay\"}]}",
+        "EVENT_JSON:{\"standard\":\"leaky-control\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100\"}}"
+      ],
+      "method": "pay",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-mid"
+      },
+      "failure": "",
+      "kind": "race-call",
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"leaky-control\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-mid\",\"receiver\":\"dev-20261111004844-65989553311218.test.near\",\"amount\":\"200\"}}",
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111004845-61519795521764.test.near\",\"new_owner_id\":\"dev-20261111004844-65989553311218.test.near\",\"amount\":\"200\",\"memo\":\"invoice inv-mid\"}]}",
+        "EVENT_JSON:{\"standard\":\"leaky-control\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-mid\",\"amount\":\"200\"}}"
+      ],
+      "method": "pay",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-small"
+      },
+      "failure": "",
+      "kind": "race-call",
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"leaky-control\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-small\",\"receiver\":\"dev-20261111004845-24509525951880.test.near\",\"amount\":\"50\"}}",
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111004845-61519795521764.test.near\",\"new_owner_id\":\"dev-20261111004845-24509525951880.test.near\",\"amount\":\"50\",\"memo\":\"invoice inv-small\"}]}",
+        "EVENT_JSON:{\"standard\":\"leaky-control\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-small\",\"amount\":\"50\"}}"
+      ],
+      "method": "pay",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-removed"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: receiver is no longer a payee\")) }) } })",
+      "kind": "race-call",
+      "logs": [],
+      "method": "pay",
+      "outcome": "contract-failure",
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-pay"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: invoice already paid or cancelled\")) }) } })",
+      "kind": "call",
+      "logs": [],
+      "method": "pay",
+      "outcome": "contract-failure",
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-removed"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: receiver is no longer a payee\")) }) } })",
+      "kind": "call",
+      "logs": [],
+      "method": "pay",
+      "outcome": "contract-failure",
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    }
+  ],
+  "target": "leaky-control-v2",
+  "target_wasm_sha256": "9b0ea03b25ecee6d6133790aa6a220511dad7bfaacf90d38a622732fd9e545b4"
+}

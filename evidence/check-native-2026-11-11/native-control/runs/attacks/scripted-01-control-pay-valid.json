@@ -1,0 +1,33 @@
+{
+ "name": "control-pay-valid",
+ "steps": [
+  {
+   "call": {
+    "actor": "agent",
+    "method": "pay",
+    "args": {
+     "id": "inv-pay"
+    }
+   }
+  },
+  {
+   "view": {
+    "method": "get_invoice",
+    "args": {
+     "id": "inv-pay"
+    }
+   }
+  }
+ ],
+ "meta": {
+  "id": "scripted-01-control-pay-valid",
+  "title": "Pay one valid invoice honestly",
+  "source": "hand",
+  "kind": "sequence",
+  "breaks": "Nothing: the honest path. A control that the guard pays a valid invoice once.",
+  "expected_safe_result": "inv-pay paid once (100 to sam); unauthorised payout 0",
+  "added": "2026-11-09",
+  "author": "scripted tester (harness/src/scripted.rs), written by hand from INTERFACE.md",
+  "steps_sha256": "d9dad26461fd3a0b3e52b0abb637ef152ab42e602fe8c595e107a178e8ce95fc"
+ }
+}

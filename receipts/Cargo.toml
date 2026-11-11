@@ -1,5 +1,5 @@
 [workspace]
-members = ["contract"]
+members = ["contract", "example-caller"]
 exclude = ["host"]
 resolver = "3"
 

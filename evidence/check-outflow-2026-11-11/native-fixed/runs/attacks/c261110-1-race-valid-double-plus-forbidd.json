@@ -1,0 +1,111 @@
+{
+ "name": "c261110-1-race-valid-double-plus-forbidd",
+ "steps": [
+  {
+   "race": [
+    {
+     "actor": "agent",
+     "target": "vault",
+     "method": "pay",
+     "args": {
+      "id": "inv-pay"
+     }
+    },
+    {
+     "actor": "agent",
+     "target": "vault",
+     "method": "pay",
+     "args": {
+      "id": "inv-pay"
+     }
+    },
+    {
+     "actor": "agent",
+     "target": "vault",
+     "method": "pay",
+     "args": {
+      "id": "inv-cancel"
+     }
+    },
+    {
+     "actor": "agent",
+     "target": "vault",
+     "method": "pay",
+     "args": {
+      "id": "inv-removed"
+     }
+    }
+   ]
+  },
+  {
+   "wait_blocks": 5
+  },
+  {
+   "call": {
+    "actor": "outsider",
+    "target": "vault",
+    "method": "pay",
+    "args": {
+     "id": "inv-pay"
+    }
+   }
+  },
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "pay",
+    "args": {
+     "id": "inv-pay"
+    }
+   }
+  },
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "pay",
+    "args": {
+     "id": "inv-cancel"
+    }
+   }
+  },
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "pay",
+    "args": {
+     "id": "inv-removed"
+    }
+   }
+  }
+ ],
+ "meta": {
+  "id": "c261110-1-race-valid-double-plus-forbidd",
+  "title": "race double with forbidden retry",
+  "source": "combined",
+  "kind": "sequence",
+  "breaks": "one pay per invoice plus cancelled and removed-payee and agent-only checks via race window",
+  "expected_safe_result": "only one 100 to sam for inv-pay, nothing for inv-cancel or inv-removed, outsider rejected, all retries rejected",
+  "added": "2026-11-10",
+  "author": "muse-spark-1.3 via tools/hunter",
+  "parents": [
+   "scripted-02-race-double-pay",
+   "ai-09-should-refuse-paths"
+  ],
+  "steps_sha256": "37c060c56ff7f9acadbedcd4ae659548ee3d8e9c7a044156a552719d7b1540c1",
+  "found_in_hunt": "2026-11-10-papers-c1bea9",
+  "broke_guards": [
+   "guard-vulnerable",
+   "leaky-control-v2",
+   "native-control"
+  ],
+  "held_guards": [
+   "guard-fixed",
+   "native-fixed",
+   "vault-a"
+  ],
+  "validation": "broke"
+ }
+}

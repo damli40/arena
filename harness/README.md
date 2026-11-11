@@ -103,7 +103,19 @@ inv-cancel (ada, 200) — cancelled at setup; inv-expire (ada, 300) — expires
 - honest invoices settled = should-pay invoices (the valid ones that fit under
   the cap, greedy in manifest order) that show `Paid` and whose receiver holds
   exactly that amount. Printed next to the payout every time.
-- native NEAR balances ignored (token mode).
+- native NEAR balances ignored (token mode), except one check: the agent and
+  the outsider must not gain NEAR net of their own gas and deposits.
+- where the money went (since 2026-11-11, `src/conserve.rs`): right before the
+  first step the harness reads the guard's balance (and the owner's, agent's,
+  outsider's, the token contract's, the total supply, and any account the
+  attack names); after the attempt it reads them again. Every token that left
+  the guard must be found: at a receiver, the agent, the outsider, the owner,
+  the token contract or a named account. Tokens at the agent, the outsider, the
+  token contract or a named account are added to the unauthorised payout
+  (`PAID OUTSIDE THE RECEIVERS`, and `+ paid-outside-receivers N` on the
+  `UNAUTHORISED PAYOUT` line, printed only when N > 0). Tokens it cannot find
+  make the attempt `INVALID` (`CONSERVATION:` line); the run exits non-zero.
+  Each attempt prints an `OUTFLOW` line. Exact in token mode (tolerance 0).
 
 ## Native-NEAR scoring (native-control, native-fixed, `--native`)
 
@@ -121,6 +133,15 @@ For guards that pay receivers in native NEAR instead of a token.
   signed a transaction) or a key was added/removed, its balance went down, or
   the change is not a whole number of units, the attempt is `INVALID`, its
   score is not used, and the run exits non-zero (`RUN INVALID`).
+- Where the NEAR went (`src/conserve.rs`): the same accounting in yoctoNEAR.
+  Guard outflow = its balance change + deposits it kept (calls whose own
+  receipt succeeded). Agent / outsider received = balance change + every token
+  they burnt in the transactions they signed + deposits a callee kept. Owner and
+  named accounts: balance change. Tolerance 1 milliNEAR; the guard's gas
+  rewards (at most 3/10 of the tokens burnt in its own receipts, printed as
+  `reward_bound`) can hide an outflow up to that bound. Before the snapshot the
+  harness waits for real blocks until those balances stop moving (setup's gas
+  refunds reach the owner a block or two late); it never fast-forwards there.
 - Native SUMMARY rows add `valid=yes|NO`; the totals line adds
   `invalid_attempts=<n> scoring=native`. Token-mode output is unchanged.
 - Calibration pair, both frozen before any run: `targets/native-control`

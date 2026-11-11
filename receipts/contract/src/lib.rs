@@ -8,6 +8,11 @@ use near_sdk::json_types::{U128, U64};
 use near_sdk::store::LookupMap;
 use near_sdk::{env, near, require, AccountId, NearToken, PanicOnDefault, Promise};
 
+// Opt-in on chain and results other contracts can query (added 2026-11-11). Separate storage key;
+// nothing below in this file changed.
+mod onchain;
+pub use onchain::{ArenaAnswer, ArenaResult, OptIn, OptInView, ResultInput, Status};
+
 /// What the publisher sends. `published_at` is added by the contract.
 #[near(serializers = [json])]
 pub struct ReceiptInput {

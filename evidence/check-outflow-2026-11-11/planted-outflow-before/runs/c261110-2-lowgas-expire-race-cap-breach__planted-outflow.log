@@ -1,0 +1,61 @@
+
+================ arena run: tester=attempt target=planted-outflow attempts=1 ================
+TARGET: label=planted-outflow wasm=targets/planted-outflow/planted_outflow.wasm sha256=634d444d1a383b3fbe4759ec3ecdc2edcaed9b8baa670431825ef28037677ebd
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+ADAPTER (fixed translation layer, adapter.rs): file=evidence/check-outflow-2026-11-11/planted-outflow-before/guard-config.resolved.json pays_in=token init=new features(payees=true, cancel=true, expiry=true, daily_cap=true) renamed=[] shapes=[] deposits={"add_payee": 1, "approve_invoice": 1, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1}
+META: arena check 634d444d1a383b3f arena=c08295fb9373 2026-11-11T00:28:28Z
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+
+----- ATTEMPT c261110-2-lowgas-expire-race-cap-breach (evidence/check-outflow-2026-11-11/planted-outflow-before/runs/attacks/c261110-2-lowgas-expire-race-cap-breach.json) -----
+ADAPTER init: new({"agent":"dev-20261111002958-29717346243817.test.near","daily_cap":"500","owner":"dev-20261111002957-70803552566773.test.near","token":"dev-20261111003000-34567011477245.test.near"})
+  step 0 [call] agent -> 07634869::pay {"id":"inv-expire"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: not enough gas attached to pay safely")) }) } })
+  step 1 [race-call] agent -> 07634869::pay {"id":"inv-expire"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-expire","receiver":"dev-20261111002959-34700021978016.test.near","amount":"300"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261111003001-43263607634869.test.near","new_owner_id":"dev-20261111002959-34700021978016.test.near","amount":"300","memo":"vault-a invoice inv-expire"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-expire","amount":"300"}]}
+  step 1 [race-call] agent -> 07634869::pay {"id":"inv-expire"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: payment already in flight")) }) } })
+  step 1 [race-call] agent -> 07634869::pay {"id":"inv-big"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: daily cap exceeded")) }) } })
+  step 1 [race-call] agent -> 07634869::pay {"id":"inv-mid"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-mid","receiver":"dev-20261111002959-34700021978016.test.near","amount":"200"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261111003001-43263607634869.test.near","new_owner_id":"dev-20261111002959-34700021978016.test.near","amount":"200","memo":"vault-a invoice inv-mid"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-mid","amount":"200"}]}
+  step 2 [wait] 5 blocks
+  step 3 [wait] 25s (real time, so block timestamps move)
+  step 4 [call] agent -> 07634869::pay {"id":"inv-expire"} ok=true
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261111003001-43263607634869.test.near","new_owner_id":"dev-20261111002958-29717346243817.test.near","amount":"300"}]}
+  step 5 [call] agent -> 07634869::pay {"id":"inv-big"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: daily cap exceeded")) }) } })
+SCORE attempt=c261110-2-lowgas-expire-race-cap-breach scoring=token
+  receiver sam    received=0      authorised=0      over=0
+  receiver ada    received=500    authorised=500    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=200    (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-expire  policy_allows=300    credited=300    (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=1794357011843827000 expires_at_ns=1794357027879686000 -> paid before expiry
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Paid, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Paid, inv-removed:PayeeRemoved
+  calls_ok=3/7 protocol_rejected=0/7 attempts_used=1 target=planted-outflow
+  result json: evidence/check-outflow-2026-11-11/planted-outflow-before/runs/c261110-2-lowgas-expire-race-cap-breach__planted-outflow.result.json
+
+================ SUMMARY tester=attempt target=planted-outflow ================
+  target wasm sha256=634d444d1a383b3fbe4759ec3ecdc2edcaed9b8baa670431825ef28037677ebd
+  c261110-2-lowgas-expire-race-cap-breach unauthorised=0      honest_settled=0/3 protocol_rejected=0/7
+  attempts=1 attempts_found_something=0 tester=attempt target=planted-outflow
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).

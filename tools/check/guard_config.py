@@ -40,6 +40,12 @@ CHOICES = {
 }
 PLACEHOLDERS = ["$owner", "$agent", "$token", "$daily_cap", "$daily_cap_number"]
 FEATURES = ["payees", "cancel", "expiry", "daily_cap"]
+# How the guard pays (2026-11-11). Mirrors harness/src/adapter.rs PAYS_IN. "token" = ft_transfer on
+# a NEP-141 token (scored from token balances); "native" = plain NEAR transfers (scored from
+# receivers' NEAR balances, 1 Arena unit = 1 milliNEAR = 10^21 yoctoNEAR).
+PAYS_IN = ["token", "native"]
+PAYS_IN_HELP = ('"token" (your guard pays with ft_transfer on a NEP-141 token) or '
+                '"native" (your guard sends plain NEAR)')
 
 # What each role does, in plain words (shown in errors and given to Muse).
 ROLE_HELP = {
@@ -59,7 +65,7 @@ ROLE_HELP = {
 DEFAULT_DEPOSITS = {"approve_invoice": 1, "add_payee": 1, "remove_payee": 0, "cancel_invoice": 0, "set_daily_cap": 1}
 DEFAULT_INIT = {"method": "new", "args": {"owner": "$owner", "agent": "$agent", "token": "$token", "daily_cap": "$daily_cap"}}
 
-CONFIG_KEYS = {"arena_guard_config", "_about", "name", "policy", "init", "features", "methods", "shapes", "deposits"}
+CONFIG_KEYS = {"arena_guard_config", "_about", "name", "policy", "pays_in", "init", "features", "methods", "shapes", "deposits"}
 MAPPING_KEYS = {"arena_mapping", "_about", "methods", "shapes", "deposits"}
 
 
@@ -149,6 +155,9 @@ def check_config(d, where="config"):
     extra = set(d) - CONFIG_KEYS
     _need(not extra, f"{where}: unknown keys {sorted(extra)}; allowed: {sorted(CONFIG_KEYS)}")
     _need(_is_int(d.get("arena_guard_config"), 1), f"{where}: add \"arena_guard_config\": 1 at the top")
+    if "pays_in" in d:
+        _need(isinstance(d["pays_in"], str) and d["pays_in"] in PAYS_IN,
+              f"{where}: pays_in = {d['pays_in']!r} is not allowed. Use {PAYS_IN_HELP}.")
     for k in ("name", "policy", "_about"):
         if k in d:
             _need(isinstance(d[k], str) and len(d[k]) <= 400, f"{where}: {k} must be a string of at most 400 characters")
@@ -188,7 +197,20 @@ def check_config(d, where="config"):
           "the cap as 500 tokens, so pass it in with \"$daily_cap\" (a string, \"500\") or \"$daily_cap_number\" (the number 500). "
           "If your guard has no daily cap, set \"features\": {\"daily_cap\": false}.")
     _check_mapping_part(d, where)
+    if d.get("pays_in") == "native":
+        check_native(d.get("init", {}).get("args", DEFAULT_INIT["args"]), d.get("shapes", {}), where)
     return d
+
+
+def check_native(init_args, shapes, where="config"):
+    """A native guard is given amounts in yoctoNEAR: inv-pay alone is 10^23 and the cap 5 * 10^23,
+    more than a JSON number can carry exactly. So the two number forms are refused."""
+    _need("$daily_cap_number" not in [v for v in init_args.values() if isinstance(v, str)],
+          f"{where}: \"$daily_cap_number\" cannot be used with \"pays_in\": \"native\". The cap is given in yoctoNEAR "
+          "(500 Arena units = 0.5 NEAR = 5 * 10^23 yoctoNEAR), which is too big for a JSON number. Use \"$daily_cap\" (a string).")
+    _need(shapes.get("amount_encoding") != "number",
+          f"{where}: shapes.amount_encoding \"number\" cannot be used with \"pays_in\": \"native\". Amounts are given in "
+          "yoctoNEAR, which is too big for a JSON number. Use \"u128_string\".")
 
 
 def check_mapping(d, where="mapping"):
@@ -200,11 +222,14 @@ def check_mapping(d, where="mapping"):
     return d
 
 
-def resolve(config, mapping, wasm_methods):
+def resolve(config, mapping, wasm_methods, pays_in=None):
     """Merge config + mapping into the one file the harness reads. Checks every method name
     against the guard's exports. Returns (resolved, problems): problems are plain-words lines
-    about required roles the guard does not have; empty means ready to run."""
+    about required roles the guard does not have; empty means ready to run. `pays_in` (from the
+    command line) wins only where the config does not say; check.py refuses a disagreement first."""
     config = config or {"arena_guard_config": 1}
+    pays = pays_in or config.get("pays_in", "token")
+    _need(pays in PAYS_IN, f"pays_in = {pays!r} is not allowed. Use {PAYS_IN_HELP}.")
     features = {k: True for k in FEATURES}
     features.update(config.get("features", {}))
     init = {"method": config.get("init", {}).get("method", DEFAULT_INIT["method"]),
@@ -237,9 +262,11 @@ def resolve(config, mapping, wasm_methods):
         seen[name] = role
     if init["method"] in seen:
         problems.append(f"methods: the init method `{init['method']}` cannot also be the {seen[init['method']]} method.")
+    if pays == "native":
+        check_native(init["args"], shapes, "config + mapping")
     if problems:
         problems.append("Methods your wasm exports: " + (", ".join(sorted(exported)) or "none"))
-    resolved = {"arena_guard_config": 1, "init": init, "features": features, "methods": methods,
+    resolved = {"arena_guard_config": 1, "pays_in": pays, "init": init, "features": features, "methods": methods,
                 "shapes": shapes, "deposits": deposits}
     return resolved, problems
 

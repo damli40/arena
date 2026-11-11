@@ -16,7 +16,19 @@ least one of the calls it sent to the guard (views do not count):
      parse"): the call never reached the guard's rule, so it tested nothing;
   4. calls an owner method whose effect Arena could not confirm in preflight;
   5. or, when the guard claims no daily cap: the different created invoices it pays add up to more
-     than Arena's cap of 500 (so it is testing the cap).
+     than Arena's cap of 500 (so it is testing the cap);
+  6. or, when the guard pays in native NEAR ("pays_in": "native"): sends a call to the NEP-141 test
+     token itself (e.g. ft_transfer), or adds a key that may call the token. Such a guard holds no
+     tokens, so the call tested nothing about it.
+
+Native suite (2026-11-11). For a native guard, the attacks rule 6 would always catch are not run
+at all: token_only_reasons() finds them from the attack file alone, and check.py lists them on their
+own line ("not part of the native suite"), by id and with this reason, outside every count. Rule 6
+stays in classify() as a second guard.
+
+Every attempt's setup block says what the harness measured ("pays_in"). If that is not what the
+guard config says, the attempt's numbers are in the wrong units, so it is an error, never held or
+broke.
 
 An attack that broke the guard is always "broke": tokens left beyond the guard's own rules, and
 that is real whatever else the attack tried. An attack none of whose calls hit 1-5 is "held", even
@@ -43,11 +55,15 @@ STARTING_INVOICES = (("inv-pay", "sam", 100), ("inv-small", "mo", 50), ("inv-mid
 ARENA_DAILY_CAP = 500
 
 
-def classify(status, steps, setup, roles, missing, unconfirmed):
+def classify(status, steps, setup, roles, missing, unconfirmed, pays_in="token"):
     """(status, reasons). `status` is the runner's ("held", "broke", "error", ...); only "held"
     can become NOT_APPLICABLE. `setup` is the result JSON's "setup" block; `roles` is the role
     list (guard_config.ROLES); `missing` the roles the guard does not export; `unconfirmed` the
-    owner roles whose effect preflight could not confirm."""
+    owner roles whose effect preflight could not confirm; `pays_in` what the guard config says
+    ("token" or "native")."""
+    if status in ("held", "broke") and setup and setup.get("pays_in", "token") != pays_in:
+        return "error", [f"the harness measured this attempt as a {setup.get('pays_in', 'token')} guard, but the config says "
+                         f"\"pays_in\": \"{pays_in}\", so its numbers are in the wrong units and cannot be used"]
     if status != "held":
         return status, []
     if not setup:
@@ -63,7 +79,15 @@ def classify(status, steps, setup, roles, missing, unconfirmed):
         if r not in reasons:
             reasons.append(r)
 
+    native = setup.get("pays_in", "token") == "native"
     for s in steps:
+        if native and s.get("kind") != "view":
+            if s.get("target") == "token":
+                add(f"sends {s.get('method', '?')} to the NEP-141 test token itself; this guard pays in native NEAR "
+                    "and holds no tokens, so the call tested nothing about it")
+            elif s.get("kind") == "add-key" and "function_call_token" in str(s.get("method", "")):
+                add("adds a key that may call ft_transfer on the NEP-141 test token; this guard pays in native NEAR "
+                    "and holds no tokens, so that tested nothing about it")
         if s.get("kind") == "view" or s.get("target") != "vault":
             continue
         m = s.get("method", "")
@@ -89,6 +113,27 @@ def classify(status, steps, setup, roles, missing, unconfirmed):
         add(f"pays invoices adding up to {sum(amount[i] for i in paid)}, more than Arena's cap of {cap}: "
             "it tests the daily cap, which the guard does not claim")
     return (NOT_APPLICABLE if reasons else "held"), reasons
+
+
+def token_only_reasons(steps):
+    """Reasons an attack (its sequence steps, as written in the attack file) works only on the
+    NEP-141 test token, so it is not part of the native suite. [] = it is part of it. Same test as
+    rule 6: a call (or race call) to the token, or an add_key that may call the token."""
+    reasons = []
+    for st in steps:
+        calls = [c.get("call", c) for c in st.get("race", [])] if isinstance(st.get("race"), list) else [st["call"]] if "call" in st else []
+        for c in calls:
+            if isinstance(c, dict) and c.get("target") == "token":
+                r = (f"sends {c.get('method', '?')} to the NEP-141 test token itself; a native guard holds no tokens, "
+                     "so this attack can test nothing about it")
+                if r not in reasons:
+                    reasons.append(r)
+        k = st.get("add_key")
+        if isinstance(k, dict) and k.get("permission") == "function_call_token":
+            r = "adds a key that may call ft_transfer on the NEP-141 test token; a native guard holds no tokens"
+            if r not in reasons:
+                reasons.append(r)
+    return reasons
 
 
 def honest_refusals(steps, setup, final):

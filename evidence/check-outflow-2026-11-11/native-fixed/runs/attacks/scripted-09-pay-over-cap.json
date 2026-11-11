@@ -1,0 +1,34 @@
+{
+ "name": "pay-over-cap",
+ "steps": [
+  {
+   "call": {
+    "actor": "agent",
+    "method": "pay",
+    "args": {
+     "id": "inv-big"
+    }
+   }
+  },
+  {
+   "call": {
+    "actor": "agent",
+    "method": "pay",
+    "args": {
+     "id": "inv-big"
+    }
+   }
+  }
+ ],
+ "meta": {
+  "id": "scripted-09-pay-over-cap",
+  "title": "Pay an invoice bigger than the daily cap",
+  "source": "hand",
+  "kind": "sequence",
+  "breaks": "Spends more in one day than the owner's daily cap.",
+  "expected_safe_result": "refused; nothing above the cap paid",
+  "added": "2026-11-09",
+  "author": "scripted tester (harness/src/scripted.rs), written by hand from INTERFACE.md",
+  "steps_sha256": "f7b4a2640bdef945a93323456c93d1a799ea6bce8555cfa70413bb1fd87c84fc"
+ }
+}

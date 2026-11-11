@@ -1,0 +1,84 @@
+
+================ arena run: tester=attempt target=native-fixed attempts=1 ================
+TARGET: label=native-fixed wasm=targets/native-fixed/native_fixed.wasm sha256=5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+ADAPTER (fixed translation layer, adapter.rs): file=evidence/check-outflow-2026-11-11/native-fixed/guard-config.resolved.json pays_in=native init=new features(payees=true, cancel=true, expiry=true, daily_cap=true) renamed=[] shapes=[] deposits={"add_payee": 1, "approve_invoice": 1, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1}
+SCORING: native (receivers' native NEAR balance change, 1 unit = 1 milliNEAR)
+META: arena check 5b79571e3795a066 arena=c08295fb9373 2026-11-11T00:42:00Z
+HONESTY (native-NEAR scoring, a guard described by --guard-config):
+- Scored from receivers' NATIVE NEAR balances: received = balance after the attempt
+  minus balance at the end of setup, in units of 1 milliNEAR (10^21 yocto).
+- Conservation (conserve.rs): the guard's own NEAR balance change (plus deposits it
+  kept) must be found at the receivers, the agent, the outsider, the owner or an
+  account the attack named. The agent's and the outsider's changes are taken net of the
+  gas and deposits they paid (from their transactions' receipts), so their gas is never
+  counted as a payment. NEAR at the agent, the outsider or a named account counts as
+  beyond policy; more than 1 milliNEAR Arena cannot find makes the attempt INVALID.
+  The guard's own gas rewards can hide up to 3/10 of the gas burnt in its receipts;
+  that bound is printed per attempt (reward_bound).
+- Receivers sign nothing, so gas never touches them; this is checked per attempt
+  (receiver key nonces unchanged, balance never down, whole units). Any violation
+  marks the attempt INVALID and the run fails.
+- Amounts in an attack's own calls (amount, daily_cap) are scaled from Arena units to
+  yoctoNEAR, and each one is printed.
+- Token balances are not read in this mode.
+
+----- ATTEMPT should-refuse-paths (evidence/check-outflow-2026-11-11/native-fixed/runs/attacks/ai-09-should-refuse-paths.json) -----
+ADAPTER init: new({"agent":"dev-20261111004240-39951461353114.test.near","daily_cap":"500000000000000000000000","owner":"dev-20261111004239-93637844572805.test.near","token":"dev-20261111004242-78784067632746.test.near"})
+  step 0 [call] agent -> 14776976::pay {"id":"inv-cancel"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid, cancelled or in flight")) }) } })
+  step 1 [call] agent -> 14776976::pay {"id":"inv-removed"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: receiver is no longer a payee")) }) } })
+  step 2 [call] outsider -> 14776976::pay {"id":"inv-small"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: only the agent can pay")) }) } })
+  step 3 [view] 14776976::get_invoice -> {"amount":"200000000000000000000000","expires_at_ns":1796949766633077000,"id":"inv-cancel","payable_now":false,"receiver":"dev-20261111004241-96225508992640.test.near","status":"Cancelled"}
+  step 4 [view] 14776976::get_invoice -> {"amount":"400000000000000000000000","expires_at_ns":1796949766633077000,"id":"inv-removed","payable_now":false,"receiver":"dev-20261111004241-31234311982078.test.near","status":"PayeeRemoved"}
+  FORMAT FIX step 5: logical name "lin" in arg "account" resolved to dev-20261111004241-31234311982078.test.near
+  step 5 [view] 14776976::is_payee -> false
+  FORMAT FIX step 6: logical name "ada" in arg "account_id" resolved to dev-20261111004241-96225508992640.test.near
+  step 6 [view] 67632746::ft_balance_of -> "0"
+  FORMAT FIX step 7: logical name "lin" in arg "account_id" resolved to dev-20261111004241-31234311982078.test.near
+  step 7 [view] 67632746::ft_balance_of -> "0"
+SCORE attempt=should-refuse-paths scoring=native
+  native sam    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  receiver sam    received=0      authorised=0      over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  OUTFLOW guard_out=0 seen_at_receivers=0 to_owner=0 unaccounted=0 tolerance=1000000000000000000000 reward_bound=121558394739600000000 (yoctoNEAR)
+    other the agent: received 0
+    other the outsider: received 0
+    other the owner: received 0
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794357786633077000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=5/8 protocol_rejected=0/3 attempts_used=1 target=native-fixed
+  result json: evidence/check-outflow-2026-11-11/native-fixed/runs/ai-09-should-refuse-paths__native-fixed.result.json
+
+================ SUMMARY tester=attempt target=native-fixed ================
+  target wasm sha256=5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44
+  scoring=native unit=1 milliNEAR (10^21 yoctoNEAR)
+  should-refuse-paths          unauthorised=0      honest_settled=0/3 protocol_rejected=0/3 valid=yes
+  attempts=1 attempts_found_something=0 tester=attempt target=native-fixed invalid_attempts=0 scoring=native
+HONESTY (native-NEAR scoring, a guard described by --guard-config):
+- Scored from receivers' NATIVE NEAR balances: received = balance after the attempt
+  minus balance at the end of setup, in units of 1 milliNEAR (10^21 yocto).
+- Conservation (conserve.rs): the guard's own NEAR balance change (plus deposits it
+  kept) must be found at the receivers, the agent, the outsider, the owner or an
+  account the attack named. The agent's and the outsider's changes are taken net of the
+  gas and deposits they paid (from their transactions' receipts), so their gas is never
+  counted as a payment. NEAR at the agent, the outsider or a named account counts as
+  beyond policy; more than 1 milliNEAR Arena cannot find makes the attempt INVALID.
+  The guard's own gas rewards can hide up to 3/10 of the gas burnt in its receipts;
+  that bound is printed per attempt (reward_bound).
+- Receivers sign nothing, so gas never touches them; this is checked per attempt
+  (receiver key nonces unchanged, balance never down, whole units). Any violation
+  marks the attempt INVALID and the run fails.
+- Amounts in an attack's own calls (amount, daily_cap) are scaled from Arena units to
+  yoctoNEAR, and each one is printed.
+- Token balances are not read in this mode.

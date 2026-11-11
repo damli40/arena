@@ -1,0 +1,63 @@
+# onchain 2026-11-11: raw tool output (receipts-cli JSON lines, registry, checks). No keys.
+## 1. top up the contract (receipts-cli transfer)
+{"from":"arena-race-funder-1111.testnet","millinear":"300","ok":true,"step":"transfer","to":"receipts.dev-20261109195231-98743803426969.testnet","tx":"https://testnet.nearblocks.io/txns/7KdTZ7trwXQmEVn4qzGxhQzYeyfCX4y9QEQUYYpyvg7V","tx_hash":"7KdTZ7trwXQmEVn4qzGxhQzYeyfCX4y9QEQUYYpyvg7V"}
+## 2. upgrade in place (receipts-cli redeploy), new wasm sha256 c259097e911a5c085fbb9a6fa09a16af0ae6c1b6b946d776c9dbe5335e1e964f
+{"ok":true,"step":"redeploy","tx":"https://testnet.nearblocks.io/txns/CQ9KBSDdEsH3DBoLTzx4242NXQC8k9rxz1bLkiZ569A5"}
+## 3. old views before vs after the upgrade (105 view calls: receipts_for, latest, passes over 7 hashes x 7 suites)
+before vs after upgrade: compared 105 different 0
+before vs end of session: compared 105 different 0
+{"account": "arena-race-funder-1111.testnet", "before": {"amount": "2490819721208396299999988", "block_height": 277139625, "code_hash": "11111111111111111111111111111111", "storage_usage": 182}, "end": {"amount": "2186658027612602399999988", "block_height": 277140241, "code_hash": "11111111111111111111111111111111", "storage_usage": 182}}
+{"account": "dev-20261109195231-98743803426969.testnet", "before": {"amount": "51775363487500000000000", "block_height": 277139627, "code_hash": "11111111111111111111111111111111", "storage_usage": 182}, "end": {"amount": "51775363487500000000000", "block_height": 277140243, "code_hash": "11111111111111111111111111111111", "storage_usage": 182}}
+{"account": "r11bvf3-guard.arena-race-funder-1111.testnet", "before": {"amount": "1948606425014174099999998", "block_height": 277139626, "code_hash": "EhCoUXADTgdLnHXseYdoxREYUomy9pocMjKfHNYKGh3", "storage_usage": 187551}, "end": {"amount": "1948606425014174099999998", "block_height": 277140241, "code_hash": "EhCoUXADTgdLnHXseYdoxREYUomy9pocMjKfHNYKGh3", "storage_usage": 187551}}
+{"account": "r11cfx4-guard.arena-race-funder-1111.testnet", "before": {"amount": "1948606425014174099999999", "block_height": 277139627, "code_hash": "EhCoUXADTgdLnHXseYdoxREYUomy9pocMjKfHNYKGh3", "storage_usage": 187538}, "end": {"amount": "1943772128605721999999999", "block_height": 277140242, "code_hash": "EhCoUXADTgdLnHXseYdoxREYUomy9pocMjKfHNYKGh3", "storage_usage": 187538}}
+{"account": "receipts.dev-20261109195231-98743803426969.testnet", "before": {"amount": "2692826388766457900000000", "block_height": 277139625, "code_hash": "CYzxBzbzX74B191gmctmhREKs9pV9HCgLxhnkWoEL86T", "storage_usage": 197775}, "end": {"amount": "2998899416094433900000000", "block_height": 277140240, "code_hash": "E5eqcmEzZv93UCAbCdY3yZTGiAh3vurJVkS9GBZsdo5p", "storage_usage": 289827}}
+## 4. opt-ins
+{"args":{"code_hash":"0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e","contact":"Arena bench (Dami)","expires_at":null,"guard":"r11cfx4-guard.arena-race-funder-1111.testnet","pays_in":"token"},"failures":"[]","logs":["EVENT_JSON:{\"standard\":\"arena-onchain\",\"version\":\"1.0.0\",\"event\":\"opt_in\",\"data\":[{\"guard\":\"r11cfx4-guard.arena-race-funder-1111.testnet\",\"code_hash\":\"0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e\",\"contact\":\"Arena bench (Dami)\",\"expires_at\":null,\"pays_in\":\"token\",\"signed_by\":\"r11cfx4-guard.arena-race-funder-1111.testnet\",\"signer_role\":\"guard\",\"opted_in_at\":\"1794356028614461530\"}]}"],"ok":true,"returned":{"code_hash":"0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e","contact":"Arena bench (Dami)","expires_at":null,"guard":"r11cfx4-guard.arena-race-funder-1111.testnet","opted_in_at":"1794356028614461530","pays_in":"token","signed_by":"r11cfx4-guard.arena-race-funder-1111.testnet","signer_role":"guard"},"signer":"r11cfx4-guard.arena-race-funder-1111.testnet","step":"opt_in","tx":"https://testnet.nearblocks.io/txns/AQXyaaVR481HfoTDxmWc8CBrjs4wzQDZfym4zuxCycsn","tx_hash":"AQXyaaVR481HfoTDxmWc8CBrjs4wzQDZfym4zuxCycsn"}
+{"args":{"code_hash":"0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e","contact":"Arena bench (Dami)","expires_at":"1802131200000000000","guard":"r11bvf3-guard.arena-race-funder-1111.testnet","pays_in":"token"},"failures":"[]","logs":["EVENT_JSON:{\"standard\":\"arena-onchain\",\"version\":\"1.0.0\",\"event\":\"opt_in\",\"data\":[{\"guard\":\"r11bvf3-guard.arena-race-funder-1111.testnet\",\"code_hash\":\"0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e\",\"contact\":\"Arena bench (Dami)\",\"expires_at\":\"1802131200000000000\",\"pays_in\":\"token\",\"signed_by\":\"arena-race-funder-1111.testnet\",\"signer_role\":\"parent\",\"opted_in_at\":\"1794356031621288940\"}]}"],"ok":true,"returned":{"code_hash":"0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e","contact":"Arena bench (Dami)","expires_at":"1802131200000000000","guard":"r11bvf3-guard.arena-race-funder-1111.testnet","opted_in_at":"1794356031621288940","pays_in":"token","signed_by":"arena-race-funder-1111.testnet","signer_role":"parent"},"signer":"arena-race-funder-1111.testnet","step":"opt_in","tx":"https://testnet.nearblocks.io/txns/6eX7N5udjAX49HNgEijA3n8Lf4JUhCAKRYqWikFsavv9","tx_hash":"6eX7N5udjAX49HNgEijA3n8Lf4JUhCAKRYqWikFsavv9"}
+## 5. refused: receipts account (not the guard, not its parent) tries to opt in r11cfx4-guard
+False 2pafkJf7VDCmpqE9UwRqcdDDvKTWU44u5qL23ytdU9CW [ExecutionOutcome { transaction_hash: 2Vce3q2PkWt8GzsMaoxsKsaZQ8P1qcyaC2y6wX3PVSA8, block_hash: 7vQfLovevdgjfsyg1FhEZF2R8h4Hh6i76owevTMKdoGs, logs: [], receipt_ids: [DjzmesQD4twKFhFp9tZ7DRjH2Z4jMZrUUHG1stJnwiuq, AM4yFtTPtmPwnAefCmA6L3GVGwrrKEYzDgVYQnqPRGbB], gas_burnt: NearGas { inner: 1335745159951
+tx status: Smart contract panicked: only the guard account itself or its parent account can opt it in
+## 6. views after
+{"args":{},"method":"opt_in_count","result":2,"step":"view"}
+{"args":{},"method":"opt_ins","result":[{"active":true,"code_hash":"0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e","contact":"Arena bench (Dami)","expires_at":null,"guard":"r11cfx4-guard.arena-race-funder-1111.testnet","opted_in_at":"1794356028614461530","pays_in":"token","signed_by":"r11cfx4-guard.arena-race-funder-1111.testnet","signer_role":"guard"},{"active":true,"code_hash":"0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e","contact":"Arena bench (Dami)","expires_at":"1802131200000000000","guard":"r11bvf3-guard.arena-race-funder-1111.testnet","opted_in_at":"1794356031621288940","pays_in":"token","signed_by":"arena-race-funder-1111.testnet","signer_role":"parent"}],"step":"view"}
+{"args":{"arena_commit":null,"guard_code_hash":"0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e","suite":null},"method":"arena_result","result":{"against_intent":null,"arena_commit":null,"attacks_ran":null,"attestation_sha256":null,"beyond_policy":null,"evidence_path":null,"evidence_sha256":null,"guard_code_hash":"0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e","not_applicable":null,"published_at":null,"setup":null,"status":"not_tested","status_means":"not_tested: Arena has no result for this exact code.","suite":null,"suite_version":null,"suites_considered":0},"step":"view"}
+## 7. python3 -I tools/hunter/registry.py --outside, then the same read against a dead RPC
+outside guard r11cfx4-guard.arena-race-funder-1111.testnet: same code (0382023bed12...) as local guard(s) guard-fixed, guard-vulnerable; tested from guards/registry.json, not added twice.
+outside guard r11bvf3-guard.arena-race-funder-1111.testnet: same code (0382023bed12...) as local guard(s) guard-fixed, guard-vulnerable; tested from guards/registry.json, not added twice.
+vault-a            subject           runnable      fingerprint ok  52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1  
+leaky-control      positive-control  not runnable  fingerprint ok  84ff523f288a5bc49d6f851ad20d7c9f76b372f00a7f96aefd48eac74ad35760  
+leaky-control-v2   positive-control  runnable      fingerprint ok  9b0ea03b25ecee6d6133790aa6a220511dad7bfaacf90d38a622732fd9e545b4  
+native-control     positive-control  runnable      fingerprint ok  cc7fb389cad0b04729df5eaefe8f7624be8529b0e526477761937cbe985244de  
+native-fixed       negative-control  runnable      fingerprint ok  5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44  
+guard-fixed        subject           runnable      fingerprint ok  0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e  source matches; wasm built from it
+guard-vulnerable   positive-control  runnable      fingerprint ok  0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e  source matches; wasm built from it
+registry: 7 guards, 0 fingerprint problems
+outside guards skipped: could not read opt-ins from receipts.dev-20261109195231-98743803426969.testnet (RPC http://127.0.0.1:9/: <urlopen error [Errno 61] Connection refused>). No outside guard is assumed opted in.
+outside guards added: 0
+## 8. receipts sandbox tests (cd receipts/host && ARENA_OLD_RECEIPTS_WASM=<aba31658 wasm> cargo test --release -- --nocapture --test-threads 1)
+     Running unittests src/main.rs (target/release/deps/receipts_cli-bde652530e7d8119)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/onchain.rs (target/release/deps/onchain-4d5b5513ab2bddca)
+
+running 4 tests
+test a_contract_asks_before_paying ... ok
+test opt_in_only_by_guard_or_parent ... opt-in storage + gas paid by signer: 0.005 NEAR
+ok
+test results_bound_to_code_hash_and_commit ... ok
+test upgrade_keeps_receipts_and_old_answers ... upgrade: 7 old view answers identical before and after
+ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 30.81s
+
+     Running tests/sandbox.rs (target/release/deps/sandbox-7b076631988baea8)
+
+running 2 tests
+test receipts_end_to_end ... ok
+test rejects_malformed_receipts ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.59s
+

@@ -209,6 +209,9 @@ async fn finish(
             let failure = failure_text(&r);
             let logs = logs_of(&r);
             record_pay_ts(a, &r, c, tgt).await?;
+            // Conservation check (conserve.rs): what the signer paid in gas and deposits.
+            let dep = c.get("deposit_yocto").and_then(|v| v.as_u64()).unwrap_or(0) as u128;
+            crate::conserve::record(a, c["actor"].as_str().unwrap_or("?"), tgt_name, dep, &r);
             (if r.is_success() { OUTCOME_OK } else { OUTCOME_CONTRACT_FAILURE }, failure, logs)
         }
         Err(e) if is_protocol_rejection(&e) => (OUTCOME_PROTOCOL_REJECTED, format!("{e:?}"), vec![]),
@@ -239,7 +242,17 @@ fn adapt(a: &Arena, i: usize, tgt_name: &str, method: &str, args: &Value) -> (St
     match a.target.adapter() {
         Some(c) if tgt_name == "vault" => {
             let m = c.method(method);
-            let sent = c.args(method, args.clone());
+            // Native guard: the attack's amounts are Arena units; the guard reads yoctoNEAR.
+            let scaled = if a.target.is_native() {
+                let (v, notes) = crate::adapter::GuardConfig::native_amounts(args, crate::setup::NATIVE_UNIT);
+                for n in notes {
+                    println!("  NATIVE UNITS step {i}: {method} {n}");
+                }
+                v
+            } else {
+                args.clone()
+            };
+            let sent = c.args(method, scaled);
             if m != method || &sent != args {
                 println!(
                     "  ADAPTER step {i}: {method} {} sent as {m} {}",
@@ -295,7 +308,10 @@ async fn do_add_key(a: &Arena, i: usize, k: &Value) -> Result<StepOutcome> {
     let pk = SecretKey::from_random(KeyType::ED25519).public_key();
     let res = actor.batch(actor.id()).add_key(pk, ak).transact().await;
     let (outcome, failure) = match res {
-        Ok(r) => (if r.is_success() { OUTCOME_OK } else { OUTCOME_CONTRACT_FAILURE }, failure_text(&r)),
+        Ok(r) => {
+            crate::conserve::record(a, who, "self", 0, &r);
+            (if r.is_success() { OUTCOME_OK } else { OUTCOME_CONTRACT_FAILURE }, failure_text(&r))
+        }
         Err(e) if is_protocol_rejection(&e) => (OUTCOME_PROTOCOL_REJECTED, format!("{e:?}")),
         Err(e) => bail!("step {i}: harness/RPC error (not a protocol rejection): {e:?}"),
     };
@@ -505,6 +521,10 @@ pub fn outcome_json(a: &Arena, name: &str, outcome: &[StepOutcome], s: &crate::s
     if let Some(c) = a.target.adapter() {
         v["setup"] = json!({
             "arena_daily_cap": crate::setup::DAILY_CAP.to_string(),
+            // What the money was measured in. Amounts in this file are Arena units either way:
+            // tokens, or (native) 1 unit = unit_yocto yoctoNEAR = 1 milliNEAR.
+            "pays_in": if c.native { "native" } else { "token" },
+            "unit_yocto": if c.native { crate::setup::NATIVE_UNIT.to_string() } else { "1".to_string() },
             "features": {"payees": c.features.payees, "cancel": c.features.cancel,
                          "expiry": c.features.expiry, "daily_cap": c.features.daily_cap},
             "invoices": a.manifest.invoices.iter().map(|i| json!({
@@ -542,11 +562,17 @@ fn outcome_json_base(a: &Arena, name: &str, outcome: &[StepOutcome], s: &crate::
             "invoice_statuses": s.statuses.iter().map(|(i, st)| json!({"id": i, "status": st})).collect::<Vec<_>>(),
             "credited_by_invoice": s.credited_by_invoice.iter().map(|(i, c)| json!({"id": i, "credited": c.to_string()})).collect::<Vec<_>>(),
             "non_agent_pays": s.non_agent_pays.iter().map(|(i, w)| json!({"id": i, "actor": w})).collect::<Vec<_>>(),
+            // Conservation (conserve.rs): who outside the five receivers got the guard's money.
+            "paid_outside_receivers": s.conservation.as_ref().map(|c| c.paid_outside.iter().map(|(l, b, u)| json!({
+                "to": l, "amount": b.to_string(), "units": u.to_string(),
+            })).collect::<Vec<_>>()).unwrap_or_default(),
         },
         "score": {
             "unauthorised_payout": s.unauthorised.to_string(),
             "beyond_authorised": s.over_authorised.to_string(),
             "above_cap": s.over_cap.to_string(),
+            "paid_outside_receivers": s.paid_outside.to_string(),
+            "conservation": s.conservation.as_ref().map(|c| c.to_json()),
             "honest_settled": s.settled,
             "should_pay": s.should_pay,
             "expiry": s.expiry_rows.iter().map(|(id, ts, exp)| json!({

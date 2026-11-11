@@ -1,0 +1,79 @@
+{
+  "name": "p261111539-1-agent-pay-only-privilege-probe",
+  "steps": [
+    {
+      "call": {
+        "actor": "agent",
+        "target": "vault",
+        "method": "approve_invoice",
+        "args": {
+          "id": "inv-cancel"
+        }
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "target": "vault",
+        "method": "set_daily_cap",
+        "args": {
+          "cap": 1000000
+        }
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "target": "token",
+        "method": "ft_transfer",
+        "args": {
+          "receiver_id": "kai",
+          "amount": 600
+        },
+        "deposit_yocto": 1
+      }
+    },
+    {
+      "call": {
+        "actor": "outsider",
+        "target": "vault",
+        "method": "pay",
+        "args": {
+          "id": "inv-pay"
+        }
+      }
+    },
+    {
+      "view": {
+        "target": "vault",
+        "method": "get_config",
+        "args": {}
+      }
+    },
+    {
+      "view": {
+        "target": "token",
+        "method": "ft_balance_of",
+        "args": {
+          "account_id": "kai"
+        }
+      }
+    }
+  ],
+  "meta": {
+    "id": "p261111539-1-agent-pay-only-privilege-probe",
+    "title": "Probe whether the agent key is really confined to pay",
+    "source": "paper",
+    "kind": "sequence",
+    "breaks": "Privilege-boundary overreach: agent invoking owner-only guard methods (approve_invoice, set_daily_cap), agent attempting a direct token transfer, and an outsider attempting guard.pay.",
+    "expected_safe_result": "Every call is rejected at the key/method boundary (agent key only callable for pay with no deposit; guard.pay only accepts the agent); balances unchanged and paid_today stays 0.",
+    "added": "2026-11-11",
+    "author": "z-ai/glm-5.3-flash via tools/hunter",
+    "paper": {
+      "arxiv_id": "2611.11539v1",
+      "title": "PRISM: Causal Counterfactual Minimization of Agent Tool Privileges via Information Bottleneck Role Induction",
+      "url": "https://arxiv.org/abs/2611.11539v1"
+    },
+    "steps_sha256": "0f3d05971fc240b5983dff7894ff0e6bd2a59a2221c14a5f7526ee0977c8b959"
+  }
+}

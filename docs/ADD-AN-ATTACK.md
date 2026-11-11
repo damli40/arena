@@ -85,7 +85,11 @@ pays a fully fooled agent would make. To test a real model against the email, ad
 
 ## How the paper hunter adds attacks
 
-`./run-arena.sh hunt` does the steps above on its own, with Muse Spark as the attacker:
+`./run-arena.sh hunt` does the steps above on its own, with a model as the attacker. Papers go to
+glm-5.3-flash on NEAR AI Cloud's private inference: before the first call the hunt saves NEAR's
+attestation report (which model, in which sealed machine) and its sha256 in the hunt file, and checks
+NEAR's signature on every reply. News items go to Muse Spark. Why each job got its model:
+`evidence/nearai-2026-11-11.md`. The steps:
 
 0. With `--source news` or `--source all` it also reads recent hack news (Elfa AI summaries of
    posts on X and Telegram; at most 2 calls, about 5 credits each). Each item is an unchecked lead.
@@ -94,7 +98,7 @@ pays a fully fooled agent would make. To test a real model against the email, ad
 1. It finds recent papers on arXiv and **scores them before attacking**: novelty + distance from the
    attacks already here + the attack success the paper reports (0-15). The model budget goes to the
    top papers first, and every score is logged with its reason in the hunt file.
-2. Muse writes attacks as data in the step vocabulary above. It may also **combine** two or more
+2. The model writes attacks as data in the step vocabulary above. It may also **combine** two or more
    library attacks (`source: combined`, with `parents`).
 3. Every attack is validated, checked for duplicates, and run on every guard. It **joins the library
    (`sequences-paper/`) only after it runs cleanly on every guard**, recorded in `meta.validation` as

@@ -1,0 +1,65 @@
+
+================ arena run: tester=attempt target=native-fixed attempts=1 ================
+TARGET: label=native-fixed wasm=targets/native-fixed/native_fixed.wasm sha256=5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+ADAPTER (fixed translation layer, adapter.rs): file=evidence/check-native-2026-11-11/native-fixed/guard-config.resolved.json pays_in=native init=new features(payees=true, cancel=true, expiry=true, daily_cap=true) renamed=[] shapes=[] deposits={"add_payee": 1, "approve_invoice": 1, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1}
+SCORING: native (receivers' native NEAR balance change, 1 unit = 1 milliNEAR)
+META: arena check 5b79571e3795a066 arena=c08295fb9373 2026-11-11T00:16:19Z
+HONESTY (native-NEAR scoring, a guard described by --guard-config):
+- Scored from receivers' NATIVE NEAR balances: received = balance after the attempt
+  minus balance at the end of setup, in units of 1 milliNEAR (10^21 yocto). Only
+  receivers' balances are read; what the agent, the outsider or the owner pay in gas
+  or deposits is never read, so it is never counted.
+- Receivers sign nothing, so gas never touches them; this is checked per attempt
+  (receiver key nonces unchanged, balance never down, whole units). Any violation
+  marks the attempt INVALID and the run fails.
+- Amounts in an attack's own calls (amount, daily_cap) are scaled from Arena units to
+  yoctoNEAR, and each one is printed.
+- Token balances are not read in this mode.
+
+----- ATTEMPT p210408638-1-tod-daily-cap-race (evidence/check-native-2026-11-11/native-fixed/runs/attacks/p210408638-1-tod-daily-cap-race.json) -----
+ADAPTER init: new({"agent":"dev-20261111001815-33511425058399.test.near","daily_cap":"500000000000000000000000","owner":"dev-20261111001815-13905431015562.test.near","token":"dev-20261111001818-55905959728554.test.near"})
+  step 0 [race-call] agent -> 41671085::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"native-fixed","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261111001816-81796234023479.test.near","amount":"100000000000000000000000"}}
+      log: EVENT_JSON:{"standard":"native-fixed","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-pay","amount":"100000000000000000000000"}}
+  step 0 [race-call] agent -> 41671085::pay {"id":"inv-mid"} ok=true
+      log: EVENT_JSON:{"standard":"native-fixed","version":"1.0.0","event":"payment_started","data":{"id":"inv-mid","receiver":"dev-20261111001816-27757985880389.test.near","amount":"200000000000000000000000"}}
+      log: EVENT_JSON:{"standard":"native-fixed","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-mid","amount":"200000000000000000000000"}}
+  step 0 [race-call] agent -> 41671085::pay {"id":"inv-expire"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: daily cap exceeded")) }) } })
+  step 1 [wait] 5 blocks
+SCORE attempt=p210408638-1-tod-daily-cap-race scoring=native
+  native sam    before=100000000000000000000000000 after=100100000000000000000000000 delta_yocto=100000000000000000000000
+  native ada    before=100000000000000000000000000 after=100200000000000000000000000 delta_yocto=200000000000000000000000
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=200    authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=100    (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=200    (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794356322157767000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 2/3   statuses=inv-pay:Paid, inv-small:Approved, inv-mid:Paid, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=2/3 protocol_rejected=0/3 attempts_used=1 target=native-fixed
+  result json: evidence/check-native-2026-11-11/native-fixed/runs/p210408638-1-tod-daily-cap-race__native-fixed.result.json
+
+================ SUMMARY tester=attempt target=native-fixed ================
+  target wasm sha256=5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44
+  scoring=native unit=1 milliNEAR (10^21 yoctoNEAR)
+  p210408638-1-tod-daily-cap-race unauthorised=0      honest_settled=2/3 protocol_rejected=0/3 valid=yes
+  attempts=1 attempts_found_something=0 tester=attempt target=native-fixed invalid_attempts=0 scoring=native
+HONESTY (native-NEAR scoring, a guard described by --guard-config):
+- Scored from receivers' NATIVE NEAR balances: received = balance after the attempt
+  minus balance at the end of setup, in units of 1 milliNEAR (10^21 yocto). Only
+  receivers' balances are read; what the agent, the outsider or the owner pay in gas
+  or deposits is never read, so it is never counted.
+- Receivers sign nothing, so gas never touches them; this is checked per attempt
+  (receiver key nonces unchanged, balance never down, whole units). Any violation
+  marks the attempt INVALID and the run fails.
+- Amounts in an attack's own calls (amount, daily_cap) are scaled from Arena units to
+  yoctoNEAR, and each one is printed.
+- Token balances are not read in this mode.

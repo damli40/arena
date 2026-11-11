@@ -1,0 +1,132 @@
+{
+  "success": true,
+  "data": [
+    {
+      "summary": "Reports and commentary in the set described a roughly $6.34B Binance theft as a months-long operation involving malicious software, fake recruiting, an internal AI tool and misuse of wallet-signing access; Binance said about $2.85B was frozen or intercepted, and the FBI attributed the theft to North Korea-linked hackers. Commentary framed the failure as exchange custody/signing infrastructure rather than a Bitcoin protocol hack.",
+      "sourceLinks": [
+        "https://x.com/pbsIdentity/status/2119091287282332024",
+        "https://x.com/Casper_Network/status/2119801714945466579",
+        "https://x.com/LuxWire/status/2119134396275937572"
+      ],
+      "tweetIds": [
+        "2119091287282332024",
+        "2119801714945466579",
+        "2119134396275937572"
+      ]
+    },
+    {
+      "summary": "Builders debated prompt injection as an authorization/security bug for AI agents rather than just a chatbot quirk. Cited concerns included agents reading web pages, email, Slack or package docs and treating untrusted text as orders; suggested controls included read-only tokens, command allowlists, sandboxing and human approval before merges, deploys or payments.",
+      "sourceLinks": [
+        "https://x.com/sseraphini/status/2119882341602464237",
+        "https://x.com/SasuRobert/status/2119840445500936599",
+        "https://x.com/NoemiTitarenco/status/2119947195860361318"
+      ],
+      "tweetIds": [
+        "2119882341602464237",
+        "2119840445500936599",
+        "2119947195860361318"
+      ]
+    },
+    {
+      "summary": "Projects marketed wallet-level guardrails for agent payments: Assay described a provider allow-list and fail-closed payments to stop prompt injection from sending funds elsewhere; Grid was highlighted for MAX_USD_PER_CALL and MAX_USD_PER_BOUNTY caps; RunOva described spending ceilings with approvals above the limit using NEAR scoped keys.",
+      "sourceLinks": [
+        "https://x.com/goassay/status/2119870550365667706",
+        "https://x.com/winiam4444/status/2120090538456014859",
+        "https://x.com/Rizvi_On_X/status/2119613695802192002",
+        "https://x.com/milodot56/status/2119672447116972147"
+      ],
+      "tweetIds": [
+        "2119870550365667706",
+        "2120090538456014859",
+        "2119613695802192002",
+        "2119672447116972147"
+      ]
+    },
+    {
+      "summary": "Commentators quoted Yat Siu saying AI agents overspend and also \u201covertalk,\u201d with a stabledash clip and follow-up framing gossipy agents and over-sharing as behavior risks that need limits.",
+      "sourceLinks": [
+        "https://x.com/stabledash/status/2119097616235475415",
+        "https://x.com/AaronWStanley/status/2119221524037317039"
+      ],
+      "tweetIds": [
+        "2119097616235475415",
+        "2119221524037317039"
+      ]
+    },
+    {
+      "summary": "Google\u2019s Gemini 4 Carbon launch drew attention for claimed security and agentic performance: tweets said Google or early testers reported a 0% prompt-injection success rate on Gray Swan\u2019s benchmark, strong CursorBench and cyber results, and availability to paid API and Ultra users.",
+      "sourceLinks": [
+        "https://x.com/wallstengine/status/2120198186149245140",
+        "https://x.com/gregisenberg/status/2120188488997875828",
+        "https://x.com/AGTPinsights/status/2120203765559038450",
+        "https://x.com/googledevs/status/2120191815332798659"
+      ],
+      "tweetIds": [
+        "2120198186149245140",
+        "2120188488997875828",
+        "2120203765559038450",
+        "2120191815332798659"
+      ]
+    },
+    {
+      "summary": "Sui/Mysten Labs discussions centered on treating autonomous agents as untrusted by default, with proposals such as Agent Pass bounded authority, Rooms enforcing business rules, and Google Cloud/Walrus-backed verifiable logs (VAA) for agent accountability.",
+      "sourceLinks": [
+        "https://x.com/martypartymusic/status/2120259434261967263",
+        "https://x.com/foxriverdevops/status/2119464106486886715"
+      ],
+      "tweetIds": [
+        "2120259434261967263",
+        "2119464106486886715"
+      ]
+    },
+    {
+      "summary": "Security researchers warned about persistent prompt injection through agent supply chains: a Miasma/testmetest campaign reportedly poisoned GitHub repos with CLAUDE.md instructions telling coding agents to run an obfuscated setup.js without review, while a Snyk scan of 20,000 agent skills reportedly found widespread unsafe patterns and at least one skill appending remote text to global Claude instructions.",
+      "sourceLinks": [
+        "https://x.com/fr0gger_/status/2119730348699640060",
+        "https://x.com/CobaltHere/status/2118976749765583235"
+      ],
+      "tweetIds": [
+        "2119730348699640060",
+        "2118976749765583235"
+      ]
+    },
+    {
+      "summary": "Prompt-injection incidents were cited as evidence that agentic finance needs trust and security layers: tweets referenced a Morse-code prompt injection and cases where agents were persuaded into paying out funds, arguing wallet restrictions and spending limits matter.",
+      "sourceLinks": [
+        "https://x.com/Hercules_Defi/status/2120066626381037922",
+        "https://x.com/_gammafi/status/2120205178645188905"
+      ],
+      "tweetIds": [
+        "2120066626381037922",
+        "2120205178645188905"
+      ]
+    },
+    {
+      "summary": "Users posted what they described as a leaked Claude web-app system prompt for Fable/Mythos 5.2, highlighting instructions that external pages, emails, files and tool outputs are data not orders, plus rules around memory privacy and forged notices.",
+      "sourceLinks": [
+        "https://x.com/elder_plinius/status/2119944696852341064",
+        "https://x.com/PixelRainbowNFT/status/2119978026070859995"
+      ],
+      "tweetIds": [
+        "2119944696852341064",
+        "2119978026070859995"
+      ]
+    },
+    {
+      "summary": "Macro roundups attributed a crypto drawdown to hawkish Fed repricing after a strong payrolls print, heavy spot-Bitcoin ETF outflows, leveraged liquidations and a broader risk-off move; Bitcoin and major altcoins fell, while policy items included CFTC clearing single-stock perpetual futures and Samsung wallet supporting USDC.",
+      "sourceLinks": [
+        "https://x.com/TheSpartanGroup/status/2120000281794789549",
+        "https://x.com/LuxWire/status/2119134396275937572"
+      ],
+      "tweetIds": [
+        "2120000281794789549",
+        "2119134396275937572"
+      ]
+    }
+  ],
+  "metadata": {
+    "total": 224,
+    "total_summarized": 100,
+    "summaries": 10
+  }
+}

@@ -18,6 +18,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "arena-example-caller"
+version = "0.1.0"
+dependencies = [
+ "near-sdk",
+]
+
+[[package]]
 name = "arena-receipts"
 version = "0.1.0"
 dependencies = [

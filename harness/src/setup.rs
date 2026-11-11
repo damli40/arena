@@ -51,7 +51,8 @@ pub enum Target {
     /// the others are never created and authorise nothing. The cap is not scored (the guard
     /// claims none). `fixed` picks mode `fixed`, else `vulnerable_fixture` (a labelled test case).
     Guard { fixed: bool },
-    /// Any token guard described by a `--guard-config` file (`arena check`, 2026-11-11): its
+    /// Any guard described by a `--guard-config` file (`arena check`, 2026-11-11), token or native
+    /// (`"pays_in"`, adapter.rs): its
     /// init call, the rules it claims, and the fixed adapter's method/argument mapping
     /// (adapter.rs). Without the flag this variant is never built.
     Configured { wasm: std::path::PathBuf, label: String, cfg: crate::adapter::GuardConfig },
@@ -93,6 +94,8 @@ impl Target {
         match self {
             Target::NativeControl | Target::NativeFixed => true,
             Target::Custom { native, .. } => *native,
+            // `"pays_in": "native"` in the guard config (arena check, 2026-11-11).
+            Target::Configured { cfg, .. } => cfg.native,
             _ => false,
         }
     }
@@ -116,7 +119,8 @@ impl Target {
             .unwrap_or_else(|| "custom".to_string());
         Ok(Target::Custom { wasm, label, native })
     }
-    /// A configured target from `--wasm <path> --guard-config <file>` (token scoring only).
+    /// A configured target from `--wasm <path> --guard-config <file>`. The config's `pays_in`
+    /// picks token or native scoring (`is_native`).
     pub fn configured(path: &str, label: Option<&str>, cfg_file: &str) -> Result<Self> {
         let Target::Custom { wasm, label, .. } = Self::custom(path, label, false)? else { unreachable!() };
         let cfg = crate::adapter::GuardConfig::load(cfg_file)?;
@@ -247,6 +251,11 @@ pub struct Arena {
     /// "before" of the attempt): native balance in yocto and every access
     /// key's (public key, nonce). Empty in token mode.
     pub native_before: Vec<ReceiverSnapshot>,
+    /// Conservation check (conserve.rs, 2026-11-11): balances right before the attack's
+    /// first step. Set by the runner (main.rs) after any owner policy; None = not taken.
+    pub before: Option<crate::conserve::Before>,
+    /// Every transaction a tester step signed, with its gas and deposit facts (seq.rs).
+    pub txs: Mutex<Vec<crate::conserve::TxRecord>>,
 }
 
 /// A receiver's native balance and access-key nonces at one moment.
@@ -684,6 +693,8 @@ pub async fn setup(target: Target) -> Result<Arena> {
         pay_started_at_ns: Mutex::new(HashMap::new()),
         pay_started_by: Mutex::new(HashMap::new()),
         native_before,
+        before: None,
+        txs: Mutex::new(Vec::new()),
     })
 }
 

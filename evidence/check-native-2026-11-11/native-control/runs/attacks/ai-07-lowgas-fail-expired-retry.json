@@ -1,0 +1,68 @@
+{
+ "name": "lowgas-fail-expired-retry",
+ "steps": [
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "pay",
+    "args": {
+     "id": "inv-expire"
+    },
+    "gas_tgas": 50
+   }
+  },
+  {
+   "view": {
+    "target": "vault",
+    "method": "get_invoice",
+    "args": {
+     "id": "inv-expire"
+    }
+   }
+  },
+  {
+   "wait_seconds": 30
+  },
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "pay",
+    "args": {
+     "id": "inv-expire"
+    },
+    "gas_tgas": 300
+   }
+  },
+  {
+   "view": {
+    "target": "vault",
+    "method": "get_invoice",
+    "args": {
+     "id": "inv-expire"
+    }
+   }
+  },
+  {
+   "view": {
+    "target": "token",
+    "method": "ft_balance_of",
+    "args": {
+     "account_id": "ada"
+    }
+   }
+  }
+ ],
+ "meta": {
+  "id": "ai-07-lowgas-fail-expired-retry",
+  "title": "Low-gas pay, then retry after expiry",
+  "source": "ai",
+  "kind": "sequence",
+  "breaks": "Uses a low-gas pay to leave the expiring invoice half-done, then retries after expiry.",
+  "expected_safe_result": "nothing paid after expiry; unauthorised payout 0",
+  "added": "2026-11-09",
+  "author": "AI tester, one-shot, from INTERFACE.md + policy + manifest (model not recorded)",
+  "steps_sha256": "155d5446cad2bad35769f7c282a8177e27f120c87f221858869f1bfe89ae9b85"
+ }
+}

@@ -118,7 +118,7 @@ case "${1:-}" in
     fi
     echo "any-target fingerprint (after): $wasm $after"
     ;;
-  # Paper hunter (tools/hunter/): recent papers -> Muse proposes attacks as data -> validated ->
+  # Paper hunter (tools/hunter/): recent papers -> a model proposes attacks as data -> validated ->
   # run on the local sandbox against every guard in guards/registry.json. Flags go to hunt.py
   # (--days N, --max-papers N, --paper <arxiv id>, --library, ...). Frozen checks around it.
   hunt)

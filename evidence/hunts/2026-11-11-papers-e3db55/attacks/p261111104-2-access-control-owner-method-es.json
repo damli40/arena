@@ -1,0 +1,60 @@
+{
+  "name": "p261111104-2-access-control-owner-method-es",
+  "steps": [
+    {
+      "call": {
+        "actor": "outsider",
+        "target": "vault",
+        "method": "set_daily_cap",
+        "args": {
+          "cap": 100000
+        }
+      }
+    },
+    {
+      "call": {
+        "actor": "outsider",
+        "target": "vault",
+        "method": "pay",
+        "args": {
+          "id": "inv-big"
+        }
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "target": "vault",
+        "method": "pay",
+        "args": {
+          "id": "inv-big"
+        }
+      }
+    },
+    {
+      "view": {
+        "target": "token",
+        "method": "ft_balance_of",
+        "args": {
+          "account_id": "kai"
+        }
+      }
+    }
+  ],
+  "meta": {
+    "id": "p261111104-2-access-control-owner-method-es",
+    "title": "Outforcer raises cap then drains over-cap invoice",
+    "source": "paper",
+    "kind": "sequence",
+    "breaks": "The owner-only boundary on guard configuration (set_daily_cap) and the agent-only rule on pay, to legitimize paying inv-big (600) above the daily cap of 500.",
+    "expected_safe_result": "Every outsider call to owner methods and to pay reverts with an authorization error; the agent's pay of inv-big is rejected by the cap; no receiver balance changes.",
+    "added": "2026-11-11",
+    "author": "z-ai/glm-5.3-flash via tools/hunter",
+    "paper": {
+      "arxiv_id": "2611.11104v1",
+      "title": "Tracing MCP Security Vulnerabilities: Constructing and Analyzing an MCP Security Vulnerability Dataset",
+      "url": "https://arxiv.org/abs/2611.11104v1"
+    },
+    "steps_sha256": "9e75ece1c32122ce6c473f091965106e0055c9863d6dc3269ce026e55bd029dd"
+  }
+}

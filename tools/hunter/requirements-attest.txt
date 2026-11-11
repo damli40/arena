@@ -1,0 +1,11 @@
+# Optional: lets the hunter check Intel's signature on NEAR AI's attestation quote (tools/hunter/nearai.py).
+# Without it, the hunt still runs and its record says "quote not verified here".
+# dcap-qvl is the verifier NEAR's docs name. Pinned to 0.7.0 (released 2026-10-12, a month before this pin),
+# wheels only, every file hash listed. No dependencies. Installed in CI by tools/hunter/ci-steps.sh build.
+dcap-qvl==0.7.0 \
+    --hash=sha256:131e991020a9c02b1e6043b2ac0bdae3f7eb02cbfbde8faac4aa2b9336ab3857 \
+    --hash=sha256:2df917c1b677370f735da6595b41d396f917b51bfb3e9696fcda3ba1f93ffe52 \
+    --hash=sha256:47003da3d1c78b1d68da27428756495dbdf728c84615bdc3b6f40078c17a4894 \
+    --hash=sha256:ad6c23faca1f02c92c4f5b4933042100b1c82c256bd4c4288e66c566b8ca15db \
+    --hash=sha256:5657ce28794d01917c3252f69f25e50250b6e9c78303e3daf59e4f0c98b0c59c \
+    --hash=sha256:07e3d331652c7df57a6701a39736d165f30610503b7e813e82618014f2faf261

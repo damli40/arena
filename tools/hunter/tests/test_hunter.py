@@ -204,6 +204,136 @@ class Registry(unittest.TestCase):
             registry.check_guard(dict(g, methods={"pay": "send_money"}))
 
 
+class RegistryOutside(unittest.TestCase):
+    """Opt-ins read from chain (stubbed RPC). The target list may only ever narrow on a failure."""
+    CODE = b"\x00asm\x01\x00\x00\x00outside-guard-test"
+    HASH = __import__("hashlib").sha256(CODE).hexdigest()
+
+    @staticmethod
+    def b58(hexs):
+        n, out = int(hexs, 16), ""
+        while n:
+            n, r = divmod(n, 58)
+            out = registry.B58[r] + out
+        return "1" * ((len(hexs) - len(hexs.lstrip("0"))) // 2) + out
+
+    def opt(self, guard="g.parent.testnet", **over):
+        o = {"guard": guard, "code_hash": self.HASH, "contact": None, "expires_at": None, "pays_in": "token",
+             "signed_by": "parent.testnet", "signer_role": "parent", "opted_in_at": "1", "active": True}
+        o.update(over)
+        return o
+
+    def rpc(self, opts, live=None, code=None, fail=()):
+        """opts: what opt_ins returns (or an Exception). live: account -> hex code hash now. fail: accounts whose reads error."""
+        import base64 as b64
+        live = live or {}
+        def call(p):
+            acct = p.get("account_id")
+            if acct in fail:
+                raise registry.ChainError("stub RPC down")
+            if p["request_type"] == "call_function":
+                if isinstance(opts, Exception):
+                    raise opts
+                args = json.loads(b64.b64decode(p["args_base64"]))
+                page = opts[args["from_index"]: args["from_index"] + args["limit"]]
+                return {"result": list(json.dumps(page).encode())}
+            if p["request_type"] == "view_account":
+                return {"code_hash": self.b58(live.get(acct, self.HASH))}
+            if p["request_type"] == "view_code":
+                return {"code_base64": b64.b64encode(code if code is not None else self.CODE).decode()}
+            raise AssertionError(p)
+        return call
+
+    def load(self, rpc, **kw):
+        logs = []
+        d = registry.ROOT / "guards" / "outside" / "_test"
+        try:
+            gs = registry.outside_guards(registry.load(), rpc=rpc, log=logs.append, fetch_dir=d, **kw)
+        finally:
+            for f in d.glob("*.wasm"):
+                f.unlink()
+            for e in (d, d.parent):
+                if e.exists() and not any(e.iterdir()):
+                    e.rmdir()
+        return gs, logs
+
+    def test_base58_matches_lookup(self):
+        h = "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e"
+        self.assertEqual(registry.base58_to_hex("EhCoUXADTgdLnHXseYdoxREYUomy9pocMjKfHNYKGh3"), h)
+        self.assertEqual(registry.base58_to_hex(self.b58(self.HASH)), self.HASH)
+        with self.assertRaises(registry.ChainError):
+            registry.base58_to_hex("0OIl")
+
+    def test_matching_code_is_added_and_runnable(self):
+        gs, logs = self.load(self.rpc([self.opt()]))
+        self.assertEqual(len(gs), 1, logs)
+        g = gs[0]
+        self.assertTrue(g["runnable"])
+        self.assertEqual(g["fingerprint"]["wasm_sha256"], self.HASH)
+        self.assertEqual(g["harness_flags"][:1], ["--wasm"])
+        self.assertIn("matches chain now", logs[-1])
+
+    def test_rpc_error_listing_adds_no_outside_guard(self):
+        for err in (registry.ChainError("timed out"), ValueError("garbage"), RuntimeError("boom")):
+            gs, logs = self.load(self.rpc(err))
+            self.assertEqual(gs, [])
+            self.assertIn("outside guards skipped", logs[0])
+            self.assertIn("No outside guard is assumed opted in", logs[0])
+
+    def test_non_list_answer_adds_none(self):
+        gs, logs = self.load(self.rpc({"not": "a list"}))
+        self.assertEqual(gs, [])
+        self.assertIn("skipped", logs[0])
+
+    def test_changed_code_is_refused_with_a_plain_line(self):
+        gs, logs = self.load(self.rpc([self.opt()], live={"g.parent.testnet": "ab" * 32}))
+        self.assertEqual(gs, [])
+        self.assertEqual(len(logs), 1)
+        self.assertIn("refused: its code changed since it opted in", logs[0])
+
+    def test_rpc_error_for_one_guard_skips_only_that_guard(self):
+        gs, logs = self.load(self.rpc([self.opt(), self.opt("h.parent.testnet")], fail={"g.parent.testnet"}))
+        self.assertEqual([g["id"] for g in gs], ["chain-h-parent-testnet"])
+        self.assertTrue(any("g.parent.testnet refused: could not read its code" in l for l in logs))
+
+    def test_downloaded_bytes_must_match(self):
+        gs, logs = self.load(self.rpc([self.opt()], code=b"\x00asm other bytes"))
+        self.assertEqual(gs, [])
+        self.assertIn("downloaded code hashes to", logs[-1])
+
+    def test_expired_bad_signer_and_bad_shape_refused(self):
+        bad = [self.opt(active=False), self.opt("e.parent.testnet", expires_at="5"),
+               self.opt("x.other.testnet"), self.opt("a.b.parent.testnet"), self.opt(signer_role="owner"),
+               self.opt(code_hash="ZZ"), {"guard": 7}]
+        gs, logs = self.load(self.rpc(bad), now_ns=10)
+        self.assertEqual(gs, [])
+        self.assertEqual(len(logs), len(bad))
+        self.assertTrue(all("refused" in l for l in logs), logs)
+
+    def test_guard_signing_for_itself_is_accepted(self):
+        gs, _ = self.load(self.rpc([self.opt("solo.testnet", signed_by="solo.testnet", signer_role="guard")]))
+        self.assertEqual(len(gs), 1)
+
+    def test_no_pays_in_is_listed_not_run(self):
+        gs, logs = self.load(self.rpc([self.opt(pays_in=None)]))
+        self.assertEqual(len(gs), 1)
+        self.assertFalse(gs[0]["runnable"])
+        self.assertIn("pays_in", gs[0]["not_runnable_reason"])
+
+    def test_local_and_entrant_code_not_added(self):
+        local = registry.fingerprint(registry.load()[0])["wasm_sha256"]
+        entrant = "27c178e572dbd90a746f6078e8d98266a6e6059272cfc0d9cbc75fab5c50d6c2"
+        opts = [self.opt(code_hash=local), self.opt("e.parent.testnet", code_hash=entrant)]
+        gs, logs = self.load(self.rpc(opts, live={"g.parent.testnet": local, "e.parent.testnet": entrant}))
+        self.assertEqual(gs, [])
+        self.assertIn("same code", logs[0])
+        self.assertIn("entrant", logs[1])
+
+    def test_hunt_without_outside_flag_reads_no_chain(self):
+        a = hunt.parse_args([])
+        self.assertFalse(a.outside)
+
+
 class HuntOffline(unittest.TestCase):
     def run_hunt(self, papers, replies, extra=("--combine", "0")):
         d = pathlib.Path(tempfile.mkdtemp())
@@ -436,3 +566,232 @@ class Board(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+# ---- NEAR AI Cloud provider: attestation before the first call, signature on every reply ----
+import hashlib, io, os, struct, urllib.error, urllib.parse  # noqa: E402
+from unittest import mock  # noqa: E402
+import nearai  # noqa: E402
+
+_TEST_KEY = 0x1234567890ABCDEF  # a throwaway secp256k1 private key for the fake model enclave
+_TEST_ADDR = nearai.address_of_private_key(_TEST_KEY)
+_GW_ADDR = nearai.address_of_private_key(_TEST_KEY + 1)
+
+
+def _fake_report(addr, nonce, quote_nonce=None, app_compose='{"name":"fake-model"}'):
+    """A NEAR-shaped report whose TDX quote binds `addr` and `quote_nonce` (default: the nonce)."""
+    events = [{"imr": 3, "event_type": 134217729, "event": "compose-hash", "event_payload": hashlib.sha256(app_compose.encode()).hexdigest(), "digest": ""}]
+    head = struct.pack("<HHI", 4, 2, 0x81) + bytes(40)
+    body = bytearray(584)
+    body[184:232] = b"\x01" + hashlib.sha256(app_compose.encode()).digest() + bytes(15)
+    body[472:520] = nearai.replay_rtmr3(events)
+    body[520:584] = bytes.fromhex(addr[2:]).ljust(32, b"\0") + bytes.fromhex(quote_nonce or nonce)
+    return {"signing_address": addr, "signing_algo": "ecdsa", "intel_quote": (head + bytes(body) + bytes(64)).hex(),
+            "event_log": events, "request_nonce": nonce, "info": {"app_id": "fake", "tcb_info": json.dumps({"app_compose": app_compose})}}
+
+
+class FakeNear:
+    """Stands in for cloud-api.near.ai. Knobs: owned_by, models (False = no model_attestations),
+    echo_nonce / quote_nonce overrides, tamper_sig (sign different bytes)."""
+
+    def __init__(self, owned_by="nearai", models=True, echo_nonce=None, quote_nonce=None, tamper_sig=False):
+        self.owned_by, self.models, self.echo_nonce, self.quote_nonce, self.tamper_sig = owned_by, models, echo_nonce, quote_nonce, tamper_sig
+        self.calls, self.chats, self.reply = [], {}, json.dumps({"attacks": [GOOD_SEQ]})
+
+    def __call__(self, req, timeout=None):
+        url = req.full_url if hasattr(req, "full_url") else req
+        u = urllib.parse.urlparse(url)
+        self.calls.append(u.path)
+        if u.path.endswith("/models"):
+            body = {"data": [{"id": "test/model", "owned_by": self.owned_by, "pricing": {"input": 1.0, "output": 2.0}}]}
+        elif u.path.endswith("/attestation/report"):
+            n = urllib.parse.parse_qs(u.query)["nonce"][0]
+            m = dict(_fake_report(_TEST_ADDR, self.echo_nonce or n, self.quote_nonce), model_name="test/model")
+            body = {"gateway_attestation": _fake_report(_GW_ADDR, n)}
+            if self.models:
+                body["model_attestations"] = [m]
+        elif u.path.endswith("/chat/completions"):
+            cid = f"chat-{len(self.chats)}"
+            raw = json.dumps({"id": cid, "model": "test/model", "choices": [{"message": {"content": self.reply}}],
+                              "usage": {"prompt_tokens": 1000, "completion_tokens": 500}}).encode()
+            self.chats[cid] = (req.data, raw)
+            return io.BytesIO(raw)
+        elif "/signature/" in u.path:
+            rq, rs = self.chats[u.path.rsplit("/", 1)[1]]
+            text = f"test/model:{hashlib.sha256(rq).hexdigest()}:{hashlib.sha256(rs + (b'x' if self.tamper_sig else b'')).hexdigest()}"
+            body = {"text": text, "signature": nearai.sign_eip191(text, _TEST_KEY, 777), "signing_address": _TEST_ADDR,
+                    "signing_algo": "ecdsa", "signature_kind": "provider_tee"}
+        else:
+            raise urllib.error.HTTPError(url, 404, "not found", {}, None)
+        return io.BytesIO(json.dumps(body).encode())
+
+
+_NO_DCAP = mock.patch.object(nearai, "verify_quote_dcap", lambda r: {"ran": False, "why": "dcap-qvl not installed: quote not verified here"})
+
+
+class NearAIProvider(unittest.TestCase):
+    def test_provider_selection(self):
+        self.assertEqual(muse.settings(env={})["provider"], "nearai")
+        self.assertEqual(muse.settings(env={})["base"], "https://cloud-api.near.ai/v1")
+        s = muse.settings(env={"ARENA_MODEL_PROVIDER": "muse"})
+        self.assertEqual((s["provider"], s["model"]), ("muse", "muse-spark-1.3"))
+        s = muse.settings(env={"ARENA_MODEL_PROVIDER": "muse", "ARENA_MODEL": "x"}, provider="nearai", model="y")
+        self.assertEqual((s["provider"], s["model"]), ("nearai", "y"))       # explicit flags beat env
+        with self.assertRaises(ValueError):
+            muse.settings(env={"ARENA_MODEL_PROVIDER": "openai"})
+        self.assertEqual(hunt.parse_args(["--provider", "muse"]).provider, "muse")
+        with self.assertRaises(SystemExit):
+            hunt.parse_args(["--provider", "somewhere-else"])
+
+    def test_crypto_against_known_values(self):
+        self.assertEqual(nearai.keccak256(b"").hex(), "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470")
+        self.assertEqual(nearai.address_of_private_key(1), "0x7e5f4552091a69125d5dfcb7b8c2659029395bdf")
+        sig = nearai.sign_eip191("hello", _TEST_KEY, 99)
+        self.assertEqual(nearai.recover_eip191("hello", sig), _TEST_ADDR)
+        self.assertNotEqual(nearai.recover_eip191("hellO", sig), _TEST_ADDR)
+
+    def test_attestation_record_fields(self):
+        d = pathlib.Path(tempfile.mkdtemp())
+        nonce = "ab" * 32
+        with _NO_DCAP:
+            rec = nearai.preflight("https://x/v1", "test/model", d, nonce, opener=FakeNear())
+        self.assertTrue(rec["attested"])
+        self.assertEqual(rec["nonce"], nonce)
+        self.assertEqual(rec["report_sha256"], hashlib.sha256((d / "attestation-report.json").read_bytes()).hexdigest())
+        self.assertEqual(rec["model_signing_addresses"], [_TEST_ADDR])
+        self.assertEqual(rec["gateway_signing_address"], _GW_ADDR)
+        self.assertFalse(rec["intel_quote_verified"])                       # never claimed without dcap-qvl
+        self.assertIn("not verified here", rec["reports"][0]["intel_quote"]["why"])
+        for r in rec["reports"]:
+            self.assertTrue(all(r["checks"][k] for k in nearai.REQUIRED), r)
+
+    def test_unattested_model_refused_unless_allowed(self):
+        d = pathlib.Path(tempfile.mkdtemp())
+        for fake in (FakeNear(owned_by="openai"), FakeNear(models=False)):
+            with _NO_DCAP, self.assertRaises(nearai.Unattested):
+                nearai.preflight("https://x/v1", "test/model", d, "cd" * 32, opener=fake)
+        with _NO_DCAP:
+            rec = nearai.preflight("https://x/v1", "test/model", d, "cd" * 32, opener=FakeNear(owned_by="openai"), allow_unattested=True)
+        self.assertFalse(rec["attested"])
+        self.assertTrue(rec["allow_unattested"])
+        self.assertIn("owned_by", rec["unattested_why"][0])
+
+    def test_nonce_mismatch_refused(self):
+        d = pathlib.Path(tempfile.mkdtemp())
+        for fake in (FakeNear(echo_nonce="00" * 32),     # echoed nonce is not ours
+                     FakeNear(quote_nonce="11" * 32)):   # echo is ours, but the quote binds another nonce
+            with _NO_DCAP, self.assertRaises(nearai.AttestationError) as cm:
+                nearai.preflight("https://x/v1", "test/model", d, "ef" * 32, opener=fake)
+            self.assertIn("nonce", str(cm.exception))
+
+    def test_reply_signature_checked_against_attested_key(self):
+        d = pathlib.Path(tempfile.mkdtemp())
+        for tamper in (False, True):
+            fake = FakeNear(tamper_sig=tamper)
+            with _NO_DCAP:
+                att = nearai.preflight("https://x/v1", "test/model", d, "12" * 32, opener=fake)
+            c = muse.Client(3, key="k", provider="nearai", base="https://x/v1", model="test/model", attestation=att,
+                            save_dir=d / f"calls-{tamper}", opener=fake, sleep=lambda s: None)
+            c.chat([{"role": "user", "content": "hi"}], "t")
+            s = c.log[0]["signature"]
+            self.assertEqual(s["verified"], not tamper, s)
+            self.assertEqual(s["recovered_address"], _TEST_ADDR)
+            self.assertEqual(c.log[0]["cost_usd"], 0.002)                     # 1000 in x $1/M + 500 out x $2/M
+            self.assertTrue((d / f"calls-{tamper}" / "call-01.response.json").exists())
+
+    def _hunt(self, fake, *extra):
+        d = pathlib.Path(tempfile.mkdtemp())
+        pf = d / "papers.json"
+        pf.write_text(json.dumps([PAPER]))
+        with _NO_DCAP, mock.patch("urllib.request.urlopen", fake), mock.patch.dict(os.environ, {"NEARAI_API_KEY": "test-key"}):
+            rc = hunt.main(["--papers-file", str(pf), "--no-run", "--no-save", "--combine", "0", "--provider", "nearai",
+                            "--model", "test/model", "--out-dir", str(d / "hunts"), "--board-out", str(d / "site"), *extra])
+        js = [p for p in (d / "hunts").glob("*.json") if p.name not in ("memory.json", "used-papers.json")]
+        return rc, (json.loads(js[0].read_text()) if js else None), d
+
+    def test_hunt_refuses_unattested_before_any_model_call(self):
+        fake = FakeNear(owned_by="openai")
+        rc, h, _ = self._hunt(fake)
+        self.assertEqual(rc, 2)
+        self.assertIsNone(h)
+        self.assertFalse(any(p.endswith("/chat/completions") for p in fake.calls), fake.calls)
+        fake = FakeNear(owned_by="openai")
+        rc, h, _ = self._hunt(fake, "--allow-unattested")
+        self.assertEqual(rc, 0)
+        self.assertFalse(h["attestation"]["attested"])
+        self.assertTrue(any("UNATTESTED" in n for n in h["notes"]))
+
+    def test_hunt_record_carries_attestation(self):
+        fake = FakeNear()
+        rc, h, d = self._hunt(fake)
+        self.assertEqual(rc, 0)
+        A = h["attestation"]
+        self.assertTrue(A["attested"])
+        self.assertEqual(h["attestation_sha256"], A["report_sha256"])
+        self.assertEqual(len(A["nonce"]), 64)
+        self.assertTrue(A["all_replies_signed_by_attested_model"])
+        self.assertEqual(h["counts"]["model_calls"], 1)
+        raw = d / "hunts" / h["hunt_id"]
+        self.assertEqual(hashlib.sha256((raw / "attestation-report.json").read_bytes()).hexdigest(), A["report_sha256"])
+        md = (d / "hunts" / f"{h['hunt_id']}.md").read_text()
+        self.assertIn(A["report_sha256"], md)
+        self.assertIn("Intel quote not verified here", md)
+        self.assertNotIn("Muse", md)
+        self.assertNotIn("test-key", (d / "hunts" / f"{h['hunt_id']}.json").read_text() + md)
+
+
+class ProviderDefaultsPairUp(unittest.TestCase):
+    def test_no_argument_defaults_never_send_one_providers_key_to_the_other(self):
+        """tools/check/muse_map.py calls load_key() then Client(key=...) with no provider: both must mean Muse."""
+        with mock.patch.dict(os.environ, {"NEARAI_API_KEY": "near-key", "MUSE_API_KEY": "muse-key", "ARENA_MODEL_PROVIDER": "nearai"}):
+            self.assertEqual(muse.load_key(), "muse-key")
+            self.assertEqual(muse.load_key("nearai"), "near-key")
+            c = muse.Client(1, key=muse.load_key())
+            self.assertEqual((c.provider, c.base), ("muse", muse.PROVIDERS["muse"]["base"]))
+            self.assertEqual(muse.MODEL, muse.PROVIDERS["muse"]["model"])
+            self.assertEqual(muse.settings()["provider"], "nearai")   # the hunter's choice comes from settings()
+
+
+class PerJobProviders(unittest.TestCase):
+    def test_papers_on_nearai_news_on_muse_share_one_budget(self):
+        d = pathlib.Path(tempfile.mkdtemp())
+        pf = d / "papers.json"
+        pf.write_text(json.dumps([PAPER]))
+        fake = FakeNear()
+        env = {"NEARAI_API_KEY": "near-test", "MUSE_API_KEY": "muse-test"}
+        with _NO_DCAP, mock.patch("urllib.request.urlopen", fake), mock.patch.dict(os.environ, env):
+            rc = hunt.main(["--source", "all", "--papers-file", str(pf), "--news-file", str(HERE / "fixtures" / "news.json"),
+                            "--no-run", "--no-save", "--combine", "0", "--provider", "nearai", "--model", "test/model",
+                            "--max-muse-calls", "3", "--out-dir", str(d / "hunts"), "--board-out", str(d / "site")])
+        self.assertEqual(rc, 0)
+        h = json.loads(next(p for p in (d / "hunts").glob("2*.json")).read_text())
+        self.assertEqual(h["news_model"]["provider"], "muse")              # the news job's own default
+        self.assertEqual(h["model"]["provider"], "nearai")
+        jobs = {(e["job"], e["provider"]) for e in h["muse"]["log"]}
+        self.assertIn(("papers", "nearai"), jobs)
+        self.assertIn(("news", "muse"), jobs)
+        self.assertLessEqual(h["muse"]["calls"], 3)                        # one budget for both clients
+        self.assertTrue(h["attestation"]["attested"])
+        self.assertEqual(h["attestation"]["replies"]["total"], sum(1 for e in h["muse"]["log"] if e["job"] == "papers" and e["ok"]))
+        self.assertTrue(any("no attestation" in n for n in h["notes"]))
+        muse_calls = [e for e in h["muse"]["log"] if e["provider"] == "muse"]
+        self.assertTrue(all("signature" not in e for e in muse_calls))     # never claimed for Muse replies
+        self.assertEqual(hunt.parse_args([]).news_provider, None)
+        self.assertEqual(hunt.NEWS_DEFAULT_PROVIDER, "muse")
+
+
+class NewsOnlyRecordNamesTheNewsModel(unittest.TestCase):
+    def test_news_only_hunt_never_names_the_papers_model(self):
+        d = pathlib.Path(tempfile.mkdtemp())
+        fake = FakeNear()
+        with _NO_DCAP, mock.patch("urllib.request.urlopen", fake), mock.patch.dict(os.environ, {"MUSE_API_KEY": "muse-test", "NEARAI_API_KEY": "near-test"}):
+            rc = hunt.main(["--source", "news", "--news-file", str(HERE / "fixtures" / "news.json"), "--no-run", "--no-save",
+                            "--out-dir", str(d / "hunts"), "--board-out", str(d / "site")])
+        self.assertEqual(rc, 0)
+        h = json.loads(next(p for p in (d / "hunts").glob("2*.json")).read_text())
+        md = next((d / "hunts").glob("2*.md")).read_text()
+        self.assertEqual(h["model"]["provider"], "muse")
+        self.assertEqual(h["model"], h["news_model"])
+        self.assertNotIn("glm", md + json.dumps(h["notes"]))
+        self.assertIn("has no attestation", h["attestation"]["why"])
+        self.assertFalse(any("/attestation/report" in p for p in fake.calls))   # nothing fetched from NEAR

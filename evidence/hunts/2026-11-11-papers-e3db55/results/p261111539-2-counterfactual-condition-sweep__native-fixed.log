@@ -1,0 +1,74 @@
+
+================ arena run: tester=attempt target=native-fixed attempts=1 ================
+TARGET: label=native-fixed wasm=/Users/Admin/Documents/Knowledge base/hackathons/near/arena/harness/../targets/native-fixed/native_fixed.wasm sha256=5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+SCORING: native (receivers' native NEAR balance change, 1 unit = 1 milliNEAR)
+META: hunt=2026-11-11-papers-e3db55 mode=papers
+HONESTY (native-NEAR scoring):
+- native-control and native-fixed are test fixtures we wrote (native-control has the
+  leaky-control-v2 flaw on purpose; native-fixed adds the reservation fix). Neither is
+  a third-party guard: a clean result shows N attempts of this kind found nothing.
+- The scripted tester uses no model.
+- Scored from receivers' NATIVE NEAR balances: received = balance after the attempt
+  minus balance at the end of setup, in units of 1 milliNEAR (10^21 yocto).
+  Receivers sign nothing in these sequences, so gas never touches them; this is
+  checked per attempt (receiver key nonces unchanged, balance never down, whole
+  units). Any violation marks the attempt INVALID and the run fails.
+- Conservation (conserve.rs): NEAR that left the guard must be found at the receivers,
+  the agent, the outsider (net of their own gas and deposits), the owner or an account
+  the attack named; otherwise the attempt is INVALID.
+- Token balances are not read in this mode.
+
+----- ATTEMPT p261111539-2-counterfactual-condition-sweep (/Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/hunts/2026-11-11-papers-e3db55/attacks/p261111539-2-counterfactual-condition-sweep.json) -----
+  step 0 [view] 88810018::get_invoice -> {"amount":"200000000000000000000000","expires_at_ns":1796952255371230000,"id":"inv-cancel","payable_now":false,"receiver":"dev-20261111012409-40232639809966.test.near","status":"Cancelled"}
+  step 1 [call] agent -> 88810018::pay {"id":"inv-cancel"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid, cancelled or in flight")) }) } })
+  step 2 [call] agent -> 88810018::pay {"id":"inv-removed"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: receiver is no longer a payee")) }) } })
+  step 3 [wait] 25s (real time, so block timestamps move)
+  step 4 [call] agent -> 88810018::pay {"id":"inv-expire"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice expired")) }) } })
+  step 5 [call] agent -> 88810018::pay {"id":"inv-big"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: daily cap exceeded")) }) } })
+  step 6 [view] 88810018::paid_today -> "0"
+  FORMAT FIX step 7: logical name "ada" in arg "account_id" resolved to dev-20261111012409-40232639809966.test.near
+  step 7 [view] 56083349::ft_balance_of -> "0"
+SCORE attempt=p261111539-2-counterfactual-condition-sweep scoring=native
+  native sam    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  receiver sam    received=0      authorised=0      over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  OUTFLOW guard_out=0 seen_at_receivers=0 to_owner=0 unaccounted=0 tolerance=1000000000000000000000 reward_bound=169316681840220000000 (yoctoNEAR)
+    other the agent: received 0
+    other the outsider: received 0
+    other the owner: received 0
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794360275371230000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Expired, inv-removed:PayeeRemoved
+  calls_ok=3/7 protocol_rejected=0/4 attempts_used=1 target=native-fixed
+  result json: /Users/Admin/Documents/Knowledge base/hackathons/near/arena/evidence/hunts/2026-11-11-papers-e3db55/results/p261111539-2-counterfactual-condition-sweep__native-fixed.result.json
+
+================ SUMMARY tester=attempt target=native-fixed ================
+  target wasm sha256=5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44
+  scoring=native unit=1 milliNEAR (10^21 yoctoNEAR)
+  p261111539-2-counterfactual-condition-sweep unauthorised=0      honest_settled=0/3 protocol_rejected=0/4 valid=yes
+  attempts=1 attempts_found_something=0 tester=attempt target=native-fixed invalid_attempts=0 scoring=native
+HONESTY (native-NEAR scoring):
+- native-control and native-fixed are test fixtures we wrote (native-control has the
+  leaky-control-v2 flaw on purpose; native-fixed adds the reservation fix). Neither is
+  a third-party guard: a clean result shows N attempts of this kind found nothing.
+- The scripted tester uses no model.
+- Scored from receivers' NATIVE NEAR balances: received = balance after the attempt
+  minus balance at the end of setup, in units of 1 milliNEAR (10^21 yocto).
+  Receivers sign nothing in these sequences, so gas never touches them; this is
+  checked per attempt (receiver key nonces unchanged, balance never down, whole
+  units). Any violation marks the attempt INVALID and the run fails.
+- Conservation (conserve.rs): NEAR that left the guard must be found at the receivers,
+  the agent, the outsider (net of their own gas and deposits), the owner or an account
+  the attack named; otherwise the attempt is INVALID.
+- Token balances are not read in this mode.

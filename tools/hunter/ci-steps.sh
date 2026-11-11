@@ -10,9 +10,12 @@
 # Inputs (env): HUNT_DAYS (1-365), HUNT_MAX_PAPERS (1-5), HUNT_PAPER (arXiv id or empty),
 #   HUNT_JOBS (1-8), HUNT_OUT_DIR, HUNT_BOARD_OUT, HUNT_ARTIFACT_DIR, HUNT_OFFLINE_REPLIES,
 #   HUNT_PAPERS_FILE, HUNT_NO_SAVE (1 = dry run), HUNT_SOURCE (papers|news|all; default papers),
-#   HUNT_NEWS_FILE (canned Elfa replies: the no-network stand-in for Elfa). MUSE_API_KEY and the
-#   optional ELFA_API_KEY come from the environment (repo secrets in CI) and are never echoed:
-#   `set -x` is never used in this file. No ELFA_API_KEY = the news source is skipped, the hunt runs.
+#   HUNT_NEWS_FILE (canned Elfa replies: the no-network stand-in for Elfa), ARENA_MODEL_PROVIDER
+#   (papers job: nearai = NEAR AI Cloud, the default; muse) and ARENA_NEWS_MODEL_PROVIDER (news job:
+#   muse, the default; nearai). The model keys (NEARAI_API_KEY, MUSE_API_KEY) and the optional
+#   ELFA_API_KEY come from the environment (repo secrets in CI) and are never echoed: `set -x` is never
+#   used in this file. No ELFA_API_KEY, or no key for the news model = the news source is skipped,
+#   the hunt runs.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 source "$HOME/.cargo/env" 2>/dev/null || true
@@ -31,6 +34,11 @@ case "$step" in
     [ -f contracts/target/wasm32-unknown-unknown/release/test_token.wasm ] && [ -f contracts/target/wasm32-unknown-unknown/release/guard.wasm ] || \
       (cd contracts && cargo build --release --target wasm32-unknown-unknown -p test-token -p guard)
     [ -x harness/target/release/arena-harness ] || (cd harness && cargo build --release)
+    # Optional Intel quote check for the NEAR AI attestation: pinned, hash-checked wheel, CI only
+    # (a local machine may install it itself; without it the record says "quote not verified here").
+    if [ "${CI:-}" = "true" ]; then
+      python3 -m pip install --quiet --require-hashes --only-binary :all: --no-deps -r tools/hunter/requirements-attest.txt
+    fi
     python3 -I tools/hunter/registry.py
     ;;
   test)
@@ -60,8 +68,16 @@ case "$step" in
     [ -n "${HUNT_OFFLINE_REPLIES:-}" ] && args+=(--offline-replies "$HUNT_OFFLINE_REPLIES")
     [ -n "${HUNT_PAPERS_FILE:-}" ] && args+=(--papers-file "$HUNT_PAPERS_FILE")
     [ "${HUNT_NO_SAVE:-0}" = "1" ] && args+=(--no-save)
-    if [ -z "${HUNT_OFFLINE_REPLIES:-}" ] && [ -z "${MUSE_API_KEY:-}" ] && [ ! -f "$HOME/.config/arena/model.env" ]; then
-      echo "MUSE_API_KEY is not set (add it as a repository secret); not hunting" >&2; exit 2
+    PROVIDER="${ARENA_MODEL_PROVIDER:-nearai}"
+    case "$PROVIDER" in nearai|muse) ;; *) echo "bad ARENA_MODEL_PROVIDER: nearai or muse" >&2; exit 2 ;; esac
+    if [ -z "${HUNT_OFFLINE_REPLIES:-}" ]; then
+      # The papers job needs its model key; the news job (Muse by default) is skipped by the hunt itself if its key is missing.
+      if [ "$SOURCE" != news ] && [ "$PROVIDER" = nearai ] && [ -z "${NEARAI_API_KEY:-}" ] && [ ! -f "$HOME/.config/arena/nearai.env" ]; then
+        echo "NEARAI_API_KEY is not set (add it as a repository secret); not hunting" >&2; exit 2
+      fi
+      if [ "$SOURCE" != news ] && [ "$PROVIDER" = muse ] && [ -z "${MUSE_API_KEY:-}" ] && [ ! -f "$HOME/.config/arena/model.env" ]; then
+        echo "MUSE_API_KEY is not set (needed because ARENA_MODEL_PROVIDER=muse); not hunting" >&2; exit 2
+      fi
     fi
     mkdir -p "$OUT_DIR"
     # The same frozen-fingerprint checks every other mode gets, around the hunt.
@@ -73,7 +89,7 @@ case "$step" in
     [ -f "$BOARD_OUT/board-data.json" ] && cp "$BOARD_OUT/board-data.json" "$BOARD_OUT/board.html" "$ART/site/" || true
     [ -d sequences-paper ] && cp -R sequences-paper "$ART/" || true
     # Never ship anything that looks like a key.
-    if grep -rIl -i -E "MUSE_API_KEY=|ELFA_API_KEY=|x-elfa-api-key|Bearer [A-Za-z0-9._-]{12,}" "$ART" >/dev/null 2>&1; then
+    if grep -rIl -i -E "MUSE_API_KEY=|NEARAI_API_KEY=|ELFA_API_KEY=|x-elfa-api-key|Bearer [A-Za-z0-9._-]{12,}" "$ART" >/dev/null 2>&1; then
       echo "refusing to upload: something in the artifact looks like a secret" >&2; exit 1
     fi
     echo "artifact ready: $ART ($(find "$ART" -type f | wc -l | tr -d ' ') files)"

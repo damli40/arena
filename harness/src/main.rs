@@ -27,6 +27,7 @@
 //! (or `--out` for `attempt`), never into the sequence folder.
 
 mod adapter;
+mod conserve;
 mod effects;
 mod scorer;
 mod scripted;
@@ -44,8 +45,14 @@ HONESTY:
   shows N attempts of this kind found nothing, not that the target is safe.
 - The scripted tester uses no model. Any AI tester's provider/model/date is printed
   in the run header (--meta lines).
-- Native NEAR balances are ignored in scoring (gas/storage would pollute them).
-- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).";
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them), except
+  one check: the agent and the outsider must not gain NEAR (net of their own gas and
+  deposits). If they do, the attempt is INVALID.
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+- Conservation: every token that left the guard must be found at the five receivers,
+  the agent, the outsider, the owner or an account the attack named. Tokens at the
+  agent, the outsider or a named account count as beyond policy; tokens Arena cannot
+  find make the attempt INVALID (conserve.rs).";
 
 const HONESTY_LINES_NATIVE: &str = "\
 HONESTY (native-NEAR scoring):
@@ -58,10 +65,36 @@ HONESTY (native-NEAR scoring):
   Receivers sign nothing in these sequences, so gas never touches them; this is
   checked per attempt (receiver key nonces unchanged, balance never down, whole
   units). Any violation marks the attempt INVALID and the run fails.
+- Conservation (conserve.rs): NEAR that left the guard must be found at the receivers,
+  the agent, the outsider (net of their own gas and deposits), the owner or an account
+  the attack named; otherwise the attempt is INVALID.
 - Token balances are not read in this mode.";
 
-fn honesty(native: bool) -> &'static str {
-    if native { HONESTY_LINES_NATIVE } else { HONESTY_LINES }
+const HONESTY_LINES_NATIVE_GUARD: &str = "\
+HONESTY (native-NEAR scoring, a guard described by --guard-config):
+- Scored from receivers' NATIVE NEAR balances: received = balance after the attempt
+  minus balance at the end of setup, in units of 1 milliNEAR (10^21 yocto).
+- Conservation (conserve.rs): the guard's own NEAR balance change (plus deposits it
+  kept) must be found at the receivers, the agent, the outsider, the owner or an
+  account the attack named. The agent's and the outsider's changes are taken net of the
+  gas and deposits they paid (from their transactions' receipts), so their gas is never
+  counted as a payment. NEAR at the agent, the outsider or a named account counts as
+  beyond policy; more than 1 milliNEAR Arena cannot find makes the attempt INVALID.
+  The guard's own gas rewards can hide up to 3/10 of the gas burnt in its receipts;
+  that bound is printed per attempt (reward_bound).
+- Receivers sign nothing, so gas never touches them; this is checked per attempt
+  (receiver key nonces unchanged, balance never down, whole units). Any violation
+  marks the attempt INVALID and the run fails.
+- Amounts in an attack's own calls (amount, daily_cap) are scaled from Arena units to
+  yoctoNEAR, and each one is printed.
+- Token balances are not read in this mode.";
+
+fn honesty(target: &Target) -> &'static str {
+    match (target.is_native(), target.adapter().is_some()) {
+        (true, true) => HONESTY_LINES_NATIVE_GUARD,
+        (true, false) => HONESTY_LINES_NATIVE,
+        _ => HONESTY_LINES,
+    }
 }
 
 /// Flags that take a value (so their value is never read as a positional).
@@ -83,10 +116,12 @@ fn arg_dir(args: &[String], what: &str) -> Result<PathBuf> {
 fn target_of(args: &[String]) -> Result<Target> {
     if let Some(cfg) = flag(args, "--guard-config") {
         let w = flag(args, "--wasm").context("--guard-config needs --wasm <path>")?;
-        if args.iter().any(|a| a == "--native") {
-            bail!("--guard-config is for token guards only (no --native)");
+        let t = Target::configured(w, flag(args, "--wasm-label"), cfg)?;
+        // The config's "pays_in" decides; --native may only agree with it.
+        if args.iter().any(|a| a == "--native") && !t.is_native() {
+            bail!("--native was given, but the guard config says the guard pays in tokens; set \"pays_in\": \"native\" in the config instead");
         }
-        return Target::configured(w, flag(args, "--wasm-label"), cfg);
+        return Ok(t);
     }
     if let Some(w) = flag(args, "--wasm") {
         return Target::custom(w, flag(args, "--wasm-label"), args.iter().any(|a| a == "--native"));
@@ -244,6 +279,7 @@ async fn run_files(
     if native {
         println!("SCORING: native (receivers' native NEAR balance change, 1 unit = 1 milliNEAR)");
     }
+    let honesty_text = honesty(&target);
     for m in meta {
         println!("META: {m}");
     }
@@ -253,7 +289,7 @@ async fn run_files(
             p.file, p.keep_payees, p.removed(), p.daily_cap
         );
     }
-    println!("{}", honesty(native));
+    println!("{honesty_text}");
     let rdir = results_dir(&format!("{tester}-{tl}"));
     let mut findings = Vec::new();
     let mut summary = Vec::new();
@@ -270,6 +306,8 @@ async fn run_files(
             }
             None => None,
         };
+        // Conservation check (conserve.rs): every balance it needs, right before the first step.
+        a.before = Some(conserve::snapshot(&a, &steps).await?);
         let outcome = seq::execute(&a, &steps).await?;
         seq::settle(&a).await?;
         let s = scorer::score(&a).await?;
@@ -327,9 +365,9 @@ async fn run_files(
     for (name, why) in &invalid_attempts {
         println!("  INVALID {name}: {}", why.join(" ; "));
     }
-    println!("{}", honesty(native));
+    println!("{honesty_text}");
     if !invalid_attempts.is_empty() {
-        bail!("RUN INVALID: {} attempt(s) broke a native-scoring assertion (see INVALID lines)", invalid_attempts.len());
+        bail!("RUN INVALID: {} attempt(s) could not be scored: a native-scoring assertion failed, or Arena could not account for the guard's money (see INVALID lines)", invalid_attempts.len());
     }
     Ok(())
 }

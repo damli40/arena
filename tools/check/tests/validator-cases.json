@@ -150,6 +150,51 @@
    "text": "{\"arena_guard_config\": 1, \"build\": \"x\"}",
    "ok": false,
    "why": "unknown key"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"pays_in\": \"native\"}",
+   "ok": true,
+   "why": "pays_in native"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"pays_in\": \"token\"}",
+   "ok": true,
+   "why": "pays_in token"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"pays_in\": \"Native\"}",
+   "ok": false,
+   "why": "pays_in is case-sensitive"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"pays_in\": \"near\"}",
+   "ok": false,
+   "why": "pays_in not on the list"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"pays_in\": 1}",
+   "ok": false,
+   "why": "pays_in a number"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"pays_in\": null}",
+   "ok": false,
+   "why": "pays_in null"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"pays_in\": \"native\", \"init\": {\"args\": {\"cap\": \"$daily_cap_number\"}}}",
+   "ok": false,
+   "why": "native cap does not fit a JSON number"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"pays_in\": \"native\", \"shapes\": {\"amount_encoding\": \"number\"}}",
+   "ok": false,
+   "why": "native amounts do not fit a JSON number"
+  },
+  {
+   "text": "{\"arena_guard_config\": 1, \"pays_in\": \"token\", \"init\": {\"args\": {\"cap\": \"$daily_cap_number\"}}}",
+   "ok": true,
+   "why": "token cap as a number is fine"
   }
  ]
 }

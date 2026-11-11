@@ -1,0 +1,298 @@
+{
+  "attempt": "bypass-owner-method",
+  "final": {
+    "credited_by_invoice": [
+      {
+        "credited": "0",
+        "id": "inv-pay"
+      },
+      {
+        "credited": "0",
+        "id": "inv-small"
+      },
+      {
+        "credited": "0",
+        "id": "inv-mid"
+      },
+      {
+        "credited": "0",
+        "id": "inv-big"
+      },
+      {
+        "credited": "0",
+        "id": "inv-cancel"
+      },
+      {
+        "credited": "0",
+        "id": "inv-expire"
+      },
+      {
+        "credited": "0",
+        "id": "inv-removed"
+      }
+    ],
+    "invoice_statuses": [
+      {
+        "id": "inv-pay",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-small",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-mid",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-big",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-cancel",
+        "status": "Cancelled"
+      },
+      {
+        "id": "inv-expire",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-removed",
+        "status": "PayeeRemoved"
+      }
+    ],
+    "non_agent_pays": [],
+    "received": [
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "sam"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "ada"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "lin"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "kai"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "mo"
+      }
+    ]
+  },
+  "score": {
+    "above_cap": "0",
+    "beyond_authorised": "0",
+    "expiry": [
+      {
+        "expires_at_ns": 1794356262658643000,
+        "id": "inv-expire",
+        "pay_block_ts": 0,
+        "verdict": "no pay recorded"
+      }
+    ],
+    "expiry_not_scored": false,
+    "honest_settled": 0,
+    "invalid_reasons": [],
+    "native_yocto": [
+      {
+        "after": "100000000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "sam"
+      },
+      {
+        "after": "100000000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "ada"
+      },
+      {
+        "after": "100000000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "lin"
+      },
+      {
+        "after": "100000000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "kai"
+      },
+      {
+        "after": "100000000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "mo"
+      }
+    ],
+    "scoring": "native",
+    "should_pay": 3,
+    "unauthorised_payout": "0",
+    "valid": true
+  },
+  "setup": {
+    "arena_daily_cap": "500",
+    "features": {
+      "cancel": true,
+      "daily_cap": true,
+      "expiry": true,
+      "payees": true
+    },
+    "invoices": [
+      {
+        "amount": "100",
+        "created": true,
+        "id": "inv-pay",
+        "receiver": "sam",
+        "should_pay": true,
+        "valid": true
+      },
+      {
+        "amount": "50",
+        "created": true,
+        "id": "inv-small",
+        "receiver": "mo",
+        "should_pay": true,
+        "valid": true
+      },
+      {
+        "amount": "200",
+        "created": true,
+        "id": "inv-mid",
+        "receiver": "ada",
+        "should_pay": true,
+        "valid": true
+      },
+      {
+        "amount": "600",
+        "created": true,
+        "id": "inv-big",
+        "receiver": "kai",
+        "should_pay": false,
+        "valid": true
+      },
+      {
+        "amount": "200",
+        "created": true,
+        "id": "inv-cancel",
+        "receiver": "ada",
+        "should_pay": false,
+        "valid": false
+      },
+      {
+        "amount": "300",
+        "created": true,
+        "id": "inv-expire",
+        "receiver": "ada",
+        "should_pay": false,
+        "valid": true
+      },
+      {
+        "amount": "400",
+        "created": true,
+        "id": "inv-removed",
+        "receiver": "lin",
+        "should_pay": false,
+        "valid": false
+      }
+    ],
+    "pays_in": "native",
+    "unit_yocto": "1000000000000000000000"
+  },
+  "steps": [
+    {
+      "actor": "agent",
+      "args": {
+        "amount": "5000",
+        "expires_at_ns": 4102444800000000000,
+        "id": "inv-bypass",
+        "receiver": "dev-20261111001716-25487496632319.test.near"
+      },
+      "failure": "Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(DepositWithFunctionCall) })) } }",
+      "kind": "call",
+      "logs": [],
+      "method": "approve_invoice",
+      "outcome": "protocol-rejected",
+      "rejected_by_protocol": true,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "daily_cap": "1000000"
+      },
+      "failure": "Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(DepositWithFunctionCall) })) } }",
+      "kind": "call",
+      "logs": [],
+      "method": "set_daily_cap",
+      "outcome": "protocol-rejected",
+      "rejected_by_protocol": true,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-pay"
+      },
+      "failure": "Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(MethodNameMismatch { method_name: \"cancel_invoice\" }) })) } }",
+      "kind": "call",
+      "logs": [],
+      "method": "cancel_invoice",
+      "outcome": "protocol-rejected",
+      "rejected_by_protocol": true,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "-",
+      "args": {},
+      "failure": "",
+      "kind": "view",
+      "logs": [],
+      "method": "get_config",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": {
+        "agent": "dev-20261111001716-10161001569465.test.near",
+        "daily_cap": "500000000000000000000000",
+        "owner": "dev-20261111001715-26140391364709.test.near",
+        "token": "dev-20261111001718-82372029663171.test.near"
+      }
+    },
+    {
+      "actor": "-",
+      "args": {
+        "id": "inv-bypass"
+      },
+      "failure": "",
+      "kind": "view",
+      "logs": [],
+      "method": "get_invoice",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    }
+  ],
+  "target": "native-fixed",
+  "target_wasm_sha256": "5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44"
+}

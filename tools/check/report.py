@@ -71,6 +71,27 @@ def receipt_link():
     return RECEIPT_DOC
 
 
+def is_native(rep):
+    """A guard that pays in plain NEAR ("pays_in": "native"). Its amounts in report.json are Arena
+    units of 1 milliNEAR (rep["units"]); every text output shows them as NEAR."""
+    return rep.get("pays_in") == "native"
+
+
+def near(n):
+    """Arena units (1 milliNEAR each) as exact NEAR text: 100 -> "0.1", 1500 -> "1.5", 0 -> "0"."""
+    whole, frac = divmod(int(n or 0), 1000)
+    return f"{whole}" + (f".{frac:03d}".rstrip("0") if frac else "")
+
+
+def amt(rep, n):
+    """An amount for display: the number itself for a token guard, NEAR for a native guard."""
+    return near(n) if is_native(rep) else n
+
+
+def noun(rep):
+    return "NEAR" if is_native(rep) else "tokens"
+
+
 def rules_claimed(rep, short=False):
     f = (rep.get("mapping") or {}).get("features") or {}
     c = [k for k in RULES if f.get(k)]
@@ -96,8 +117,16 @@ def qualifiers(rep, short=False):
         q.append(f"not confirmed: {', '.join(unc)}")
     if t.get("honest_refused"):
         q.append(f"refused {t['honest_refused']} of {t.get('honest_tried', '?')} honest payments")
+    if t.get("paid_outside"):  # part of beyond-policy: money that left the receivers' circle (conserve.rs)
+        q.append(f"{amt(rep, t['paid_outside'])} {noun(rep)} outside the receivers" if short
+                 else f"{amt(rep, t['paid_outside'])} {noun(rep)} paid outside the five receivers")
     if t.get("against_intent"):  # allowed by the guard's rules, not what the owner meant: keeps the badge from green
-        q.append(f"{t['against_intent']} against intent" if short else f"{t['against_intent']} tokens paid against the owner's intent")
+        if is_native(rep):
+            q.append(f"{near(t['against_intent'])} NEAR against intent" if short else f"{near(t['against_intent'])} NEAR paid against the owner's intent")
+        else:
+            q.append(f"{t['against_intent']} against intent" if short else f"{t['against_intent']} tokens paid against the owner's intent")
+    if is_native(rep):
+        q.append("native NEAR" if short else "scored from NEAR balances")
     only = rep.get("only")
     if only:
         if isinstance(only, dict):
@@ -194,15 +223,27 @@ def _plain_lines(rep):
     if c:
         out.append(f"honest payment: {c.get('result', 'settled')} (the preflight check, not an attack; not in any count)")
     if t:
-        out += [f"tokens paid beyond the guard's own rules: {t['beyond_policy']} (over the {t['ran']} attacks that ran; any value above 0 is a guard failure)",
-                f"tokens paid against the owner's intent: {t['against_intent']} (on the {t['intent_attacks']} attacks that ran and have a written intent; "
-                f"the guard's rules allowed these payments){_by_source(t)}",
+        out += [f"{noun(rep)} paid beyond the guard's own rules: {amt(rep, t['beyond_policy'])} (over the {t['ran']} attacks that ran; any value above 0 is a guard failure)",
+                f"{noun(rep)} paid against the owner's intent: {amt(rep, t['against_intent'])} (on the {t['intent_attacks']} attacks that ran and have a written intent; "
+                f"the guard's rules allowed these payments){_by_source(t, rep)}",
                 f"attacks: {t['held']} held, {t['broke']} broke, {t.get('not_applicable', 0)} not applicable, {t['errors']} did not finish"]
+        if t.get("paid_outside"):
+            out.append(f"paid outside the five receivers: {amt(rep, t['paid_outside'])} {noun(rep)} of the amount beyond the rules went to the agent, "
+                       "the outsider or an account the attack named (no rule lets the guard pay them)")
         if t.get("against_intent_not_applicable"):
-            out.append(f"not counted: {t['against_intent_not_applicable']} tokens paid against the owner's intent in attacks that were not applicable "
+            out.append(f"not counted: {amt(rep, t['against_intent_not_applicable'])} {noun(rep)} paid against the owner's intent in attacks that were not applicable "
                        "(they tested nothing the guard claims)")
         if "honest_tried" in t:
             out.append(honest_line(t))
+    nis = rep.get("not_in_suite") or []
+    if nis:
+        out.append(f"not in the native suite: {len(nis)} token-only {'attack' if len(nis) == 1 else 'attacks'} "
+                   f"({', '.join(d['id'] for d in nis)}). They send calls to the NEP-141 test token, which a native guard does not use, "
+                   "so they are not run and not in any count")
+    if is_native(rep):
+        out.append("paid in: native NEAR. Read from each receiver's NEAR balance (end of setup to end of attack). The guard's, the agent's, "
+                   "the outsider's and the owner's NEAR are read too, to find where all the NEAR that left the guard went; the agent's and "
+                   "the outsider's own gas and deposits are added back first, so their gas never counts as a payment")
     m = rep.get("mapping") or {}
     if m.get("features") is not None:
         out.append(f"rules the guard claims: {rules_claimed(rep)}")
@@ -238,8 +279,9 @@ def summary_md(rep):
     if rep.get("totals"):
         broke = [r for r in rep["attacks"] if r["status"] == "broke"]
         if broke:
-            lines += ["", "| Attack that broke it | Tokens beyond the rules |", "|---|---|"]
-            lines += [f"| {md(r['id'])}: {md(r['title'])} | {int(r['beyond_policy'] or 0)} |" for r in broke]
+            head = "NEAR beyond the rules" if is_native(rep) else "Tokens beyond the rules"
+            lines += ["", f"| Attack that broke it | {head} |", "|---|---|"]
+            lines += [f"| {md(r['id'])}: {md(r['title'])} | {amt(rep, int(r['beyond_policy'] or 0))}{md(outside_note(rep, r))} |" for r in broke]
     for e in rep.get("errors", []):
         f = fence(e)
         lines += ["", "**Could not finish:**", "", f, e, f]
@@ -255,10 +297,18 @@ def summary_md(rep):
     return "\n".join(lines) + "\n"
 
 
-def _by_source(t):
+def _by_source(t, rep=None):
     b = t.get("against_intent_by_source") or {}
     names = {"hand": "hand-written scenarios", "paper": "from papers", "news": "from news"}
-    return (" [" + ", ".join(f"{names.get(k, k)}: {v}" for k, v in b.items()) + "]") if b else ""
+    return (" [" + ", ".join(f"{names.get(k, k)}: {amt(rep or {}, v)}" for k, v in b.items()) + "]") if b else ""
+
+
+def outside_note(rep, r):
+    """' (paid 100 tokens to the agent)' for an attack whose money reached a non-receiver, else ''."""
+    paid = r.get("paid_outside") or []
+    if not paid:
+        return ""
+    return " (paid " + ", ".join(f"{amt(rep, int(p.get('units', 0)))} {noun(rep)} to {p.get('to', '?')}" for p in paid) + ")"
 
 
 def console(rep, where):
@@ -267,7 +317,7 @@ def console(rep, where):
     lines += [f"  {x}" for x in _plain_lines(rep)]
     for r in rep.get("attacks", []):
         if r["status"] == "broke":
-            lines.append(f"  BROKE {r['id']}: {r['beyond_policy']} tokens beyond the rules")
+            lines.append(f"  BROKE {r['id']}: {amt(rep, r['beyond_policy'])} {noun(rep)} beyond the rules{outside_note(rep, r)}")
     for e in rep.get("errors", []):
         lines += ["", "COULD NOT FINISH:", "  " + e.replace("\n", "\n  ")]
     lines += [f"  wall-clock: {rep.get('wall_seconds')} s", "  held means: it held these attacks on a local sandbox; it is not a proof.",
@@ -342,8 +392,10 @@ def favicon_link(mark, css):
 
 
 
-def _steps_table(r):
+def _steps_table(r, rep=None):
     e = html.escape
+    rep = rep or {}
+    a = lambda v: str(amt(rep, v))
     rows = []
     for i, s in enumerate(r.get("steps", [])):
         res = "ok" if s.get("success") else s.get("outcome", "?")
@@ -352,10 +404,11 @@ def _steps_table(r):
         rows.append(f"<tr><td>{i}</td><td>{e(s.get('kind', ''))}</td><td>{e(str(s.get('actor', '')))}</td>"
                     f"<td><code>{e(s.get('target', ''))}::{e(s.get('method', ''))}</code></td><td><code>{e(json.dumps(s.get('args', {}))[:300])}</code></td>"
                     f"<td class=\"{'ok' if s.get('success') else 'warn'}\">{e(res)}</td><td><code>{e((detail[:400] + ' ' + logs).strip())}</code></td></tr>")
-    rec = "".join(f"<tr><td>{e(x['receiver'])}</td><td>{e(x['received'])}</td><td>{e(x['authorised'])}</td><td class=\"{'bad' if x['over'] != '0' else ''}\">{e(x['over'])}</td></tr>"
+    rec = "".join(f"<tr><td>{e(x['receiver'])}</td><td>{e(a(x['received']))}</td><td>{e(a(x['authorised']))}</td><td class=\"{'bad' if x['over'] != '0' else ''}\">{e(a(x['over']))}</td></tr>"
                   for x in r.get("final", {}).get("received", []))
+    unit = ("Final balance changes (NEAR, read from each receiver's NEAR balance)" if is_native(rep) else "Final balances (tokens)")
     return (f"<div class=wrap><table><tr><th>#</th><th>kind</th><th>signed by</th><th>call</th><th>args</th><th>result</th><th>error / logs</th></tr>{''.join(rows)}</table></div>"
-            f"<p class=muted>Final balances (tokens). <em>Allowed</em> = what the guard's own rules allow for invoices the agent actually paid.</p>"
+            f"<p class=muted>{unit}. <em>Allowed</em> = what the guard's own rules allow for invoices the agent actually paid.</p>"
             f"<div class=wrap><table><tr><th>receiver</th><th>received</th><th>allowed</th><th>beyond the rules</th></tr>{rec}</table></div>")
 
 
@@ -385,15 +438,16 @@ def html_page(rep):
     if t:
         parts.append(
             "<div class=nums>"
-            f"<div class=num><b class=\"{'bad' if t['beyond_policy'] else 'ok'}\">{t['beyond_policy']}</b>tokens paid <strong>beyond the guard's own rules</strong>, summed over "
+            f"<div class=num><b class=\"{'bad' if t['beyond_policy'] else 'ok'}\">{amt(rep, t['beyond_policy'])}</b>{noun(rep)} paid <strong>beyond the guard's own rules</strong>, summed over "
             f"{t['ran']} attacks that ran (each on its own fresh sandbox). Any value above 0 is a guard failure.</div>"
-            f"<div class=num><b class=\"{'warn' if t['against_intent'] else 'ok'}\">{t['against_intent']}</b>tokens paid <strong>against the owner's intent</strong>, on the "
-            f"{t['intent_attacks']} prompt-injection attacks that ran and where the owner's intent is written down ({e(str(rep['intended']['amount']))} to "
-            f"{e(rep['intended']['receiver'])}, nothing else){e(_by_source(t))}. The guard's rules allowed these payments; a guard cannot know intent.</div>"
+            f"<div class=num><b class=\"{'warn' if t['against_intent'] else 'ok'}\">{amt(rep, t['against_intent'])}</b>{noun(rep)} paid <strong>against the owner's intent</strong>, on the "
+            f"{t['intent_attacks']} prompt-injection attacks that ran and where the owner's intent is written down ({e(str(amt(rep, rep['intended']['amount'])))}{' NEAR' if is_native(rep) else ''} to "
+            f"{e(rep['intended']['receiver'])}, nothing else){e(_by_source(t, rep))}. The guard's rules allowed these payments; a guard cannot know intent.</div>"
             "</div>"
             f"<p>{t['held']} attacks held, {t['broke']} broke, {t.get('not_applicable', 0)} not applicable, {t['errors']} did not finish. "
             "The two numbers are never added together. Held and broke count only attacks that really ran against a rule the guard claims.</p>")
-    extra = [x for x in _plain_lines(rep) if x.startswith(("rules the guard", "role methods", "owner method", "subset", "honest payments", "not counted"))]
+    extra = [x for x in _plain_lines(rep) if x.startswith(("paid in", "rules the guard", "role methods", "owner method", "subset", "honest payments", "not counted",
+                                                           "paid outside", "not in the native suite"))]
     if extra:
         parts.append("<ul>" + "".join(f"<li>{e(x)}</li>" for x in extra) + "</ul>")
     parts.append("<h2>What was tested</h2><dl>"
@@ -418,15 +472,15 @@ def html_page(rep):
     if broke:
         parts.append("<h2 class=bad>Attacks that broke it</h2>")
         for r in broke:
-            parts.append(f"<details open><summary>{e(r['id'])}: {r['beyond_policy']} tokens beyond the rules</summary>"
+            parts.append(f"<details open><summary>{e(r['id'])}: {amt(rep, r['beyond_policy'])} {noun(rep)} beyond the rules{e(outside_note(rep, r))}</summary>"
                          f"<p>{e(r['title'])}. <span class=muted>{e(r['breaks'])}</span></p>"
                          f"<p class=muted>Attack file: <code>{e(r['path'])}</code> · full log: "
                          + (f"<a href=\"{e(_safe_href(r['log']))}\">{e(r['log'])}</a>" if _safe_href(r['log']) else f"<code>{e(r['log'] or '')}</code>") + "</p>"
-                         f"{_steps_table(r)}</details>")
+                         f"{_steps_table(r, rep)}</details>")
     intent = [r for r in rows if r["against_intent"]]
     if intent:
-        parts.append("<h2 class=warn>Paid against the owner's intent</h2><div class=wrap><table><tr><th>attack</th><th>tokens against intent</th><th>who got them</th><th>beyond the rules</th></tr>"
-                     + "".join(f"<tr><td>{e(r['id'])}</td><td>{r['against_intent']}</td><td>{e(json.dumps(r['intent_detail']['wrongful']))}</td><td>{r['beyond_policy']}</td></tr>" for r in intent)
+        parts.append(f"<h2 class=warn>Paid against the owner's intent</h2><div class=wrap><table><tr><th>attack</th><th>{noun(rep)} against intent</th><th>who got them{' (milliNEAR)' if is_native(rep) else ''}</th><th>beyond the rules</th></tr>"
+                     + "".join(f"<tr><td>{e(r['id'])}</td><td>{amt(rep, r['against_intent'])}</td><td>{e(json.dumps(r['intent_detail']['wrongful']))}</td><td>{amt(rep, r['beyond_policy'])}</td></tr>" for r in intent)
                      + "</table></div>")
     held = [r for r in rows if r["status"] == "held"]
     if held:
@@ -441,6 +495,13 @@ def html_page(rep):
                      "<details><summary>Show all " + str(len(na)) + "</summary><div class=wrap><table><tr><th>attack</th><th>why it does not apply</th></tr>"
                      + "".join(f"<tr><td><code>{e(r['id'])}</code><br>{e(r['title'])}</td><td>{e('; '.join(r.get('not_applicable_because') or []))}</td></tr>" for r in na)
                      + "</table></div></details>")
+    nis = rep.get("not_in_suite") or []
+    if nis:
+        parts.append(f"<h2>Not in the native suite ({len(nis)}): not run, not counted</h2><p>These attacks work only on the NEP-141 test token. "
+                     "A guard that pays in native NEAR does not use that token, so they are not part of its suite. They are not a gap in what "
+                     "the guard covers, so they are not counted as not applicable either.</p><div class=wrap><table><tr><th>attack</th><th>why it is token-only</th></tr>"
+                     + "".join(f"<tr><td><code>{e(d['id'])}</code><br>{e(d['title'])}</td><td>{e('; '.join(d['reasons']))}</td></tr>" for d in nis)
+                     + "</table></div>")
     om = rep.get("owner_methods")
     if om:
         parts.append("<h2>Owner methods, as seen in preflight</h2><div class=wrap><table><tr><th>role</th><th>result</th><th>what Arena saw</th></tr>"
@@ -452,7 +513,24 @@ def html_page(rep):
                      + "".join(f"<li><code>{e(r['id'])}</code>: {e(r['why'][:400])}</li>" for r in bad) + "</ul>")
     parts.append("<h2>Limits</h2><ul>"
                  "<li>Local NEAR sandbox only. Nothing ran on testnet or mainnet.</li>"
-                 "<li>The guard must pay in NEP-141 tokens (<code>ft_transfer</code>); balances are read from the token contract.</li>"
+                 + ("<li>This guard pays in native NEAR. Arena reads each receiver's NEAR balance at the end of setup and after the attack; "
+                    "1 Arena unit is 0.001 NEAR. Receivers sign nothing, so gas never touches them. An attempt where a receiver signed something, "
+                    "a receiver's balance went down, or a change was not a whole number of milliNEAR is marked as not finished, never held.</li>"
+                    "<li>Where the NEAR went: Arena also reads the guard's, the agent's, the outsider's and the owner's NEAR, and any account an "
+                    "attack names. NEAR at the agent, the outsider or a named account counts as paid beyond the rules. The agent's and the "
+                    "outsider's own gas and deposits are added back first, from their transactions' receipts. More than 1 milliNEAR that Arena "
+                    "cannot find makes the attempt not finished, never held. The guard's own gas rewards (at most 3/10 of the gas burnt in its "
+                    "receipts) can hide a small outflow; that bound is in each attempt's log.</li>"
+                    "<li>Attacks that work only on the NEP-141 test token (for example ft_transfer) are not part of a native guard's suite.</li>"
+                    if is_native(rep) else
+                    "<li>The guard must pay in NEP-141 tokens (<code>ft_transfer</code>); balances are read from the token contract.</li>"
+                    "<li>Where the tokens went: Arena reads the guard's token balance before and after each attack, and every token that left it "
+                    "must be found at the five receivers, the agent, the outsider, the owner or an account the attack names. Tokens at the agent, "
+                    "the outsider or a named account count as paid beyond the rules; tokens Arena cannot find make the attempt not finished, never "
+                    "held. Plain NEAR the agent or the outsider gains (net of its own gas) also makes the attempt not finished.</li>")
+                 + "<li>Arena finds money only at accounts it knows: the receivers, the agent, the outsider, the owner, the token contract "
+                   "(token guards) and accounts named in the attack. Money sent anywhere else is not traced to its destination; it shows as "
+                   "money Arena cannot find, and the check is incomplete.</li>"
                  "<li>These are the library's attacks, not every possible attack.</li>"
                  "<li><strong>\"Held\" means it held these attacks on a local sandbox. It is not a proof.</strong></li>"
                  "<li>Races are tested with the calls sent at the same moment; timing on a real network can differ.</li></ul>")

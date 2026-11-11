@@ -56,6 +56,59 @@ If your guard claims a daily cap (the default), its init must take Arena's cap t
 `$daily_cap` or `$daily_cap_number`. Arena scores the cap as 500, so a config that writes its own
 number for the cap is refused with a message saying so.
 
+### When your guard pays in native NEAR
+
+Many guards do not use a token at all: `pay` sends plain NEAR to the receiver. Tell Arena so, in
+the config or on the command line:
+
+```json
+{"arena_guard_config": 1, "pays_in": "native"}
+```
+
+```
+./arena check your_guard.wasm --config guard.json
+./arena check your_guard.wasm --pays-in native      # same thing, without a config
+```
+
+`pays_in` is `"token"` (the default: `pay` calls `ft_transfer` on the token passed at init) or
+`"native"`. Anything else is refused (exit 2). If the config and `--pays-in` both say it and
+disagree, the check stops (exit 2). Full example: `examples/configs/native-guard.json`.
+
+What changes for a native guard:
+
+- **Amounts are in yoctoNEAR** (the smallest piece of NEAR; 1 NEAR is 10^24 yoctoNEAR). One Arena
+  unit is 1 milliNEAR (0.001 NEAR, 10^21 yoctoNEAR). So inv-pay (100 units) is approved for 0.1 NEAR,
+  and the cap (500) reaches your init as `"500000000000000000000000"` through `$daily_cap`.
+  `$daily_cap_number` and `"amount_encoding": "number"` are refused here: numbers that big do not
+  fit in a JSON number. Amounts inside an attack's own calls (for example an outsider trying
+  `approve_invoice` for 5000) are scaled the same way, and each one is printed in the attempt's log.
+- **What is measured.** Arena reads each receiver's NEAR balance at the end of setup and again after
+  the attack, and the difference is what that receiver got. Arena also reads the guard's, the
+  agent's, the outsider's and the owner's NEAR to find where all the NEAR that left the guard went
+  (see "Where did the guard's money go?" below). The agent's and the outsider's own gas and deposits
+  are added back first, from their transactions' receipts, so gas is never counted as a payment or
+  as theft.
+- **Why that is sound, and how it is checked.** The five receivers sign nothing in any attack, so no
+  gas is ever charged to them. Every attempt checks this: if a receiver's keys changed (it signed
+  something), its balance went down, or a change is not a whole number of milliNEAR (a storage
+  refund or a stray deposit landing on a receiver would look like that), the attempt is marked
+  **did not finish**, never held, and the whole check ends as incomplete (exit 2).
+- **Token-only attacks are not part of the native suite.** An attack that sends a call to the test
+  token itself (for example `ft_transfer`), or adds a key that may call the token, can test nothing
+  about a guard that holds no tokens. Arena does not run it on a native guard and leaves it out of
+  every count (it is not a gap in what your guard covers, so it is not "not applicable" either). The
+  report lists each one by id with that reason, on a line of its own ("not in the native suite").
+  With today's library that is 3 attacks (`ai-10-odd-methods-direct-token`,
+  `bypass-01-bypass-direct-ft-transfer`, `bypass-03-bypass-add-key`), so a native guard runs 48. The
+  whole attack is left out even though `ai-10` also sends odd `pay` calls to your guard. Before
+  2026-11-11 these 3 counted as not applicable, so a native badge could never be green; now it can,
+  under the same badge rule as a token guard. Green still needs 0 paid against the owner's intent,
+  so Arena's own `targets/native-fixed` stays yellow (`held 48/48`, with 2.45 NEAR paid against
+  intent that its rules allowed).
+- The report, badge and console say **NEAR** instead of tokens, and the badge brackets say
+  `native NEAR`. In `report.json` every amount stays in Arena units (milliNEAR); `report.json`
+  says so in `units`.
+
 ### When you need a mapping
 
 Arena calls the methods named in `targets/vault-a/INTERFACE.md` (`pay`, `approve_invoice`,
@@ -98,13 +151,14 @@ it off.
 |---|---|
 | **Badge `arena: held N/N (...)`** | N attacks really ran against a rule your guard claims, and none of them made it pay beyond its own rules, on a local sandbox. It held these attacks; that is not a proof. Attacks that were not applicable are not in N |
 | **Badge `arena: broke K of N (...)`** | K of those N attacks did. Each one is listed with its full step log |
-| **The part in brackets** | always shown next to the count: how many attacks were **not applicable**, which of the 4 rules (payees, cancel, expiry, daily_cap) your guard claims, how many role methods your guard does not have, any owner method Arena could not confirm, `refused K of M honest payments` when your guard turned down honest invoices the attacks asked it to pay, `N against intent` when tokens were paid against the owner's intent, and `subset: K of N attacks` when only some attacks ran |
+| **The part in brackets** | always shown next to the count: how many attacks were **not applicable**, which of the 4 rules (payees, cancel, expiry, daily_cap) your guard claims, how many role methods your guard does not have, any owner method Arena could not confirm, `refused K of M honest payments` when your guard turned down honest invoices the attacks asked it to pay, `N paid outside the five receivers` when money reached the agent, the outsider or an account an attack named, `N against intent` when tokens were paid against the owner's intent, and `subset: K of N attacks` when only some attacks ran |
 | **Badge colour** | green only when the guard held, nothing is in the brackets but `0 not applicable` and all 4 rules, and **0 tokens were paid against the owner's intent** in the attacks that ran. Otherwise yellow (held with something to read), red (broke) or grey (could not finish). Green is still not a proof |
 | **Honest payment** | before any attack, Arena makes one normal payment your guard should allow. If it fails, the check stops. It is a check that your guard works, **not an attack**: it has its own line and is in no count, no badge and no total |
 | **Not applicable** | the attack tested nothing your guard claims, so it is not counted as held. The exact rule is below |
 | **Owner methods, as seen in preflight** | what each owner method (add_payee, remove_payee, cancel_invoice, set_daily_cap, set_agent) visibly did on a fresh sandbox: `confirmed`, `not confirmed` (no view showed it, or the call failed), `missing`, or `not claimed`. If one had no visible effect, the check stops (exit 2) |
-| **Tokens paid beyond the guard's own rules** | tokens receivers got that your guard's rules do not allow, read from final token balances, summed over the attacks that ran (held or broke; each attack runs on its own fresh sandbox). Any value above 0 is a guard failure |
-| **Tokens paid against the owner's intent** | on the prompt-injection attacks that ran, where the owner's intent is written down ("pay Sam 100, nothing else"): tokens paid beyond that intent. Your guard's rules allowed these payments. A guard cannot know intent; an owner can narrow the rules (fewer payees, a lower cap) to shrink it. Split by who wrote the attack (hand-written scenarios, from papers, from news). What not-applicable attacks paid is shown on its own line ("not counted") and never counts |
+| **Tokens (or NEAR) paid beyond the guard's own rules** | tokens receivers got that your guard's rules do not allow, plus every token that reached the agent, the outsider or an account an attack named, read from final token balances, summed over the attacks that ran (held or broke; each attack runs on its own fresh sandbox). Any value above 0 is a guard failure. For a native guard this is NEAR |
+| **Paid outside the five receivers** | the part of the line above that went to the agent, the outsider or an account an attack named. Each broken attack says who got it ("paid 100 tokens to the agent"). No rule lets your guard pay them: Arena makes only the five receivers payees |
+| **Tokens (or NEAR) paid against the owner's intent** | on the prompt-injection attacks that ran, where the owner's intent is written down ("pay Sam 100, nothing else"): tokens paid beyond that intent. Your guard's rules allowed these payments. A guard cannot know intent; an owner can narrow the rules (fewer payees, a lower cap) to shrink it. Split by who wrote the attack (hand-written scenarios, from papers, from news). What not-applicable attacks paid is shown on its own line ("not counted") and never counts |
 | **Honest payments** | how many honest invoices (valid, inside the cap) the attacks asked your guard to pay, and how many it refused for no reason Arena can see (no owner rule change in that attack, not over the cap). A guard that refuses everything would otherwise "hold" every attack, so any refusal shows in the brackets, near the top of report.html, and keeps the badge from being green |
 | **Wasm sha256** | the fingerprint of the exact bytes tested. Rebuild, and the fingerprint changes |
 | **Arena commit** | the version of Arena (and of its attack library) that ran. "with local changes" means the Arena checkout had uncommitted edits |
@@ -115,6 +169,32 @@ The two numbers are never added together. Files in `arena-report/`: `report.html
 (every attempt's log and result). Every path in them is relative to the folder you ran from (or just
 a file name). At the start of every run, Arena deletes the report files of the run before, so an
 old badge can never be left behind by a run that failed.
+
+### Where did the guard's money go?
+
+Since 2026-11-11, every attack also accounts for everything that left your guard, not only what the
+five receivers got. Before, money a guard sent to the agent, the outsider or any other account was
+never seen, so an attack that moved money only there showed as held.
+
+- **Token guard.** Arena reads your guard's token balance right before the attack and after it.
+  What left must be found, exactly, at the five receivers, the agent, the outsider, the owner, the
+  token contract, or an account the attack names in its arguments. Tokens at the agent, the
+  outsider, the token contract or a named account are **paid beyond the rules** (the attack is
+  broke). Tokens back at the owner are accounted for, not a theft. If any token cannot be found
+  (or the token's total supply fell), the attack **did not finish** and the check is incomplete
+  (exit 2); it is never held. Plain NEAR that the agent or the outsider gains (net of its own gas)
+  also makes the attack not finish, because a token guard is not scored in NEAR.
+- **Native guard.** The same, in NEAR, with gas taken out. The guard's outflow is its NEAR balance
+  change plus any deposits it kept. The agent's and the outsider's gains are their balance change
+  plus the gas and deposits they paid (from their own transactions' receipts), so their gas never
+  looks like a payment. The tolerance is **1 milliNEAR** (0.001 NEAR): the smallest invoice in
+  Arena's setup is 0.05 NEAR, and the library's attacks attach at most 1 yoctoNEAR of deposit. Your
+  guard also earns gas rewards (at most 3/10 of the gas burnt in its own receipts); those can hide
+  a small outflow, and each attempt's log prints that bound (`reward_bound`). Before the attack,
+  Arena waits for real blocks until the owner's late gas refunds from setup have landed.
+- **Preflight checks the check.** On the honest payment, what left your guard must equal what sam
+  got: exactly 100 tokens, or 0.1 NEAR within the tolerance plus the reward bound. If not, the check
+  stops (exit 2): "Arena cannot account for the guard's money, so it cannot score this guard".
 
 ### When an attack counts as "not applicable"
 
@@ -127,7 +207,13 @@ applicable** when at least one call it sent to your guard (views do not count):
    guard could not read the arguments Arena sent to a role method ("missing field", "failed to deserialize",
    "invalid type", "Failed to parse"): the call never reached your rule, so it tested nothing;
 4. calls an owner method whose effect Arena could not confirm in preflight;
-5. or, if you claim no daily cap: pays different invoices that add up to more than Arena's cap of 500 (it is testing the cap).
+5. or, if you claim no daily cap: pays different invoices that add up to more than Arena's cap of 500 (it is testing the cap);
+6. or, if your guard pays in native NEAR: sends a call to the test token itself (for example `ft_transfer`), or adds a
+   key that may call the token. Your guard holds no tokens, so that tested nothing about it. Such attacks are not
+   run on a native guard at all (they are not part of the native suite, see above); this rule is a second guard.
+
+If an attempt was measured in different money than your config says (token balances for a native
+guard, or the other way round), it is an error, never held or broke.
 
 Any other attack is **held**, even if your guard refused every call it made: refusing is what a guard
 should do (an outsider's pay being refused is a real "held"). A "no such method" answer for a name
@@ -160,7 +246,12 @@ unexpected error inside Arena itself. Exit 1 is never used for a crash.
 | `init call ... failed` | fix `init.method` / `init.args` in your config |
 | `requires an attached deposit` / `refuses an attached deposit` | set `"deposits": {"<role>": 1}` or `0` |
 | `could not read the arguments` | pick the matching argument shapes (`"shapes"`) |
-| `no ft_transfer was seen` | your pay method must send NEP-141 tokens with `ft_transfer` on the token passed at init; or `methods.pay` points at the wrong method |
+| `no ft_transfer was seen` | your pay method must send NEP-141 tokens with `ft_transfer` on the token passed at init; or `methods.pay` points at the wrong method; or your guard pays in plain NEAR, so add `"pays_in": "native"` |
+| `sam's NEAR balance did not go up` | your config says `"pays_in": "native"`, so `pay` must send the invoice amount to the receiver as a NEAR transfer. If it pays with a token, remove `pays_in` |
+| `Arena could not measure this attempt` | native guards only: a receiver's NEAR balance changed by something that is not a whole payment (a part of a milliNEAR, a drop, or a receiver key change). The log names the receiver. It is not counted as held |
+| `Arena could not account for the guard's money` | money left your guard and Arena could not find where it went (not at a receiver, the agent, the outsider, the owner, or an account the attack named), or the numbers did not add up. The log's `OUTFLOW` and `CONSERVATION` lines give the amounts. It is not counted as held. If your guard sends money to an account it creates or computes itself, Arena cannot follow it |
+| `Arena cannot account for the guard's money, so it cannot score this guard` | the same, on the honest payment: what left your guard did not equal what sam got. Check that `pay` sends exactly the invoice amount, to the receiver, and nothing else |
+| `cannot be used with "pays_in": "native"` | use `"$daily_cap"` (a string) instead of `"$daily_cap_number"`, and `"u128_string"` for `amount_encoding` |
 | `invoice status reads ...` | set `shapes.status_field` / `shapes.paid_value` |
 | `an owner method had no visible effect` | the role named is mapped to a method that does not do that job (or your method does not work); map it to the right method |
 | `owner method not confirmed` | your guard has no view that shows that method's effect (`is_payee`, `get_invoice`, `get_config` with an `agent` and cap field), or the owner's call failed. Attacks that call it count as not applicable. Map the view, or fix the call (often its deposit) |
@@ -183,7 +274,9 @@ example still says `ARENA_OWNER/arena@ARENA_COMMIT`; replace both with Arena's r
 
 The Action's outputs: `status` (`held`, `broke`, `incomplete`, `not-run`; `held` covers both a green
 and a yellow badge), `full` (`true` only when the badge is green), `badge` (the badge text),
-`beyond-policy`, `against-intent` and `exit-code`.
+`beyond-policy`, `against-intent`, `units` (`tokens`, or `milliNEAR` for a native guard: 1000 =
+1 NEAR) and `exit-code`. For a guard that pays in plain NEAR, set `pays_in` in your config or the
+`pays-in: native` input.
 
 ### How the workflow is split, and why
 
@@ -261,8 +354,21 @@ score and when. It does not prove the bench ran unmodified, or that the attacks 
 ## Limits
 
 - **Local sandbox only.** Nothing runs on testnet or mainnet. Timing on a real network can differ.
-- **NEP-141 tokens only.** Your guard must pay with `ft_transfer`; Arena reads token balances.
-  (Guards that pay in native NEAR can use `./run-arena.sh any-native`, outside this check.)
+- **Tokens or native NEAR, nothing else.** Your guard pays with `ft_transfer` on a NEP-141 token
+  (Arena reads token balances), or with plain NEAR transfers (`"pays_in": "native"`; Arena reads
+  receivers' NEAR balances). A guard that pays some other way (another token standard, or a mix of
+  tokens and NEAR) is not measured.
+- **Money is followed only to accounts Arena knows.** Arena scores the five receivers and accounts for
+  the rest of the guard's outflow at the agent, the outsider, the owner, the token contract (token
+  guards) and accounts an attack names. Money a guard sends to any other account (one it creates, or
+  one it computes) is not traced to where it went: it shows as money Arena cannot find, and the check
+  ends incomplete instead of held.
+- **Native NEAR: what Arena cannot see.** Gas rewards the guard earns can hide an outflow up to the
+  printed `reward_bound` plus 1 milliNEAR. It does not see where the NEAR came from, so a guard that
+  paid a receiver out of a deposit someone attached would be scored like any other payment. NEAR a
+  native guard sends to the token contract is not checked (the token's balance moves with its own
+  gas rewards). A receiver that had code of its own could change its own balance; Arena's receivers
+  are plain accounts with no code.
 - **The library's attacks, not every attack.** The library grows (hand-written, from papers, from
   news), so the same guard can score differently on a later Arena commit. The report names the commit.
 - **"Held" means held these attacks, not proved safe.**

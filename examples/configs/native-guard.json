@@ -1,0 +1,6 @@
+{
+  "arena_guard_config": 1,
+  "_about": "A guard that pays in plain NEAR (a Transfer to the receiver) instead of ft_transfer on a token. Same methods as targets/vault-a/INTERFACE.md, all 4 rules. Amounts and the cap reach the guard in yoctoNEAR, as strings. Used with targets/native-control and targets/native-fixed.",
+  "pays_in": "native",
+  "init": {"method": "new", "args": {"owner": "$owner", "agent": "$agent", "token": "$token", "daily_cap": "$daily_cap"}}
+}

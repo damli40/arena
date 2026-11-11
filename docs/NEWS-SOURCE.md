@@ -44,6 +44,10 @@ Only the summary text is used. The posts behind the links are never opened.
    never from the model. It joins `sequences-paper/` (the folder for everything the hunter found)
    only after it ran cleanly on every guard.
 
+News stays on Muse by default. In the 2026-11-11 comparison the attested NEAR AI model's news
+attacks failed the validator more often than Muse's, so news did not move (numbers in
+`evidence/nearai-2026-11-11.md`). `--news-provider nearai` switches it for one hunt.
+
 ## Cost and caps
 
 | what | cap |
@@ -52,7 +56,7 @@ Only the summary text is used. The posts behind the links are never opened.
 | Elfa credits | about 5 per call, so about 10 per news hunt. The free tier has 1000 a month, fails closed when they run out, and never bills |
 | Elfa timeout | 150 s per call (a call takes 30-120 s) |
 | news items attacked | 5 per hunt (`--max-news-items`) |
-| Muse calls | 20 per hunt, shared with papers (1 scoring + up to 2 per attacked item) |
+| model calls | 20 per hunt, shared with papers (1 scoring + up to 2 per attacked item). News items go to Muse; papers go to NEAR AI Cloud |
 
 The key: `ELFA_API_KEY` in the environment (CI secret) or `~/.config/arena/news.env` (mode 600),
 the same way the Muse key lives in `~/.config/arena/model.env`. Without it, the news source is

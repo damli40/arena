@@ -156,23 +156,28 @@ pub async fn check(a: &Arena) -> anyhow::Result<Value> {
     }
 
     let gc = c.method("get_config");
+    // Native guards hold the cap in yoctoNEAR (setup passes DAILY_CAP * NATIVE_UNIT at init).
+    let unit: u128 = if a.target.is_native() { crate::setup::NATIVE_UNIT } else { 1 };
+    let (start_cap, new_cap) = (crate::setup::DAILY_CAP * unit, 400 * unit);
     let capf = c.shapes.get("daily_cap_field").cloned().unwrap_or_else(|| "daily_cap".into());
 
     // Daily cap.
     if f.daily_cap {
         let before = view(a, c, "get_config", json!({})).await.ok().and_then(|v| as_u128(&v[&capf]));
-        if let Some(b) = before.filter(|b| *b != crate::setup::DAILY_CAP) {
+        if let Some(b) = before.filter(|b| *b != start_cap) {
             out.insert(
                 "set_daily_cap".into(),
-                res("wrong-start", format!("`{gc}` says the cap is {b} right after init, but Arena scores against {}", crate::setup::DAILY_CAP)),
+                res("wrong-start", format!("`{gc}` says the cap is {b} right after init, but Arena scores against {start_cap}")),
             );
         } else {
-            let call = owner_call(a, c, "set_daily_cap", json!({"daily_cap": "400"}), &[c.deposit("set_daily_cap")]).await;
+            let call = owner_call(a, c, "set_daily_cap", json!({"daily_cap": new_cap.to_string()}), &[c.deposit("set_daily_cap")]).await;
             let after = view(a, c, "get_config", json!({})).await.ok().and_then(|v| as_u128(&v[&capf]));
             let r = match (call, before, after) {
                 (Err(e), _, _) => res("not-confirmed", format!("the owner's call to it failed: {e}")),
-                (Ok(()), Some(_), Some(400)) => res("confirmed", format!("`{gc}` showed 500, then 400 after the owner set 400")),
-                (Ok(()), Some(b), Some(x)) if x == b => res("no-effect", format!("the owner set the cap to 400, but `{gc}` still shows {b}")),
+                (Ok(()), Some(_), Some(x)) if x == new_cap => {
+                    res("confirmed", format!("`{gc}` showed {start_cap}, then {new_cap} after the owner set {new_cap}"))
+                }
+                (Ok(()), Some(b), Some(x)) if x == b => res("no-effect", format!("the owner set the cap to {new_cap}, but `{gc}` still shows {b}")),
                 (Ok(()), _, x) => res("not-confirmed", format!("no usable `{gc}` view with a {capf:?} field (after: {x:?})")),
             };
             out.insert("set_daily_cap".into(), r);

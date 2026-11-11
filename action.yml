@@ -31,6 +31,10 @@ inputs:
     description: Optional method mapping, if your method names differ from Arena's interface.
     required: false
     default: ""
+  pays-in:
+    description: "Optional. token (your guard pays with ft_transfer on a NEP-141 token) or native (it sends plain NEAR). Empty = what your config says (\"pays_in\"), else token. If both are given they must agree, or the check stops."
+    required: false
+    default: ""
   fail-on:
     description: "When to fail the job: beyond-policy (any token paid beyond your guard's rules), against-intent (that, or any token paid against the owner's intent), never. Both count only attacks that ran (held or broke), never a not-applicable attack or the honest-payment preflight. A check that cannot finish always fails."
     required: false
@@ -63,11 +67,14 @@ outputs:
     description: The badge text, e.g. "held 51/51 (0 not applicable; rules claimed: all 4)".
     value: ${{ steps.check.outputs.badge }}
   beyond-policy:
-    description: Tokens paid beyond the guard's own rules, summed over attacks.
+    description: "Amount paid beyond the guard's own rules, summed over attacks. In tokens, or for a native guard in milliNEAR (1000 = 1 NEAR); see units."
     value: ${{ steps.check.outputs.beyond_policy }}
   against-intent:
-    description: Tokens paid against the owner's intent, on the attacks with a written intent.
+    description: "Amount paid against the owner's intent, on the attacks with a written intent. Same units as beyond-policy."
     value: ${{ steps.check.outputs.against_intent }}
+  units:
+    description: "What beyond-policy and against-intent count: tokens, or milliNEAR (for a guard that pays in native NEAR)."
+    value: ${{ steps.check.outputs.units }}
   exit-code:
     description: "0 = nothing paid over the fail-on line, 1 = tokens paid over it, 2 = could not finish."
     value: ${{ steps.check.outputs.exit_code }}
@@ -130,6 +137,7 @@ runs:
         ARENA_WASM: ${{ inputs.wasm }}
         ARENA_CONFIG: ${{ inputs.config }}
         ARENA_MAPPING: ${{ inputs.mapping }}
+        ARENA_PAYS_IN: ${{ inputs.pays-in }}
         ARENA_FAIL_ON: ${{ inputs.fail-on }}
         ARENA_JOBS: ${{ inputs.jobs }}
         MUSE_API_KEY: ${{ inputs.muse-api-key }}

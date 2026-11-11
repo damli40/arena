@@ -1,0 +1,68 @@
+{
+  "name": "p261112572-1-expiry-boundary-race",
+  "steps": [
+    {
+      "wait_seconds": 16
+    },
+    {
+      "race": [
+        {
+          "actor": "agent",
+          "target": "vault",
+          "method": "pay",
+          "args": {
+            "id": "inv-expire"
+          }
+        },
+        {
+          "actor": "agent",
+          "target": "vault",
+          "method": "pay",
+          "args": {
+            "id": "inv-expire"
+          }
+        },
+        {
+          "actor": "agent",
+          "target": "vault",
+          "method": "pay",
+          "args": {
+            "id": "inv-expire"
+          }
+        }
+      ]
+    },
+    {
+      "view": {
+        "target": "vault",
+        "method": "get_invoice",
+        "args": {
+          "id": "inv-expire"
+        }
+      }
+    },
+    {
+      "view": {
+        "target": "vault",
+        "method": "paid_today",
+        "args": {}
+      }
+    }
+  ],
+  "meta": {
+    "id": "p261112572-1-expiry-boundary-race",
+    "title": "Race payments exactly at the expiry boundary",
+    "source": "paper",
+    "kind": "sequence",
+    "breaks": "Tries to get a transfer past the expiry check after inv-expire has lapsed, or land two concurrent pays that both see 'not expired' before either confirmation marks the invoice paid.",
+    "expected_safe_result": "At most one 300-token transfer to ada ever executes, only for a call whose expiry check ran while the invoice was valid; after expiry every pay call rejects and the invoice is marked paid at most once.",
+    "added": "2026-11-11",
+    "author": "z-ai/glm-5.3-flash via tools/hunter",
+    "paper": {
+      "arxiv_id": "2611.12572v1",
+      "title": "Text2NGAC: a multi-LLM pipeline for NGAC policy extraction with mutation-based verification",
+      "url": "https://arxiv.org/abs/2611.12572v1"
+    },
+    "steps_sha256": "2cdbbb1bca0f895001bac802c7ea79a5c1ee80db76b6f83d4569791870ff8c26"
+  }
+}

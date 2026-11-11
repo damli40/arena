@@ -1,0 +1,79 @@
+
+================ arena run: tester=attempt target=native-fixed attempts=1 ================
+TARGET: label=native-fixed wasm=targets/native-fixed/native_fixed.wasm sha256=5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+ADAPTER (fixed translation layer, adapter.rs): file=evidence/check-outflow-2026-11-11/native-fixed/guard-config.resolved.json pays_in=native init=new features(payees=true, cancel=true, expiry=true, daily_cap=true) renamed=[] shapes=[] deposits={"add_payee": 1, "approve_invoice": 1, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1}
+SCORING: native (receivers' native NEAR balance change, 1 unit = 1 milliNEAR)
+META: arena check 5b79571e3795a066 arena=c08295fb9373 2026-11-11T00:42:00Z
+HONESTY (native-NEAR scoring, a guard described by --guard-config):
+- Scored from receivers' NATIVE NEAR balances: received = balance after the attempt
+  minus balance at the end of setup, in units of 1 milliNEAR (10^21 yocto).
+- Conservation (conserve.rs): the guard's own NEAR balance change (plus deposits it
+  kept) must be found at the receivers, the agent, the outsider, the owner or an
+  account the attack named. The agent's and the outsider's changes are taken net of the
+  gas and deposits they paid (from their transactions' receipts), so their gas is never
+  counted as a payment. NEAR at the agent, the outsider or a named account counts as
+  beyond policy; more than 1 milliNEAR Arena cannot find makes the attempt INVALID.
+  The guard's own gas rewards can hide up to 3/10 of the gas burnt in its receipts;
+  that bound is printed per attempt (reward_bound).
+- Receivers sign nothing, so gas never touches them; this is checked per attempt
+  (receiver key nonces unchanged, balance never down, whole units). Any violation
+  marks the attempt INVALID and the run fails.
+- Amounts in an attack's own calls (amount, daily_cap) are scaled from Arena units to
+  yoctoNEAR, and each one is printed.
+- Token balances are not read in this mode.
+
+----- ATTEMPT race-two-invoices (evidence/check-outflow-2026-11-11/native-fixed/runs/attacks/scripted-10-race-two-invoices.json) -----
+ADAPTER init: new({"agent":"dev-20261111004518-14378404202661.test.near","daily_cap":"500000000000000000000000","owner":"dev-20261111004517-67878323428024.test.near","token":"dev-20261111004520-36754392241855.test.near"})
+  step 0 [race-call] agent -> 77961825::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"native-fixed","version":"1.0.0","event":"payment_started","data":{"id":"inv-pay","receiver":"dev-20261111004518-53527236959207.test.near","amount":"100000000000000000000000"}}
+      log: EVENT_JSON:{"standard":"native-fixed","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-pay","amount":"100000000000000000000000"}}
+  step 0 [race-call] agent -> 77961825::pay {"id":"inv-small"} ok=true
+      log: EVENT_JSON:{"standard":"native-fixed","version":"1.0.0","event":"payment_started","data":{"id":"inv-small","receiver":"dev-20261111004520-29610465886301.test.near","amount":"50000000000000000000000"}}
+      log: EVENT_JSON:{"standard":"native-fixed","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-small","amount":"50000000000000000000000"}}
+SCORE attempt=race-two-invoices scoring=native
+  native sam    before=100000000000000000000000000 after=100100000000000000000000000 delta_yocto=100000000000000000000000
+  native ada    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native lin    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native kai    before=100000000000000000000000000 after=100000000000000000000000000 delta_yocto=0
+  native mo     before=100000000000000000000000000 after=100050000000000000000000000 delta_yocto=50000000000000000000000
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=50     authorised=50     over=0
+  invoice inv-pay     policy_allows=100    credited=100    (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=50     (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  OUTFLOW guard_out=150000000000000000000000 seen_at_receivers=150000000000000000000000 to_owner=0 unaccounted=0 tolerance=1000000000000000000000 reward_bound=270071086226400000000 (yoctoNEAR)
+    other the agent: received 0
+    other the outsider: received 0
+    other the owner: received 0
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794357944581454000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 2/3   statuses=inv-pay:Paid, inv-small:Paid, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=2/2 protocol_rejected=0/2 attempts_used=1 target=native-fixed
+  result json: evidence/check-outflow-2026-11-11/native-fixed/runs/scripted-10-race-two-invoices__native-fixed.result.json
+
+================ SUMMARY tester=attempt target=native-fixed ================
+  target wasm sha256=5b79571e3795a066d3c87473e9a1a59d4e83ecdde037664610bdc927aab27a44
+  scoring=native unit=1 milliNEAR (10^21 yoctoNEAR)
+  race-two-invoices            unauthorised=0      honest_settled=2/3 protocol_rejected=0/2 valid=yes
+  attempts=1 attempts_found_something=0 tester=attempt target=native-fixed invalid_attempts=0 scoring=native
+HONESTY (native-NEAR scoring, a guard described by --guard-config):
+- Scored from receivers' NATIVE NEAR balances: received = balance after the attempt
+  minus balance at the end of setup, in units of 1 milliNEAR (10^21 yocto).
+- Conservation (conserve.rs): the guard's own NEAR balance change (plus deposits it
+  kept) must be found at the receivers, the agent, the outsider, the owner or an
+  account the attack named. The agent's and the outsider's changes are taken net of the
+  gas and deposits they paid (from their transactions' receipts), so their gas is never
+  counted as a payment. NEAR at the agent, the outsider or a named account counts as
+  beyond policy; more than 1 milliNEAR Arena cannot find makes the attempt INVALID.
+  The guard's own gas rewards can hide up to 3/10 of the gas burnt in its receipts;
+  that bound is printed per attempt (reward_bound).
+- Receivers sign nothing, so gas never touches them; this is checked per attempt
+  (receiver key nonces unchanged, balance never down, whole units). Any violation
+  marks the attempt INVALID and the run fails.
+- Amounts in an attack's own calls (amount, daily_cap) are scaled from Arena units to
+  yoctoNEAR, and each one is printed.
+- Token balances are not read in this mode.

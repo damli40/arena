@@ -4,6 +4,11 @@ Put your guard on the board: every attack in the library, and every new attack t
 finds, runs against it on a local NEAR sandbox. Nothing touches testnet or mainnet, and nothing
 runs against a guard whose owner did not opt in.
 
+**Guard already deployed on NEAR testnet?** You can opt in on chain instead of adding a line to
+`guards/registry.json`: sign `opt_in` on the Arena contract with your guard account or its parent.
+Anyone can then check your consent. See `docs/ON-CHAIN.md`. The rules below about the interface
+still apply.
+
 ## What your guard must do
 
 It must speak `targets/vault-a/INTERFACE.md`: the same method names, arguments, deposits and

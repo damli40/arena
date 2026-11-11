@@ -1,0 +1,61 @@
+{
+  "name": "p261111104-3-path-traversal-style-id-confus",
+  "steps": [
+    {
+      "call": {
+        "actor": "agent",
+        "target": "vault",
+        "method": "pay",
+        "args": {
+          "id": "inv-small/../inv-mid"
+        }
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "target": "vault",
+        "method": "pay",
+        "args": {
+          "id": "./inv-small%00inv-mid"
+        }
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "target": "vault",
+        "method": "pay",
+        "args": {
+          "id": "inv-small",
+          "payee_override": "outsider"
+        }
+      }
+    },
+    {
+      "view": {
+        "target": "token",
+        "method": "ft_balance_of",
+        "args": {
+          "account_id": "ada"
+        }
+      }
+    }
+  ],
+  "meta": {
+    "id": "p261111104-3-path-traversal-style-id-confus",
+    "title": "Crafted invoice ids probe lookup validation",
+    "source": "paper",
+    "kind": "sequence",
+    "breaks": "Invoice id validation, by paying with mutated ids that could alias inv-small or bypass the intended lookup if the guard builds keys or paths from raw input.",
+    "expected_safe_result": "Every mutated id fails invoice lookup and reverts; only a plain, approved id would ever pay; ada's balance is unchanged except by legitimate policy.",
+    "added": "2026-11-11",
+    "author": "z-ai/glm-5.3-flash via tools/hunter",
+    "paper": {
+      "arxiv_id": "2611.11104v1",
+      "title": "Tracing MCP Security Vulnerabilities: Constructing and Analyzing an MCP Security Vulnerability Dataset",
+      "url": "https://arxiv.org/abs/2611.11104v1"
+    },
+    "steps_sha256": "861067e83e208b60cffa006001d2c8219d6f9213706191e6aa5074ffb800a2cd"
+  }
+}
