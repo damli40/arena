@@ -1,0 +1,70 @@
+{
+ "capabilities": [
+  "C1"
+ ],
+ "expected": [
+  {
+   "beyond_policy": 0,
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "contract-failure"
+     ]
+    },
+    {
+     "pred": "failure_contains",
+     "step": 0,
+     "text": "only the agent can pay"
+    },
+    {
+     "amount": 0,
+     "pred": "over_equals",
+     "receiver": "sam"
+    },
+    {
+     "invoice": "inv-pay",
+     "pred": "status_equals",
+     "status": "Approved"
+    }
+   ],
+   "outcome": "held",
+   "reference": "vault-a"
+  },
+  {
+   "beyond_policy": 100,
+   "flaw": "no-agent-only-check",
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "ok"
+     ]
+    },
+    {
+     "amount": 100,
+     "pred": "over_equals",
+     "receiver": "sam"
+    },
+    {
+     "actor": "outsider",
+     "invoice": "inv-pay",
+     "pred": "non_agent_pay"
+    }
+   ],
+   "outcome": "broke",
+   "receiver": "sam",
+   "reference": "mutant:M8"
+  }
+ ],
+ "failure_mode": "The guard does not check who called pay, so any account can trigger a payment.",
+ "oracle": {
+  "decides": "beyond_policy",
+  "receiver": "sam"
+ },
+ "ordering": "none",
+ "preconditions": [
+  "inv-pay approved: 100 to sam"
+ ],
+ "property": "Only the agent can start a payment."
+}

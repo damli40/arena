@@ -198,6 +198,12 @@ What is in the repo:
 - **25 saved attacks** in `sequences-paper/`, one JSON file each. 14 are call sequences and 11 are
   prompt-injection scenarios.
 - **7 hunt records** in `evidence/hunts/`, one `.md` and one `.json` per run.
+- **Saved is not validated.** Attack admission: **7 of 53** attacks validated, 1 partially validated, 45 unvalidated
+  (`evidence/MANIFEST.md`). None of the 25 saved hunter attacks is validated yet. Validated means
+  `tools/admission/admit.py` ran the attack three times on a known-good guard (held) and three times on
+  a copy with the one flaw the attack names (broke by the exact amount, through the named mechanism),
+  on pinned wasm bytes, and kept the raw runs in `evidence/admission/`. Re-check any stamp without a
+  sandbox: `python3 -I tools/admission/admit.py --recheck sequences-scripted/03-sequential-second-pay.json`.
 
 Each attack file has a `meta` block. You can read where the attack came from without trusting us:
 

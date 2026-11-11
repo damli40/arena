@@ -31,9 +31,10 @@ harness on the universal-guards branch). For one race step, each leg's GUARD CHE
 receipt (run by the guard account) and its CALLBACK is the last guard receipt after some other
 account's receipt (the token transfer). Proven only if, for every leg X that reached a callback,
 every other leg Y whose check ran in the same block or later ran its check in a block STRICTLY
-BEFORE X's callback. A missing trace, a missing height, a leg not included, or no leg with a
-callback = "unproven", never "proven". A later pay checked at or after an earlier callback =
-"not-overlapping" (two payments in a row, not a race).
+BEFORE X's callback. A check in the SAME block as that callback is a tie: "unproven", never
+counted, for a hold and a break alike. A missing trace, a missing height, a leg not included, or
+no leg with a callback = "unproven", never "proven". A later pay checked in a block after an
+earlier callback = "not-overlapping" (two payments in a row, not a race).
 
 Everything that decides a class is in the pure functions below (judge_run, race_ordering,
 classify); the tests in tools/admission/tests/ run them on committed result files.
@@ -183,9 +184,15 @@ def race_ordering(result, idxs):
         for y in legs:
             if y is x or y["check_height"] < x["check_height"]:
                 continue
-            if not y["check_height"] < x["callback_height"]:
+            if y["check_height"] == x["callback_height"]:
+                # same block as the callback: a tie. Order inside one block is not something this
+                # trace can prove, so it is never counted, for a hold or a break alike.
+                tie = {"status": "unproven", "legs": legs, "tie": True,
+                       "why": f"tie: leg {y['step']} checked in block {y['check_height']}, the same block as leg {x['step']}'s callback (strictly before is required)"}
+                return tie
+            if y["check_height"] > x["callback_height"]:
                 return {"status": "not-overlapping", "legs": legs,
-                        "why": f"leg {y['step']} checked in block {y['check_height']}, not strictly before leg {x['step']}'s callback in block {x['callback_height']}: calls in a row, not a race"}
+                        "why": f"leg {y['step']} checked in block {y['check_height']}, after leg {x['step']}'s callback in block {x['callback_height']}: calls in a row, not a race"}
     return {"status": "proven", "legs": legs,
             "why": "every later call's guard check ran in a block strictly before every earlier call's callback"}
 
@@ -355,7 +362,7 @@ def run_gate(attack_path, runs=DEFAULT_RUNS, jobs=4, stamp=False, out_root=None,
     raw = attack_path.read_bytes()
     doc = json.loads(raw)
     meta = doc.get("meta", {})
-    intents = "sequences-intents" in attack_path.parts or any(c.get("call", {}).get("target") == "intents" for c in doc.get("steps", []))
+    intents = "sequences-intents" in attack_path.parts or any((c.get("call") or c.get("view") or {}).get("target") == "intents" for c in doc.get("steps", []))
     V.check_attack({**doc, "meta": {k: v for k, v in meta.items() if k != "admission"}}, intents_suite=intents)  # A0
     spec = meta.get("spec")
     if not spec or not spec.get("expected"):
@@ -414,7 +421,8 @@ def run_gate(attack_path, runs=DEFAULT_RUNS, jobs=4, stamp=False, out_root=None,
             if race and extra_rounds > 0:
                 for ref, js in judged.items():
                     c = sum(1 for j in js if j["counted"])
-                    retryable = all(j["outcome_ok"] for j in js) and any(j["ordering"]["status"] == "not-overlapping" for j in js)
+                    retryable = all(j["outcome_ok"] for j in js) and any(
+                        j["ordering"]["status"] == "not-overlapping" or any(o.get("tie") for o in j["ordering"].get("races", [])) for j in js)
                     if c < runs and retryable and len(js) < tries:
                         work.append((ref, len(js) + 1))
                 extra_rounds -= 1

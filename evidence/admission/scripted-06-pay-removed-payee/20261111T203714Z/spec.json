@@ -1,0 +1,65 @@
+{
+ "capabilities": [
+  "C1"
+ ],
+ "expected": [
+  {
+   "beyond_policy": 0,
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "contract-failure"
+     ]
+    },
+    {
+     "pred": "failure_contains",
+     "step": 0,
+     "text": "receiver is no longer a payee"
+    },
+    {
+     "amount": 0,
+     "pred": "over_equals",
+     "receiver": "lin"
+    }
+   ],
+   "outcome": "held",
+   "reference": "vault-a"
+  },
+  {
+   "beyond_policy": 400,
+   "flaw": "no-payee-check",
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "ok"
+     ]
+    },
+    {
+     "amount": 400,
+     "pred": "over_equals",
+     "receiver": "lin"
+    },
+    {
+     "invoice": "inv-removed",
+     "pred": "status_equals",
+     "status": "Paid"
+    }
+   ],
+   "outcome": "broke",
+   "receiver": "lin",
+   "reference": "mutant:M1"
+  }
+ ],
+ "failure_mode": "The guard does not check that the invoice's receiver is still a payee, so it pays a removed one.",
+ "oracle": {
+  "decides": "beyond_policy",
+  "receiver": "lin"
+ },
+ "ordering": "none",
+ "preconditions": [
+  "inv-removed approved: 400 to lin; lin then removed from the payees"
+ ],
+ "property": "A guard never pays a receiver the owner removed from the payee list."
+}

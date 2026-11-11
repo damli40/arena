@@ -328,8 +328,22 @@ class RaceOrdering(unittest.TestCase):
         r = with_receipts(self.bad, trace(self.g, 111, 113), trace(self.g, 112, 114))
         self.assertEqual(judge(self.doc, "mutant:M5", r)["ordering"]["status"], "proven")
 
-    def test_later_check_at_callback_block_is_not_a_race(self):
+    def test_same_block_as_callback_is_a_tie_unproven(self):
+        # later check in the SAME block as the earlier callback: tie, never counted (break side)
         r = with_receipts(self.bad, trace(self.g, 111, 113), trace(self.g, 113, 115))
+        j = judge(self.doc, "mutant:M5", r)
+        self.assertEqual(j["ordering"]["status"], "unproven")
+        self.assertIn("tie", j["ordering"]["why"])
+        self.assertFalse(j["counted"])
+
+    def test_tie_on_the_hold_side_unproven(self):
+        r = with_receipts(self.good, trace(self.g, 111, 113), trace(self.g, 113, None, ok=False))
+        j = judge(self.doc, "vault-a", r)
+        self.assertEqual(j["ordering"]["status"], "unproven")
+        self.assertFalse(j["counted"])
+
+    def test_later_check_after_callback_is_not_a_race(self):
+        r = with_receipts(self.bad, trace(self.g, 111, 113), trace(self.g, 114, 116))
         j = judge(self.doc, "mutant:M5", r)
         self.assertEqual(j["ordering"]["status"], "not-overlapping")
         self.assertFalse(j["counted"])

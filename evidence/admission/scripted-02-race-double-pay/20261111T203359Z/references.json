@@ -1,0 +1,29 @@
+{
+ "guard:vulnerable_fixture": {
+  "after": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+  "before": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+  "flaw": "no-reservation-before-transfer",
+  "kind": "known-bad",
+  "matchable": true,
+  "pinned": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+  "wasm": "contracts/target/wasm32-unknown-unknown/release/guard.wasm"
+ },
+ "mutant:M5": {
+  "after": "e92c54bb2744391ca9169c40827a2f71d3a55343a5df19dc28ee86168d3e5513",
+  "before": "e92c54bb2744391ca9169c40827a2f71d3a55343a5df19dc28ee86168d3e5513",
+  "flaw": "no-reservation-before-transfer",
+  "kind": "known-bad",
+  "matchable": true,
+  "pinned": "e92c54bb2744391ca9169c40827a2f71d3a55343a5df19dc28ee86168d3e5513",
+  "wasm": "mutants/M5/vault_a.wasm"
+ },
+ "vault-a": {
+  "after": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+  "before": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+  "flaw": null,
+  "kind": "known-good",
+  "matchable": false,
+  "pinned": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+  "wasm": "targets/vault-a/vault_a.wasm"
+ }
+}

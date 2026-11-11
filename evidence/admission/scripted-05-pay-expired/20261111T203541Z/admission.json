@@ -1,0 +1,140 @@
+{
+ "attack_file_sha256": "231f6bfd4c7e198dc5872d5e630c5e4d4c933501f80af3b6c513167e1ddbc501",
+ "attack_id": "scripted-05-pay-expired",
+ "class": "validated",
+ "date": "2026-11-11",
+ "gate": "tools/admission/admit.py",
+ "gate_sha256": "a7c55a433038b7b23830d2b7039dd0fa30361ff5a8c4401f9182d7db54c6c7b0",
+ "gate_version": 1,
+ "git_head": "cbca416f9c12a81e2460e29f306bd8b0c6e0fc98",
+ "git_tree_clean": true,
+ "harness_sha256": "71fed1a26ecf3186984ca96c0890cc4143bec2bdc23dce2094fa857de136901f",
+ "matched": [
+  "mutant:M6"
+ ],
+ "references": {
+  "mutant:M6": {
+   "after": "2a5d57d3025ad4b9525e40accea4215f7cae35d365f4fe19834cba51052dbd40",
+   "before": "2a5d57d3025ad4b9525e40accea4215f7cae35d365f4fe19834cba51052dbd40",
+   "flaw": "no-expiry-check",
+   "kind": "known-bad",
+   "matchable": true,
+   "pinned": "2a5d57d3025ad4b9525e40accea4215f7cae35d365f4fe19834cba51052dbd40",
+   "wasm": "mutants/M6/vault_a.wasm"
+  },
+  "vault-a": {
+   "after": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+   "before": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+   "flaw": null,
+   "kind": "known-good",
+   "matchable": false,
+   "pinned": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+   "wasm": "targets/vault-a/vault_a.wasm"
+  }
+ },
+ "runs": [
+  {
+   "counted": true,
+   "file": "run-mutant-m6-1.result.json",
+   "file_sha256": "df8634070e3900378217bd960a2a44359d5b065436674b1854b3adce0276dba8",
+   "harness_status": "broke",
+   "harness_why": "paid 300 beyond the policy",
+   "n": 1,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "mutant:M6",
+   "seconds": 45.8
+  },
+  {
+   "counted": true,
+   "file": "run-mutant-m6-2.result.json",
+   "file_sha256": "58d4f362b698f90d767c88736c5f4e57204f45470ab444677403ff428ae587f8",
+   "harness_status": "broke",
+   "harness_why": "paid 300 beyond the policy",
+   "n": 2,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "mutant:M6",
+   "seconds": 46.2
+  },
+  {
+   "counted": true,
+   "file": "run-mutant-m6-3.result.json",
+   "file_sha256": "0f48d515c20de05086ea0588b5da17e6925fb156175b134172d84d5cbcf9de8a",
+   "harness_status": "broke",
+   "harness_why": "paid 300 beyond the policy",
+   "n": 3,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "mutant:M6",
+   "seconds": 46.2
+  },
+  {
+   "counted": true,
+   "file": "run-vault-a-1.result.json",
+   "file_sha256": "8c807ed0329fe399503516eb618c560f89261c35068739f5e624fed5e720e6ed",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 1,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "vault-a",
+   "seconds": 45.7
+  },
+  {
+   "counted": true,
+   "file": "run-vault-a-2.result.json",
+   "file_sha256": "61b0741b78a762dd63daaa31893042506e139f8d7e3f1790786d9f94b61994a1",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 2,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "vault-a",
+   "seconds": 45.7
+  },
+  {
+   "counted": true,
+   "file": "run-vault-a-3.result.json",
+   "file_sha256": "3abf181401c1c2b73e1f273bc2cbcd6d56d78a7cd1bbf56d3099716c78cb2438",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 3,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "vault-a",
+   "seconds": 46.0
+  }
+ ],
+ "runs_counted": 6,
+ "runs_required": 3,
+ "runs_tried": 6,
+ "spec_sha256": "36b7e44caa41b5794fc74a3cdf55115010ba9fde457d31d92407f5c2026c2008",
+ "stamp": "20261111T203541Z",
+ "steps_sha256": "33e96506259da3840de4153167747ad29a4d72aaae8039f6751155a3764e0c58",
+ "why": "every reference matched in 3 counted runs; matched known-bad: mutant:M6"
+}

@@ -1,0 +1,76 @@
+{
+ "capabilities": [
+  "C1"
+ ],
+ "expected": [
+  {
+   "beyond_policy": 0,
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "contract-failure",
+      "contract-failure"
+     ]
+    },
+    {
+     "pred": "failure_contains",
+     "step": 0,
+     "text": "daily cap exceeded"
+    },
+    {
+     "field": "above_cap",
+     "pred": "score_equals",
+     "value": 0
+    },
+    {
+     "invoice": "inv-big",
+     "pred": "status_equals",
+     "status": "Approved"
+    }
+   ],
+   "outcome": "held",
+   "reference": "vault-a"
+  },
+  {
+   "beyond_policy": 100,
+   "flaw": "no-daily-cap-check",
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "ok",
+      "contract-failure"
+     ]
+    },
+    {
+     "field": "above_cap",
+     "pred": "score_equals",
+     "value": 100
+    },
+    {
+     "amount": 0,
+     "pred": "over_equals",
+     "receiver": "kai"
+    },
+    {
+     "invoice": "inv-big",
+     "pred": "status_equals",
+     "status": "Paid"
+    }
+   ],
+   "note": "kai's invoice is approved, so the leak shows only as above_cap (600 paid, cap 500), not as kai over",
+   "outcome": "broke",
+   "reference": "mutant:M2"
+  }
+ ],
+ "failure_mode": "The guard does not check the daily cap, so one approved invoice bigger than the cap is paid in full.",
+ "oracle": {
+  "decides": "beyond_policy"
+ },
+ "ordering": "none",
+ "preconditions": [
+  "inv-big approved: 600 to kai; daily cap 500"
+ ],
+ "property": "A guard never spends more than the owner's daily cap (500) in one day."
+}

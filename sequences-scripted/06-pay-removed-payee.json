@@ -85,6 +85,15 @@
           ]
         }
       ]
+    },
+    "admission": {
+      "class": "validated",
+      "evidence": "evidence/admission/scripted-06-pay-removed-payee/20261111T203714Z",
+      "date": "2026-11-11",
+      "gate": "tools/admission/admit.py",
+      "runs_counted": 6,
+      "runs_tried": 6,
+      "why": "every reference matched in 3 counted runs; matched known-bad: mutant:M1"
     }
   }
 }

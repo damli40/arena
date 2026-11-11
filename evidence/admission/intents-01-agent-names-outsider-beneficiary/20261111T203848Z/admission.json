@@ -1,0 +1,140 @@
+{
+ "attack_file_sha256": "b373e99ad34f5615ad19902f9ef0f0c0c2140f7734204f1d4c0a2f18b29c2b27",
+ "attack_id": "intents-01-agent-names-outsider-beneficiary",
+ "class": "validated",
+ "date": "2026-11-11",
+ "gate": "tools/admission/admit.py",
+ "gate_sha256": "a7c55a433038b7b23830d2b7039dd0fa30361ff5a8c4401f9182d7db54c6c7b0",
+ "gate_version": 1,
+ "git_head": "cbca416f9c12a81e2460e29f306bd8b0c6e0fc98",
+ "git_tree_clean": true,
+ "harness_sha256": "71fed1a26ecf3186984ca96c0890cc4143bec2bdc23dce2094fa857de136901f",
+ "matched": [
+  "intents-planted"
+ ],
+ "references": {
+  "intents-honest": {
+   "after": "1dbd023f08ddf8ac0299842f26e7e4140e4a53bdb77ed46637d38b7ef1cf7a35",
+   "before": "1dbd023f08ddf8ac0299842f26e7e4140e4a53bdb77ed46637d38b7ef1cf7a35",
+   "flaw": null,
+   "kind": "known-good",
+   "matchable": false,
+   "pinned": "1dbd023f08ddf8ac0299842f26e7e4140e4a53bdb77ed46637d38b7ef1cf7a35",
+   "wasm": "targets/intents-honest/intents_honest.wasm"
+  },
+  "intents-planted": {
+   "after": "954d02cebb25eefe270bcb3376f1735cb7f5ddee8ff654984122fa9f2e3f169c",
+   "before": "954d02cebb25eefe270bcb3376f1735cb7f5ddee8ff654984122fa9f2e3f169c",
+   "flaw": "caller-chosen-intents-beneficiary",
+   "kind": "known-bad",
+   "matchable": true,
+   "pinned": "954d02cebb25eefe270bcb3376f1735cb7f5ddee8ff654984122fa9f2e3f169c",
+   "wasm": "targets/intents-planted/intents_planted.wasm"
+  }
+ },
+ "runs": [
+  {
+   "counted": true,
+   "file": "run-intents-honest-1.result.json",
+   "file_sha256": "18f6897bd98bdfd84313a0e74b8b38796815a58db4715c1b430e38425fdd6146",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 1,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "intents-honest",
+   "seconds": 19.1
+  },
+  {
+   "counted": true,
+   "file": "run-intents-honest-2.result.json",
+   "file_sha256": "ce7ecd073efaa6de9bb10ed5c58619bc62177358f8918cc4f1bd514cac399392",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 2,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "intents-honest",
+   "seconds": 19.0
+  },
+  {
+   "counted": true,
+   "file": "run-intents-honest-3.result.json",
+   "file_sha256": "99547922ed1c3380ecfa4b5932da32a17cb2ddb1bd8390fbcb84bfdd951c993d",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 3,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "intents-honest",
+   "seconds": 19.2
+  },
+  {
+   "counted": true,
+   "file": "run-intents-planted-1.result.json",
+   "file_sha256": "79c9094bc9ab731719d28c94e9fed0060246e0645c8d9d97944bf24fc9338904",
+   "harness_status": "broke",
+   "harness_why": "paid 200 beyond the policy",
+   "n": 1,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "intents-planted",
+   "seconds": 19.2
+  },
+  {
+   "counted": true,
+   "file": "run-intents-planted-2.result.json",
+   "file_sha256": "4c30611ee43324f88a7d9cb9c79c98a98a1dab58d58f6211dd0b5e9cbe8eca1a",
+   "harness_status": "broke",
+   "harness_why": "paid 200 beyond the policy",
+   "n": 2,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "intents-planted",
+   "seconds": 30.4
+  },
+  {
+   "counted": true,
+   "file": "run-intents-planted-3.result.json",
+   "file_sha256": "e3a4355d3110dd8a3d359e7dcdc21962bbb1ddca90bc6f3265a1548f7a663aeb",
+   "harness_status": "broke",
+   "harness_why": "paid 200 beyond the policy",
+   "n": 3,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "intents-planted",
+   "seconds": 21.0
+  }
+ ],
+ "runs_counted": 6,
+ "runs_required": 3,
+ "runs_tried": 6,
+ "spec_sha256": "b4d8c5f7a3fd0cb29aac79977c22bfcb58d4992d515ba0b12e8c2be471341f01",
+ "stamp": "20261111T203848Z",
+ "steps_sha256": "9b1bf396d710b0088a6bfd827629b0d48d561748b00894ee0b06db7878806ac9",
+ "why": "every reference matched in 3 counted runs; matched known-bad: intents-planted"
+}

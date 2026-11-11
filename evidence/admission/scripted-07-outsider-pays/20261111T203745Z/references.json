@@ -1,0 +1,20 @@
+{
+ "mutant:M8": {
+  "after": "6201435c7c4fe2838f4e9b6cef2a758dfc8c5ea7dcf96ef385992b3ab1e4a97d",
+  "before": "6201435c7c4fe2838f4e9b6cef2a758dfc8c5ea7dcf96ef385992b3ab1e4a97d",
+  "flaw": "no-agent-only-check",
+  "kind": "known-bad",
+  "matchable": true,
+  "pinned": "6201435c7c4fe2838f4e9b6cef2a758dfc8c5ea7dcf96ef385992b3ab1e4a97d",
+  "wasm": "mutants/M8/vault_a.wasm"
+ },
+ "vault-a": {
+  "after": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+  "before": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+  "flaw": null,
+  "kind": "known-good",
+  "matchable": false,
+  "pinned": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+  "wasm": "targets/vault-a/vault_a.wasm"
+ }
+}

@@ -1,0 +1,80 @@
+
+================ arena run: tester=attempt target=intents_honest attempts=1 ================
+TARGET: label=intents_honest wasm=/Users/Admin/Documents/Knowledge base/hackathons/near/arena-admission/targets/intents-honest/intents_honest.wasm sha256=1dbd023f08ddf8ac0299842f26e7e4140e4a53bdb77ed46637d38b7ef1cf7a35
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+ADAPTER (fixed translation layer, adapter.rs): file=tools/admission/configs/intents-guard.resolved.json pays_in=intents intents(beneficiary_in_msg=account_id, may_park_in_intents=false) init=new features(payees=true, cancel=true, expiry=true, daily_cap=true) renamed=[] shapes=[] deposits={"add_payee": 1, "approve_invoice": 1, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1}
+SCORING: intents (tokens on the token contract plus credits inside NEAR Intents defuse v0.4.2, sha256 f67f9559b3b512c52dfa11723a28b9119bcf773ac01780370d6409e5f1fb20e5)
+META: admission gate tools/admission/admit.py v1, attack intents-01-agent-names-outsider-beneficiary, git cbca416f9c12a81e2460e29f306bd8b0c6e0fc98
+HONESTY (a guard that pays into NEAR Intents, described by --guard-config):
+- NEAR Intents is the pinned release wasm defuse v0.4.2 (sha256 checked at setup), started on this
+  local sandbox with fee 0 and no roles. No solvers, no relayer, no bridges, no other chain.
+- Scored in tokens: each receiver's tokens on the token contract PLUS its credit inside NEAR Intents
+  (mt_balance_of, Intents' own ledger). Nothing the guard reports is used.
+- Conservation (conserve.rs): every token that left the guard must be found at the five receivers,
+  the agent, the outsider, the owner or an account the attack named, on the token contract or
+  credited inside Intents. Tokens that entered Intents must match the credits Arena reads exactly
+  (tolerance 0), and Intents' supply must move by the same amount. A credit to the agent, the
+  outsider or a named account counts as beyond policy. Tokens nobody Arena reads was credited with,
+  money parked under the guard inside Intents, or a key added inside Intents make the attempt
+  INVALID (never held).
+- Withdrawals from Intents to other chains are not tested.
+
+----- ATTEMPT intents-agent-names-outsider-beneficiary (/Users/Admin/Documents/Knowledge base/hackathons/near/arena-admission/sequences-intents/intents-01-agent-names-outsider-beneficiary.json) -----
+INTENTS: deployed dev-20261111203853-62521674996787.test.near (defuse v0.4.2, sha256 f67f9559b3b512c52dfa11723a28b9119bcf773ac01780370d6409e5f1fb20e5), fee 0, no roles
+ADAPTER init: new({"agent":"dev-20261111203849-68874262427494.test.near","daily_cap":"500","intents":"dev-20261111203853-62521674996787.test.near","owner":"dev-20261111203848-26261065843758.test.near","token":"dev-20261111203851-98687785994522.test.near"})
+  FORMAT FIX step 0: logical name "outsider" in arg "receiver_id" resolved to dev-20261111203849-19770407149237.test.near
+  step 0 [call] agent -> 57173982::pay {"id":"inv-mid","receiver_id":"dev-20261111203849-19770407149237.test.near"} ok=true
+      log: EVENT_JSON:{"standard":"intents-honest","version":"1.0.0","event":"payment_started","data":{"id":"inv-mid","receiver":"dev-20261111203850-41451010143375.test.near","amount":"200"}}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261111203852-74445757173982.test.near","new_owner_id":"dev-20261111203853-62521674996787.test.near","amount":"200"}]}
+      log: EVENT_JSON:{"standard":"nep245","version":"1.0.0","event":"mt_mint","data":[{"owner_id":"dev-20261111203850-41451010143375.test.near","token_ids":["nep141:dev-20261111203851-98687785994522.test.near"],"amounts":["200"],"memo":"deposit"}]}
+      log: EVENT_JSON:{"standard":"intents-honest","version":"1.0.0","event":"payment_succeeded","data":{"id":"inv-mid","amount":"200"}}
+  FORMAT FIX step 1: logical name "outsider" in arg "account_id" resolved to dev-20261111203849-19770407149237.test.near
+  FORMAT FIX step 1: logical name "nep141:token" in arg "token_id" resolved to nep141:dev-20261111203851-98687785994522.test.near
+  step 1 [view] 74996787::mt_balance_of -> "0"
+  FORMAT FIX step 2: logical name "ada" in arg "account_id" resolved to dev-20261111203850-41451010143375.test.near
+  FORMAT FIX step 2: logical name "nep141:token" in arg "token_id" resolved to nep141:dev-20261111203851-98687785994522.test.near
+  step 2 [view] 74996787::mt_balance_of -> "200"
+SCORE attempt=intents-agent-names-outsider-beneficiary scoring=intents
+  intents ada    on_token=0 credited_inside_intents=200
+  receiver sam    received=0      authorised=0      over=0
+  receiver ada    received=200    authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=200    (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  OUTFLOW guard_out=200 seen_at_receivers=200 to_owner=0 unaccounted=0 tolerance=0 reward_bound=0 (tokens)
+    other the agent: received 0
+    other the outsider: received 0
+    other the token contract: received 0
+    other the owner: received 0
+    other the agent (credited inside NEAR Intents): received 0
+    other the outsider (credited inside NEAR Intents): received 0
+    other the owner (credited inside NEAR Intents): received 0
+  INTENTS tokens_into_intents=200 mt_supply_change=200 credited_to_receivers=200 credited_to_guard=0 parked_under_guard=0 unexplained=0 (tokens, tolerance 0)
+    the agent: NEAR change net of its own gas and kept deposits 0 yocto (more than 1 milliNEAR = INVALID)
+    the outsider: NEAR change net of its own gas and kept deposits 0 yocto (more than 1 milliNEAR = INVALID)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794429561963907000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 1/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Paid, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=3/3 protocol_rejected=0/1 attempts_used=1 target=intents_honest
+  result json: /var/folders/xl/k52lz4896yj7z5s9_nhgb02c0000gn/T/admit-yenf3pnn/intents-honest-1/intents-01-agent-names-outsider-beneficiary__intents-honest.result.json
+
+================ SUMMARY tester=attempt target=intents_honest ================
+  target wasm sha256=1dbd023f08ddf8ac0299842f26e7e4140e4a53bdb77ed46637d38b7ef1cf7a35
+  intents-agent-names-outsider-beneficiary unauthorised=0      honest_settled=1/3 protocol_rejected=0/1
+  attempts=1 attempts_found_something=0 tester=attempt target=intents_honest
+HONESTY (a guard that pays into NEAR Intents, described by --guard-config):
+- NEAR Intents is the pinned release wasm defuse v0.4.2 (sha256 checked at setup), started on this
+  local sandbox with fee 0 and no roles. No solvers, no relayer, no bridges, no other chain.
+- Scored in tokens: each receiver's tokens on the token contract PLUS its credit inside NEAR Intents
+  (mt_balance_of, Intents' own ledger). Nothing the guard reports is used.
+- Conservation (conserve.rs): every token that left the guard must be found at the five receivers,
+  the agent, the outsider, the owner or an account the attack named, on the token contract or
+  credited inside Intents. Tokens that entered Intents must match the credits Arena reads exactly
+  (tolerance 0), and Intents' supply must move by the same amount. A credit to the agent, the
+  outsider or a named account counts as beyond policy. Tokens nobody Arena reads was credited with,
+  money parked under the guard inside Intents, or a key added inside Intents make the attempt
+  INVALID (never held).
+- Withdrawals from Intents to other chains are not tested.
