@@ -5,7 +5,8 @@ them. Each claim below has the command to run, the line you should see, how long
 the saved log of our own run.
 
 If a command does not print what this file says, that is a bug in Arena or in this file. The
-saved log shows what we got.
+saved log shows what we got. We ran 12 of these commands from a fresh copy with no build folders;
+every exit code and key line matched (`evidence/clean-copy-2026-11-11.md`).
 
 ## Before you start
 
