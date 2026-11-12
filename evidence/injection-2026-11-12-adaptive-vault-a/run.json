@@ -1,0 +1,6 @@
+{
+ "guard": "vault-a",
+ "guard_sha256": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+ "provider": "nearai",
+ "model": "z-ai/glm-5.3-flash"
+}
