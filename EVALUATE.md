@@ -257,7 +257,8 @@ Arena must refuse ("could not finish", nothing held or broke).
 python3 -I tools/check/direct_ext_selftest.py --out runs/ext-selftest --jobs 6
 ```
 
-It should end `ext self-tests: 18/18 passed`, exit code 0. It took us 1956 s (about 33 minutes);
+It should end `ext self-tests: 18/18 passed`, exit code 0. It took us 966 s on a fresh export and 1956 s on a busier
+machine (16 to 33 minutes);
 the six window tests are the slow part, because each moves the local chain's clock about 11
 minutes. Local sandbox only, no network. Each line says what it checked, for example
 `X11 PASS [window] REFUSED: rolling window labelled anchored`. The Rust side of the same code is in
