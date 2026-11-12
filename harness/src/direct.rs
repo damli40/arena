@@ -29,7 +29,6 @@ use near_workspaces::result::ExecutionFinalResult;
 use near_workspaces::types::{AccessKey, Gas, KeyType, NearToken, SecretKey};
 use near_workspaces::{Account, Contract, Worker};
 use serde_json::{json, Map, Value};
-use std::future::IntoFuture;
 
 /// The receiver id that is on the allowlist but never created. A transfer to it fails and the
 /// NEAR comes back to the guard, so it tests what the guard does when a payment fails.
@@ -588,9 +587,27 @@ async fn finish(cx: &Ctx, i: usize, pl: Planned, res: std::result::Result<Execut
     Ok(e)
 }
 
+/// Wait for one race leg. Like near-workspaces' own wait, except that an HTTP 408 from the RPC
+/// server (its status long-poll ran out of time while the transaction was still pending) means
+/// "still pending", not a failure: before this, a leg that took more than one long-poll to land
+/// stopped the whole attack with a harness error. The caller bounds the wait (RACE_TIMEOUT_S) and
+/// labels a leg that never lands "not-included".
+async fn race_wait(st: &near_workspaces::operations::TransactionStatus) -> near_workspaces::Result<near_workspaces::result::ExecutionFinalResult> {
+    loop {
+        match st.status().await {
+            Ok(std::task::Poll::Ready(r)) => return Ok(r),
+            Ok(std::task::Poll::Pending) => {}
+            Err(e) if format!("{e:?}").contains("ResponseStatusError(TimeoutError)") => {}
+            Err(e) => return Err(e),
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+    }
+}
+
 fn tx<'a>(cx: &'a Ctx, pl: &Planned) -> Result<near_workspaces::operations::CallTransaction> {
     let who = cx.signer(&pl.actor)?;
-    Ok(who.call(cx.guard.id(), &pl.method).args_json(pl.args.clone()).gas(Gas::from_tgas(STEP_TGAS)).deposit(NearToken::from_yoctonear(pl.deposit)))
+    let tgas = if pl.actor == "agent" { cx.cfg.ext.pay_tgas.unwrap_or(STEP_TGAS) } else { STEP_TGAS };
+    Ok(who.call(cx.guard.id(), &pl.method).args_json(pl.args.clone()).gas(Gas::from_tgas(tgas)).deposit(NearToken::from_yoctonear(pl.deposit)))
 }
 
 async fn execute(cx: &Ctx, steps: &[Value]) -> Result<Vec<Value>> {
@@ -610,6 +627,11 @@ async fn execute(cx: &Ctx, steps: &[Value]) -> Result<Vec<Value>> {
         }
         if let Some(calls) = st.get("race").and_then(|r| r.as_array()) {
             let mut sent = Vec::new();
+            let dbg = std::env::var_os("ARENA_RACE_DEBUG").is_some();
+            if dbg {
+                let k = cx.worker.view_access_key(cx.agent.id(), &cx.agent.secret_key().public_key()).await;
+                eprintln!("race-debug before: key {:?}", k.map(|k| format!("{:?}", k)));
+            }
             for c in calls {
                 for pl in plan(cx, c)? {
                     match tx(cx, &pl)?.transact_async().await {
@@ -619,10 +641,14 @@ async fn execute(cx: &Ctx, steps: &[Value]) -> Result<Vec<Value>> {
                     }
                 }
             }
-            for (pl, fut) in sent {
-                match tokio::time::timeout(std::time::Duration::from_secs(RACE_TIMEOUT_S), fut.into_future()).await {
+            for (pl, status) in sent {
+                match tokio::time::timeout(std::time::Duration::from_secs(RACE_TIMEOUT_S), race_wait(&status)).await {
                     Ok(res) => out.push(finish(cx, i, pl, res).await?),
                     Err(_) => {
+                        if dbg {
+                            let k = cx.worker.view_access_key(cx.agent.id(), &cx.agent.secret_key().public_key()).await;
+                            eprintln!("race-debug leg not included {:?}: key now {:?}", status.hash(), k.map(|k| format!("{:?}", k)));
+                        }
                         let mut e = pl.entry.clone();
                         e["step"] = json!(i);
                         e["outcome"] = json!("not-included");
@@ -824,6 +850,11 @@ pub async fn run(seq_path: &std::path::Path, wasm: &std::path::Path, cfg_path: &
     }
     let ts1 = block_ts(&worker).await?;
     let mut invalid: Vec<String> = Vec::new();
+    // A race whose legs never landed did not race: "nothing moved" would prove nothing.
+    let dropped = ledger.iter().filter(|e| e.get("outcome").and_then(|o| o.as_str()) == Some("not-included")).count();
+    if dropped > 0 {
+        invalid.push(format!("{dropped} raced transaction(s) were never included within {RACE_TIMEOUT_S} s, so the race did not happen as written"));
+    }
     if !stable {
         invalid.push("the guard's NEAR balance was still moving after 8 settle rounds; money was in flight when Arena read it".into());
     }

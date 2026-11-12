@@ -34,9 +34,9 @@ use near_workspaces::types::SecretKey;
 use serde_json::{json, Map, Value};
 
 pub const WINDOW_CLAIMS: [&str; 3] = ["window_rolling", "window_anchored", "window_lifetime"];
-const EXT_KEYS: [&str; 13] = [
+const EXT_KEYS: [&str; 14] = [
     "pay_key", "policy_returns_as", "setup", "set_policy_calls", "deposits", "window", "pay_args", "sign", "nonce",
-    "pending_bare_id", "approve_args", "reject_args", "notes",
+    "pending_bare_id", "approve_args", "reject_args", "pay_tgas", "notes",
 ];
 /// The most a gate-time owner call may attach: 1 yoctoNEAR (the NEAR "confirm with a full key" idiom).
 pub const MAX_GATE_DEPOSIT: u128 = 1;
@@ -83,6 +83,9 @@ pub struct Ext {
     /// None = no nonce; Some(None) = counter; Some(Some((method, args))) = read from a view
     pub nonce: Option<Option<(String, Value)>>,
     pub pending_bare_id: bool,
+    /// gas (TGas) the agent attaches to each payment; None = Arena's default. A guard whose agent
+    /// key has a small gas allowance can hold only a few in-flight payments at the default.
+    pub pay_tgas: Option<u64>,
     pub approve_args: Map<String, Value>,
     pub reject_args: Map<String, Value>,
     /// keep what the `policy` call returned (for example a vault id) as this placeholder
@@ -243,6 +246,13 @@ impl Ext {
             x.policy_returns_as = call(&probe, "ext.policy_returns_as", &[], 0)?.returns_as;
         }
         x.pending_bare_id = e.get("pending_bare_id").and_then(|v| v.as_bool()).unwrap_or(false);
+        if let Some(v) = e.get("pay_tgas") {
+            let t = v.as_u64().context("ext.pay_tgas must be a whole number of TGas")?;
+            if !(5..=300).contains(&t) {
+                bail!("ext.pay_tgas {t} is outside 5 to 300 TGas");
+            }
+            x.pay_tgas = Some(t);
+        }
         x.approve_args = e.get("approve_args").and_then(|v| v.as_object()).cloned().unwrap_or_default();
         x.reject_args = e.get("reject_args").and_then(|v| v.as_object()).cloned().unwrap_or_default();
         if x.sign.is_some() && x.nonce.is_none() {

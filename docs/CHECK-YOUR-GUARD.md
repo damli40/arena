@@ -428,6 +428,12 @@ What this does not do:
   on a quiet machine. Arena moves at most `ARENA_MAX_ADVANCE_SECS` (default 14 days) per proof.
 - **A guard that only answers allow or refuse, and moves no money, cannot be checked this way.**
   Arena scores money that moved.
+- **A raced payment that never lands makes the attempt "could not finish".** NEAR drops a
+  transaction it cannot pay gas for. An agent key with a small gas allowance (for example 0.25
+  NEAR) cannot hold several payments in flight at Arena's default 150 TGas each, so the race never
+  happens. Arena marks that attempt invalid instead of calling it held. Set `"pay_tgas"` (5 to
+  300) in `direct.ext` to attach less gas to each agent payment; the gate's honest payments fail if
+  it is too little.
 - **No callback in the config means the forged-callback attack is not run.** Arena cannot tell a
   guard with no callback from a config that left it out, so that attack is "could not finish",
   never "not applicable" and never held.
