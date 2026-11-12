@@ -1,0 +1,7 @@
+{
+  "arena_guard_config": 1,
+  "_about": "A guard whose money is a credit inside NEAR Intents; it pays by ft_withdraw to a bridge account, msg {\"recipient\":\"<chain>:<address>\"} = the owner's destination for the invoice's receiver. Interface of targets/vault-a/INTERFACE.md, all 4 rules, plus $intents, $bridge and $foreign_destinations at init. Used with targets/withdraw-honest and targets/withdraw-planted.",
+  "pays_in": "intents",
+  "intents": {"pays_by": "ft_withdraw"},
+  "init": {"method": "new", "args": {"owner": "$owner", "agent": "$agent", "token": "$token", "intents": "$intents", "bridge": "$bridge", "destinations": "$foreign_destinations", "daily_cap": "$daily_cap"}}
+}

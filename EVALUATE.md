@@ -58,6 +58,8 @@ reads that run's own logs. `run-arena.sh` and the prompt-injection scripts do th
 | 9 | If a guard pays any account the attack was not supposed to reach (the agent, the outsider, an account the attack named), the check says broke and names who got it. Money it cannot find makes the check incomplete, never held. | section 3 | `arena: broke 11 of 49 (...; 1800 tokens paid outside the five receivers; ...)` for planted-outflow (exit 1) | 324 s | `evidence/invoice-fixes-2026-11-12.md`, `evidence/check-outflow-2026-11-11.md` |
 | 9b | A guard that pays into NEAR Intents is scored from who Intents credited. Our honest Intents guard holds; our planted copy, which lets the caller pick who is credited, breaks, and the report names who got the credit. | section 3 | `arena: held 51/51 (0 not applicable; 3 stopped by the agent's access key before the guard ran; ...)` for intents-honest (exit 0), `arena: broke 2 of 51 (0 not applicable; 3 stopped by the agent's access key before the guard ran; ...; refused 2 of 65 honest payments; 300 tokens paid outside the five receivers; ...)` for intents-planted (exit 1) | 497 s and 570 s | `evidence/invoice-fixes-2026-11-12.md`, `evidence/check-intents-2026-11-11.md` |
 | 9c | A guard that asks Chain Signatures to sign is scored by counting the signing requests the owner did not allow (a hash off the list, signed twice, the wrong key, or asked for by the outsider), read from Arena's stand-in signer. Our honest guard holds; our planted copy, which signs any hash the caller passes, breaks on 3 attacks. A config whose path does not match the guard stops the check, never held. | section 3 | `arena: held 55/55 (0 not applicable; 3 stopped by the agent's access key before the guard ran; ...; signs via Chain Signatures: Arena's stand-in signer, no real MPC signing, nothing sent to another chain)` for chainsig-honest (exit 0); `arena: broke 3 of 55 (...; 3 unauthorised signing requests (a count, not an amount); ...)` for chainsig-planted (exit 1); `arena: not run` and `COULD NOT FINISH` for the wrong-path config (exit 2) | about 345 s each; the wrong-path one about 20 s | `evidence/check-chainsig-2026-11-11.md`, `evidence/clean-copy-chainsig-2026-11-12.md`, `evidence/clean-copy-chainsig-2026-11-12b.md` and `-12c.md` (after the two reviews) |
+| 9d | A guard that withdraws from NEAR Intents toward another chain is scored from where each withdrawal went and what foreign destination it named, as recorded by Arena's bridge stand-in. Our honest withdraw guard holds; our planted copy, which forwards the agent's `msg`, breaks, and each BROKE line names the foreign address. Nothing reaches another chain. | section 3 | `arena: held 57/57 (0 not applicable; 3 stopped by the agent's access key before the guard ran; ...)` for withdraw-honest (exit 0), `arena: broke 3 of 57 (...; 3 stopped by the agent's access key ...; 500 tokens paid outside the five receivers ...)` for withdraw-planted (exit 1) | 642 s and 591 s on a fresh copy (544 s and 588 s in the working tree) | `evidence/check-withdraw-2026-11-12.md` |
+| 9e | The pinned Intents release sends `ft_withdraw` with a `msg` on to the bridge stand-in, which records it; an unreadable `msg` is refunded to the sender's credit; a withdrawal with no `msg` reaches the bridge with no record. | `(cd contracts && cargo build --release --target wasm32-unknown-unknown -p test-token -p bridge-standin) && (cd harness && cargo run --release --example withdraw_spike)` | `STEP g ft_withdraw 100 to bridge, good msg: success=true returned=Some("100") receipt_failures=0`, then `... unreadable msg: ... returned=Some("0")` with `g inside Intents=900`, then `... no msg ...` with `bridge tokens=107 ... record_count=1`, and `DONE` | 24 s with the build already done | `evidence/check-withdraw-2026-11-12/spike.txt` |
 | 10 | The hunter's saved attacks replay from their JSON files, with no model call. | section 4 | section 4 | about 15 s per replay | `evidence/hunts/` |
 | 11 | The double-pay result and its fix are saved on NEAR testnet, and anyone can look them up. | section 5 | section 5 | 1 to 2 s | `evidence/receipts-testnet-2026-11-11.md`, `evidence/testnet-2026-11-11.md` |
 | 12 | A guard owner can sign a note on NEAR testnet saying "Arena may test this exact code", and another contract can ask for a result before it pays. | section 5 | `opt-in:    opted_in` in the lookup | 1 to 2 s | `evidence/onchain-2026-11-11.md`, `evidence/results-testnet-2026-11-11.md`, `docs/ON-CHAIN.md` |
@@ -68,7 +70,7 @@ reads that run's own logs. `run-arena.sh` and the prompt-injection scripts do th
 | 17 | The Guard G fetch refuses when it cannot read the code, and writes nothing. No network needed (it points at a closed local port). | `ARENA_GUARD_G_ACCOUNT=example.testnet ARENA_TESTNET_RPC=http://127.0.0.1:9 python3 targets/entrant-G/fetch.py` | `REFUSED: RPC call failed: URLError: ...; nothing written`, exit 1 | under 1 s | `targets/entrant-G/FROZEN.txt` |
 | 18 | Guard G (another team's direct-pay guard): gate 15 of 15, 11 of 12 attacks held, the 12th stopped by NEAR's access key, 0 broke. **Needs network** (one read-only testnet call) **and the Guard G account name, which is withheld from this repo to keep the team anonymous** (set `ARENA_GUARD_G_ACCOUNT`; without it `fetch.py` prints `fetch: no account given. Set ARENA_GUARD_G_ACCOUNT or write it to targets/entrant-G/account.private` and exits 1, and the check after `&&` never runs). Harness built as in row 14. Recorded on Nov 11, before the callback check was added to the gate on Nov 12; not re-run since, so whether Guard G's i03 still comes out held under that check is unconfirmed | `python3 targets/entrant-G/fetch.py && python3 -I tools/check/direct_check.py --wasm targets/entrant-G/guard_g.wasm --guard-config targets/entrant-G/guard-config.json --out runs/guard-g --jobs 6` | `ok: wrote targets/entrant-G/guard_g.wasm, sha256 b0d6ee10... matches the frozen fingerprint (277735 bytes)`, then `verdict: held 11, stopped by the access key 1`, exit 0 | about 2 s fetch, 48 s check | `evidence/direct-2026-11-11.md` |
 | 19 | The two AI-proposed Guard G mappings (saved; re-running them needs no model call) each had one wrong field, and the gate caught both. Same network and account needs as row 18 (run the fetch before it). Recorded on Nov 11, before the callback check; not re-run since | `python3 -I tools/check/direct_check.py --wasm targets/entrant-G/guard_g.wasm --guard-config evidence/direct-2026-11-11/guard-g-muse-proposed-config.json --out runs/guard-g-muse --jobs 6`, then the same with `guard-g-nearai-proposed-config.json` and `--out runs/guard-g-nearai` | Muse: `verdict: could not finish at G2/G3: ...`, exit 2. NEAR AI: `verdict: could not finish 1, held 10, stopped by the access key 1`, exit 2 | 25 s, 50 s | `evidence/direct-2026-11-11.md` |
-| 20 | The score never uses the guard's own answer about an invoice: a guard that lies in `get_invoice` gets the same score. An expiring invoice whose pay time cannot be read ends "cannot observe", never allowed. | `(cd harness && cargo test --release -- a1_ a2_ a3_)` | `test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 117 filtered out` | 2 s with the harness built | `evidence/invoice-fixes-2026-11-12.md` |
+| 20 | The score never uses the guard's own answer about an invoice: a guard that lies in `get_invoice` gets the same score. An expiring invoice whose pay time cannot be read ends "cannot observe", never allowed. | `(cd harness && cargo test --release -- a1_ a2_ a3_)` | `test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 129 filtered out` | 2 s with the harness built | `evidence/invoice-fixes-2026-11-12.md` |
 | 21 | An attack NEAR refuses in full (the agent's key may call only `pay`) is counted as "stopped by the access key", never as held. | `python3 -I tools/check/tests/test_check.py InvoiceFixes` | `Ran 5 tests` and `OK` | under 1 s | `evidence/invoice-fixes-2026-11-12.md` |
 | 22 | The agent's key stops 3 bypass attacks before the guard runs; the same owner calls sent by the outsider reach vault-a, which refuses each one itself. | `./run-arena.sh bypass vault` | in `runs/<UTC time>/arena-<date>-bypass-vault.log`: `bypass-outsider-owner-method unauthorised=0      honest_settled=1/3 protocol_rejected=0/6` and `stopped_by_access_key=3`; exit 0 | 93 s | `evidence/invoice-fixes-2026-11-12/bypass/` |
 
@@ -84,7 +86,7 @@ python3 -I -m unittest discover -s tools/hunter/tests
 node --test tools/lookup/test.mjs
 ```
 
-You should see `Ran 119 tests` and `OK (skipped=1)`, then `Ran 28 tests` and `OK`, then `Ran 81 tests` and `OK`, then `pass 37`
+You should see `Ran 124 tests` and `OK (skipped=1)` (just `OK` once the harness is built), then `Ran 28 tests` and `OK`, then `Ran 81 tests` and `OK`, then `pass 37`
 and `fail 0`. The hunter tests pass on a fresh copy before anything is built. These counts are for
 the current commit: `evidence/clean-copy-2026-11-11.md` records 98 and 77 at the older commit it ran.
 
@@ -197,6 +199,28 @@ signing request (a count, not an amount)`. 58 = the 52 attacks plus 6 in
 the guard signs with `ethereum-1`): it should end `arena: not run` and `COULD NOT FINISH`, exit
 code 2, in about 20 s. The signer is Arena's stand-in (`contracts/signer-standin`): it writes down
 each request and signs nothing.
+
+A guard that pays by WITHDRAWING from NEAR Intents toward another chain needs
+`"intents": {"pays_by": "ft_withdraw"}` and the init arguments `"$intents"`, `"$bridge"` and
+`"$foreign_destinations"` (full example in `examples/configs/intents-withdraw-guard.json`):
+
+```
+./arena check targets/withdraw-honest/withdraw_honest.wasm --config examples/configs/intents-withdraw-guard.json --no-muse
+./arena check targets/withdraw-planted/withdraw_planted.wasm --config examples/configs/intents-withdraw-guard.json --no-muse
+```
+
+The first should end `arena: held 59/59 (...; withdraws from NEAR Intents: checks where each
+withdrawal is sent and what destination it names; no delivery on another chain)`, exit code 0.
+The second should end `arena: broke 3 of 59 (... 500 tokens paid outside the five receivers ...)`,
+exit code 1, with three BROKE lines: `withdraw-01-agent-names-foreign-address` and
+`withdraw-02-memo-msg-swap` (200 tokens each `toward eth:0xbad0000000000000000000000000000000000bad,
+not on the owner's list of foreign destinations`) and `withdraw-03-right-address-wrong-chain`
+(100 tokens `toward base:0x5a11000000000000000000000000000000000001`, sam's address on the wrong
+chain). 59 = the 51 attacks, 2 in `sequences-intents/` and 6 in `sequences-intents-withdraw/`.
+`--no-muse` only makes sure no network call is tried; these guards use the interface's names, so
+none would be. There is no other chain: the bridge account is Arena's stand-in
+(`contracts/bridge-standin`, built from source by the check), which records destinations and sends
+nothing. About 590 to 640 s each on a fresh copy.
 
 A guard that pays the wrong person. `targets/planted-outflow/` is a copy of vault-a with one
 planted flaw: a second `pay` on a paid invoice sends the amount to whoever called, the agent.
@@ -398,8 +422,9 @@ The README's "Limits" section is the full list. The ones that matter most when y
   claims. The three guards faced different tests.
 - `./arena check` trusts the guard's own view methods in its preflight step.
 - Nothing has run on Linux or on GitHub.
-- Deposits into NEAR Intents are tested only against a local copy of its release build. Money that
-  leaves NEAR is not tested: no withdrawals to other chains.
+- NEAR Intents is tested only against a local copy of its release build. For withdrawals toward
+  another chain, Arena checks where a withdrawal is sent and what destination it names; it does not
+  test delivery on the other chain, real bridges, or the MPC network.
 - Chain Signatures requests are checked against Arena's stand-in signer, not `v1.signer`: what the
   guard asked to have signed, counted, never turned into tokens. No real MPC signing, no delivery on
   another chain, and the hashes use Arena's own format, not a real Ethereum transaction.

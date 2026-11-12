@@ -53,6 +53,8 @@ class ClosedListsAgreeWithHarness(unittest.TestCase):
             self.assertEqual(re.findall(r'"([^"]+)"', vals), C.CHOICES[name], name)
         ph = re.search(r"pub const PLACEHOLDERS: \[&str; \d+\] = \[(.*?)\];", rs, re.S).group(1)
         self.assertEqual(re.findall(r'"([^"]+)"', ph), C.PLACEHOLDERS)
+        pb = re.search(r"pub const PAYS_BY: \[&str; \d+\] = \[(.*?)\];", rs, re.S).group(1)
+        self.assertEqual(re.findall(r'"([^"]+)"', pb), C.PAYS_BY)
 
 
 class ConfigAndMapping(unittest.TestCase):
@@ -1475,6 +1477,68 @@ class ChainSignatures(unittest.TestCase):
         out = R.console(r, "r")
         self.assertNotIn("unauthorised signing requests:", out)
         self.assertIn("No real MPC signing", out)
+
+
+class Withdraw(unittest.TestCase):
+    """2026-11-11: "intents": {"pays_by": "ft_withdraw"}, a guard that withdraws from NEAR Intents
+    toward another chain through Arena's bridge stand-in."""
+    ARGS = {"owner": "$owner", "agent": "$agent", "token": "$token", "intents": "$intents",
+            "bridge": "$bridge", "destinations": "$foreign_destinations", "daily_cap": "$daily_cap"}
+    EXPORTS = ["new", "pay", "approve_invoice", "get_invoice", "add_payee", "remove_payee", "cancel_invoice"]
+
+    def cfg(self):
+        return {"arena_guard_config": 1, "pays_in": "intents", "init": {"args": dict(self.ARGS)}, "intents": {"pays_by": "ft_withdraw"}}
+
+    def test_resolved_block_has_no_deposit_keys(self):
+        # the harness refuses deposit keys next to ft_withdraw, so resolve must not add the defaults
+        r, problems = C.resolve(self.cfg(), None, self.EXPORTS)
+        self.assertEqual(problems, [])
+        self.assertEqual(r["intents"], {"pays_by": "ft_withdraw"})
+        self.assertTrue(check.withdraws(r))
+        dep, _ = C.resolve({"arena_guard_config": 1, "pays_in": "intents", "init": {"args": dict(Intents.ARGS)}}, None, self.EXPORTS)
+        self.assertFalse(check.withdraws(dep))
+        self.assertEqual(dep["intents"], {"beneficiary_in_msg": "account_id", "may_park_in_intents": False}, "deposit guards unchanged")
+
+    def test_suite_is_loaded_only_for_withdrawing_guards(self):
+        itn, p1, _ = check.library("intents")
+        wd, p2, _ = check.library("intents", withdraw=True)
+        self.assertEqual((p1, p2), ([], []))
+        new = {a["meta"]["id"] for a in wd} - {a["meta"]["id"] for a in itn}
+        self.assertEqual(len(new), 6)
+        self.assertTrue(all(i.startswith("withdraw-0") for i in new))
+        self.assertFalse(any(a["path"].startswith("sequences-intents-withdraw/") for a in itn))
+
+    def test_outside_text_says_toward(self):
+        paid = [{"to": "toward eth:0xbad, not on the owner's list of foreign destinations (recorded by Arena's bridge stand-in)", "units": "200"}]
+        self.assertTrue(check.outside_text(paid, False).startswith("200 tokens toward eth:0xbad, not on the owner's list"))
+        self.assertEqual(check.outside_text([{"to": "the agent", "units": "5"}], False), "5 tokens to the agent")
+        self.assertEqual(R.outside_note({}, {"paid_outside": paid}), " (paid 200 tokens " + paid[0]["to"] + ")")
+        self.assertEqual(R.outside_note({}, {"paid_outside": [{"to": "the agent", "units": "5"}]}), " (paid 5 tokens to the agent)")
+
+    def _cell(self, d, via=100, received=100, recorded=100, out=100):
+        rj = pathlib.Path(d) / "w.result.json"
+        c = conservation_block(100, guard_outflow=str(out))
+        c["withdraw"] = {"bridge_received": str(received), "bridge_recorded": str(recorded)}
+        rj.write_text(json.dumps({"final": {"received": [{"receiver": "sam", "received": str(via)}]},
+                                  "score": {"conservation": c,
+                                            "intents_received": [{"receiver": "sam", "on_token": "0", "credited_inside_intents": "0"}],
+                                            "withdrawn_to_allowed_destinations": [{"receiver": "sam", "tokens": str(via)}]}}))
+        return {"result_json": str(rj)}
+
+    def test_preflight_needs_a_recorded_withdrawal_to_sam(self):
+        with tempfile.TemporaryDirectory() as d:
+            self.assertIsNone(check.conservation_preflight(self._cell(d), "intents", withdraw=True))
+            self.assertIn("recorded 93", check.conservation_preflight(self._cell(d, recorded=93), "intents", withdraw=True))
+            rj = pathlib.Path(d) / "x.result.json"
+            rj.write_text(json.dumps({"final": {"received": [{"receiver": "sam", "received": "100"}]}, "score": {"conservation": conservation_block(100)}}))
+            self.assertIn("no withdrawal block", check.conservation_preflight({"result_json": str(rj)}, "intents", withdraw=True))
+
+    def test_report_says_no_delivery_on_another_chain(self):
+        r = Report.rep(Report(), pays_in="intents")
+        r["pays_by"] = "ft_withdraw"
+        self.assertIn("no delivery on another chain", R.headline(r))
+        self.assertIn("does not test delivery on the other chain, real bridges, or the MPC network", R.console(r, "r"))
+        self.assertEqual(check.units_block("intents", withdraw=True)["pays_by"], "ft_withdraw")
 
 if __name__ == "__main__":
     unittest.main(verbosity=1)

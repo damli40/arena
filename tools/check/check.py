@@ -31,6 +31,13 @@ requests, produces no signature) and counts the guard's signing requests the own
 above 0 is broke. Records Arena cannot match end the attempt as did not finish (never held). A
 second preflight (CHAINSIG_CONTROL_ID) checks the guard signs the allowed ftx-sam exactly once.
 
+Withdrawals (2026-11-11, harness/src/withdraw.rs). A guard whose money is a credit inside Intents and
+that pays by ft_withdraw toward another chain ("intents": {"pays_by": "ft_withdraw"}) also runs the
+withdraw suite (sequences-intents-withdraw/). Arena's bridge stand-in records the foreign destination
+each withdrawal names. Toward a destination on the owner's list = paid to that receiver (same
+per-invoice and cap rules); toward any other destination = paid outside the receivers (broke).
+Nothing is delivered on another chain; the report says so.
+
 What it does, in order:
  0. deletes the report files of any earlier run in --out, so a stale badge can never survive;
  1. reads the method names your wasm exports (no wasm code runs here);
@@ -69,6 +76,8 @@ REPORT_FILES = ("report.json", "report.html", "badge.svg", "shields.json", "summ
 # Sources each built file depends on. A source newer than the built file means rebuild.
 HARNESS_SOURCES = ("harness/src", "harness/Cargo.toml", "harness/Cargo.lock")
 TOKEN_SOURCES = ("contracts/test-token", "contracts/Cargo.toml", "contracts/Cargo.lock")
+BRIDGE_WASM = ROOT / "contracts/target/wasm32-unknown-unknown/release/bridge_standin.wasm"
+BRIDGE_SOURCES = ("contracts/bridge-standin", "contracts/Cargo.toml", "contracts/Cargo.lock")
 
 
 def _score_intent():
@@ -130,11 +139,14 @@ def stale(built, sources):
     return not built.exists() or built.stat().st_mtime < _newest(sources)
 
 
-def ensure_built(log):
-    """Build the harness and the test token if missing or older than any of their sources."""
+def ensure_built(log, withdraw=False):
+    """Build the harness and the test token (and, for a withdrawing guard, the bridge stand-in) if
+    missing or older than any of their sources."""
     steps = []
     if stale(TOKEN_WASM, TOKEN_SOURCES):
         steps.append(("test token", ["cargo", "build", "--release", "--target", "wasm32-unknown-unknown", "-p", "test-token"], ROOT / "contracts"))
+    if withdraw and stale(BRIDGE_WASM, BRIDGE_SOURCES):
+        steps.append(("bridge stand-in", ["cargo", "build", "--release", "--target", "wasm32-unknown-unknown", "-p", "bridge-standin"], ROOT / "contracts"))
     if stale(runner.HARNESS, HARNESS_SOURCES):
         steps.append(("harness", ["cargo", "build", "--release"], ROOT / "harness"))
     for what, cmd, cwd in steps:
@@ -230,11 +242,20 @@ def mark_tokens_not_scored(row, reason):
     return row
 
 
-def intents_suite():
-    """(attacks, problems) from sequences-intents/: attacks run only for "pays_in": "intents"
-    guards, validated with the "intents" target allowed. Bad files are problems, never fixed."""
+WITHDRAW_SUITE_DIR = "sequences-intents-withdraw"
+
+
+def withdraws(resolved):
+    """True for a guard that pays by ft_withdraw from its credit inside NEAR Intents."""
+    return (resolved or {}).get("pays_in") == "intents" and ((resolved or {}).get("intents") or {}).get("pays_by") == "ft_withdraw"
+
+
+def intents_suite(folder=INTENTS_SUITE_DIR):
+    """(attacks, problems) from sequences-intents/ (or the withdraw suite): attacks run only for
+    "pays_in": "intents" guards, validated with the "intents" target allowed. Bad files are
+    problems, never fixed."""
     attacks, problems = [], []
-    for p in sorted((ROOT / INTENTS_SUITE_DIR).glob("*.json")):
+    for p in sorted((ROOT / folder).glob("*.json")):
         err = V.validate_path(p, intents_suite=True)
         if err:
             problems.append(err)
@@ -243,15 +264,16 @@ def intents_suite():
     return attacks, problems
 
 
-def library(pays_in="token", signs=False):
+def library(pays_in="token", signs=False, withdraw=False):
     attacks, problems = catalog.load()
     if signs:
         extra, more = chainsig_suite()
         ids = {a["meta"]["id"] for a in attacks}
         problems += more + [f"duplicate meta.id {a['meta']['id']} in {a['path']}" for a in extra if a["meta"]["id"] in ids]
         attacks += extra
-    if pays_in == "intents":
-        extra, more = intents_suite()
+    folders = ([INTENTS_SUITE_DIR] if pays_in == "intents" else []) + ([WITHDRAW_SUITE_DIR] if pays_in == "intents" and withdraw else [])
+    for folder in folders:
+        extra, more = intents_suite(folder)
         ids = {a["meta"]["id"] for a in attacks}
         problems += more + [f"duplicate meta.id {a['meta']['id']} in {a['path']}" for a in extra if a["meta"]["id"] in ids]
         attacks += extra
@@ -269,10 +291,12 @@ def outside_text(paid, native):
     """Who outside the five receivers got the guard's money, in words: "100 tokens to the agent".
     `paid` is the result's final.paid_outside_receivers list (units are Arena units)."""
     unit = (lambda u: f"{R.near(u)} NEAR") if native else (lambda u: f"{u} tokens")
-    return ", ".join(f"{unit(int(p.get('units', 0)))} to {p.get('to', '?')}" for p in paid or [])
+    # Withdraw mode labels already say where: "toward eth:0x..., not on the owner's list ...".
+    return ", ".join(f"{unit(int(p.get('units', 0)))} {'' if str(p.get('to', '')).startswith('toward ') else 'to '}{p.get('to', '?')}"
+                     for p in paid or [])
 
 
-def conservation_preflight(cell, pays_in):
+def conservation_preflight(cell, pays_in, withdraw=False):
     """None if Arena could account for every bit of the guard's money on the honest payment; else a
     plain reason (the check then stops, exit 2). Token: the guard's outflow must equal sam's 100
     exactly. Native: within the tolerance plus the guard's gas-reward bound (conserve.rs)."""
@@ -296,6 +320,22 @@ def conservation_preflight(cell, pays_in):
                            f"{sam} yocto; they must match within {slack} yocto (1 milliNEAR plus the guard's gas-reward bound).")
         return None
     sam = next((int(x["received"]) for x in r["final"]["received"] if x["receiver"] == "sam"), 0)
+    if withdraw:
+        # The honest payment must really be a withdrawal: 100 out of the guard's credit inside
+        # Intents, recorded by the bridge stand-in toward sam's destination on the owner's list,
+        # nothing on the token contract or inside Intents for sam, and the bridge exact.
+        via = next((int(x["tokens"]) for x in r["score"].get("withdrawn_to_allowed_destinations", []) if x["receiver"] == "sam"), None)
+        row = next((x for x in r["score"].get("intents_received", []) if x["receiver"] == "sam"), None)
+        w = c.get("withdraw")
+        if via is None or not row or not w:
+            return head + "The honest payment's result has no withdrawal block (is the harness up to date?). This is a problem in Arena."
+        if not (out == seen == sam == via == 100 and int(row["on_token"]) == 0 and int(row["credited_inside_intents"]) == 0
+                and int(w["bridge_received"]) == int(w["bridge_recorded"]) == 100):
+            return head + (f"On the honest payment the guard's money went down by {out}; the bridge stand-in received "
+                           f"{w['bridge_received']} tokens and recorded {w['bridge_recorded']}; {via} were withdrawn toward sam's "
+                           "destination. A guard that pays by ft_withdraw must withdraw exactly 100 from its credit inside Intents "
+                           "to the bridge it was given ($bridge), with msg naming sam's destination from $foreign_destinations.")
+        return None
     if pays_in == "intents":
         # The honest payment must really go through Intents: sam credited 100 inside it, 0 on the
         # token contract, and the Intents part of the accounting exact.
@@ -391,9 +431,12 @@ def _command(argv):
     return " ".join(["./arena", "check", *[disp(x) if os.path.isabs(x) else x for x in argv]])
 
 
-def units_block(pays_in):
+def units_block(pays_in, withdraw=False):
     """What the amounts in report.json are measured in. Intents mode moves the test token into
     NEAR Intents, so its amounts are tokens too, never milliNEAR."""
+    if pays_in == "intents" and withdraw:
+        return {"pays_in": "intents", "pays_by": "ft_withdraw",
+                "amounts": "tokens (the test token's own units, withdrawn from NEAR Intents to Arena's bridge stand-in)"}
     if pays_in == "native":
         return {"pays_in": "native", "amounts": "Arena units of 1 milliNEAR (1000 = 1 NEAR)",
                 "yocto_per_unit": str(YOCTO_PER_UNIT["native"])}
@@ -503,12 +546,16 @@ def _check(a, out, rep, started, finish):
         cfg_path = out / "guard-config.resolved.json"
         cfg_path.write_text(json.dumps(resolved, indent=2) + "\n")
 
-        ensure_built(out / "build.log")
+        wd = withdraws(resolved)
+        if wd:
+            ensure_built(out / "build.log", withdraw=True)
+        else:
+            ensure_built(out / "build.log")  # the call token and native checks have always made
         signs = bool(resolved.get("signs_via"))
         if signs:
             rep["signs_via"] = resolved["signs_via"]
             rep["chain_signatures"] = resolved["chain_signatures"]
-        attacks, lib_problems, dups = library(pays_in, signs)
+        attacks, lib_problems, dups = library(pays_in, signs, withdraw=wd)
         # The control (one honest payment) is a preflight, not an attack: never counted as one.
         rep["library"] = {"attacks": sum(x["meta"]["id"] not in CONTROLS for x in attacks), "control": CONTROL_ID, "problems": lib_problems,
                           "duplicates_skipped": [[d["meta"]["id"], o["meta"]["id"]] for d, o in dups]}
@@ -519,6 +566,10 @@ def _check(a, out, rep, started, finish):
             rep["library"]["chainsig_control"] = CHAINSIG_CONTROL_ID
             if not any(x["meta"]["id"] == CHAINSIG_CONTROL_ID for x in attacks):
                 raise explain.CheckError(f"Arena's chain-signatures suite has no signing control ({CHAINSIG_CONTROL_ID}), so the signing preflight cannot run.")
+        if wd:
+            rep["pays_by"] = "ft_withdraw"
+            rep["units"] = units_block(pays_in, withdraw=True)
+            rep["library"]["withdraw_suite"] = sum(x["path"].startswith(WITHDRAW_SUITE_DIR + "/") for x in attacks)
         if pays_in == "native":
             rep["not_in_suite"] = [{"id": x["meta"]["id"], "title": x["meta"]["title"], "path": x["path"], "reasons": why}
                                    for x in attacks if x["meta"]["id"] != CONTROL_ID
@@ -569,7 +620,7 @@ def _check(a, out, rep, started, finish):
             why = (f"Preflight: the harness measured the honest payment as a {cell.get('scoring')} guard, but this check is for a "
                    f"{pays_in} guard. Arena stops rather than score in the wrong units. This is a problem in Arena; please report it.")
         if not why:
-            why = conservation_preflight(cell, pays_in)
+            why = conservation_preflight(cell, pays_in, withdraw=wd)
         if not why and signs:
             why = chainsig_preflight(sign_cell)
             rep["signing_control"] = {"id": CHAINSIG_CONTROL_ID, "result": "signed ftx-sam once" if not why else "failed",

@@ -1,0 +1,26 @@
+    Finished `release` profile [optimized] target(s) in 0.77s
+    Finished `release` profile [optimized] target(s) in 1.91s
+     Running `target/release/examples/withdraw_spike`
+STEP intents new(): success=true
+STEP bridge new(token): success=true
+STEP owner deposits 1000 into Intents for g: success=true
+VIEW mt_balance_of(g) = 1000
+STEP g ft_withdraw 100 to bridge, good msg: success=true returned=Some("100") receipt_failures=0
+  LOG EVENT_JSON:{"standard":"nep245","version":"1.0.0","event":"mt_burn","data":[{"owner_id":"dev-20261112003510-28167129149383.test.near","token_ids":["nep141:dev-20261112003510-54541730880419.test.near"],"amounts":["100"],"memo":"withdraw"}]}
+  LOG EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261112003511-99199227814535.test.near","new_owner_id":"dev-20261112003519-63123786606217.test.near","amount":"100","memo":"memo text"}]}
+  LOG EVENT_JSON:{"standard":"arena-bridge-standin","version":"1.0.0","event":"withdrawal_recorded","data":{"index":0,"token":"dev-20261112003510-54541730880419.test.near","sender_id":"dev-20261112003511-99199227814535.test.near","amount":"100","chain":"eth","address":"0x5a11000000000000000000000000000000000001","msg":"{\"recipient\":\"eth:0x5a11000000000000000000000000000000000001\"}","block_height":50}}
+  VIEW after: g inside Intents=900 bridge tokens=100 intents tokens=900 record_count=1
+STEP g ft_withdraw 50 to bridge, unreadable msg: success=true returned=Some("0") receipt_failures=1
+  LOG EVENT_JSON:{"standard":"nep245","version":"1.0.0","event":"mt_burn","data":[{"owner_id":"dev-20261112003510-28167129149383.test.near","token_ids":["nep141:dev-20261112003510-54541730880419.test.near"],"amounts":["50"],"memo":"withdraw"}]}
+  LOG EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261112003511-99199227814535.test.near","new_owner_id":"dev-20261112003519-63123786606217.test.near","amount":"50","memo":"memo text"}]}
+  LOG EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261112003519-63123786606217.test.near","new_owner_id":"dev-20261112003511-99199227814535.test.near","amount":"50","memo":"refund"}]}
+  LOG EVENT_JSON:{"standard":"nep245","version":"1.0.0","event":"mt_mint","data":[{"owner_id":"dev-20261112003510-28167129149383.test.near","token_ids":["nep141:dev-20261112003510-54541730880419.test.near"],"amounts":["50"],"memo":"refund"}]}
+  VIEW after: g inside Intents=900 bridge tokens=100 intents tokens=900 record_count=1
+STEP g ft_withdraw 7 to bridge, no msg (plain ft_transfer): success=true returned=Some("7") receipt_failures=0
+  LOG EVENT_JSON:{"standard":"nep245","version":"1.0.0","event":"mt_burn","data":[{"owner_id":"dev-20261112003510-28167129149383.test.near","token_ids":["nep141:dev-20261112003510-54541730880419.test.near"],"amounts":["7"],"memo":"withdraw"}]}
+  LOG EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261112003511-99199227814535.test.near","new_owner_id":"dev-20261112003519-63123786606217.test.near","amount":"7","memo":"memo text"}]}
+  VIEW after: g inside Intents=893 bridge tokens=107 intents tokens=893 record_count=1
+VIEW records = [{"address":"0x5a11000000000000000000000000000000000001","amount":"100","block_height":50,"chain":"eth","index":0,"msg":"{\"recipient\":\"eth:0x5a11000000000000000000000000000000000001\"}","sender_id":"dev-20261112003511-99199227814535.test.near","token":"dev-20261112003510-54541730880419.test.near"}]
+STEP owner ft_transfer_call 3 straight to the bridge: success=true returned=Some("3")
+  VIEW record_count=2
+DONE in 19.8s

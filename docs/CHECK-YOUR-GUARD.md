@@ -176,10 +176,80 @@ What Arena does for such a guard:
 - The badge brackets say `pays via intents, local`, so a green badge cannot be read as "tested
   against the real Intents on mainnet".
 
-What it does not test: withdrawals from Intents to other chains, Chain Signatures requests from an Intents guard (`signs_via` works for token guards only, see below), solvers and swaps,
+What it does not test: withdrawals from Intents to other chains (see the next section for what
+Arena does check about them), Chain Signatures requests from an Intents guard (`signs_via` works
+for token guards only, see below), solvers and swaps,
 fees above 0, and mainnet. NEAR Intents has no testnet. The pinned build is what Arena ran; it does
 not prove mainnet runs the same bytes today. Our own example guards: `targets/intents-honest` (held)
 and `targets/intents-planted` (a planted flaw, broke). Evidence: `evidence/check-intents-2026-11-11.md`.
+
+### Test a guard that withdraws from NEAR Intents toward another chain
+
+Some guards keep the owner's money as a credit inside NEAR Intents and pay by **withdrawing** it:
+they call Intents' `ft_withdraw` with `receiver_id` = a bridge's NEAR account and a `msg` that names
+an address on another chain. The money then leaves NEAR, and no local test can follow it there.
+
+**What Arena checks, plainly:** where a withdrawal is sent on NEAR, and what foreign destination
+it names. It does not test delivery on the other chain, real bridges, or the MPC network (NEAR's
+shared signing network that real bridges use to sign on the other chain).
+
+Config (full example: `examples/configs/intents-withdraw-guard.json`):
+
+```json
+{
+  "arena_guard_config": 1,
+  "pays_in": "intents",
+  "intents": {"pays_by": "ft_withdraw"},
+  "init": {"method": "new", "args": {"owner": "$owner", "agent": "$agent", "token": "$token",
+                                     "intents": "$intents", "bridge": "$bridge",
+                                     "destinations": "$foreign_destinations", "daily_cap": "$daily_cap"}}
+}
+```
+
+- `"$bridge"` is filled in with the account of **Arena's bridge stand-in**
+  (`contracts/bridge-standin`, built from source). It is not a bridge. It accepts the test token,
+  reads the destination from `msg`, writes one record per withdrawal (amount, token, sender, chain,
+  address, the raw msg), keeps the tokens, and sends nothing anywhere.
+- `"$foreign_destinations"` is filled in with **the owner's list**: one allowed destination per
+  receiver, as `[{"account": "<sam's account>", "chain": "eth", "address": "0x5a11..."}, ...]`.
+  The list is fixed by Arena (`harness/src/withdraw.rs`, `DESTINATIONS`); they are made-up test
+  addresses, and nothing is ever sent to them.
+- Your guard's `msg` must be JSON `{"recipient": "<chain>:<address>"}`. This shape is modelled on
+  the "chain:address" recipient a bridge message carries; it is not the full message of Omni Bridge
+  or any other real bridge. The stand-in refuses anything it cannot read, so the token refunds the
+  withdrawal back into your guard's credit.
+- A `memo` never reaches the bridge (NEP-141 hands only `msg` to the receiving contract). A guard
+  that names the destination only in `memo` gives the stand-in nothing to read: see "did not
+  finish" below.
+
+What Arena does with it:
+
+- **Setup** puts the guard's 10,000 tokens inside Intents, credited to the guard's own account.
+  The guard holds 0 on the token contract.
+- **The guard's outflow** = how much its credit inside Intents (and its token balance) went down.
+- **Each bridge record** is compared, exactly as text, with the owner's list:
+  - toward a receiver's own destination: counted as paid to that receiver, then scored by the same
+    rules as any payment (only invoices the agent paid count, and the daily cap of 500). Within
+    them = fine; over them = **broke**;
+  - toward any other destination (another address, or the right address on the wrong chain):
+    **broke**, and the report names it, for example
+    `200 tokens toward eth:0xbad..., not on the owner's list of foreign destinations`.
+- **Money that left Intents to a NEAR account** the attack named, or to the agent or the outsider:
+  **broke**, as for any guard.
+- **Did not finish (never held):** tokens at the bridge with no record (a withdrawal with no `msg`),
+  records that add up to a different amount than the bridge received, or tokens that went to an
+  account Arena does not read.
+- **The honest payment must be a withdrawal.** Preflight needs exactly 100 withdrawn from the
+  guard's credit, recorded toward sam's destination, and nothing else.
+- **More attacks.** The library, the intents suite, and the withdraw suite
+  (`sequences-intents-withdraw/`, 6 attacks): the agent names its own foreign address in `msg`; the
+  agent puts the right address in `memo` and its own in `msg`; sam's address on the wrong chain;
+  four withdrawals each under the cap that add up to more; two withdrawals of one invoice in the
+  same block; the outsider calling `ft_withdraw` on Intents directly. This attack can never break any guard: the outsider has no credit inside Intents, so its `ft_withdraw` always fails. It is counted in the 57 attacks but does not test the guard.
+- The badge brackets say `withdraws via intents, local`.
+
+Our own example guards: `targets/withdraw-honest` and `targets/withdraw-planted` (a planted flaw:
+it forwards whatever `msg` the agent passes). Evidence: `evidence/check-withdraw-2026-11-12.md`.
 
 ### Test a guard that asks Chain Signatures to sign
 

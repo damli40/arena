@@ -165,6 +165,9 @@ pub struct Score {
     /// kindest (the score is the kindest), and the steps involved. See `decide_readings`.
     pub race_spread: u128,
     pub race_steps: Vec<String>,
+    /// Withdraw mode only (withdraw.rs): receiver, tokens withdrawn toward its allowed foreign
+    /// destination (recorded by the bridge stand-in). Also inside `rows`.
+    pub withdraw_rows: Vec<(String, u128)>,
 }
 
 /// Native mode: units received by one receiver, from its state at the end of
@@ -660,6 +663,7 @@ fn compute_reading(m: &crate::setup::Manifest, inp: &ScoreInputs, slots: &[(Stri
         intents_rows: Vec::new(),
         race_spread: 0,
         race_steps: Vec::new(),
+        withdraw_rows: Vec::new(),
     }
 }
 
@@ -681,6 +685,14 @@ pub async fn score(a: &Arena) -> Result<Score> {
     let mut native_rows = Vec::new();
     let mut invalid = Vec::new();
     let mut intents_rows = Vec::new();
+    // Withdraw mode: this attempt's bridge records, sorted onto the owner's list or off it.
+    let placed = match &a.bridge {
+        Some(_) => {
+            let from = a.before.as_ref().map(|b| b.bridge_records).unwrap_or(0);
+            Some(crate::withdraw::classify(&crate::withdraw::read_records(a, from).await?, a.token.id().as_str()))
+        }
+        None => None,
+    };
     for (name, acct) in a.by_name.iter() {
         if crate::setup::RECEIVERS.contains(name) {
             if native {
@@ -704,7 +716,9 @@ pub async fn score(a: &Arena) -> Result<Score> {
                 let outer = token_balance(a, acct.id()).await?;
                 let inner = crate::conserve::mt_balance(a, c, acct.id().as_str()).await?;
                 intents_rows.push((name.to_string(), outer, inner));
-                received.push((name.to_string(), outer + inner));
+                // Withdraw mode: plus what was withdrawn toward its allowed foreign destination.
+                let via = placed.as_ref().and_then(|p| p.to_receivers.iter().find(|(n, _)| n == name)).map(|(_, v)| *v).unwrap_or(0);
+                received.push((name.to_string(), outer + inner + via));
             } else {
                 received.push((name.to_string(), token_balance(a, acct.id()).await?));
             }
@@ -741,9 +755,17 @@ pub async fn score(a: &Arena) -> Result<Score> {
         s.mode = "intents";
         s.intents_rows = intents_rows;
     }
+    if let Some(p) = &placed {
+        // mode stays "intents" (what the config says it pays in); the rows mark withdraw mode
+        s.withdraw_rows = p.to_receivers.clone();
+    }
     match &a.before {
         Some(b) => {
-            let ci = crate::conserve::gather(a, b, receivers_in).await?;
+            let mut ci = crate::conserve::gather(a, b, receivers_in).await?;
+            if let (Some(p), Some(br)) = (placed, &a.bridge) {
+                let bridge_delta = token_balance(a, br.id()).await? as i128 - b.bridge_tokens as i128;
+                ci.withdraw = Some(crate::conserve::WithdrawInputs { bridge_delta, placed: p });
+            }
             apply_conservation(&mut s, crate::conserve::check(&ci));
         }
         None => s.invalid.push(
@@ -767,12 +789,24 @@ pub async fn token_balance(a: &Arena, who: &near_workspaces::AccountId) -> Resul
 /// credit inside NEAR Intents, intents mode), or its native balance in yocto (native mode).
 /// Read before and after every step (seq.rs) so the scorer can tell which step paid whom.
 pub async fn receiver_amounts(a: &Arena) -> Result<Vec<(String, u128)>> {
+    // Withdraw mode (merge of invoice-fixes and intents-withdraw, 2026-11-12): a receiver is paid by
+    // a withdrawal toward its allowed foreign destination, which only the bridge stand-in records;
+    // nothing arrives on NEAR. Count it here as `score` does, so each step's window sees the same
+    // money the final total counts (else every withdrawal reads as "the windows add up to less").
+    let placed = match &a.bridge {
+        Some(_) => {
+            let from = a.before.as_ref().map(|b| b.bridge_records).unwrap_or(0);
+            Some(crate::withdraw::classify(&crate::withdraw::read_records(a, from).await?, a.token.id().as_str()))
+        }
+        None => None,
+    };
     let mut out = Vec::new();
     for (name, acct) in a.by_name.iter().filter(|(n, _)| crate::setup::RECEIVERS.contains(n)) {
         let v = if a.target.is_native() {
             a.worker.view_account(acct.id()).await?.balance.as_yoctonear()
         } else if let Some(c) = &a.intents {
-            token_balance(a, acct.id()).await? + crate::conserve::mt_balance(a, c, acct.id().as_str()).await?
+            let via = placed.as_ref().and_then(|p| p.to_receivers.iter().find(|(n, _)| n == name)).map(|(_, v)| *v).unwrap_or(0);
+            token_balance(a, acct.id()).await? + crate::conserve::mt_balance(a, c, acct.id().as_str()).await? + via
         } else {
             token_balance(a, acct.id()).await?
         };
@@ -815,6 +849,11 @@ pub fn print_score(name: &str, s: &Score) {
     for (recv, outer, inner) in &s.intents_rows {
         if outer + inner > 0 {
             println!("  intents {recv:<6} on_token={outer} credited_inside_intents={inner}");
+        }
+    }
+    for (recv, via) in &s.withdraw_rows {
+        if *via > 0 {
+            println!("  withdrawn {recv:<6} toward_allowed_destination={via} (recorded by the bridge stand-in)");
         }
     }
     for (recv, got, au) in &s.rows {

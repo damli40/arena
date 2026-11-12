@@ -1,0 +1,10 @@
+withdraw-honest frozen 2026-11-11, before any full arena check run against this build (one 6-attack trial ran on the honest build first).
+TEST FIXTURE. DO NOT DEPLOY. (see README.md)
+sha256 withdraw_honest.wasm 6c4b5ba7e4ed49a66c7a6540f2585f39cf573bc7499c9038bcbe4df94c6f958f
+sha256 src/lib.rs 5bf9f87737bfaf4fd94383cfeb14882e85afc888dfcbcd7b8a0d0ce6b2aee52e
+sha256 README.md a35d11af69095afd5c1d9e6731110f35d3ed7e166e9b2cf9b35ba9117e76b5a9
+sha256 Cargo.toml 455f31d6911dbe2f6342c39131e9bb8aa38e03cbb9737fe30103f6fbe83bcb4a
+sha256 Cargo.lock b18ccbb389d12ce10b519f5c4995fa5ec8280e2293f7102ed733729447ca9c17
+sha256 .cargo/config.toml 74891c6e23394c7f061b89e3ab1539f87a0568df2aeb44a26fc057c120b5f65b
+Built with rustc 1.86.0 (rust-toolchain.toml) and .cargo/config.toml (--cfg near, -s), cargo build --release --target wasm32-unknown-unknown.
+Withdraws from NEAR Intents: targets/intents-defuse-v0.4.2 (pinned release wasm), to Arena's bridge stand-in (contracts/bridge-standin).

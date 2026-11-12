@@ -38,7 +38,7 @@ CHOICES = {
     "status_field": ["status", "state"],
     "paid_value": ["Paid", "paid", "PAID"],
 }
-PLACEHOLDERS = ["$owner", "$agent", "$token", "$daily_cap", "$daily_cap_number", "$intents", "$signer", "$allowed_foreign_txs"]
+PLACEHOLDERS = ["$owner", "$agent", "$token", "$daily_cap", "$daily_cap_number", "$intents", "$signer", "$allowed_foreign_txs", "$bridge", "$foreign_destinations"]
 FEATURES = ["payees", "cancel", "expiry", "daily_cap"]
 # How the guard pays (2026-11-11). Mirrors harness/src/adapter.rs PAYS_IN. "token" = ft_transfer on
 # a NEP-141 token (scored from token balances); "native" = plain NEAR transfers (scored from
@@ -48,7 +48,11 @@ PAYS_IN_HELP = ('"token" (your guard pays with ft_transfer on a NEP-141 token), 
                 '"native" (your guard sends plain NEAR) or "intents" (your guard deposits the token into NEAR Intents '
                 'with ft_transfer_call, crediting the receiver there)')
 # "pays_in": "intents" (2026-11-11). Mirrors harness/src/adapter.rs (IntentsCfg, BENEFICIARY_IN_MSG).
-INTENTS_KEYS = {"beneficiary_in_msg", "may_park_in_intents"}
+INTENTS_KEYS = {"beneficiary_in_msg", "may_park_in_intents", "pays_by"}
+# "intents": {"pays_by": "ft_withdraw"} (2026-11-11, harness/src/withdraw.rs): the guard's money is a
+# credit inside Intents and it pays by withdrawing toward another chain through a bridge account.
+PAYS_BY = ["deposit", "ft_withdraw"]
+WITHDRAW_PLACEHOLDERS = ["$bridge", "$foreign_destinations"]
 BENEFICIARY_IN_MSG = ["account_id", "json_receiver_id"]
 DEFAULT_INTENTS = {"beneficiary_in_msg": "account_id", "may_park_in_intents": False}
 # "signs_via": "chain-signatures" (2026-11-11). Mirrors harness/src/chainsig.rs (SIGNS_VIA,
@@ -219,11 +223,25 @@ def check_config(d, where="config"):
                   f"{where}: intents.beneficiary_in_msg = {b['beneficiary_in_msg']!r} is not allowed; pick one of {BENEFICIARY_IN_MSG}")
         if "may_park_in_intents" in b:
             _need(isinstance(b["may_park_in_intents"], bool), f"{where}: intents.may_park_in_intents must be true or false")
+        if "pays_by" in b:
+            _need(isinstance(b["pays_by"], str) and b["pays_by"] in PAYS_BY,
+                  f"{where}: intents.pays_by = {b['pays_by']!r} is not allowed; pick one of {PAYS_BY}")
+            _need(b["pays_by"] != "ft_withdraw" or not ({"beneficiary_in_msg", "may_park_in_intents"} & set(b)),
+                  f"{where}: intents: beneficiary_in_msg and may_park_in_intents describe deposits; a guard with "
+                  "\"pays_by\": \"ft_withdraw\" takes neither")
     uses = "$intents" in [v for v in args.values() if isinstance(v, str)]
     _need(not uses or intents, f"{where}: init.args uses \"$intents\", which Arena fills in only with \"pays_in\": \"intents\"")
     _need(uses or not intents, f"{where}: a guard that pays into NEAR Intents must be told the Intents contract's account at init. "
           "Add an init argument with the value \"$intents\" (for example \"intents\": \"$intents\").")
     check_chainsig(d, args, where)
+    withdraws = intents and isinstance(d.get("intents"), dict) and d["intents"].get("pays_by") == "ft_withdraw"
+    for ph in WITHDRAW_PLACEHOLDERS:
+        used = ph in [v for v in args.values() if isinstance(v, str)]
+        _need(not used or withdraws, f"{where}: init.args uses {ph!r}, which Arena fills in only for a guard with "
+              "\"pays_in\": \"intents\" and \"intents\": {\"pays_by\": \"ft_withdraw\"}")
+        _need(used or not withdraws, f"{where}: a guard that pays by ft_withdraw must take "
+              + ("the bridge account" if ph == "$bridge" else "the owner's foreign destinations")
+              + f" at init. Add an init argument with the value {ph!r}.")
     _check_mapping_part(d, where)
     if d.get("pays_in") == "native":
         check_native(d.get("init", {}).get("args", DEFAULT_INIT["args"]), d.get("shapes", {}), where)
@@ -331,7 +349,9 @@ def resolve(config, mapping, wasm_methods, pays_in=None):
         _need("$intents" in [v for v in init["args"].values() if isinstance(v, str)],
               "config: a guard that pays into NEAR Intents must take the Intents contract's account at init through \"$intents\". "
               "--pays-in intents needs a config that says so.")
-        resolved["intents"] = {**DEFAULT_INTENTS, **config.get("intents", {})}
+        given = config.get("intents", {})
+        # A withdrawing guard (pays_by ft_withdraw) takes none of the deposit keys (check_config).
+        resolved["intents"] = dict(given) if given.get("pays_by") == "ft_withdraw" else {**DEFAULT_INTENTS, **given}
     if config.get("signs_via"):  # only then, so every other resolved file keeps exactly its keys
         _need(pays == "token", "config: \"signs_via\": \"chain-signatures\" works only with \"pays_in\": \"token\"")
         cs = {**DEFAULT_CHAINSIG, **config.get("chain_signatures", {})}

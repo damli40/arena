@@ -98,6 +98,11 @@ impl Target {
     pub fn is_intents(&self) -> bool {
         matches!(self, Target::Configured { cfg, .. } if cfg.intents.is_some())
     }
+    /// `"intents": {"pays_by": "ft_withdraw"}` (withdraw.rs): the guard's money is a credit inside
+    /// Intents and it pays by withdrawing toward another chain through Arena's bridge stand-in.
+    pub fn is_withdraw(&self) -> bool {
+        matches!(self, Target::Configured { cfg, .. } if cfg.intents.as_ref().map(|i| i.withdraws()).unwrap_or(false))
+    }
     /// Native-NEAR scoring: invoices and the cap are in native NEAR
     /// (`NATIVE_UNIT` yocto per unit), and payouts are read from receivers'
     /// native balances, not token balances.
@@ -252,6 +257,8 @@ pub struct Arena {
     pub intents: Option<Contract>,
     /// Arena's signer stand-in (Chain Signatures mode only, chainsig.rs); None otherwise.
     pub signer: Option<Contract>,
+    /// Arena's bridge stand-in (withdraw mode only, see `Target::is_withdraw`); None otherwise.
+    pub bridge: Option<Contract>,
     pub by_name: Vec<(&'static str, Account)>,
     pub manifest: Manifest,
     pub target: Target,
@@ -409,6 +416,19 @@ pub async fn setup(target: Target) -> Result<Arena> {
     } else {
         None
     };
+    // Withdraw mode only: Arena's bridge stand-in (contracts/bridge-standin), accepting only the
+    // test token. It records each withdrawal's foreign destination and sends nothing anywhere.
+    let bridge = if target.is_withdraw() {
+        let path = resolve(crate::withdraw::BRIDGE_WASM);
+        let w = std::fs::read(&path).with_context(|| format!("{}: missing; build contracts/ for wasm32 (./run.sh or arena check builds it)", path.display()))?;
+        let b = worker.dev_deploy(&w).await?;
+        ok(b.call("new").args_json(json!({"token": token.id()})).transact().await?)
+            .context("SETUP STEP bridge init: the bridge stand-in's `new` failed")?;
+        println!("BRIDGE: deployed Arena's bridge stand-in {} (sha256 {}); it records destinations and sends nothing", b.id(), sha256_file(&path)?);
+        Some(b)
+    } else {
+        None
+    };
 
     // Chain Signatures mode only: deploy Arena's signer stand-in (pinned bytes) in place of
     // v1.signer, and load the owner's allowed foreign transactions (payloads recomputed).
@@ -442,6 +462,10 @@ pub async fn setup(target: Target) -> Result<Arena> {
         let args = match (&signer, &cs_allowed) {
             (Some(sg), Some(list)) => crate::chainsig::fill_init(args, sg.id().as_str(), list),
             _ => args,
+        };
+        let args = match &bridge {
+            Some(b) => c.fill_withdraw(args, b.id().as_str(), &crate::withdraw::init_arg(&by_name)),
+            None => args,
         };
         println!("ADAPTER init: {}({})", c.init_method, args);
         ok(vault.call(&c.init_method).args_json(args).transact().await?)
@@ -483,6 +507,10 @@ pub async fn setup(target: Target) -> Result<Arena> {
         if let Some(i) = &intents {
             register.push(i.id().clone());
         }
+        // Withdraw mode: the bridge stand-in receives ft_transfer_call from Intents.
+        if let Some(b) = &bridge {
+            register.push(b.id().clone());
+        }
         for (_, acct) in by_name.iter().filter(|(n, _)| RECEIVERS.contains(n)) {
             register.push(acct.id().clone());
         }
@@ -495,13 +523,26 @@ pub async fn setup(target: Target) -> Result<Arena> {
                 .await?)?;
         }
 
-        // Fund the vault (plain ft_transfer, as INTERFACE.md says funding works).
-        ok(owner
-            .call(token.id(), "ft_transfer")
-            .args_json(json!({"receiver_id": vault.id(), "amount": VAULT_FUNDING.to_string()}))
-            .deposit(NearToken::from_yoctonear(1))
-            .transact()
-            .await?)?;
+        if let (Some(i), true) = (&intents, bridge.is_some()) {
+            // Withdraw mode: the guard's money is a credit inside NEAR Intents under the guard's own
+            // account (the owner deposits it there for the guard).
+            ok(owner
+                .call(token.id(), "ft_transfer_call")
+                .args_json(json!({"receiver_id": i.id(), "amount": VAULT_FUNDING.to_string(), "msg": vault.id()}))
+                .deposit(NearToken::from_yoctonear(1))
+                .max_gas()
+                .transact()
+                .await?)
+            .context("SETUP STEP fund: the owner's deposit into NEAR Intents for the guard failed")?;
+        } else {
+            // Fund the vault (plain ft_transfer, as INTERFACE.md says funding works).
+            ok(owner
+                .call(token.id(), "ft_transfer")
+                .args_json(json!({"receiver_id": vault.id(), "amount": VAULT_FUNDING.to_string()}))
+                .deposit(NearToken::from_yoctonear(1))
+                .transact()
+                .await?)?;
+        }
     }
 
     // Payees (contracts/guard has no payee list).
@@ -729,8 +770,10 @@ pub async fn setup(target: Target) -> Result<Arena> {
         read.push(("owner".into(), owner.id().clone()));
         for (name, id) in read {
             let v: String = i.view("mt_balance_of").args_json(json!({"account_id": id, "token_id": tid})).await?.json()?;
-            if v != "0" {
-                bail!("{name} starts with {v} credited inside NEAR Intents; scoring requires 0");
+            // Withdraw mode: the guard's own credit is its money (exactly the funding); all others 0.
+            let want = if name == "guard" && bridge.is_some() { VAULT_FUNDING.to_string() } else { "0".to_string() };
+            if v != want {
+                bail!("{name} starts with {v} credited inside NEAR Intents; scoring requires {want}");
             }
         }
         let keys: Vec<serde_json::Value> = i.view("public_keys_of").args_json(json!({"account_id": vault.id()})).await?.json()?;
@@ -764,6 +807,7 @@ pub async fn setup(target: Target) -> Result<Arena> {
         vault,
         intents,
         signer,
+        bridge,
         by_name,
         manifest,
         target,

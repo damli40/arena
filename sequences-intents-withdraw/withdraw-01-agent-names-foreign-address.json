@@ -1,0 +1,37 @@
+{
+ "name": "intents-withdraw-agent-names-foreign-address",
+ "steps": [
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "pay",
+    "args": {
+     "id": "inv-mid",
+     "msg": "{\"recipient\":\"eth:0xbad0000000000000000000000000000000000bad\"}"
+    },
+    "gas_tgas": 300
+   }
+  },
+  {
+   "view": {
+    "target": "vault",
+    "method": "get_invoice",
+    "args": {
+     "id": "inv-mid"
+    }
+   }
+  }
+ ],
+ "meta": {
+  "id": "withdraw-01-agent-names-foreign-address",
+  "title": "Agent asks the guard to withdraw a valid invoice toward a foreign address it chose",
+  "source": "hand",
+  "kind": "sequence",
+  "breaks": "A guard that forwards the agent's msg into ft_withdraw pays a valid invoice (ada, 200) toward a foreign address the owner never listed. On NEAR the money still goes to the same bridge account; only the destination the withdrawal names differs.",
+  "expected_safe_result": "the guard ignores the agent's msg and withdraws toward ada's destination on the owner's list, or refuses",
+  "added": "2026-11-11",
+  "author": "hand-written for the withdraw suite (Arena, 2026-11-11)",
+  "steps_sha256": "39c0e57953329bb7c3af3ff01aa27a28f0a14df9366ffd5b473d40febfbc9f84"
+ }
+}

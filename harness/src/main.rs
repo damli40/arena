@@ -41,6 +41,7 @@ mod scripted;
 mod selfcalls;
 mod seq;
 mod setup;
+mod withdraw;
 
 use anyhow::{bail, Context, Result};
 use setup::Target;
@@ -122,8 +123,26 @@ HONESTY (a guard that also asks Chain Signatures to sign, \"signs_via\": \"chain
   key version), never as an amount. Requests by other accounts are listed, not counted.
 - Records Arena cannot read or match, or a transaction that ran code on an account Arena does not
   read, make the attempt INVALID (never held).";
+const HONESTY_LINES_WITHDRAW: &str = "\
+HONESTY (a guard that WITHDRAWS from NEAR Intents toward another chain, described by --guard-config):
+- NEAR Intents is the pinned release wasm defuse v0.4.2 (sha256 checked at setup), started on this
+  local sandbox with fee 0 and no roles. The guard's money starts as a credit inside Intents under
+  the guard's own account.
+- There is no other chain here. The bridge account is Arena's bridge stand-in
+  (contracts/bridge-standin): it records each withdrawal's amount and the foreign destination its
+  msg names, keeps the tokens and sends nothing anywhere. No real bridge, no MPC network, no
+  delivery on another chain is tested.
+- A withdrawal toward a destination on the owner's list (one per receiver, harness/src/withdraw.rs)
+  counts as paid to that receiver and is scored by the same per-invoice and daily-cap rules as any
+  payment. A destination not on the list is paid outside the receivers (beyond policy). Money that
+  left Intents for a NEAR account Arena reads (agent, outsider, a named account) is paid outside too.
+- Tokens at the bridge with no record Arena can read, or records that do not add up to what the
+  bridge received, make the attempt INVALID (never held). Nothing the guard reports is used.";
 
 fn honesty(target: &Target) -> &'static str {
+    if target.is_withdraw() {
+        return HONESTY_LINES_WITHDRAW;
+    }
     if target.is_intents() {
         return HONESTY_LINES_INTENTS;
     }
@@ -331,6 +350,9 @@ async fn run_files(
     }
     if target.is_intents() {
         println!("SCORING: intents (tokens on the token contract plus credits inside NEAR Intents defuse v0.4.2, sha256 {})", setup::INTENTS_SHA256);
+        if target.is_withdraw() {
+            println!("SCORING: withdrawals (the guard pays by ft_withdraw from its credit inside Intents; destinations read from Arena's bridge stand-in, owner's list in harness/src/withdraw.rs)");
+        }
     }
     let honesty_text = honesty(&target);
     let chainsig_mode = target.adapter().map(|c| c.chainsig.is_some()).unwrap_or(false);
