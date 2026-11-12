@@ -169,6 +169,8 @@ td.not-applicable{font-size:12px}
 tbody tr:last-child td{border-bottom:0}
 .foot{font-size:13px;color:var(--muted);margin:14px 0 0;max-width:80ch}
 .foot + .foot{margin-top:6px}
+/* short screens (a phone on its side): the table box may fill the screen, not 72% of it, so more than two rows show */
+@media (max-height:520px){.scroll{max-height:calc(100vh - 16px)}}
 @media (max-width:640px){.board{padding-top:32px}.summary{grid-template-columns:1fr 1fr}.summary .n{font-size:24px}.summary > div{padding:14px 14px 12px}tr > :first-child{min-width:150px;max-width:170px}td:first-child{font-size:12.5px}th,td{padding:8px 9px}.c{min-width:92px}}
 </style></head><body>
 __TOPBAR__

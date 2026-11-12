@@ -116,6 +116,8 @@ td.not-applicable{font-size:12px}
 tbody tr:last-child td{border-bottom:0}
 .foot{font-size:13px;color:var(--muted);margin:14px 0 0;max-width:80ch}
 .foot + .foot{margin-top:6px}
+/* short screens (a phone on its side): the table box may fill the screen, not 72% of it, so more than two rows show */
+@media (max-height:520px){.scroll{max-height:calc(100vh - 16px)}}
 @media (max-width:640px){.board{padding-top:32px}.summary{grid-template-columns:1fr 1fr}.summary .n{font-size:24px}.summary > div{padding:14px 14px 12px}tr > :first-child{min-width:150px;max-width:170px}td:first-child{font-size:12.5px}th,td{padding:8px 9px}.c{min-width:92px}}
 </style></head><body>
 <header class="topbar"><div class="topbar-in"><a class="brand" href="index.html"><svg class="brand-mark" viewBox="0 0 100 100" aria-hidden="true"><path d="M78.72 45.96A29 29 0 1 1 54.04 21.28" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round"/><circle cx="70.51" cy="29.49" r="8.5" style="fill:var(--bad)"/></svg>Arena</a><nav aria-label="Arena pages"><a href="index.html#replay">Results</a><a href="board.html" aria-current="page">Board</a><a href="index.html#check">Check your guard</a><a href="lookup.html">Look up a guard</a></nav></div></header>
