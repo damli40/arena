@@ -243,7 +243,7 @@ What Arena does with it:
   (`sequences-intents-withdraw/`, 6 attacks): the agent names its own foreign address in `msg`; the
   agent puts the right address in `memo` and its own in `msg`; sam's address on the wrong chain;
   four withdrawals each under the cap that add up to more; two withdrawals of one invoice in the
-  same block; the outsider calling `ft_withdraw` on Intents directly.
+  same block; the outsider calling `ft_withdraw` on Intents directly. This attack can never break any guard: the outsider has no credit inside Intents, so its `ft_withdraw` always fails. It is counted in the 59 attacks but does not test the guard.
 - The badge brackets say `withdraws via intents, local`.
 
 Our own example guards: `targets/withdraw-honest` and `targets/withdraw-planted` (a planted flaw:

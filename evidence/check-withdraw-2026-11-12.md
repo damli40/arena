@@ -51,7 +51,7 @@ Ethereum". What it can check, from chain state only:
   3. sam's own address, on the wrong chain (`base` instead of `eth`);
   4. four withdrawals, each under the daily cap, adding up to 650 against a 500 cap;
   5. two withdrawals of one invoice in the same block;
-  6. the outsider calling `ft_withdraw` on Intents directly.
+  6. the outsider calling `ft_withdraw` on Intents directly. This attack can never break any guard: the outsider has no credit inside Intents, so its `ft_withdraw` always fails. It is counted in the 59 but does not test the guard.
 - **Two guards of our own to calibrate it** (never anyone else's), frozen before their full runs:
   `targets/withdraw-honest` (takes the destination from the owner's list) and
   `targets/withdraw-planted` (TEST FIXTURE, never deploy: forwards whatever `msg` the agent passes).
@@ -111,7 +111,7 @@ What the three say: the planted guard sent the money to the right NEAR account (
 time; only the destination it named was wrong. A check that read token balances alone would have
 called all three held. The other three withdraw attacks (split under the cap, two withdrawals in
 one block, the outsider calling `ft_withdraw`) held on both guards: the planted copy keeps every
-invoice check. In the split attack, the honest guard refused the fourth withdrawal with `daily cap
+invoice check. Withdraw-06 holding says nothing about either guard: the outsider has no credit inside Intents, so its `ft_withdraw` always fails, whatever the guard does. In the split attack, the honest guard refused the fourth withdrawal with `daily cap
 exceeded`, not because it had expired.
 
 Full consoles: `check-withdraw-2026-11-12/console-withdraw-*.txt`. Report cards (with each
