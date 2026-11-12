@@ -1,0 +1,9 @@
+  no-double-pay        BROKEN: id inv-a delivered 2 times, 200 in total
+      (2, "Pay { inv: 0 }", Choice { ok: false, dies: false, inv: 0, sent: false, wait: false })
+      (2, "Transfer { inv: 0, tag: 0, receiver: \"sam.test\", amount: 100 }", Choice { ok: false, dies: false, inv: 0, sent: false, wait: false })
+      (2, "Callback { inv: 0, tag: 0, outcome: Some(false) }", Choice { ok: false, dies: false, inv: 0, sent: false, wait: false })
+      (1, "Pay { inv: 0 }", Choice { ok: false, dies: false, inv: 0, sent: false, wait: false })
+      (1, "Transfer { inv: 0, tag: 1, receiver: \"sam.test\", amount: 100 }", Choice { ok: true, dies: false, inv: 0, sent: false, wait: false })
+      (0, "Pay { inv: 0 }", Choice { ok: false, dies: false, inv: 0, sent: false, wait: false })
+      (1, "Transfer { inv: 0, tag: 2, receiver: \"sam.test\", amount: 100 }", Choice { ok: true, dies: false, inv: 0, sent: false, wait: false })
+PROPERTIES guard=arena build=mutant mode=fixed pays=3 world=base states=8930 secs=509.3 broken=["no-double-pay"]

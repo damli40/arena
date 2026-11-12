@@ -1,0 +1,12 @@
+[package]
+name = "arena-properties"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "MIT"
+
+# Own workspace. No dependencies: the specs and the explorer are plain Rust, so any guard's
+# harness can use them whatever near-sdk version it runs on.
+[workspace]
+
+[dependencies]

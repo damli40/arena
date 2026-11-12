@@ -4,6 +4,9 @@
 #   proofs/run.sh            # everything (257 s on Nov 10; 1,504 s on Nov 11 with the full world + inductive proofs)
 #   proofs/run.sh proof1     # Kani on the model + exhaustive run of the real contract
 #   proofs/run.sh proof2     # z3 on vault-a's policy
+#   proofs/run.sh proof3     # z3 on direct-pay rules (cap, payee list, approval threshold), up to 8 steps
+#   proofs/run.sh repro      # the guard source builds the testnet wasm 0382023b... (fresh export)
+#   proofs/run.sh properties # the property library, then no-double-pay on Arena's guard (not in `all`)
 #
 # Logs go to $OUT (default proofs/out/). The sandbox cross-check is separate:
 # proofs/crosscheck.sh.
@@ -103,6 +106,46 @@ if [ "$WHAT" = all ] || [ "$WHAT" = proof2 ]; then
   echo "  (wall $(( $(date +%s) - t0 )) s)" >> "$OUT/z3.log"
   grep RESULT "$OUT/z3.log" | sed 's/^/      /'
   if [ $rc -eq 0 ]; then ok "z3 policy proof: every query as planned"; else bad "z3 policy proof"; fi
+fi
+
+if [ "$WHAT" = all ] || [ "$WHAT" = proof3 ]; then
+  # Added 2026-11-11: a direct-pay guard's rules (cap, payee list, approval threshold, refunds),
+  # every policy and amount symbolic, any order of up to 8 steps. A model of the rules, not code.
+  echo "== Proof 3: direct-pay rules never pay beyond their own policy (z3, up to 8 steps)"
+  t0=$(date +%s)
+  "$HERE/.venv/bin/python" -I "$HERE/z3/direct_pay_proof.py" 8 --json "$OUT/z3-direct-pay.json" > "$OUT/z3-direct-pay.log" 2>&1
+  rc=$?
+  echo "  (wall $(( $(date +%s) - t0 )) s)" >> "$OUT/z3-direct-pay.log"
+  tail -1 "$OUT/z3-direct-pay.log" | sed 's/^/      /'
+  if [ $rc -eq 0 ]; then ok "z3 direct-pay proof: 54 queries as planned (the designs hold, every planted design flaw is found)"; else bad "z3 direct-pay proof"; grep UNEXPECTED "$OUT/z3-direct-pay.log"; fi
+fi
+
+if [ "$WHAT" = all ] || [ "$WHAT" = repro ]; then
+  # Added 2026-11-11: the proved source builds the wasm hash recorded from testnet (constant in
+  # repro/build.sh). No network once toolchain and crates are cached; the live testnet check is
+  # repro/build.sh --onchain.
+  echo "== Reproducible build: guard source -> wasm sha256 0382023b..."
+  "$HERE/repro/build.sh" > "$OUT/repro-build.log" 2>&1 && grep -q "REPRO MATCH" "$OUT/repro-build.log" \
+    && ok "repro: fresh export of contracts/ builds 0382023b..." || { bad "repro build"; tail -3 "$OUT/repro-build.log"; }
+  "$HERE/repro/build.sh" --mutant > "$OUT/repro-build-mutant.log" 2>&1 && grep -q "MUTANT DETECTED" "$OUT/repro-build-mutant.log" \
+    && ok "repro mutant: one deleted line changes the hash" || { bad "repro mutant"; tail -3 "$OUT/repro-build-mutant.log"; }
+fi
+
+if [ "$WHAT" = properties ]; then
+  # Added 2026-11-12, not part of `all`: the property library (proofs/properties) checks itself,
+  # then checks no-double-pay on Arena's guard (real source, every order of 3 pay calls) and on
+  # the one-line mutant, which must break it.
+  echo "== Property library: self-check, then no-double-pay on Arena's guard"
+  "$HERE/properties/run.sh" > "$OUT/properties-self.log" 2>&1 && ok "property library: 7 self-checks" || { bad "property library self-check"; tail -5 "$OUT/properties-self.log"; }
+  cd "$HERE/guard-real"
+  cargo +stable build --release --bin properties > "$OUT/build-properties.log" 2>&1 || bad "build properties"
+  CARGO_TARGET_DIR=target-mutant cargo +stable build --release --features mutant --bin properties > "$OUT/build-properties-mutant.log" 2>&1 || bad "build properties mutant"
+  ./target/release/properties 3 > "$OUT/properties-arena-real.log" 2>&1
+  tail -1 "$OUT/properties-arena-real.log" | sed 's/^/      /'
+  grep -q 'build=real .*broken=\[\]$' "$OUT/properties-arena-real.log" && ok "no-double-pay holds on the real guard (3 pays)" || bad "no-double-pay on the real guard"
+  target-mutant/release/properties 3 > "$OUT/properties-arena-mutant.log" 2>&1
+  tail -1 "$OUT/properties-arena-mutant.log" | sed 's/^/      /'
+  grep -q 'build=mutant .*broken=\["no-double-pay"\]$' "$OUT/properties-arena-mutant.log" && ok "the mutant breaks no-double-pay" || bad "mutant not caught"
 fi
 
 echo "proofs: $PASS passed, $FAIL failed ($(( $(date +%s) - t_start )) s). Logs: $OUT"

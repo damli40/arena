@@ -1,0 +1,76 @@
+RESULT hold-at-request/refund-same-day  agent_only           holds     K=8 (3.5s) as expected
+RESULT hold-at-request/refund-same-day  payee                holds     K=8 (4.0s) as expected
+RESULT hold-at-request/refund-same-day  hold                 holds     K=8 (1.5s) as expected
+RESULT hold-at-request/refund-same-day  pertx                holds     K=8 (3.4s) as expected
+RESULT hold-at-request/refund-same-day  daily                holds     K=8 (5.4s) as expected
+RESULT hold-at-request/refund-same-day  daily_incl_approved  holds     K=8 (5.4s) as expected
+RESULT hold-at-approve/refund-today     agent_only           holds     K=8 (2.5s) as expected
+RESULT hold-at-approve/refund-today     payee                holds     K=8 (1.2s) as expected
+RESULT hold-at-approve/refund-today     hold                 holds     K=8 (0.8s) as expected
+RESULT hold-at-approve/refund-today     pertx                holds     K=8 (1.9s) as expected
+RESULT hold-at-approve/refund-today     daily                VIOLATED  K=8 (2.9s) as expected
+      policy P=11565 D=11565 T=11565 listed=[True, True, True]
+        step 0: request by someone else receiver=1 amount=11566
+        step 1: agent request receiver=0 amount=11565
+        step 2: UTC midnight
+        step 3: agent request receiver=1 amount=1
+        step 4: callback for step 1 transfer FAILED
+        step 5: agent request receiver=1 amount=11565
+        step 6: callback for step 5 transfer ok
+        step 7: callback for step 3 transfer ok
+        over-paid day: 1
+RESULT hold-at-approve/refund-today     daily_incl_approved  VIOLATED  K=8 (3.3s) as expected
+      policy P=6 D=5 T=4 listed=[True, True, True]
+        step 0: agent request receiver=1 amount=6
+        step 1: agent request receiver=1 amount=1
+        step 2: request by someone else receiver=2 amount=amt_2
+        step 3: owner approves step 1
+        step 4: agent request receiver=1 amount=amt_4
+        step 5: owner approves step 0
+        step 6: callback for step 0 transfer ok
+        step 7: callback for step 1 transfer FAILED
+        over-paid day: 0
+RESULT hold-at-approve/refund-same-day  agent_only           holds     K=8 (2.7s) as expected
+RESULT hold-at-approve/refund-same-day  payee                holds     K=8 (1.9s) as expected
+RESULT hold-at-approve/refund-same-day  hold                 holds     K=8 (2.6s) as expected
+RESULT hold-at-approve/refund-same-day  pertx                holds     K=8 (3.2s) as expected
+RESULT hold-at-approve/refund-same-day  daily                holds     K=8 (3.7s) as expected
+RESULT hold-at-approve/refund-same-day  daily_incl_approved  VIOLATED  K=8 (3.0s) as expected
+RESULT mut-charge-after-transfer        agent_only           holds     K=8 (2.4s) as expected
+RESULT mut-charge-after-transfer        payee                holds     K=8 (1.7s) as expected
+RESULT mut-charge-after-transfer        hold                 holds     K=8 (1.5s) as expected
+RESULT mut-charge-after-transfer        pertx                holds     K=8 (1.5s) as expected
+RESULT mut-charge-after-transfer        daily                VIOLATED  K=8 (0.9s) as expected
+RESULT mut-charge-after-transfer        daily_incl_approved  VIOLATED  K=8 (2.3s) as expected
+RESULT mut-cap-ignores-amount           agent_only           holds     K=8 (1.8s) as expected
+RESULT mut-cap-ignores-amount           payee                holds     K=8 (1.4s) as expected
+RESULT mut-cap-ignores-amount           hold                 holds     K=8 (0.9s) as expected
+RESULT mut-cap-ignores-amount           pertx                holds     K=8 (1.2s) as expected
+RESULT mut-cap-ignores-amount           daily                VIOLATED  K=8 (2.3s) as expected
+RESULT mut-cap-ignores-amount           daily_incl_approved  VIOLATED  K=8 (2.0s) as expected
+RESULT mut-no-hold                      agent_only           holds     K=8 (0.7s) as expected
+RESULT mut-no-hold                      payee                holds     K=8 (0.9s) as expected
+RESULT mut-no-hold                      hold                 VIOLATED  K=8 (1.0s) as expected
+RESULT mut-no-hold                      pertx                holds     K=8 (0.9s) as expected
+RESULT mut-no-hold                      daily                holds     K=8 (7.7s) as expected
+RESULT mut-no-hold                      daily_incl_approved  holds     K=8 (7.3s) as expected
+RESULT mut-no-payee-check               agent_only           holds     K=8 (3.0s) as expected
+RESULT mut-no-payee-check               payee                VIOLATED  K=8 (4.1s) as expected
+RESULT mut-no-payee-check               hold                 holds     K=8 (2.2s) as expected
+RESULT mut-no-payee-check               pertx                holds     K=8 (2.4s) as expected
+RESULT mut-no-payee-check               daily                holds     K=8 (4.4s) as expected
+RESULT mut-no-payee-check               daily_incl_approved  holds     K=8 (6.3s) as expected
+RESULT mut-no-pertx                     agent_only           holds     K=8 (2.5s) as expected
+RESULT mut-no-pertx                     payee                holds     K=8 (2.2s) as expected
+RESULT mut-no-pertx                     hold                 holds     K=8 (5.6s) as expected
+RESULT mut-no-pertx                     pertx                VIOLATED  K=8 (4.2s) as expected
+RESULT mut-no-pertx                     daily                holds     K=8 (5.4s) as expected
+RESULT mut-no-pertx                     daily_incl_approved  holds     K=8 (3.0s) as expected
+RESULT mut-other-caller                 agent_only           VIOLATED  K=8 (1.7s) as expected
+RESULT mut-other-caller                 payee                holds     K=8 (1.4s) as expected
+RESULT mut-other-caller                 hold                 holds     K=8 (0.9s) as expected
+RESULT mut-other-caller                 pertx                holds     K=8 (1.1s) as expected
+RESULT mut-other-caller                 daily                holds     K=8 (2.9s) as expected
+RESULT mut-other-caller                 daily_incl_approved  holds     K=8 (4.1s) as expected
+z3 5.3.3, 54 queries, 151 s, unexpected: 0
+.venv/bin/python -I z3/direct_pay_proof.py 8 --json   40.80s user 0.46s system 27% cpu 2:31.06 total

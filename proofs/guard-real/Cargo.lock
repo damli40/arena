@@ -107,6 +107,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "arena-properties"
+version = "0.1.0"
+
+[[package]]
 name = "async-trait"
 version = "0.1.92"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1123,6 +1127,7 @@ dependencies = [
 name = "guard-proofs"
 version = "0.1.0"
 dependencies = [
+ "arena-properties",
  "guard",
  "guard-model",
  "guard-mutant",

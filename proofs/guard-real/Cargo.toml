@@ -16,6 +16,8 @@ guard-mutant = { path = "../guard-real-mutant" }
 guard-mutant-reopen = { path = "../guard-real-mutant-reopen" }
 # The REAL guard source, compiled unchanged from contracts/guard.
 guard = { path = "../../contracts/guard" }
+# The shared property library (plain Rust): src/bin/properties.rs checks no-double-pay with it.
+arena-properties = { path = "../properties" }
 # Same near-sdk the guard's wasm was built with (contracts/Cargo.lock: 5.27.0),
 # plus its mocked blockchain for running contract methods natively.
 near-sdk = { version = "=5.27.0", features = ["unit-testing"] }

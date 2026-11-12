@@ -1,0 +1,8 @@
+rev: 30659880969cacab29084b81b9a07ccc7b508adb
+mutant: deleted the Pending write in pay
+toolchain: rustc 1.86.0 (05f9846f8 2025-03-31)
+cargo: cargo 1.86.0 (adf9b6ad1 2025-02-28)
+built:    02a7515d3447ee7929a9f6c6ea889dfa1ac6dc3da4118bf195dd76d9750be877 (187006 bytes)
+expected: 0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e
+MUTANT DETECTED: one deleted line changes the hash, as it must
+exit 0

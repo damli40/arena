@@ -1,0 +1,66 @@
+# Regression runs on branch proofs-all at commit ba6a4ec (2026-11-11/12), machine shared with other jobs (load average 80-290)
+## proofs/run.sh (all)
+PASS  mutant = contracts/guard minus line 194 only
+PASS  reopen mutant = contracts/guard with the pre-2026-11-11 Approved arm put back, nothing else
+PASS  kani vulnerable_fixture_n3
+PASS  kani fixed_n3
+PASS  kani fixed_mutant_no_pending_write_n3
+PASS  kani fixed_n3_bound_too_small
+PASS  kani fixed_n4
+PASS  kani vulnerable_fixture_n4
+PASS  kani fixed_full_n2
+PASS  kani old_reconcile_full_n2
+PASS  kani vulnerable_fixture_full_n2
+PASS  kani inductive_step_fixed_k2
+PASS  kani inductive_step_fixed_k3
+PASS  kani inductive_step_old_reconcile_k2
+PASS  kani inductive_step_vulnerable_k2
+PASS  kani inductive_init_k2
+PASS  kani inductive_init_k3
+PASS  kani invariant_implies_no_overpay_k2
+PASS  playback of vulnerable_fixture_n3 reproduces the P1 failure
+PASS  playback of fixed_mutant_no_pending_write_n3 reproduces the P1 failure
+PASS  exhaustive real-vulnerable_fixture-n3: RESULT build=real mode=vulnerable_fixture n=3 world=base p1=FAILS p2=HOLDS filter=AGREES model=AGREES states=389 end_states=29 max_sent=[300, 150] secs=5.4
+PASS  exhaustive real-fixed-n3: RESULT build=real mode=fixed n=3 world=base p1=HOLDS p2=HOLDS filter=AGREES model=AGREES states=1044 end_states=168 max_sent=[100, 50] secs=11.0
+PASS  exhaustive real-vulnerable_fixture-n4: RESULT build=real mode=vulnerable_fixture n=4 world=base p1=FAILS p2=HOLDS filter=AGREES model=AGREES states=1534 end_states=60 max_sent=[400, 200] secs=23.8
+PASS  exhaustive real-fixed-n4: RESULT build=real mode=fixed n=4 world=base p1=HOLDS p2=HOLDS filter=AGREES model=AGREES states=4555 end_states=564 max_sent=[100, 50] secs=55.1
+PASS  exhaustive mutant-fixed-n3: RESULT build=mutant mode=fixed n=3 world=base p1=FAILS p2=HOLDS filter=AGREES model=AGREES states=3200 end_states=380 max_sent=[300, 150] secs=31.7
+PASS  exhaustive real-fixed-n2-full: RESULT build=real mode=fixed n=2 world=full p1=HOLDS p2=HOLDS filter=AGREES model=AGREES states=21345 end_states=718 max_sent=[100, 50] secs=311.9
+PASS  exhaustive real-vulnerable_fixture-n2-full: RESULT build=real mode=vulnerable_fixture n=2 world=full p1=FAILS p2=HOLDS filter=AGREES model=AGREES states=1024 end_states=28 max_sent=[200, 100] secs=38.3
+PASS  exhaustive mutant-reopen-fixed-n2-full: RESULT build=mutant-reopen mode=fixed n=2 world=full p1=FAILS p2=HOLDS filter=AGREES model=AGREES states=22123 end_states=793 max_sent=[200, 100] secs=321.0
+PASS  exhaustive lockstep-selftest: RESULT build=real mode=fixed n=3 world=base p1=HOLDS p2=HOLDS filter=AGREES model=DISAGREES states=1670 end_states=342 max_sent=[100, 50] secs=13.2
+PASS  z3 policy proof: every query as planned
+PASS  z3 direct-pay proof: 54 queries as planned (the designs hold, every planted design flaw is found)
+PASS  repro: fresh export of contracts/ builds 0382023b...
+PASS  repro mutant: one deleted line changes the hash
+proofs: 33 passed, 0 failed (4540 s). Logs: (local scratch folder, not kept)
+OUT= proofs/run.sh  4723.05s user 183.56s system 108% cpu 1:15:40.24 total
+
+## tla/run.sh (all 25)
+vuln_race                                expect violation:NoOverpay          got violation:NoOverpay          OK  (6s, 43 generated, 33 distinct, depth 8)
+vuln_testnet_order                       expect violation:NoOverpay          got violation:NoOverpay          OK  (4s, 29 generated, 23 distinct, depth 8)
+fixed_1inv                               expect pass                         got pass                         OK  (116s, 888352 generated, 254246 distinct, depth 16)
+fixed_2inv                               expect pass                         got pass                         OK  (3215s, 48924749 generated, 12073602 distinct, depth 18)
+fixed_1inv_2faults                       expect pass                         got pass                         OK  (176s, 2718655 generated, 752705 distinct, depth 19)
+wit_paid                                 expect violation:Wit_paid           got violation:Wit_paid           OK  (3s, 142 generated, 135 distinct, depth 6)
+wit_race_setup                           expect violation:Wit_race_setup     got violation:Wit_race_setup     OK  (3s, 24 generated, 23 distinct, depth 4)
+wit_refused_in_flight                    expect violation:Wit_refused_in_flight got violation:Wit_refused_in_flight OK  (4s, 58 generated, 56 distinct, depth 5)
+wit_repaid_after_failed_transfer         expect violation:Wit_repaid_after_failed_transfer got violation:Wit_repaid_after_failed_transfer OK  (4s, 5745 generated, 4647 distinct, depth 8)
+wit_stuck_pending                        expect violation:Wit_stuck_pending  got violation:Wit_stuck_pending  OK  (3s, 604 generated, 552 distinct, depth 7)
+wit_reconcile_says_paid                  expect violation:Wit_reconcile_says_paid got violation:Wit_reconcile_says_paid OK  (5s, 14231 generated, 10463 distinct, depth 9)
+wit_reconcile_says_approved_1fault       expect pass                         got pass                         OK  (45s, 888352 generated, 254246 distinct, depth 16)
+wit_reconcile_says_approved              expect violation:Wit_reconcile_says_approved got violation:Wit_reconcile_says_approved OK  (9s, 59518 generated, 36041 distinct, depth 10)
+wit_reconcile_ambiguous                  expect violation:Wit_reconcile_ambiguous got violation:Wit_reconcile_ambiguous OK  (4s, 2507 generated, 2250 distinct, depth 7)
+wit_unchanged_then_resolved              expect violation:Wit_unchanged_then_resolved got violation:Wit_unchanged_then_resolved OK  (49s, 632361 generated, 242298 distinct, depth 12)
+wit_resolved_failed                      expect violation:Wit_resolved_failed got violation:Wit_resolved_failed OK  (3s, 5041 generated, 4134 distinct, depth 8)
+wit_resolved_paid                        expect violation:Wit_resolved_paid  got violation:Wit_resolved_paid  OK  (4s, 6006 generated, 4828 distinct, depth 8)
+wit_refused_failed                       expect violation:Wit_refused_failed got violation:Wit_refused_failed OK  (4s, 7767 generated, 6157 distinct, depth 8)
+mut_no_pending_write                     expect violation:NoOverpay          got violation:NoOverpay          OK  (4s, 2796 generated, 2437 distinct, depth 8)
+mut_no_release_on_failure                expect violation:FailedStaysPayable got violation:FailedStaysPayable OK  (4s, 2381 generated, 2063 distinct, depth 7)
+mut_no_wait_rule                         expect pass                         got pass                         OK  (155s, 4553375 generated, 1314926 distinct, depth 18)
+mut_no_wait_rule_old_reconcile           expect violation:NoOverpay          got violation:NoOverpay          OK  (9s, 309735 generated, 171286 distinct, depth 11)
+h1_outside_transfer_reconcile            expect pass                         got pass                         OK  (9s, 329272 generated, 102045 distinct, depth 15)
+h1_open_world_2faults                    expect pass                         got pass                         OK  (1745s, 121298093 generated, 27781379 distinct, depth 21)
+mut_reopen_on_balance                    expect violation:NoOverpay          got violation:NoOverpay          OK  (6s, 289972 generated, 96670 distinct, depth 14)
+verdict: all as planned (25 checks); details in build/summary.tsv
+tla/run.sh wall time:  13888.25s user 205.04s system 252% cpu 1:33:10.31 total

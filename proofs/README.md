@@ -9,6 +9,9 @@ Arena tests guards by attacking them. This folder checks two properties for **ev
 | 1, any number of calls (added Nov 10) | From ANY state meeting an invariant, does ANY one action keep it? (Then it holds after any number of calls.) | Kani inductive step, on the model only, 2 and 3 invoices | part of `proofs/run.sh proof1` | under 1 min in total |
 | 2 | Can the owner's policy pay more than the owner intended? | z3 | `proofs/run.sh proof2` | about 1-2 s |
 | 2, cross-check | Does the chain pay what z3 predicted? | the Arena harness on a local sandbox | `proofs/crosscheck.sh` | about 17 s |
+| 3 (added Nov 11) | Can a direct-pay guard's rules (cap, payee list, approval threshold, refunds) pay beyond their own policy, for any policy and amount? | z3 | `proofs/run.sh proof3` | 151 s for 54 queries |
+| Rebuild (added Nov 11) | Does the proved source build the testnet wasm `0382023b…`? | cargo, pinned Rust 1.86 | `proofs/run.sh repro` | about 15 s each, warm |
+| Properties (added Nov 12) | Five reusable money properties; no-double-pay on the real guard | Rust, every case up to the bound | `proofs/run.sh properties` (not in `all`) | 39 s self-check; 243 s + 509 s on the guard |
 
 **After the fix (2026-11-10).** `reconcile` no longer reopens an invoice when the balance looks unchanged; the owner closes a stuck one with `resolve_stuck`. The full-world rows above check that path, and the old `reconcile` (put back in `guard-real-mutant-reopen/` and in the model) must fail. Scope, said plainly: these are statements about the model (any number of calls) and about the real source within a bound (2 pays in the full world), not about the deployed wasm on a live chain.
 
@@ -34,5 +37,6 @@ The cross-check also needs `harness/target/release/arena-harness` (built by `./v
 - `guard-model/src/inductive.rs`: the inductive-step proof (invariant, the 11 actions, harnesses).
 - `z3/policy_proof.py`: Proof 2. Reads `harness/setup.rs`, `tools/injection/scenarios.json` and `evidence/narrow-policy.json`.
 - `check_kani.py`: compares one Kani log with the plan.
+- `z3/direct_pay_proof.py`: Proof 3 (direct-pay rules). `repro/build.sh`: the reproducible build. `properties/`: the property library (`properties/README.md`); `guard-real/src/bin/properties.rs` applies it to the real guard.
 
 Nothing here edits `contracts/`, `targets/`, `harness/` or `tools/`.

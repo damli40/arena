@@ -1,0 +1,566 @@
+[
+ {
+  "variant": "hold-at-request/refund-same-day",
+  "property": "agent_only",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 3.5
+ },
+ {
+  "variant": "hold-at-request/refund-same-day",
+  "property": "payee",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 4.02
+ },
+ {
+  "variant": "hold-at-request/refund-same-day",
+  "property": "hold",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 1.55
+ },
+ {
+  "variant": "hold-at-request/refund-same-day",
+  "property": "pertx",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 3.36
+ },
+ {
+  "variant": "hold-at-request/refund-same-day",
+  "property": "daily",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 5.37
+ },
+ {
+  "variant": "hold-at-request/refund-same-day",
+  "property": "daily_incl_approved",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 5.35
+ },
+ {
+  "variant": "hold-at-approve/refund-today",
+  "property": "agent_only",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 2.49
+ },
+ {
+  "variant": "hold-at-approve/refund-today",
+  "property": "payee",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 1.21
+ },
+ {
+  "variant": "hold-at-approve/refund-today",
+  "property": "hold",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 0.78
+ },
+ {
+  "variant": "hold-at-approve/refund-today",
+  "property": "pertx",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 1.94
+ },
+ {
+  "variant": "hold-at-approve/refund-today",
+  "property": "daily",
+  "result": "VIOLATED",
+  "expected": "VIOLATED",
+  "k": 8,
+  "secs": 2.88,
+  "counterexample": [
+   "policy P=11565 D=11565 T=11565 listed=[True, True, True]",
+   "  step 0: request by someone else receiver=1 amount=11566",
+   "  step 1: agent request receiver=0 amount=11565",
+   "  step 2: UTC midnight",
+   "  step 3: agent request receiver=1 amount=1",
+   "  step 4: callback for step 1 transfer FAILED",
+   "  step 5: agent request receiver=1 amount=11565",
+   "  step 6: callback for step 5 transfer ok",
+   "  step 7: callback for step 3 transfer ok",
+   "  over-paid day: 1"
+  ]
+ },
+ {
+  "variant": "hold-at-approve/refund-today",
+  "property": "daily_incl_approved",
+  "result": "VIOLATED",
+  "expected": "VIOLATED",
+  "k": 8,
+  "secs": 3.34,
+  "counterexample": [
+   "policy P=6 D=5 T=4 listed=[True, True, True]",
+   "  step 0: agent request receiver=1 amount=6",
+   "  step 1: agent request receiver=1 amount=1",
+   "  step 2: request by someone else receiver=2 amount=amt_2",
+   "  step 3: owner approves step 1",
+   "  step 4: agent request receiver=1 amount=amt_4",
+   "  step 5: owner approves step 0",
+   "  step 6: callback for step 0 transfer ok",
+   "  step 7: callback for step 1 transfer FAILED",
+   "  over-paid day: 0"
+  ]
+ },
+ {
+  "variant": "hold-at-approve/refund-same-day",
+  "property": "agent_only",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 2.67
+ },
+ {
+  "variant": "hold-at-approve/refund-same-day",
+  "property": "payee",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 1.9
+ },
+ {
+  "variant": "hold-at-approve/refund-same-day",
+  "property": "hold",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 2.57
+ },
+ {
+  "variant": "hold-at-approve/refund-same-day",
+  "property": "pertx",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 3.18
+ },
+ {
+  "variant": "hold-at-approve/refund-same-day",
+  "property": "daily",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 3.68
+ },
+ {
+  "variant": "hold-at-approve/refund-same-day",
+  "property": "daily_incl_approved",
+  "result": "VIOLATED",
+  "expected": "VIOLATED",
+  "k": 8,
+  "secs": 3.02,
+  "counterexample": [
+   "policy P=3 D=2 T=2 listed=[True, True, True]",
+   "  step 0: agent request receiver=0 amount=2",
+   "  step 1: agent request receiver=0 amount=3",
+   "  step 2: owner approves step 1",
+   "  step 3: callback for step 0 transfer ok",
+   "  step 4: callback for step 1 transfer ok",
+   "  step 5: UTC midnight",
+   "  step 6: owner rejects step 4",
+   "  step 7: agent request receiver=0 amount=amt_7",
+   "  over-paid day: 0"
+  ]
+ },
+ {
+  "variant": "mut-charge-after-transfer",
+  "property": "agent_only",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 2.37
+ },
+ {
+  "variant": "mut-charge-after-transfer",
+  "property": "payee",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 1.67
+ },
+ {
+  "variant": "mut-charge-after-transfer",
+  "property": "hold",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 1.45
+ },
+ {
+  "variant": "mut-charge-after-transfer",
+  "property": "pertx",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 1.52
+ },
+ {
+  "variant": "mut-charge-after-transfer",
+  "property": "daily",
+  "result": "VIOLATED",
+  "expected": "VIOLATED",
+  "k": 8,
+  "secs": 0.94,
+  "counterexample": [
+   "policy P=1 D=1 T=2 listed=[True, True, True]",
+   "  step 0: UTC midnight",
+   "  step 1: agent request receiver=1 amount=1",
+   "  step 2: agent request receiver=1 amount=1",
+   "  step 3: UTC midnight",
+   "  step 4: callback for step 1 transfer ok",
+   "  step 5: UTC midnight",
+   "  step 6: request by someone else receiver=1 amount=amt_6",
+   "  step 7: callback for step 2 transfer ok",
+   "  over-paid day: 1"
+  ]
+ },
+ {
+  "variant": "mut-charge-after-transfer",
+  "property": "daily_incl_approved",
+  "result": "VIOLATED",
+  "expected": "VIOLATED",
+  "k": 8,
+  "secs": 2.29,
+  "counterexample": [
+   "policy P=16676 D=16676 T=16675 listed=[True, True, True]",
+   "  step 0: agent request receiver=2 amount=16675",
+   "  step 1: agent request receiver=2 amount=16676",
+   "  step 2: owner rejects step 1",
+   "  step 3: agent request receiver=2 amount=2",
+   "  step 4: callback for step 3 transfer ok",
+   "  step 5: owner approves step 2",
+   "  step 6: owner rejects step 2",
+   "  step 7: callback for step 0 transfer ok",
+   "  over-paid day: 0"
+  ]
+ },
+ {
+  "variant": "mut-cap-ignores-amount",
+  "property": "agent_only",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 1.78
+ },
+ {
+  "variant": "mut-cap-ignores-amount",
+  "property": "payee",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 1.42
+ },
+ {
+  "variant": "mut-cap-ignores-amount",
+  "property": "hold",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 0.92
+ },
+ {
+  "variant": "mut-cap-ignores-amount",
+  "property": "pertx",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 1.16
+ },
+ {
+  "variant": "mut-cap-ignores-amount",
+  "property": "daily",
+  "result": "VIOLATED",
+  "expected": "VIOLATED",
+  "k": 8,
+  "secs": 2.26,
+  "counterexample": [
+   "policy P=3 D=1 T=2 listed=[True, True, True]",
+   "  step 0: agent request receiver=0 amount=2",
+   "  step 1: UTC midnight",
+   "  step 2: agent request receiver=1 amount=amt_2",
+   "  step 3: callback for step 2 transfer FAILED",
+   "  step 4: owner approves step 2",
+   "  step 5: owner approves step 2",
+   "  step 6: callback for step 2 transfer FAILED",
+   "  step 7: callback for step 0 transfer ok",
+   "  over-paid day: 0"
+  ]
+ },
+ {
+  "variant": "mut-cap-ignores-amount",
+  "property": "daily_incl_approved",
+  "result": "VIOLATED",
+  "expected": "VIOLATED",
+  "k": 8,
+  "secs": 1.97,
+  "counterexample": [
+   "policy P=3 D=5 T=2 listed=[True, True, True]",
+   "  step 0: agent request receiver=0 amount=3",
+   "  step 1: agent request receiver=2 amount=2",
+   "  step 2: agent request receiver=0 amount=1",
+   "  step 3: owner approves step 1",
+   "  step 4: owner approves step 0",
+   "  step 5: callback for step 0 transfer ok",
+   "  step 6: callback for step 2 transfer ok",
+   "  step 7: callback for step 1 transfer ok",
+   "  over-paid day: 0"
+  ]
+ },
+ {
+  "variant": "mut-no-hold",
+  "property": "agent_only",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 0.73
+ },
+ {
+  "variant": "mut-no-hold",
+  "property": "payee",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 0.94
+ },
+ {
+  "variant": "mut-no-hold",
+  "property": "hold",
+  "result": "VIOLATED",
+  "expected": "VIOLATED",
+  "k": 8,
+  "secs": 1.03,
+  "counterexample": [
+   "policy P=2 D=5 T=0 listed=[True, True, True]",
+   "  step 0: agent request receiver=1 amount=1",
+   "  step 1: agent request receiver=2 amount=1",
+   "  step 2: agent request receiver=1 amount=1",
+   "  step 3: agent request receiver=2 amount=2",
+   "  step 4: UTC midnight",
+   "  step 5: request by someone else receiver=2 amount=amt_5",
+   "  step 6: callback for step 2 transfer FAILED",
+   "  step 7: callback for step 3 transfer ok",
+   "  over-paid day: dd"
+  ]
+ },
+ {
+  "variant": "mut-no-hold",
+  "property": "pertx",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 0.9
+ },
+ {
+  "variant": "mut-no-hold",
+  "property": "daily",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 7.74
+ },
+ {
+  "variant": "mut-no-hold",
+  "property": "daily_incl_approved",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 7.31
+ },
+ {
+  "variant": "mut-no-payee-check",
+  "property": "agent_only",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 2.99
+ },
+ {
+  "variant": "mut-no-payee-check",
+  "property": "payee",
+  "result": "VIOLATED",
+  "expected": "VIOLATED",
+  "k": 8,
+  "secs": 4.08,
+  "counterexample": [
+   "policy P=2 D=3 T=1 listed=[True, True, False]",
+   "  step 0: agent request receiver=2 amount=2",
+   "  step 1: agent request receiver=2 amount=1",
+   "  step 2: callback for step 1 transfer ok",
+   "  step 3: owner approves step 0",
+   "  step 4: callback for step 0 transfer FAILED",
+   "  step 5: owner approves step 1",
+   "  step 6: owner rejects step 1",
+   "  step 7: agent request receiver=0 amount=amt_7",
+   "  over-paid day: dd"
+  ]
+ },
+ {
+  "variant": "mut-no-payee-check",
+  "property": "hold",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 2.23
+ },
+ {
+  "variant": "mut-no-payee-check",
+  "property": "pertx",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 2.35
+ },
+ {
+  "variant": "mut-no-payee-check",
+  "property": "daily",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 4.41
+ },
+ {
+  "variant": "mut-no-payee-check",
+  "property": "daily_incl_approved",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 6.26
+ },
+ {
+  "variant": "mut-no-pertx",
+  "property": "agent_only",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 2.51
+ },
+ {
+  "variant": "mut-no-pertx",
+  "property": "payee",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 2.15
+ },
+ {
+  "variant": "mut-no-pertx",
+  "property": "hold",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 5.63
+ },
+ {
+  "variant": "mut-no-pertx",
+  "property": "pertx",
+  "result": "VIOLATED",
+  "expected": "VIOLATED",
+  "k": 8,
+  "secs": 4.24,
+  "counterexample": [
+   "policy P=1 D=3 T=2 listed=[True, True, True]",
+   "  step 0: agent request receiver=2 amount=1",
+   "  step 1: agent request receiver=2 amount=2",
+   "  step 2: callback for step 0 transfer FAILED",
+   "  step 3: callback for step 1 transfer ok",
+   "  step 4: owner rejects step 0",
+   "  step 5: owner rejects step 1",
+   "  step 6: owner approves step 1",
+   "  step 7: agent request receiver=0 amount=amt_7",
+   "  over-paid day: dd"
+  ]
+ },
+ {
+  "variant": "mut-no-pertx",
+  "property": "daily",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 5.35
+ },
+ {
+  "variant": "mut-no-pertx",
+  "property": "daily_incl_approved",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 3.01
+ },
+ {
+  "variant": "mut-other-caller",
+  "property": "agent_only",
+  "result": "VIOLATED",
+  "expected": "VIOLATED",
+  "k": 8,
+  "secs": 1.69,
+  "counterexample": [
+   "policy P=1 D=1 T=1 listed=[True, True, True]",
+   "  step 0: request by someone else receiver=1 amount=amt_0",
+   "  step 1: owner approves step 0",
+   "  step 2: callback for step 0 transfer FAILED",
+   "  step 3: owner rejects step 0",
+   "  step 4: callback for step 0 transfer FAILED",
+   "  step 5: UTC midnight",
+   "  step 6: request by someone else receiver=1 amount=1",
+   "  step 7: callback for step 6 transfer ok",
+   "  over-paid day: dd"
+  ]
+ },
+ {
+  "variant": "mut-other-caller",
+  "property": "payee",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 1.39
+ },
+ {
+  "variant": "mut-other-caller",
+  "property": "hold",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 0.9
+ },
+ {
+  "variant": "mut-other-caller",
+  "property": "pertx",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 1.09
+ },
+ {
+  "variant": "mut-other-caller",
+  "property": "daily",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 2.86
+ },
+ {
+  "variant": "mut-other-caller",
+  "property": "daily_incl_approved",
+  "result": "holds",
+  "expected": "holds",
+  "k": 8,
+  "secs": 4.11
+ }
+]

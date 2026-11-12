@@ -1,0 +1,2 @@
+  no-double-pay        holds
+PROPERTIES guard=arena build=real mode=fixed pays=3 world=base states=3318 secs=242.8 broken=[]
