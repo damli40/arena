@@ -20,23 +20,25 @@ so one unreadable file stops the whole run, not only that attack.
 python3 -I tools/agreement/compare.py
 ```
 
-It writes 3,160 attack files and gives each one to both sides, with no sandbox:
+It writes 3,169 attack files and gives each one to both sides, with no sandbox:
 
-- 160 hand-picked cases: valid files at every limit (12 steps, races of 2 and 4, waits of 1
+- 169 hand-picked cases: valid files at every limit (12 steps, races of 2 and 4, waits of 1
   and 200 blocks, 60 seconds of waiting in total, gas 1 and 300, deposit 0 and 10^18, an
   argument string of 128 characters, exactly 1,024 bytes of arguments), and files just past each
   limit or broken on purpose (unknown step kinds, a step with two keys, a race holding a view,
   a race inside a race, an empty race, waits written as text, decimals or negatives, numbers too
   big for 64 bits, the owner as actor, unknown targets, extra keys, duplicate keys, `NaN`, `-0`,
-  lone surrogate escapes, bad UTF-8, a 5,000-digit number, nesting 2,000 deep);
+  lone surrogate escapes, bad UTF-8, a 5,000-digit number, nesting 2,000 deep, U+2028 and
+  U+0085 inside an argument, `parents` holding objects or lists, a date in Arabic-Indic digits);
 - 3,000 random files from a fixed seed (`--seed 20261112`): valid files, and valid files
   changed one to three times at random (a value swapped for another type, a key dropped or
   added, a step doubled or wrapped in a race).
 
 The gatekeeper side calls `validate_path`, the same function the hunter and `tools/check` use.
 The engine side calls a new check-only command, `arena-harness check-seq`
-(`harness/src/seqcheck.rs`). It runs the real `seq::load_sequence`, then walks the steps the way
-`seq::execute` does and stops wherever a run would stop before sending anything (unknown step,
+(`harness/src/seqcheck.rs`). It runs the real `seq::load_sequence`. Then it walks the steps
+with its own COPY of `seq::execute`'s decisions (not the same code: `execute` needs a running
+sandbox, so `check-seq` repeats its checks). It and stops wherever a run would stop before sending anything (unknown step,
 empty race, an actor other than agent or outsider, an unknown target, no method, a bad add_key
 permission). For each step it prints what it would send: kind, actor, target, method, args,
 gas, deposit, wait.
@@ -55,16 +57,40 @@ total).
 Our run on Nov 12, after the fixes below:
 
 ```
-agreement: 3160 files (seed 20261112), 0 disagreements; both accept 1355 and read them the same, both refuse 1457, engine-only accepts 348 (the gatekeeper is meant to be stricter)
+agreement: 3169 files (seed 20261112), 0 disagreements; both accept 1359 and read them the same, both refuse 1457, engine-only accepts 353 (the gatekeeper is meant to be stricter)
 ```
 
 Exit code 0, about 10 seconds once the harness is built (`--harness <path>` skips the cargo
 step).
 
-Three Rust unit tests in `seqcheck.rs` also run with `cargo test`. They check that the
-schema's step kinds equal the engine's six, that `load_sequence` knows the same six, and that
-`execute` still tests the step keys in the order `seqcheck` copies. If someone changes
-`execute`, the third test fails until `seqcheck.rs` is updated to match.
+### The copy can drift, and what holds it
+
+Because `check-seq` copies the engine's logic instead of calling it, someone can change the
+engine and leave the copy behind. Then this test compares the gatekeeper with an old picture of
+the engine and still passes. A reviewer showed this on Nov 12 with two one-line edits to
+`seq.rs`: (A) a missing `target` means `token` instead of `vault`; (B) `execute` ignores
+`wait_blocks` above 100, so a 150-block file passes the gatekeeper and stops the whole run.
+Every test, and this comparison, still passed.
+
+Six Rust unit tests in `seqcheck.rs` now run with `cargo test` to narrow that gap:
+
+1. the schema's step kinds equal the engine's six;
+2. `load_sequence` knows the same six;
+3. `execute` tests the step keys in the order the copy uses;
+4. the copy reads the six kinds and refuses an empty race, the owner, and `intents` without
+   an Intents guard;
+5. a table of what the copy decides at the boundaries (missing, non-string and unknown
+   targets; `wait_blocks` and `wait_seconds` at 0, 1, 200, 201 and the 64-bit maximum, and as
+   -1, 5.0 or "5"; races of 1 to 6 calls);
+6. a stopgap snapshot: the engine lines the copy mirrors (`target_id`, `method_of`,
+   `build_tx`, the actor and permission lines of `do_add_key`, the race unwrap in `do_race`,
+   the step tests in `execute`, `Arena::actor`) must equal `harness/src/seqcheck.snapshot`.
+   Any edit to those lines fails it, with the line that changed.
+
+Edits A and B each make test 6 fail (we applied each, ran `cargo test`, then reverted). Tests
+reduce the risk of drift; they cannot remove it. The snapshot only sees the lines it lists: a
+change in a helper those lines call, or a new engine path, can still slip past. The real fix is
+"Next step" below: one shared function that both `execute` and `check-seq` call.
 
 ### What it does not cover
 
@@ -72,16 +98,24 @@ schema's step kinds equal the engine's six, that `load_sequence` knows the same 
 - It stops where the engine starts sending. What the six actions do on chain (a contract
   panic, a protocol refusal, how the adapter rewrites a call for a `--guard-config` guard) is
   not tested here; the sandbox runs cover that.
-- `seqcheck.rs` copies `execute`'s order of checks instead of sharing the code. The unit test
-  catches a change in which keys `execute` tests and in what order, but not every change
-  inside a branch. "Next step" below removes the copy.
+- `check-seq` is a copy of the engine's decisions, not the engine. See "The copy can drift"
+  above.
+- Only the main library and the intents suite are modelled. After the open branches merge,
+  the chain-signatures `signer` target (in `--chainsig-suite`), and any new call field that
+  only `build_tx` reads, would pass this test silently: `check-seq` does not know them, and
+  the comparison does not generate them. A `check-seq --chainsig` mode, and cases for each new
+  field, are needed when that branch lands. Test 6 will fail when `build_tx` or `target_id`
+  change, which is the reminder.
+- `ARXIV_RE` in `validate.py` (and the schema's matching pattern) still uses `\d`, which
+  accepts digits from other scripts. It only checks a recorded paper id, not a step; left for
+  review because changing it means changing the schema too.
 - The `intents` target is tested both ways: refused in the main library, accepted in the
   intents suite with `check-seq --intents`. Which guards actually deploy Intents is a run-time
   fact and is not modelled.
 
 ## What we found (Nov 12)
 
-Before the fixes, the same command printed 10 disagreements and exit code 1. Every one was the
+Before the first fixes, the same command printed 10 disagreements and exit code 1. Every one was the
 gatekeeper letting through something the engine reads differently or not at all. We found no
 case of the engine running a step as a different kind: duplicate keys (`{"call": A, "call":
 B}`) are read the same by both (the last one wins), and a step with two keys, a view inside a
@@ -94,8 +128,11 @@ race, or a wait written as text are refused by the gatekeeper.
 | D3 | `-0` is the integer 0 to Python but the decimal -0.0 to the engine. The gatekeeper checked `amount: 0`; the engine would send `-0.0` to the contract. In `deposit_yocto` the engine attaches no deposit, which happens to match 0. | `"args": {"amount": -0}` | Fixed: `validate_path` refuses the number `-0` |
 | D4 | A file with bad UTF-8 crashed the gatekeeper (`UnicodeDecodeError`) instead of giving a reason. In `tools/check` or a catalog run, a crash stops the run. | a title holding the bytes `ED B3 BF` | Fixed: `validate_path` catches it and reports "not readable JSON" |
 | D5 | A number over 4,300 digits crashed the gatekeeper (`ValueError` from Python's limit on big integers). | `"amount": 111...1` (5,000 digits) | Fixed: same line as D4 |
+| D6 | Found in review. `source: "combined"` with `parents` holding objects or lists crashed the gatekeeper (`TypeError`: it built a set before checking the types). | `"parents": [{}, {}]` | Fixed: types are checked before the set |
+| D7 | Found in review. `DATE_RE` used `\d`, so a date in Arabic-Indic digits passed. | `"added": "٢٠٢٦-11-12"` | Fixed: `[0-9]` |
+| D8 | Found in review, in this test, not the gatekeeper. `compare.py` split the engine's output with `splitlines()`, which also breaks on U+2028 and U+0085. A valid argument holding one would have been misread. | `"args": {"memo": "a\u2028b"}` | Fixed: split on `\n` only |
 
-The three fixes in `validate.py` change no verdict on the 48 library files, the 2 intents
+The fixes in `validate.py` change no verdict on the 48 library files, the 2 intents
 files or the 62 saved hunt attacks (we compared the output before and after).
 
 Not a disagreement, but worth knowing:

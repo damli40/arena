@@ -217,6 +217,17 @@ def hand_cases():
         i2 = dict(inj, scenario_id="@X@")
         add(f"bad-scenario-id-{label}", attack(V.injection_steps(["inv-1"]), kind="injection", injection=i2), raw={"@X@": val})
 
+    # --- characters that are line breaks to some readers, inside a valid arg
+    steps_case("ok-arg-u2028", [call(args={"memo": "a\u2028b"})])
+    steps_case("ok-arg-u0085", [call(args={"memo": "a\u0085b"})])
+    steps_case("ok-arg-u2028-raw", [call(args={"memo": "@L@"})], raw={"@L@": '"a\u2028b"'.encode().decode("unicode_escape")})
+
+    # --- meta fields of the wrong type
+    for label, par in (("objects", [{}, {}]), ("lists", [[1], [2]]), ("numbers", [1, 2]), ("dupes", ["a-1", "a-1"])):
+        add(f"bad-parents-{label}", attack([PAY], source="combined", parents=par))
+    add("ok-parents", attack([PAY], source="combined", parents=["a-1", "b-2"]))
+    add("bad-added-arabic-digits", attack([PAY], added="\u0662\u0660\u0662\u0666-11-12"))
+
     # --- raw text the parsers might read differently
     C.append(("bad-bom", "﻿" + doc_text(attack([PAY])), False))
     C.append(("bad-trailing-data", doc_text(attack([PAY])) + "\n{}", False))
@@ -403,7 +414,7 @@ def run_engine(harness, folder, intents):
     if p.returncode != 0:
         sys.exit(f"engine check-seq failed (exit {p.returncode}): {p.stderr[-2000:]}")
     out = {}
-    for line in p.stdout.splitlines():
+    for line in p.stdout.split("\n"):  # not splitlines(): it also splits on U+2028 and U+0085 inside an arg
         if line.startswith("{"):
             j = json.loads(line)
             out[pathlib.Path(j["file"]).name] = j

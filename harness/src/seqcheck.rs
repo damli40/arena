@@ -185,6 +185,108 @@ mod tests {
         assert_eq!(seen, DISPATCH_ORDER.to_vec(), "seq::execute's dispatch changed");
     }
 
+    // ---- Stopgap until "Next step" in docs/SCHEMA-AGREEMENT.md (one shared function). ----
+    // seqcheck.rs COPIES the engine's decisions; the tests above only check step names and
+    // their order. This one fails on ANY change to the engine lines the copy mirrors (which
+    // target a missing "target" means, which waits execute() accepts, how a race element is
+    // unwrapped, actor and permission checks, gas and deposit). Its expected text is
+    // seqcheck.snapshot. If it fails: change plan() above to match the engine, re-run
+    // tools/agreement/compare.py, then refresh the snapshot. A snapshot catches edits to
+    // these lines only; an engine change elsewhere (a new helper these lines call) can still
+    // slip past.
+
+    const SETUP_RS: &str = include_str!("setup.rs");
+    const SNAPSHOT: &str = include_str!("seqcheck.snapshot");
+
+    /// The lines of the item starting at `marker`, up to the closing brace at its indentation.
+    fn item<'a>(src: &'a str, marker: &str) -> Vec<&'a str> {
+        let s = src.find(marker).unwrap_or_else(|| panic!("engine item {marker:?} not found"));
+        let ls = src[..s].rfind('\n').map(|i| i + 1).unwrap_or(0);
+        let close = format!("{}}}", &src[ls..s]);
+        let mut out = Vec::new();
+        for l in src[ls..].split('\n') {
+            out.push(l);
+            if l == close {
+                break;
+            }
+        }
+        out
+    }
+
+    fn engine_snapshot() -> String {
+        let sections: [(&str, &str, &[&str]); 7] = [
+            ("seq.rs", "fn target_id<", &[]),
+            ("seq.rs", "fn method_of(", &[]),
+            ("seq.rs", "fn build_tx(", &[]),
+            ("seq.rs", "async fn do_add_key(", &["let perm", "match perm", "\"full_access\" =>", "\"function_call_token\" =>", "p => bail", "k[\"actor\"]", "a.actor("]),
+            ("seq.rs", "async fn do_race(", &["\"call\"", "build_tx"]),
+            ("seq.rs", "pub async fn execute(", &["st.get(", "bail!", "is_empty"]),
+            ("setup.rs", "pub fn actor(", &[]),
+        ];
+        let mut out = Vec::new();
+        for (file, marker, needles) in sections {
+            out.push(format!("## {file} {marker}"));
+            let src = if file == "seq.rs" { SEQ_RS } else { SETUP_RS };
+            for l in item(src, marker) {
+                let t = l.trim();
+                if t.is_empty() || t.starts_with("//") {
+                    continue;
+                }
+                if !needles.is_empty() && !needles.iter().any(|n| t.contains(n)) {
+                    continue;
+                }
+                out.push(t.to_string());
+            }
+        }
+        out.join("\n")
+    }
+
+    #[test]
+    fn engine_lines_that_seqcheck_copies_are_unchanged() {
+        let now = engine_snapshot();
+        let want = SNAPSHOT.trim_end();
+        if now != want {
+            let first = now.lines().zip(want.lines()).position(|(a, b)| a != b).unwrap_or(now.lines().count().min(want.lines().count()));
+            panic!(
+                "the engine changed a line seqcheck.rs copies (first difference at snapshot line {}):\n  engine now: {:?}\n  snapshot:   {:?}\nUpdate plan() to match, re-run tools/agreement/compare.py, then refresh harness/src/seqcheck.snapshot.",
+                first + 1,
+                now.lines().nth(first).unwrap_or("<end>"),
+                want.lines().nth(first).unwrap_or("<end>")
+            );
+        }
+    }
+
+    /// What the copy decides, on a table of inputs at the boundaries. Documents the engine's
+    /// own limits (it has none on waits or step count; the gatekeeper holds those).
+    #[test]
+    fn copy_decisions_table() {
+        for (c, want) in [
+            (json!({}), Some("vault")),
+            (json!({"target": "vault"}), Some("vault")),
+            (json!({"target": "token"}), Some("token")),
+            (json!({"target": 5}), Some("vault")),
+            (json!({"target": null}), Some("vault")),
+            (json!({"target": "owner"}), None),
+            (json!({"target": "intents"}), None),
+        ] {
+            assert_eq!(target(&c, false).ok(), want, "target of {c}");
+        }
+        assert_eq!(target(&json!({"target": "intents"}), true).ok(), Some("intents"));
+        let kind = |st: Value| plan(&[st], false).ok().map(|p| p[0]["kind"].as_str().unwrap().to_string());
+        for n in [0u64, 1, 200, 201, u64::MAX] {
+            assert_eq!(kind(json!({"wait_blocks": n})).as_deref(), Some("wait_blocks"), "wait_blocks {n}");
+            assert_eq!(kind(json!({"wait_seconds": n})).as_deref(), Some("wait_seconds"), "wait_seconds {n}");
+        }
+        for bad in [json!({"wait_blocks": -1}), json!({"wait_blocks": 5.0}), json!({"wait_blocks": "5"}), json!({"wait_seconds": -1})] {
+            assert_eq!(kind(bad.clone()), None, "{bad}");
+        }
+        let pay = json!({"actor": "agent", "method": "pay"});
+        for n in 1..=6 {
+            let r = json!({"race": vec![pay.clone(); n]});
+            assert_eq!(kind(r).as_deref(), Some("race"), "race of {n}");
+        }
+    }
+
     #[test]
     fn plan_reads_the_six_kinds() {
         let steps: Vec<Value> = serde_json::from_str(

@@ -100,7 +100,7 @@ ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,95}$")
 METHOD_RE = re.compile(r"^[a-z_][a-z0-9_]{0,63}$")
 ARG_KEY_RE = re.compile(r"^[a-z_][a-z0-9_]{0,63}$")
 ARXIV_RE = re.compile(r"^\d{4}\.\d{4,5}(v\d+)?$")
-DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+DATE_RE = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$")  # [0-9], not \d: \d also matches other scripts' digits
 HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 INVOICE_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 # A news item's post links: recorded as text, never fetched. Only plain https post links survive.
@@ -289,8 +289,8 @@ def check_meta(meta, steps):
         _need("news" not in meta, "meta.news only belongs on source=news")
     if meta["source"] == "combined":
         par = meta.get("parents")
-        _need(isinstance(par, list) and 2 <= len(par) <= 4 and len(set(par)) == len(par)
-              and all(isinstance(x, str) and ID_RE.fullmatch(x) for x in par),
+        _need(isinstance(par, list) and 2 <= len(par) <= 4
+              and all(isinstance(x, str) and ID_RE.fullmatch(x) for x in par) and len(set(par)) == len(par),
               "meta.parents must list 2-4 distinct library attack ids when source is combined")
     else:
         _need("parents" not in meta, "meta.parents only belongs on source=combined")

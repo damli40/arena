@@ -1,0 +1,64 @@
+## seq.rs fn target_id<
+fn target_id<'a>(a: &'a Arena, c: &Value) -> Result<(&'a near_workspaces::AccountId, &'static str)> {
+match c.get("target").and_then(|t| t.as_str()).unwrap_or("vault") {
+"vault" => Ok((a.vault.id(), "vault")),
+"token" => Ok((a.token.id(), "token")),
+"intents" => match &a.intents {
+Some(c) => Ok((c.id(), "intents")),
+None => bail!("target \"intents\" needs a guard whose config says \"pays_in\": \"intents\" (no NEAR Intents contract was deployed)"),
+},
+t => bail!("unknown target {t:?}"),
+}
+}
+## seq.rs fn method_of(
+fn method_of(c: &Value) -> Result<&str> {
+Ok(c["method"].as_str().context("call/view needs a method")?)
+}
+## seq.rs fn build_tx(
+fn build_tx(a: &Arena, i: usize, c: &Value) -> Result<(near_workspaces::operations::CallTransaction, &'static str, Value)> {
+let actor = a.actor(c["actor"].as_str().context("call needs an actor")?)?;
+let (tgt, tgt_name) = target_id(a, c)?;
+let args = args_of(a, c, i);
+let (method, sent) = adapt(a, i, tgt_name, method_of(c)?, &args);
+let mut tx = actor.call(tgt, &method).args_json(sent);
+if let Some(g) = c.get("gas_tgas").and_then(|v| v.as_u64()) {
+tx = tx.gas(Gas::from_tgas(g));
+} else {
+tx = tx.max_gas();
+}
+if let Some(d) = c.get("deposit_yocto").and_then(|v| v.as_u64()) {
+tx = tx.deposit(NearToken::from_yoctonear(d as u128));
+}
+Ok((tx, tgt_name, args))
+}
+## seq.rs async fn do_add_key(
+let who = k["actor"].as_str().context("add_key needs an actor")?;
+let actor = a.actor(who)?;
+let perm = k.get("permission").and_then(|p| p.as_str()).unwrap_or("full_access");
+let ak = match perm {
+"full_access" => AccessKey::full_access(),
+"function_call_token" => AccessKey::function_call_access(a.token.id(), &["ft_transfer"], None),
+p => bail!("add_key permission must be full_access | function_call_token, got {p:?}"),
+## seq.rs async fn do_race(
+let c = match wrapped.get("call") {
+let (tx, tgt_name, args) = build_tx(a, i, c)?;
+## seq.rs pub async fn execute(
+if let Some(calls) = st.get("race").and_then(|r| r.as_array()) {
+if calls.is_empty() {
+bail!("race with no calls");
+} else if st.get("call").is_some() {
+} else if st.get("add_key").is_some() {
+} else if st.get("view").is_some() {
+} else if let Some(n) = st.get("wait_blocks").and_then(|v| v.as_u64()) {
+} else if let Some(s) = st.get("wait_seconds").and_then(|v| v.as_u64()) {
+bail!("unknown step: {st}");
+## setup.rs pub fn actor(
+pub fn actor(&self, name: &str) -> Result<&Account> {
+if name == "agent" {
+Ok(&self.agent)
+} else if name == "outsider" {
+Ok(&self.outsider)
+} else {
+bail!("sequence actor must be \"agent\" or \"outsider\", got {name:?} (owner is not available to testers)")
+}
+}
