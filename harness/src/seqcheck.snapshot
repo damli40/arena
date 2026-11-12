@@ -31,7 +31,16 @@ tx = tx.deposit(NearToken::from_yoctonear(d as u128));
 }
 Ok((tx, tgt_name, args))
 }
+## seq.rs async fn do_call(
+async fn do_call(a: &Arena, i: usize, c: &Value, tag: &'static str) -> Result<StepOutcome> {
+let (tx, tgt_name, args) = build_tx(a, i, c)?;
+let (tgt, _) = target_id(a, c)?;
+let res = tx.transact().await;
+finish(a, i, tag, c, tgt, tgt_name, args, res).await
+}
 ## seq.rs async fn do_add_key(
+async fn do_add_key(a: &Arena, i: usize, k: &Value) -> Result<StepOutcome> {
+use near_workspaces::types::{AccessKey, KeyType, SecretKey};
 let who = k["actor"].as_str().context("add_key needs an actor")?;
 let actor = a.actor(who)?;
 let perm = k.get("permission").and_then(|p| p.as_str()).unwrap_or("full_access");
@@ -39,19 +48,171 @@ let ak = match perm {
 "full_access" => AccessKey::full_access(),
 "function_call_token" => AccessKey::function_call_access(a.token.id(), &["ft_transfer"], None),
 p => bail!("add_key permission must be full_access | function_call_token, got {p:?}"),
+};
+let pk = SecretKey::from_random(KeyType::ED25519).public_key();
+let res = actor.batch(actor.id()).add_key(pk, ak).transact().await;
+let (outcome, failure) = match res {
+Ok(r) => {
+crate::conserve::record(a, who, "self", 0, &r);
+(if r.is_success() { OUTCOME_OK } else { OUTCOME_CONTRACT_FAILURE }, failure_text(&r))
+}
+Err(e) if is_protocol_rejection(&e) => (OUTCOME_PROTOCOL_REJECTED, format!("{e:?}")),
+Err(e) => bail!("step {i}: harness/RPC error (not a protocol rejection): {e:?}"),
+};
+let args = json!({"permission": perm});
+print_step(i, "add-key", who, "self", &format!("AddKey({perm})"), &args, outcome, &failure);
+let keys = a.worker.view_access_keys(actor.id()).await?;
+let full = keys.iter().filter(|k| matches!(k.access_key.permission, near_workspaces::types::AccessKeyPermission::FullAccess)).count();
+println!("      {who} account now has {} access keys ({full} full-access, {} function-call)", keys.len(), keys.len() - full);
+Ok(StepOutcome {
+kind: "add-key",
+actor: who.to_string(),
+target: "self".to_string(),
+method: format!("AddKey({perm})"),
+args,
+success: outcome == OUTCOME_OK,
+outcome,
+failure,
+logs: vec![format!("access keys after: {} ({full} full-access)", keys.len())],
+view_json: None,
+})
+}
+## seq.rs async fn do_view(
+async fn do_view(a: &Arena, i: usize, v: &Value) -> Result<StepOutcome> {
+let (tgt, tgt_name) = target_id(a, v)?;
+let args = args_of(a, v, i);
+let m = v["method"].as_str().context("view needs a method")?;
+let (vm, sent) = adapt(a, i, tgt_name, m, &args);
+let res = if tgt == a.vault.id() {
+a.vault.view(&vm).args_json(sent).await
+} else if let Some(c) = a.intents.as_ref().filter(|_| tgt_name == "intents") {
+c.view(m).args_json(args.clone()).await
+} else {
+a.token.view(m).args_json(args.clone()).await
+};
+let j: Value = match res.map_err(anyhow::Error::from).and_then(|r| r.json::<Value>().map_err(anyhow::Error::from)) {
+Ok(j) => j,
+Err(e) => {
+let failure = format!("{e:#}").chars().take(300).collect::<String>();
+println!("  step {i} [view] {}::{} -> VIEW FAILED (recorded, attempt continues): {failure}", short(tgt), m);
+return Ok(StepOutcome {
+kind: "view",
+actor: "-".to_string(),
+target: tgt_name.to_string(),
+method: m.to_string(),
+args,
+success: false,
+outcome: OUTCOME_VIEW_FAILED,
+failure,
+logs: vec![],
+view_json: None,
+});
+}
+};
+println!("  step {i} [view] {}::{} -> {}", short(tgt), m, serde_json::to_string(&j)?);
+Ok(StepOutcome {
+kind: "view",
+actor: "-".to_string(),
+target: tgt_name.to_string(),
+method: m.to_string(),
+args,
+success: true,
+outcome: OUTCOME_OK,
+failure: String::new(),
+logs: vec![],
+view_json: Some(j),
+})
+}
 ## seq.rs async fn do_race(
+async fn do_race(a: &Arena, i: usize, calls: &[Value]) -> Result<Vec<StepOutcome>> {
+let mut pending = Vec::new();
+let mut out = Vec::new();
+for wrapped in calls {
 let c = match wrapped.get("call") {
+Some(inner) => {
+println!("  FORMAT FIX step {i}: race element wrapped in a \"call\" object; unwrapped");
+inner
+}
+None => wrapped,
+};
 let (tx, tgt_name, args) = build_tx(a, i, c)?;
+let (tgt, _) = target_id(a, c)?;
+match tx.transact_async().await {
+Ok(status) => pending.push((c, tgt, tgt_name, args, status)),
+Err(e) if is_protocol_rejection(&e) => out.push(finish(a, i, "race-call", c, tgt, tgt_name, args, Err(e)).await?),
+Err(e) => {
+let who = c["actor"].as_str().unwrap_or("?").to_string();
+let method = method_of(c)?.to_string();
+let failure = format!("async broadcast failed, no protocol reason given: {e:?}");
+print_step(i, "race", &who, &short(tgt), &method, &args, OUTCOME_NOT_INCLUDED, &failure);
+out.push(StepOutcome {
+kind: "race-call",
+actor: who,
+target: tgt_name.to_string(),
+method,
+args,
+success: false,
+outcome: OUTCOME_NOT_INCLUDED,
+failure,
+logs: vec![],
+view_json: None,
+});
+}
+}
+}
+for (c, tgt, tgt_name, args, fut) in pending {
+match tokio::time::timeout(std::time::Duration::from_secs(RACE_INCLUSION_TIMEOUT_S), fut.into_future()).await {
+Ok(res) => out.push(finish(a, i, "race-call", c, tgt, tgt_name, args, res).await?),
+Err(_) => {
+let who = c["actor"].as_str().unwrap_or("?").to_string();
+let method = method_of(c)?.to_string();
+let failure = format!("not included within {RACE_INCLUSION_TIMEOUT_S}s (async broadcast returns no reason)");
+print_step(i, "race", &who, &short(tgt), &method, &args, OUTCOME_NOT_INCLUDED, &failure);
+out.push(StepOutcome {
+kind: "race-call",
+actor: who,
+target: tgt_name.to_string(),
+method,
+args,
+success: false,
+outcome: OUTCOME_NOT_INCLUDED,
+failure,
+logs: vec![],
+view_json: None,
+});
+}
+}
+}
+Ok(out)
+}
 ## seq.rs pub async fn execute(
+pub async fn execute(a: &Arena, steps: &[Value]) -> Result<Vec<StepOutcome>> {
+let mut out = Vec::new();
+for (i, st) in steps.iter().enumerate() {
 if let Some(calls) = st.get("race").and_then(|r| r.as_array()) {
 if calls.is_empty() {
 bail!("race with no calls");
+}
+out.extend(do_race(a, i, calls).await?);
 } else if st.get("call").is_some() {
+out.push(do_call(a, i, &st["call"], "call").await?);
 } else if st.get("add_key").is_some() {
+out.push(do_add_key(a, i, &st["add_key"]).await?);
 } else if st.get("view").is_some() {
+out.push(do_view(a, i, &st["view"]).await?);
 } else if let Some(n) = st.get("wait_blocks").and_then(|v| v.as_u64()) {
+a.worker.fast_forward(n).await?;
+println!("  step {i} [wait] {n} blocks");
 } else if let Some(s) = st.get("wait_seconds").and_then(|v| v.as_u64()) {
+tokio::time::sleep(std::time::Duration::from_secs(s)).await;
+a.worker.fast_forward(1).await?;
+println!("  step {i} [wait] {s}s (real time, so block timestamps move)");
+} else {
 bail!("unknown step: {st}");
+}
+}
+Ok(out)
+}
 ## setup.rs pub fn actor(
 pub fn actor(&self, name: &str) -> Result<&Account> {
 if name == "agent" {

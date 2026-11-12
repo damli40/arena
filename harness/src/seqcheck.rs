@@ -8,9 +8,10 @@
 //! then `plan`, which walks the steps the way `seq::execute` does and stops where a run would
 //! stop before anything is sent: an unknown step, an empty race, an actor other than agent or
 //! outsider (`Arena::actor`), an unknown target (`target_id`), a missing method (`method_of`),
-//! a bad add_key permission. It mirrors execute() rather than sharing code with it, so the two
-//! can drift; the unit tests below read seq.rs and fail if execute() changes which keys it
-//! tests or in what order. docs/SCHEMA-AGREEMENT.md "Next step" is the plan to share the code.
+//! a bad add_key permission. It COPIES execute()'s logic rather than sharing code with it, so
+//! the two can drift. A unit test below fails on any code-line edit to the engine functions
+//! the copy mirrors (seqcheck.snapshot); that reduces the risk but cannot remove it.
+//! docs/SCHEMA-AGREEMENT.md "Next step" (one shared function) is the real fix.
 
 use anyhow::{bail, Context, Result};
 use serde_json::{json, Value};
@@ -186,14 +187,13 @@ mod tests {
     }
 
     // ---- Stopgap until "Next step" in docs/SCHEMA-AGREEMENT.md (one shared function). ----
-    // seqcheck.rs COPIES the engine's decisions; the tests above only check step names and
-    // their order. This one fails on ANY change to the engine lines the copy mirrors (which
-    // target a missing "target" means, which waits execute() accepts, how a race element is
-    // unwrapped, actor and permission checks, gas and deposit). Its expected text is
-    // seqcheck.snapshot. If it fails: change plan() above to match the engine, re-run
-    // tools/agreement/compare.py, then refresh the snapshot. A snapshot catches edits to
-    // these lines only; an engine change elsewhere (a new helper these lines call) can still
-    // slip past.
+    // seqcheck.rs COPIES the engine's decisions. This test compares the full text (blank and
+    // comment-only lines dropped) of every engine function the copy mirrors: target_id,
+    // method_of, build_tx, do_call, do_add_key, do_view, do_race, execute and Arena::actor,
+    // with seqcheck.snapshot. Any edit to a code line of those functions fails it. If it
+    // fails: change plan() above to match the engine, re-run tools/agreement/compare.py, then
+    // refresh the snapshot. It cannot see changes elsewhere, e.g. inside a helper those
+    // functions call (args_of, adapt) or a new engine path; only sharing one function fixes that.
 
     const SETUP_RS: &str = include_str!("setup.rs");
     const SNAPSHOT: &str = include_str!("seqcheck.snapshot");
@@ -214,25 +214,25 @@ mod tests {
     }
 
     fn engine_snapshot() -> String {
-        let sections: [(&str, &str, &[&str]); 7] = [
-            ("seq.rs", "fn target_id<", &[]),
-            ("seq.rs", "fn method_of(", &[]),
-            ("seq.rs", "fn build_tx(", &[]),
-            ("seq.rs", "async fn do_add_key(", &["let perm", "match perm", "\"full_access\" =>", "\"function_call_token\" =>", "p => bail", "k[\"actor\"]", "a.actor("]),
-            ("seq.rs", "async fn do_race(", &["\"call\"", "build_tx"]),
-            ("seq.rs", "pub async fn execute(", &["st.get(", "bail!", "is_empty"]),
-            ("setup.rs", "pub fn actor(", &[]),
+        // Whole functions, not selected lines: every line of each one is compared.
+        let sections: [(&str, &str); 9] = [
+            ("seq.rs", "fn target_id<"),
+            ("seq.rs", "fn method_of("),
+            ("seq.rs", "fn build_tx("),
+            ("seq.rs", "async fn do_call("),
+            ("seq.rs", "async fn do_add_key("),
+            ("seq.rs", "async fn do_view("),
+            ("seq.rs", "async fn do_race("),
+            ("seq.rs", "pub async fn execute("),
+            ("setup.rs", "pub fn actor("),
         ];
         let mut out = Vec::new();
-        for (file, marker, needles) in sections {
+        for (file, marker) in sections {
             out.push(format!("## {file} {marker}"));
             let src = if file == "seq.rs" { SEQ_RS } else { SETUP_RS };
             for l in item(src, marker) {
                 let t = l.trim();
                 if t.is_empty() || t.starts_with("//") {
-                    continue;
-                }
-                if !needles.is_empty() && !needles.iter().any(|n| t.contains(n)) {
                     continue;
                 }
                 out.push(t.to_string());
@@ -256,8 +256,8 @@ mod tests {
         }
     }
 
-    /// What the copy decides, on a table of inputs at the boundaries. Documents the engine's
-    /// own limits (it has none on waits or step count; the gatekeeper holds those).
+    /// Regression test of the COPY: what plan() decides on a table of boundary inputs. It
+    /// tests the copy against itself, so it is not drift protection; the snapshot test is.
     #[test]
     fn copy_decisions_table() {
         for (c, want) in [

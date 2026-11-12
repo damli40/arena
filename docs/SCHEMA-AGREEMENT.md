@@ -38,7 +38,7 @@ The gatekeeper side calls `validate_path`, the same function the hunter and `too
 The engine side calls a new check-only command, `arena-harness check-seq`
 (`harness/src/seqcheck.rs`). It runs the real `seq::load_sequence`. Then it walks the steps
 with its own COPY of `seq::execute`'s decisions (not the same code: `execute` needs a running
-sandbox, so `check-seq` repeats its checks). It and stops wherever a run would stop before sending anything (unknown step,
+sandbox, so `check-seq` repeats its checks). It stops wherever a run would stop before sending anything (unknown step,
 empty race, an actor other than agent or outsider, an unknown target, no method, a bad add_key
 permission). For each step it prints what it would send: kind, actor, target, method, args,
 gas, deposit, wait.
@@ -70,7 +70,11 @@ engine and leave the copy behind. Then this test compares the gatekeeper with an
 the engine and still passes. A reviewer showed this on Nov 12 with two one-line edits to
 `seq.rs`: (A) a missing `target` means `token` instead of `vault`; (B) `execute` ignores
 `wait_blocks` above 100, so a 150-block file passes the gatekeeper and stops the whole run.
-Every test, and this comparison, still passed.
+Every test, and this comparison, still passed. A second review found four more that passed
+the first version of test 6 below: (C) `do_race` refuses a race element not wrapped in
+`{"call": ...}`; (D) `execute` skips `wait_blocks` above 100 with `continue`; (E) `do_view`
+uses `get_config` when the method is missing; (F) `do_race` returns early for more than 4
+calls.
 
 Six Rust unit tests in `seqcheck.rs` now run with `cargo test` to narrow that gap:
 
@@ -79,17 +83,21 @@ Six Rust unit tests in `seqcheck.rs` now run with `cargo test` to narrow that ga
 3. `execute` tests the step keys in the order the copy uses;
 4. the copy reads the six kinds and refuses an empty race, the owner, and `intents` without
    an Intents guard;
-5. a table of what the copy decides at the boundaries (missing, non-string and unknown
+5. a regression test of the copy: a table of what the copy decides at the boundaries (missing, non-string and unknown
    targets; `wait_blocks` and `wait_seconds` at 0, 1, 200, 201 and the 64-bit maximum, and as
-   -1, 5.0 or "5"; races of 1 to 6 calls);
-6. a stopgap snapshot: the engine lines the copy mirrors (`target_id`, `method_of`,
-   `build_tx`, the actor and permission lines of `do_add_key`, the race unwrap in `do_race`,
-   the step tests in `execute`, `Arena::actor`) must equal `harness/src/seqcheck.snapshot`.
-   Any edit to those lines fails it, with the line that changed.
+   -1, 5.0 or "5"; races of 1 to 6 calls). It tests the copy against itself, so it guards
+   against breaking the copy, not against the engine drifting away from it;
+6. a stopgap snapshot, the only drift protection: the full text of every engine function the
+   copy mirrors (`target_id`, `method_of`, `build_tx`, `do_call`, `do_add_key`, `do_view`,
+   `do_race`, `execute`, `Arena::actor`), with blank and comment-only lines dropped, must
+   equal `harness/src/seqcheck.snapshot`. Any edit to a code line of those functions fails
+   it and prints the line that changed.
 
-Edits A and B each make test 6 fail (we applied each, ran `cargo test`, then reverted). Tests
-reduce the risk of drift; they cannot remove it. The snapshot only sees the lines it lists: a
-change in a helper those lines call, or a new engine path, can still slip past. The real fix is
+Edits A to F each make test 6 fail (we applied each alone, ran `cargo test`, then reverted
+`seq.rs`). Tests reduce the risk of drift; they cannot remove it. The snapshot only sees those
+nine functions: a change inside a helper they call (`args_of`, `adapt`, `translate_args`) or a new
+engine path can still slip past. (`load_sequence` is not copied: `check-seq` calls the real
+one.) It also fails on harmless edits to those functions, by design. The real fix is
 "Next step" below: one shared function that both `execute` and `check-seq` call.
 
 ### What it does not cover
