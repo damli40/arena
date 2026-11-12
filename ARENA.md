@@ -71,17 +71,17 @@ How it limits damage:
 - It can only read the repo (`permissions: contents: read`). It never pushes or commits. Results leave only as a downloadable file attached to the run.
 - Everything it reads is treated as untrusted: paper abstracts, news, and the model's own replies. None of it is run. The validator checks it as data, as described above. The model has no tools, so a model fooled by a crafted page can at worst waste a few calls or propose a junk attack that the validator rejects.
 - For papers, the model runs on NEAR AI Cloud private inference. Before its first call, the hunt fetches NEAR's attestation report (a signed record from NEAR's secure hardware of which model is answering), checks it and saves it. You can re-check a saved report offline: `python3 -I tools/hunter/recheck_attestation.py evidence/hunts/2026-11-11-papers-e3db55.json`. Only 1 of the 7 hunts so far ran this way. The others used Muse Spark, which has no attestation.
+- The sandbox processes the hunter starts get only a short list of named variables (`CHILD_ENV_ALLOW` in `tools/hunter/runner.py`), never the model or news keys. `tools/hunter/tests/test_child_env.py` sets fake keys and checks that a child started this way sees none of them.
 
 What this doesn't protect:
 
 - The attestation shows which model answered. It doesn't show that an attack is good or that a result is right.
 - The rest of the loop (fetching papers, validating, running the sandbox) runs on GitHub's machine, outside any secure hardware.
-- Known gap: the sandbox processes the hunter starts get a copy of its environment, keys included. The fix (start them with only the variables they need) is planned before the workflow runs with any key.
 
 ### Who can access the workflow, its keys and its outputs?
 
 - The repo is public. Anyone can read the workflow file. Any signed-in GitHub user can open its run logs and download its result files.
-- The keys it needs would be stored as repository secrets. GitHub never shows a saved secret again, to anyone, including the owner. No secrets are set today.
+- The workflow reads its keys from a GitHub Environment named `hunt`, not from repository secrets. GitHub never shows a saved secret again, to anyone, including the owner. No secrets are set today.
 - Only accounts with write access can start a run by hand or change the workflow. Pull requests, including ones from forks, can't trigger it: it runs only on its schedule or by hand.
 
 ### If the owner's GitHub account is compromised, what can an attacker do?
@@ -95,7 +95,7 @@ The defences:
 - a GitHub Environment, so only the `main` branch can use the keys;
 - revoking a key after any doubt.
 
-None of these are set up today, because no keys are set. This answer will list each one as it is added. No wallet key is involved: the hunter only spends on model and news calls.
+The workflow now reads its keys from an Environment named `hunt` (`environment: hunt` in `.github/workflows/hunt.yml`). Limiting that Environment to `main`, and setting capped keys in it, is the owner's job on GitHub, and this file doesn't claim either is done. None of the other defences are set up today, because no keys are set. This answer will list each one as it is added. No wallet key is involved: the hunter only spends on model and news calls.
 
 ### Can the hunter run on NEAR, in secure hardware, instead of GitHub Actions?
 
