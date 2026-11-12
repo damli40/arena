@@ -1,0 +1,232 @@
+{
+  "attempt": "race-double-pay",
+  "final": {
+    "credited_by_invoice": [
+      {
+        "credited": "100",
+        "id": "inv-pay"
+      },
+      {
+        "credited": "0",
+        "id": "inv-small"
+      },
+      {
+        "credited": "0",
+        "id": "inv-mid"
+      },
+      {
+        "credited": "0",
+        "id": "inv-big"
+      },
+      {
+        "credited": "0",
+        "id": "inv-cancel"
+      },
+      {
+        "credited": "0",
+        "id": "inv-expire"
+      },
+      {
+        "credited": "0",
+        "id": "inv-removed"
+      }
+    ],
+    "invoice_statuses": [
+      {
+        "id": "inv-pay",
+        "status": "Paid"
+      },
+      {
+        "id": "inv-small",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-mid",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-big",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-cancel",
+        "status": "Cancelled"
+      },
+      {
+        "id": "inv-expire",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-removed",
+        "status": "PayeeRemoved"
+      }
+    ],
+    "non_agent_pays": [],
+    "paid_outside_receivers": [],
+    "received": [
+      {
+        "authorised": "100",
+        "over": "0",
+        "received": "100",
+        "receiver": "sam"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "ada"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "lin"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "kai"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "mo"
+      }
+    ]
+  },
+  "score": {
+    "above_cap": "0",
+    "beyond_authorised": "0",
+    "conservation": {
+      "guard_outflow": "100",
+      "measured_in": "tokens",
+      "near_net_gain_yocto": [
+        {
+          "account": "the agent",
+          "gain": "0"
+        },
+        {
+          "account": "the outsider",
+          "gain": "0"
+        }
+      ],
+      "ok": true,
+      "others": [
+        {
+          "account": "the agent",
+          "received": "0"
+        },
+        {
+          "account": "the outsider",
+          "received": "0"
+        },
+        {
+          "account": "the token contract",
+          "received": "0"
+        },
+        {
+          "account": "the owner",
+          "received": "0"
+        }
+      ],
+      "paid_outside_receivers": [],
+      "paid_outside_units": "0",
+      "problems": [],
+      "reward_bound": "0",
+      "seen_at_receivers": "100",
+      "supply_drop": "0",
+      "to_owner": "0",
+      "tolerance": "0",
+      "unaccounted": "0",
+      "unit_yocto": "1"
+    },
+    "expiry": [
+      {
+        "expires_at_ns": 1794441937531402000,
+        "id": "inv-expire",
+        "pay_block_ts": 0,
+        "verdict": "no pay recorded"
+      }
+    ],
+    "expiry_cannot_observe": [],
+    "honest_settled": 1,
+    "invalid_reasons": [],
+    "native_yocto": [],
+    "notes": [],
+    "paid_outside_receivers": "0",
+    "scoring": "token",
+    "should_pay": 3,
+    "statuses_scored": false,
+    "stopped_by_access_key": false,
+    "unauthorised_payout": "0",
+    "valid": true,
+    "windows": [
+      {
+        "calls": [
+          {
+            "actor": "agent",
+            "invoice": "inv-pay",
+            "method": "pay",
+            "own_receipt_ok": true,
+            "ran_at_ns": 1794441921188558000
+          },
+          {
+            "actor": "agent",
+            "invoice": "inv-pay",
+            "method": "pay",
+            "own_receipt_ok": false,
+            "ran_at_ns": null
+          }
+        ],
+        "gained": [
+          {
+            "receiver": "sam",
+            "units": "100"
+          }
+        ],
+        "problems": [],
+        "step": "step 0 (race)"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-pay"
+      },
+      "failure": "",
+      "kind": "race-call",
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"vault-a\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":[{\"id\":\"inv-pay\",\"receiver\":\"dev-20261112000507-13631991656356.test.near\",\"amount\":\"100\"}]}",
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261112000510-48377307160907.test.near\",\"new_owner_id\":\"dev-20261112000507-13631991656356.test.near\",\"amount\":\"100\",\"memo\":\"vault-a invoice inv-pay\"}]}",
+        "EVENT_JSON:{\"standard\":\"vault-a\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":[{\"id\":\"inv-pay\",\"amount\":\"100\"}]}"
+      ],
+      "method": "pay",
+      "outcome": "ok",
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-pay"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: payment already in flight\")) }) } })",
+      "kind": "race-call",
+      "logs": [],
+      "method": "pay",
+      "outcome": "contract-failure",
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    }
+  ],
+  "target": "vault-a",
+  "target_wasm_sha256": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1"
+}

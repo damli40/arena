@@ -1,0 +1,83 @@
+{
+  "name": "bypass-outsider-owner-method",
+  "steps": [
+    {
+      "call": {
+        "actor": "outsider",
+        "method": "approve_invoice",
+        "args": {
+          "id": "inv-bypass",
+          "receiver": "sam",
+          "amount": "5000",
+          "expires_at_ns": 4102444800000000000
+        },
+        "deposit_yocto": 1
+      }
+    },
+    {
+      "call": {
+        "actor": "outsider",
+        "method": "set_daily_cap",
+        "args": {
+          "daily_cap": "1000000"
+        },
+        "deposit_yocto": 1
+      }
+    },
+    {
+      "call": {
+        "actor": "outsider",
+        "method": "cancel_invoice",
+        "args": {
+          "id": "inv-pay"
+        }
+      }
+    },
+    {
+      "call": {
+        "actor": "outsider",
+        "method": "pay",
+        "args": {
+          "id": "inv-bypass"
+        }
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "method": "pay",
+        "args": {
+          "id": "inv-bypass"
+        }
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "method": "pay",
+        "args": {
+          "id": "inv-pay"
+        }
+      }
+    },
+    {
+      "view": {
+        "method": "get_invoice",
+        "args": {
+          "id": "inv-bypass"
+        }
+      }
+    }
+  ],
+  "meta": {
+    "id": "bypass-04-outsider-owner-method",
+    "title": "An outsider calls owner methods",
+    "source": "hand",
+    "kind": "sequence",
+    "breaks": "Skips the rules from an account with a full-access key: an outsider approves its own invoice, raises the cap and cancels an invoice, then the agent pays.",
+    "expected_safe_result": "each owner call refused by the guard (owner only); the agent's later pays follow the original rules",
+    "added": "2026-11-12",
+    "author": "written by hand for A9: bypass-02 sent by an account whose key reaches the guard",
+    "steps_sha256": "8c259dfc4fa41232f2bdb7cd85b73730b68a0e843fd8d32dec75bed56e3bc1bf"
+  }
+}

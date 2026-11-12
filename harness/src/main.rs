@@ -341,6 +341,16 @@ async fn run_files(
             }
             None => None,
         };
+        // Native mode: re-read the receivers' starting state AFTER any owner policy, so the
+        // per-step windows and the whole-attempt total start from the same moment (review
+        // finding 6, 2026-11-12). Without a policy nothing ran in between, so nothing changes.
+        if a.target.is_native() && policy.is_some() {
+            let mut snaps = Vec::new();
+            for (name, acct) in a.by_name.iter().filter(|(n, _)| setup::RECEIVERS.contains(n)) {
+                snaps.push(setup::snapshot_receiver(&a.worker, name, acct.id()).await?);
+            }
+            a.native_before = snaps;
+        }
         // Conservation check (conserve.rs): every balance it needs, right before the first step.
         a.before = Some(conserve::snapshot(&a, &steps).await?);
         let outcome = seq::execute(&a, &steps).await?;
@@ -350,7 +360,12 @@ async fn run_files(
         let ok_calls = outcome.iter().filter(|o| o.success).count();
         let tx_steps = outcome.iter().filter(|o| o.kind != "view").count();
         let rejected = outcome.iter().filter(|o| o.outcome == seq::OUTCOME_PROTOCOL_REJECTED).count();
+        // Only an attempt that moved nothing beyond policy is labelled (a break is never relabelled).
+        let key_stopped = seq::stopped_by_access_key(&outcome) && s.unauthorised == 0;
         println!("  calls_ok={ok_calls}/{} protocol_rejected={rejected}/{tx_steps} attempts_used=1 target={tl}", outcome.len());
+        if key_stopped {
+            println!("  STOPPED BY THE ACCESS KEY: NEAR refused every call before any contract code ran; the guard's own checks were not tested (A9)");
+        }
         // Result JSON (fix 3: the adaptive tester's feedback).
         let mut rj = seq::outcome_json(&a, &name, &outcome, &s);
         if let Some(v) = applied {
@@ -379,18 +394,25 @@ async fn run_files(
             println!("  replay on a fresh sandbox: ./run-arena.sh replay {} {}{pflag}", f.display(), target.replay_flags());
             findings.push((name.clone(), s.unauthorised));
         }
-        summary.push((name, s.unauthorised, s.settled, s.should_pay, rejected, tx_steps, s.invalid.is_empty()));
+        summary.push((name, s.unauthorised, s.settled, s.should_pay, rejected, tx_steps, s.invalid.is_empty(), key_stopped));
     }
     println!("\n================ SUMMARY tester={tester} target={tl} ================");
     println!("  target wasm sha256={wasm_sha}");
     if native {
         println!("  scoring=native unit=1 milliNEAR (10^21 yoctoNEAR)");
     }
-    for (name, u, settled, should, rej, txs, valid) in &summary {
-        // Token-mode rows are unchanged (verify.sh and the README match them);
-        // native rows add valid=yes|NO.
-        let extra = if native { format!(" valid={}", if *valid { "yes" } else { "NO" }) } else { String::new() };
+    for (name, u, settled, should, rej, txs, valid, ks) in &summary {
+        // Token-mode rows keep their prefix (verify.sh and the README match it);
+        // native rows add valid=yes|NO; an attack NEAR refused entirely adds stopped_by_access_key.
+        let mut extra = if native { format!(" valid={}", if *valid { "yes" } else { "NO" }) } else { String::new() };
+        if *ks {
+            extra.push_str(" stopped_by_access_key");
+        }
         println!("  {name:<28} unauthorised={u:<6} honest_settled={settled}/{should} protocol_rejected={rej}/{txs}{extra}");
+    }
+    let ks_n = summary.iter().filter(|r| r.7).count();
+    if ks_n > 0 {
+        println!("  stopped_by_access_key={ks_n} (NEAR refused every call of these attempts before the guard ran; they test the agent's key, not the guard)");
     }
     let extra = if native { format!(" invalid_attempts={} scoring=native", invalid_attempts.len()) } else { String::new() };
     println!("  attempts={} attempts_found_something={} tester={tester} target={tl}{extra}", summary.len(), findings.len());

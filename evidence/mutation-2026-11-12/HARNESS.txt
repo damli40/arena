@@ -1,0 +1,4 @@
+harness pinned from git HEAD 5f230edbf6286199b7c6327d27a40650f48a4569 via git archive
+sha256 arena-harness  96e8b28783219d35b62b5aec89e67a4bb876eb33a9d9ab370da431b864694c75
+sha256 test_token.wasm c8071a2265b6dbd595f319972dc3271d928a73b5a98456538ae5246abf8d3e61
+NOTE: gen-scripted output differs from sequences-scripted/

@@ -37,6 +37,7 @@ The names are kept because the receipts saved on NEAR testnet point at these pat
 | What did the paper-driven and news-driven attack runs find? | `hunts/` (one `.md` and one `.json` per run) |
 | Which model writes the hunter's attacks, where does it run, and what does NEAR AI's attestation show? | `nearai-2026-11-11.md`; re-check a saved report offline with `python3 -I tools/hunter/recheck_attestation.py evidence/hunts/2026-11-11-papers-e3db55.json` |
 | What does a one-command guard check produce? | `check-2026-11-11.md`, `check-2026-11-11/` (one report card per guard). These say `52/52`: that count included the honest payment made before the attacks. There are 51 attacks; `check-fixes-2-2026-11-11.md` records the correction |
+| Does the score still depend on anything the guard says about itself? What moved when that was removed? | `invoice-fixes-2026-11-12.md` (before/after table for every number), `invoice-fixes-2026-11-12/` (check reports, verify, bypass and injection logs), `mutation-2026-11-12/` |
 | What did the reviews of the one-command check find, and what was fixed? | `check-fixes-2026-11-11.md`, `check-fixes-2-2026-11-11.md` |
 | Does the check score a guard that pays in plain NEAR and not a token? | `check-native-2026-11-11.md` |
 | What happens when a guard pays an account the check was not watching? | `check-outflow-2026-11-11.md` |

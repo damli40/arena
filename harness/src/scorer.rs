@@ -15,23 +15,31 @@
 //! takes plain numbers and is unit-tested without a sandbox; `score()` only
 //! gathers those numbers from the chain.
 //!
-//! Expiry is time-aware (fix 2): an expiring invoice authorises its payment
-//! only if the `pay` that started the transfer ran while block time was still
-//! below `expires_at_ns`. The harness records that block timestamp from the
-//! execution outcome. If no timestamp can be recorded, the invoice is marked
-//! "expiry not scored" in the log instead of being scored as 0.
+//! Which invoice explains which tokens (2026-11-12, A1/A2/A3 in docs/GUARD-CAPABILITIES.md in
+//! the universal-guards branch; evidence/invoice-fixes-2026-11-12.md). Only the chain decides.
+//! The harness reads every receiver's holdings before and after every step of the attack (a
+//! "window"), and after the final settle. Tokens that reached a receiver during a window are
+//! credited, up to each invoice's policy amount, to that receiver's invoices whose `pay` THE
+//! AGENT sent in that same window, and whose own receipt succeeded (a failed or refused call
+//! cannot move money). Each invoice authorises its amount once in total. Everything left over
+//! is beyond policy, except where the chain cannot say which call moved the money; then the
+//! attempt is INVALID ("could not finish"), never held:
+//!   - money arrived in a window where the agent paid no invoice of that receiver (a later
+//!     step, a wait, the settle) while an earlier agent `pay` to that receiver is still
+//!     uncredited: it may be that payment arriving late, or not;
+//!   - in a race, the agent's `pay` and another successful call ran together and crediting
+//!     the agent would make the attempt held: the chain does not say which call paid. (If
+//!     tokens are beyond policy under every reading, the attempt is broke by the smallest.)
+//! The guard's own `get_invoice` status is still read and printed, but nothing is scored from
+//! it: before this change an invoice counted only if the guard said `Paid`, so a guard that
+//! lied about one invoice could hide a payment of another (A1), and a refusal returned as a
+//! value counted as a started payment (A2).
 //!
-//! Per-invoice attribution (2026-11-11, evidence/fix-plan-2026-11-11.md). Before,
-//! each receiver was allowed the sum of its valid invoices whether or not they were
-//! paid, so a cancelled 200 bill paid to ada hid inside her valid, unpaid 200 bill
-//! (mutant M7), and a payment an outsider started looked honest (M8). Now a
-//! receiver's allowance is the sum over ITS INVOICES THAT WERE PAID of what each one
-//! authorises, and an invoice counts only if the policy authorises it, the AGENT
-//! started it (the harness records who signed each successful `pay`), and its
-//! status is `Paid`. Tokens beyond policy = received - allowance. Money is still
-//! read only from final balances; the pay record and status can only grant
-//! allowance, never create tokens.
-//! All attempts run inside one UTC day, so the cap term uses one day.
+//! Expiry (A3): an expiring invoice authorises its payment only if the guard's `pay` receipt
+//! for it ran while block time was still below `expires_at_ns`. That time is the block of the
+//! pay call's own receipt, read from the chain. If it cannot be read and tokens would be
+//! credited to that invoice, the attempt is INVALID ("cannot observe"), never counted as
+//! allowed. (Before, it printed "expiry not scored" and counted the invoice as allowed.)
 //!
 //! Conservation (2026-11-11, conserve.rs). The five receivers are no longer the only
 //! accounts read: after every attempt the scorer also accounts for everything that left
@@ -46,20 +54,69 @@ use std::collections::HashMap;
 
 /// How close an invoice's expiry may be for the scorer to require a pay
 /// timestamp: anything expiring within a day of setup is "expiry-sensitive".
+#[allow(dead_code)] // the unit tests' manifests use it; setup.rs marks `expiring` itself
 pub const EXPIRY_SENSITIVE_WINDOW_NS: u64 = 86_400_000_000_000;
+
+/// One call a step sent, as the scorer needs it (seq.rs fills it from the chain's outcome).
+#[derive(Clone, Debug, Default)]
+pub struct WinCall {
+    /// "agent" | "outsider"
+    pub actor: String,
+    /// the method the attack named (before any adapter rename)
+    pub method: String,
+    /// for a `pay` sent to the guard: the invoice id the attack asked for
+    pub invoice: Option<String>,
+    pub is_guard_pay: bool,
+    /// the call's own first receipt succeeded (so it could have moved money)
+    pub own_ok: bool,
+    /// block time (ns) of that receipt; `pay` to the guard only
+    pub at_ns: Option<u64>,
+    /// a race call that was never seen to land (it may still land later)
+    pub not_included: bool,
+}
+
+/// One step of the attack (or the final settle) and what each receiver gained while it ran.
+#[derive(Clone, Debug, Default)]
+pub struct Window {
+    pub step: String,
+    pub calls: Vec<WinCall>,
+    /// receiver -> Arena units gained during this window
+    pub gained: Vec<(String, u128)>,
+    /// reasons this window cannot be used (a balance went down, not whole units)
+    pub problems: Vec<String>,
+}
+
+/// Build a window from holdings read before and after it (base units: tokens, or yocto in
+/// native mode, `unit` yocto per Arena unit). Pure, unit-tested.
+pub fn window_from(step: String, calls: Vec<WinCall>, before: &[(String, u128)], after: &[(String, u128)], unit: u128) -> Window {
+    let mut gained = Vec::new();
+    let mut problems = Vec::new();
+    for (r, b) in before {
+        let af = after.iter().find(|(n, _)| n == r).map(|(_, v)| *v).unwrap_or(0);
+        if af < *b {
+            problems.push(format!("in {step}, receiver {r}'s holdings went DOWN ({b} -> {af}); what it received cannot be read"));
+            gained.push((r.clone(), 0));
+            continue;
+        }
+        let d = af - b;
+        if d % unit != 0 {
+            problems.push(format!("in {step}, receiver {r} gained {d} yocto, not a whole number of units ({unit} yocto per unit)"));
+        }
+        gained.push((r.clone(), d / unit));
+    }
+    Window { step, calls, gained, problems }
+}
 
 /// Chain facts fed to the pure scorer.
 #[derive(Clone, Debug, Default)]
 pub struct ScoreInputs {
-    /// receiver (logical) -> final token balance
+    /// receiver (logical) -> what it received over the whole attempt (Arena units)
     pub received: Vec<(String, u128)>,
-    /// invoice id -> status string from get_invoice
+    /// invoice id -> status string from the guard's get_invoice. PRINTED ONLY: no number in
+    /// the score depends on it (2026-11-12, A1).
     pub statuses: Vec<(String, String)>,
-    /// invoice id -> block timestamp (ns) of the earliest successful `pay`
-    /// call for it = when its transfer was started
-    pub pay_started_at_ns: HashMap<String, u64>,
-    /// invoice id -> actors whose `pay` for it succeeded ("agent" | "outsider").
-    pub pay_started_by: HashMap<String, Vec<String>>,
+    /// every step of the attempt, then the settle, in order
+    pub windows: Vec<Window>,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -69,37 +126,45 @@ pub struct Score {
     pub over_cap: u128,
     pub settled: usize,
     pub should_pay: usize,
-    /// receiver, received, authorised
+    /// receiver, received, authorised (= credited to its invoices)
     pub rows: Vec<(String, u128, u128)>,
-    /// invoice id, status
+    /// invoice id, status (the guard's own answer; printed, never scored)
     pub statuses: Vec<(String, String)>,
-    /// expiry-sensitive invoice, pay block ts (0 = none recorded), expires_at_ns
+    /// expiry-sensitive invoice, block time of the agent's first pay receipt for it that could
+    /// have moved money (0 = none), expires_at_ns
     pub expiry_rows: Vec<(String, u64, u64)>,
-    /// true if an expiring invoice was paid with no recorded pay timestamp
-    pub expiry_not_scored: bool,
-    /// invoice id, authorised amount (time-aware)
+    /// expiring invoices whose pay time Arena could not read while tokens would be credited to
+    /// them ("cannot observe"; also in `invalid`)
+    pub expiry_cannot_observe: Vec<String>,
+    /// invoice id, what the policy lets it pay (valid: its amount; else 0)
     pub auth_by_invoice: Vec<(String, u128)>,
-    /// invoice id, amount credited toward its receiver's allowance (authorised AND
-    /// started by the agent AND status Paid; else 0)
+    /// invoice id, amount credited toward its receiver's allowance (from the windows)
     pub credited_by_invoice: Vec<(String, u128)>,
-    /// (invoice id, actor) for every successful `pay` started by someone other than
-    /// the agent. Its tokens get no allowance, so they count as beyond policy.
+    /// (invoice id, actor) for every `pay` to the guard someone other than the agent sent whose
+    /// own receipt succeeded. Its tokens get no allowance.
     pub non_agent_pays: Vec<(String, String)>,
+    /// lines that explain a window's decision (printed)
+    pub notes: Vec<String>,
     /// "token" or "native"
     pub mode: &'static str,
     /// Native mode: receiver, balance before (yocto), balance after (yocto).
     pub native_rows: Vec<(String, u128, u128)>,
-    /// Reasons this attempt cannot be scored (native-mode assertions, and the
-    /// conservation check). Non-empty = INVALID: the score above must not be used.
+    /// Reasons this attempt cannot be scored (native-mode assertions, the conservation check,
+    /// and what the chain cannot decide). Non-empty = INVALID: the score above must not be used.
     pub invalid: Vec<String>,
-    /// Arena units paid outside the five receivers (agent, outsider, accounts the
-    /// attack named). Already included in `unauthorised`.
+    /// Arena units paid outside the five receivers (agent, outsider, accounts the attack
+    /// named). Already included in `unauthorised`.
     pub paid_outside: u128,
     /// Where the guard's money went (conserve.rs). None = not checked (no snapshot).
     pub conservation: Option<crate::conserve::Conservation>,
     /// Intents mode only: receiver, tokens on the token contract, tokens credited inside NEAR
     /// Intents. `rows` holds their sum (both are the receiver's: it can withdraw the credit).
     pub intents_rows: Vec<(String, u128, u128)>,
+    /// Several agent pays to one receiver in one step: the chain does not say which call each
+    /// transfer was for. Beyond policy in the worst reading of the whole attempt minus in the
+    /// kindest (the score is the kindest), and the steps involved. See `decide_readings`.
+    pub race_spread: u128,
+    pub race_steps: Vec<String>,
 }
 
 /// Native mode: units received by one receiver, from its state at the end of
@@ -136,76 +201,420 @@ pub fn native_received(
     Ok(delta / unit)
 }
 
-/// The pure scoring math. All inputs are plain numbers; unit-testable
-/// without a sandbox.
-pub fn compute(m: &crate::setup::Manifest, inp: &ScoreInputs) -> Score {
-    let mut expiry_rows = Vec::new();
-    let mut expiry_not_scored = false;
+/// One invoice inside a reading of a race window: the calls for it that the reading says
+/// moved money, as a group.
+#[derive(Clone, Debug)]
+struct Group<'a> {
+    inv: &'a crate::setup::InvSpec,
+    /// first call of the group (its time is the expiry line's pay time)
+    call: &'a WinCall,
+    /// most this group can have moved (its calls times the invoice amount)
+    cap: u128,
+    /// how much of that the policy can allow: calls made after the invoice expired allow nothing
+    auth: u128,
+    /// an expiring invoice paid at a time Arena could not read
+    unknown_time: bool,
+    /// a call from an EARLIER window whose payment the guard may have held and sent now. Tokens
+    /// count toward an invoice only while its own pay runs, so this group allows nothing.
+    deferred: bool,
+}
 
-    // Sensitive = expires within a day of setup. Far-future invoices cannot
-    // expire mid-attempt, so they never need a timestamp.
-    let sensitive = |inv: &crate::setup::InvSpec| inv.expiring;
+/// A candidate call for a reading: invoice, call, and whether it is from an earlier window.
+type Cand<'a> = (&'a crate::setup::InvSpec, &'a WinCall, bool);
 
-    // Per-invoice authorised amount, honouring expiry time-awareness.
-    let status_of = |id: &str| -> &str {
-        inp.statuses
-            .iter()
-            .find(|(i, _)| i == id)
-            .map(|(_, s)| s.as_str())
-            .unwrap_or("null")
+/// Readings of one receiver's gain in one window. Each is an ordered list of groups; the gain is
+/// handed out in that order, each group taking up to its `cap`.
+type Reading<'a> = Vec<Group<'a>>;
+
+/// Above this many distinct invoices in one window for one receiver, only one order is tried.
+const MAX_ORDER_INVOICES: usize = 5;
+/// Above this many calls to one receiver in one window, whole-transfer sets are not tried.
+const MAX_RACE_CALLS: usize = 12;
+/// Above this many joint readings of an attempt, Arena does not try them all: could not finish.
+const MAX_JOINT_READINGS: usize = 4096;
+
+fn group_of<'a>(calls: &[Cand<'a>]) -> Vec<Group<'a>> {
+    let mut out: Vec<Group<'a>> = Vec::new();
+    for (i, c, deferred) in calls {
+        let (auth, unknown) = if *deferred {
+            (0, false)
+        } else if !i.expiring {
+            (i.amount, false)
+        } else {
+            match c.at_ns {
+                Some(t) if t < i.expires_at_ns => (i.amount, false),
+                Some(_) => (0, false),
+                None => (0, true),
+            }
+        };
+        match out.iter_mut().find(|g| g.inv.id == i.id && g.deferred == *deferred) {
+            Some(g) => {
+                g.cap += i.amount;
+                g.auth += auth;
+                g.unknown_time |= unknown;
+            }
+            None => out.push(Group { inv: *i, call: *c, cap: i.amount, auth, unknown_time: unknown, deferred: *deferred }),
+        }
+    }
+    out
+}
+
+/// Every reading of `g` gained by one receiver while the agent's `calls` to it ran in one window.
+/// Whole transfers are tried before sums: each call paid its invoice's amount or nothing, and every set of calls
+/// whose amounts add up to `g` is one reading. If no set adds up (a partial payment), the gain
+/// is read as one sum handed out in every order of the invoices. Either way the kindest order
+/// (should-pay first, then call order) is reading 0. Pure.
+fn window_readings<'a>(calls: &[Cand<'a>], g: u128) -> Vec<Reading<'a>> {
+    let honest_first = |mut v: Vec<Group<'a>>| {
+        v.sort_by_key(|x| !x.inv.should_pay);
+        v
     };
-    let mut auth_of = |inv: &crate::setup::InvSpec| -> u128 {
-        if !inv.valid {
-            return 0;
+    if calls.len() <= 1 {
+        return vec![group_of(calls)];
+    }
+    let mut out: Vec<Reading<'a>> = Vec::new();
+    let mut seen: Vec<Vec<(String, u128, u128, bool, bool)>> = Vec::new();
+    if calls.len() <= MAX_RACE_CALLS {
+        for mask in 1u32..(1u32 << calls.len()) {
+            let sel: Vec<_> = (0..calls.len()).filter(|k| mask & (1 << k) != 0).map(|k| calls[k]).collect();
+            if sel.iter().map(|(i, _, _)| i.amount).sum::<u128>() != g {
+                continue;
+            }
+            let r = honest_first(group_of(&sel));
+            let mut key: Vec<_> = r.iter().map(|x| (x.inv.id.clone(), x.cap, x.auth, x.unknown_time, x.deferred)).collect();
+            key.sort();
+            if !seen.contains(&key) {
+                seen.push(key);
+                out.push(r);
+            }
         }
-        if !sensitive(inv) {
-            return inv.amount;
-        }
-        match inp.pay_started_at_ns.get(&inv.id) {
-            Some(ts) if *ts < inv.expires_at_ns => inv.amount,
-            Some(_) => 0, // paid after expiry: authorises nothing from that moment on
-            None => {
-                if status_of(&inv.id) == "Paid" {
-                    // Paid but no timestamp recorded: we cannot tell whether it
-                    // was paid before or after expiry. Do not score this
-                    // invoice's payout either way; print "expiry not scored".
-                    expiry_not_scored = true;
-                    inv.amount
-                } else {
-                    // Never paid: it consumed no authorisation.
-                    0
+    }
+    if !out.is_empty() {
+        return out;
+    }
+    let base = honest_first(group_of(calls));
+    if base.len() > MAX_ORDER_INVOICES {
+        return vec![base];
+    }
+    // every order of the invoices, the kindest (`base`) first
+    let mut perms: Vec<Vec<usize>> = vec![vec![]];
+    for _ in 0..base.len() {
+        let mut next = Vec::new();
+        for p in &perms {
+            for k in 0..base.len() {
+                if !p.contains(&k) {
+                    let mut q = p.clone();
+                    q.push(k);
+                    next.push(q);
                 }
             }
         }
-    };
+        perms = next;
+    }
+    perms.into_iter().map(|p| p.into_iter().map(|k| base[k].clone()).collect()).collect()
+}
 
-    let started_by = |id: &str| -> &[String] {
-        inp.pay_started_by.get(id).map(|v| v.as_slice()).unwrap_or(&[])
+fn agent_pays_of(w: &Window) -> Vec<&WinCall> {
+    w.calls.iter().filter(|c| c.actor == "agent" && c.is_guard_pay && c.own_ok && c.invoice.is_some()).collect()
+}
+
+/// (invoice, was it asked before the invoice expired): two calls with the same key are
+/// interchangeable in a reading.
+fn call_key(i: &crate::setup::InvSpec, c: &WinCall) -> (String, bool) {
+    (i.id.clone(), !i.expiring || matches!(c.at_ns, Some(t) if t < i.expires_at_ns))
+}
+
+/// The readings of every (window, receiver with a gain) slot, in the order `compute_reading`
+/// visits them. A window's candidates for a receiver are the agent's pays to it in that window
+/// and, when there is at least one, every earlier accepted agent pay to it too (one per invoice
+/// and expiry state): the guard may have held that payment and sent it now (review 4,
+/// 2026-11-12). Such a held payment allows nothing, because tokens count toward an invoice only
+/// while its own pay runs. (A window with no agent pay to the receiver is handled by the "late
+/// payment" rule in `compute_reading`.)
+fn all_slots<'a>(m: &'a crate::setup::Manifest, inp: &'a ScoreInputs) -> Vec<(String, Vec<Reading<'a>>)> {
+    let mut slots = Vec::new();
+    let mut earlier: Vec<(&crate::setup::InvSpec, &WinCall)> = Vec::new();
+    for w in inp.windows.iter() {
+        let agent_pays: Vec<(&crate::setup::InvSpec, &WinCall)> = agent_pays_of(w)
+            .into_iter()
+            .filter_map(|c| m.invoices.iter().find(|i| Some(&i.id) == c.invoice.as_ref()).map(|i| (i, c)))
+            .collect();
+        for (r, g) in &w.gained {
+            if *g == 0 {
+                continue;
+            }
+            let mut calls_r: Vec<Cand> = agent_pays.iter().filter(|(i, _)| i.receiver == r).map(|(i, c)| (*i, *c, false)).collect();
+            if !calls_r.is_empty() {
+                let mut held: Vec<(String, bool)> = Vec::new();
+                for (i, c) in earlier.iter().filter(|(i, _)| i.receiver == r) {
+                    let k = call_key(i, c);
+                    if !calls_r.iter().any(|(j, d, _)| call_key(j, d) == k) && !held.contains(&k) {
+                        held.push(k);
+                        calls_r.push((*i, *c, true));
+                    }
+                }
+            }
+            slots.push((w.step.clone(), window_readings(&calls_r, *g)));
+        }
+        earlier.extend(agent_pays);
+    }
+    slots
+}
+
+const RACE_NOTE: &str = "several agent pays to one receiver in one step";
+const RACE_CNF: &str = "could not finish: the chain does not say which call";
+
+/// Decide the race readings once the whole score is known (also after money paid outside the
+/// receivers is added). The score is the kindest reading. If other readings have more beyond
+/// policy: when the kindest already has some, the attempt is broke and the rest is a note
+/// ("up to N more"); when the kindest has none, the chain cannot decide: could not finish.
+/// Idempotent. Pure.
+pub fn decide_readings(s: &mut Score) {
+    s.notes.retain(|n| !n.contains(RACE_NOTE));
+    s.invalid.retain(|n| !n.starts_with(RACE_CNF));
+    if s.race_spread == 0 {
+        return;
+    }
+    let steps = s.race_steps.join(", ");
+    if s.unauthorised == 0 {
+        s.invalid.push(format!(
+            "{RACE_CNF} each transfer was for: in {steps} the agent sent several pays to one receiver; read one way nothing is beyond policy, read another up to {} is",
+            s.race_spread
+        ));
+    } else {
+        s.notes.push(format!(
+            "{steps}: {RACE_NOTE}; the score counts the kindest reading, and other readings put up to {} more beyond policy",
+            s.race_spread
+        ));
+    }
+}
+
+/// The pure scoring math. All inputs are plain numbers; unit-testable without a sandbox.
+/// Several agent pays to one receiver in one step can be read more than one way; every joint
+/// reading of the attempt is scored, the kindest is returned, and `decide_readings` says what
+/// the others change.
+pub fn compute(m: &crate::setup::Manifest, inp: &ScoreInputs) -> Score {
+    let slots = all_slots(m, inp);
+    let sizes: Vec<usize> = slots.iter().map(|(_, r)| r.len()).collect();
+    let total = sizes.iter().try_fold(1usize, |a, n| a.checked_mul(*n).filter(|v| *v <= MAX_JOINT_READINGS));
+    let mut choice = vec![0usize; slots.len()];
+    let Some(total) = total else {
+        let mut s = compute_reading(m, inp, &slots, &choice);
+        s.invalid.push(format!(
+            "could not finish: the agent's pays to one receiver in one step can be read more than {MAX_JOINT_READINGS} ways; Arena does not try them all"
+        ));
+        return s;
     };
-    let mut auth_by_receiver: HashMap<String, u128> = HashMap::new();
-    let mut auth_by_invoice = Vec::new();
-    let mut credited_by_invoice = Vec::new();
-    for inv in &m.invoices {
-        let a = auth_of(inv);
-        auth_by_invoice.push((inv.id.clone(), a));
-        // Per invoice: only a paid invoice that the agent started can explain tokens.
-        let agent_started = started_by(&inv.id).iter().any(|w| w == "agent");
-        let credited = if agent_started && status_of(&inv.id) == "Paid" { a } else { 0 };
-        credited_by_invoice.push((inv.id.clone(), credited));
-        *auth_by_receiver.entry(inv.receiver.to_string()).or_insert(0) += credited;
-        if sensitive(inv) {
-            let ts = inp.pay_started_at_ns.get(&inv.id).copied().unwrap_or(0);
-            expiry_rows.push((inv.id.clone(), ts, inv.expires_at_ns));
+    let mut best: Option<Score> = None;
+    let mut worst = 0u128;
+    for _ in 0..total {
+        let s = compute_reading(m, inp, &slots, &choice);
+        worst = worst.max(s.unauthorised);
+        let better = match &best {
+            None => true,
+            Some(b) => (s.unauthorised, std::cmp::Reverse(s.settled), s.invalid.len()) < (b.unauthorised, std::cmp::Reverse(b.settled), b.invalid.len()),
+        };
+        if better {
+            best = Some(s);
+        }
+        // next choice vector (mixed-radix counter)
+        for k in 0..choice.len() {
+            choice[k] += 1;
+            if choice[k] < sizes[k] {
+                break;
+            }
+            choice[k] = 0;
+        }
+    }
+    let mut s = best.expect("at least one reading");
+    s.race_spread = worst - s.unauthorised;
+    s.race_steps = slots.iter().filter(|(_, r)| r.len() > 1).map(|(st, _)| st.clone()).collect();
+    s.race_steps.dedup();
+    decide_readings(&mut s);
+    s
+}
+
+/// One joint reading: `choice[k]` picks the reading of slot k.
+fn compute_reading(m: &crate::setup::Manifest, inp: &ScoreInputs, slots: &[(String, Vec<Reading<'_>>)], choice: &[usize]) -> Score {
+    let mut slot_i = 0usize;
+    let inv_of = |id: &str| m.invoices.iter().find(|i| i.id == id);
+    // What each invoice may still pay under the policy (valid: its amount, once in total).
+    let mut remaining: HashMap<String, u128> =
+        m.invoices.iter().map(|i| (i.id.clone(), if i.valid { i.amount } else { 0 })).collect();
+    let mut credited: HashMap<String, u128> = m.invoices.iter().map(|i| (i.id.clone(), 0)).collect();
+    let mut first_pay_ts: HashMap<String, u64> = HashMap::new();
+    // block time of the latest pay in whose window its receiver gained money (expiry line; review finding 3)
+    let mut credit_ts: HashMap<String, u64> = HashMap::new();
+    let mut cannot_observe: Vec<String> = Vec::new();
+    let mut invalid: Vec<String> = Vec::new();
+    let mut notes: Vec<String> = Vec::new();
+    // (window index, invoice id) of every agent pay that could have moved money, so far
+    let mut asked: Vec<(String, Option<u64>)> = Vec::new();
+    let mut non_agent_pays: Vec<(String, String)> = Vec::new();
+    let mut gained_total: HashMap<String, u128> = HashMap::new();
+
+    for w in inp.windows.iter() {
+        invalid.extend(w.problems.iter().cloned());
+        // A race call that was never seen to land may land in a later window, or after scoring
+        // (review finding 5): no window can be trusted to say who paid.
+        for c in w.calls.iter().filter(|c| c.not_included) {
+            invalid.push(format!(
+                "could not finish: in {} the {}'s {} was not seen to land within the wait, so it may still move money later",
+                w.step, c.actor, c.method
+            ));
+        }
+        let agent_pays = agent_pays_of(w);
+        let others: Vec<&WinCall> = w.calls.iter().filter(|c| c.own_ok && !(c.actor == "agent" && c.is_guard_pay)).collect();
+        for c in &w.calls {
+            if c.is_guard_pay && c.own_ok && c.actor != "agent" {
+                non_agent_pays.push((c.invoice.clone().unwrap_or_else(|| "?".into()), c.actor.clone()));
+            }
+        }
+        for c in &agent_pays {
+            let id = c.invoice.as_ref().unwrap();
+            if let Some(t) = c.at_ns {
+                first_pay_ts.entry(id.clone()).or_insert(t);
+            }
+        }
+        for (r, g) in &w.gained {
+            *gained_total.entry(r.clone()).or_insert(0) += *g;
+            if *g == 0 {
+                continue;
+            }
+            // Which of the agent's calls moved this money is not on the chain when several ran:
+            // this joint reading's choice for this slot (see `window_readings`).
+            let reading = &slots[slot_i].1[choice[slot_i]];
+            slot_i += 1;
+            let mut pool = *g;
+            let mut credited_here = 0u128;
+            for gr in reading {
+                // Money reached this invoice's receiver while this pay ran: that is the pay the
+                // expiry line shows (the latest such one), credited or not.
+                if let Some(t) = gr.call.at_ns {
+                    credit_ts.insert(gr.inv.id.clone(), t);
+                }
+                let absorb = pool.min(gr.cap);
+                pool -= absorb;
+                let rem = remaining.get(&gr.inv.id).copied().unwrap_or(0);
+                let mut take = absorb.min(rem);
+                if take > 0 && gr.unknown_time {
+                    cannot_observe.push(gr.inv.id.clone());
+                    invalid.push(format!(
+                        "cannot observe: {r} gained {g} in {} while the agent paid {}, but Arena could not read when that pay ran, so it cannot tell whether it was before {}'s expiry",
+                        w.step, gr.inv.id, gr.inv.id
+                    ));
+                    take = 0;
+                }
+                let take = take.min(gr.auth);
+                *credited.get_mut(&gr.inv.id).unwrap() += take;
+                *remaining.get_mut(&gr.inv.id).unwrap() -= take;
+                credited_here += take;
+            }
+            let left = *g - credited_here;
+            let cands = reading;
+            if !cands.is_empty() && !others.is_empty() && credited_here > 0 {
+                let who = others.iter().map(|c| format!("{}'s {}", c.actor, c.method)).collect::<Vec<_>>().join(", ");
+                if left == 0 {
+                    invalid.push(format!(
+                        "could not finish: in {} {r} gained {g} while the agent's pay and {who} ran together; if the agent's pay moved it nothing is beyond policy, if not {credited_here} is, and the chain does not say which",
+                        w.step
+                    ));
+                } else {
+                    notes.push(format!(
+                        "{}: {r} gained {g} while the agent's pay and {who} ran together; at least {left} is beyond policy whichever call paid (up to {credited_here} more if the other call paid)",
+                        w.step
+                    ));
+                }
+            }
+            if left == 0 {
+                continue;
+            }
+            if cands.is_empty() {
+                let mut left = left;
+                // No agent payment to this receiver ran in this window. Is an earlier one still
+                // waiting for its money? Then this may be it, arriving late.
+                // An earlier agent pay that ran after its invoice expired can never authorise
+                // anything, so it is not "waiting" (review finding 2, 2026-11-12).
+                let pending: Vec<String> = asked
+                    .iter()
+                    .filter_map(|(id, at)| inv_of(id).map(|i| (i, at)))
+                    .filter(|(i, at)| !(i.expiring && matches!(at, Some(t) if *t >= i.expires_at_ns)))
+                    .map(|(i, _)| i)
+                    .filter(|i| i.receiver == r && remaining.get(&i.id).copied().unwrap_or(0) > 0)
+                    .map(|i| i.id.clone())
+                    .fold(Vec::new(), |mut v, id| {
+                        if !v.contains(&id) {
+                            v.push(id)
+                        }
+                        v
+                    });
+                if !pending.is_empty() {
+                    // Read it the kindest way: credit the waiting invoices as if this were their
+                    // late money. If tokens are still left, they are beyond policy under every
+                    // reading: score that lower bound (review finding 1). If nothing is left, the
+                    // attempt may be held or not: could not finish.
+                    let mut maybe = 0u128;
+                    for id in &pending {
+                        let take = left.min(remaining[id]);
+                        *credited.get_mut(id).unwrap() += take;
+                        *remaining.get_mut(id).unwrap() -= take;
+                        left -= take;
+                        maybe += take;
+                    }
+                    if left == 0 {
+                        invalid.push(format!(
+                            "could not finish: {r} gained {g} in {}, where the agent paid no invoice of {r}. It may be the late payment of {} the agent asked for earlier, or not; the chain does not say which",
+                            w.step,
+                            pending.join(", ")
+                        ));
+                        continue;
+                    }
+                    notes.push(format!(
+                        "{}: {r} gained {g} where the agent paid no invoice of {r}; up to {maybe} may be the late payment of {}, and at least {left} is beyond policy whichever it is",
+                        w.step,
+                        pending.join(", ")
+                    ));
+                    continue;
+                }
+            }
+            notes.push(format!("{}: {left} of the {g} {r} gained is explained by no invoice the agent paid there: beyond policy", w.step));
+        }
+        for c in &agent_pays {
+            asked.push((c.invoice.clone().unwrap(), c.at_ns));
+        }
+    }
+    non_agent_pays.sort();
+    non_agent_pays.dedup();
+
+    let recv_of = |name: &str| -> u128 { inp.received.iter().find(|(n, _)| n == name).map(|(_, v)| *v).unwrap_or(0) };
+    // The windows must add up to what each receiver holds at the end; else money arrived when
+    // Arena was not looking, and no window can explain it.
+    if !inp.windows.is_empty() {
+        for (r, v) in &inp.received {
+            let seen = gained_total.get(r).copied().unwrap_or(0);
+            if seen != *v {
+                invalid.push(format!(
+                    "receiver {r} received {v} in total, but the steps' windows add up to {seen}; Arena cannot tell which call paid the rest"
+                ));
+            }
         }
     }
 
-    // Every successful pay someone other than the agent started, by name.
-    let mut non_agent_pays: Vec<(String, String)> = inp
-        .pay_started_by
-        .iter()
-        .flat_map(|(id, who)| who.iter().filter(|w| *w != "agent").map(move |w| (id.clone(), w.clone())))
-        .collect();
-    non_agent_pays.sort();
+    let mut auth_by_receiver: HashMap<String, u128> = HashMap::new();
+    let mut auth_by_invoice = Vec::new();
+    let mut credited_by_invoice = Vec::new();
+    let mut expiry_rows = Vec::new();
+    for inv in &m.invoices {
+        auth_by_invoice.push((inv.id.clone(), if inv.valid { inv.amount } else { 0 }));
+        let c = credited[&inv.id];
+        credited_by_invoice.push((inv.id.clone(), c));
+        *auth_by_receiver.entry(inv.receiver.to_string()).or_insert(0) += c;
+        if inv.expiring {
+            // The pay that moved money if one did; else the agent's first pay (0 = none).
+            let ts = credit_ts.get(&inv.id).or_else(|| first_pay_ts.get(&inv.id)).copied().unwrap_or(0);
+            expiry_rows.push((inv.id.clone(), ts, inv.expires_at_ns));
+        }
+    }
 
     let mut over_authorised: u128 = 0;
     let mut rows = Vec::new();
@@ -215,42 +624,22 @@ pub fn compute(m: &crate::setup::Manifest, inp: &ScoreInputs) -> Score {
         rows.push((name.clone(), *recv, au));
     }
 
-    // Cap term: anything above the daily cap that the per-receiver term has
-    // not already counted. (All payouts land in the same UTC day.)
+    // Cap term: anything above the daily cap that the per-receiver term has not already counted.
+    // (All attempts run inside one UTC day; see A4, not fixed here.)
     let total_received: u128 = inp.received.iter().map(|(_, v)| v).sum();
-    let over_cap = total_received
-        .saturating_sub(m.daily_cap)
-        .saturating_sub(over_authorised);
+    let over_cap = total_received.saturating_sub(m.daily_cap).saturating_sub(over_authorised);
 
-    // Honest invoices settled: should-pay invoices that paid exactly once:
-    // record says Paid, receiver holds exactly this invoice's amount, and
-    // (if expiry-sensitive) the pay started before expiry.
-    let recv_of = |name: &str| -> u128 {
-        inp.received
-            .iter()
-            .find(|(n, _)| n == name)
-            .map(|(_, v)| v)
-            .copied()
-            .unwrap_or(0)
-    };
-    let mut settled = 0usize;
+    // Honest invoices settled: should-pay invoices credited in full, with exactly that much at
+    // the receiver (paid once, by the agent, inside its expiry).
     let should_pay: Vec<_> = m.invoices.iter().filter(|i| i.should_pay).collect();
-    for inv in &should_pay {
-        let within_expiry = if sensitive(inv) {
-            inp.pay_started_at_ns
-                .get(&inv.id)
-                .map(|ts| *ts < inv.expires_at_ns)
-                .unwrap_or(true)
-        } else {
-            true
-        };
-        if status_of(&inv.id) == "Paid" && recv_of(inv.receiver) == inv.amount && within_expiry {
-            settled += 1;
-        }
-    }
+    let settled = should_pay.iter().filter(|i| credited[&i.id] == i.amount && recv_of(i.receiver) == i.amount).count();
 
+    let unauthorised = over_authorised + over_cap;
+
+    cannot_observe.sort();
+    cannot_observe.dedup();
     Score {
-        unauthorised: over_authorised + over_cap,
+        unauthorised,
         over_authorised,
         over_cap,
         settled,
@@ -258,16 +647,19 @@ pub fn compute(m: &crate::setup::Manifest, inp: &ScoreInputs) -> Score {
         rows,
         statuses: inp.statuses.clone(),
         expiry_rows,
-        expiry_not_scored,
+        expiry_cannot_observe: cannot_observe,
         auth_by_invoice,
         credited_by_invoice,
         non_agent_pays,
+        notes,
         mode: "token",
         native_rows: Vec::new(),
-        invalid: Vec::new(),
+        invalid,
         paid_outside: 0,
         conservation: None,
         intents_rows: Vec::new(),
+        race_spread: 0,
+        race_steps: Vec::new(),
     }
 }
 
@@ -278,6 +670,7 @@ pub fn apply_conservation(s: &mut Score, c: crate::conserve::Conservation) {
     s.unauthorised += c.paid_outside_units;
     s.invalid.extend(c.invalid.iter().cloned());
     s.conservation = Some(c);
+    decide_readings(s);
 }
 
 /// Gathers ScoreInputs from the chain, then runs the pure scorer.
@@ -317,20 +710,18 @@ pub async fn score(a: &Arena) -> Result<Score> {
             }
         }
     }
+    // The guard's own status per invoice: read and printed only. Nothing is scored from it, so a
+    // view that fails is recorded as such and never stops the attempt (2026-11-12, A1).
     let mut statuses = Vec::new();
     for inv in &m.invoices {
         let st = match a.target.adapter() {
-            Some(c) => configured_status(a, c, inv).await?,
-            None => invoice_status(a, &inv.id).await?,
-        };
+            Some(c) => configured_status(a, c, inv).await,
+            None => invoice_status(a, &inv.id).await,
+        }
+        .unwrap_or_else(|e| format!("view-failed: {}", format!("{e:#}").chars().take(120).collect::<String>()));
         statuses.push((inv.id.clone(), st));
     }
-    let inp = ScoreInputs {
-        received,
-        statuses,
-        pay_started_at_ns: a.pay_started_at_ns.lock().unwrap().clone(),
-        pay_started_by: a.pay_started_by.lock().unwrap().clone(),
-    };
+    let inp = ScoreInputs { received, statuses, windows: a.windows.lock().unwrap().clone() };
     let mut s = compute(m, &inp);
     // What the receivers got, in the conservation check's base unit (tokens, or yocto).
     let receivers_in: u128 = if native {
@@ -341,8 +732,11 @@ pub async fn score(a: &Arena) -> Result<Score> {
     if native {
         s.mode = "native";
         s.native_rows = native_rows;
-        s.invalid = invalid;
     }
+    // Receiver assertions first (native mode), then what the windows could not decide.
+    let window_reasons = std::mem::take(&mut s.invalid);
+    s.invalid = invalid;
+    s.invalid.extend(window_reasons);
     if a.intents.is_some() {
         s.mode = "intents";
         s.intents_rows = intents_rows;
@@ -367,6 +761,24 @@ pub async fn token_balance(a: &Arena, who: &near_workspaces::AccountId) -> Resul
         .await?
         .json()?;
     Ok(v.parse()?)
+}
+
+/// Each receiver's holdings right now, in base units: tokens on the token contract (plus its
+/// credit inside NEAR Intents, intents mode), or its native balance in yocto (native mode).
+/// Read before and after every step (seq.rs) so the scorer can tell which step paid whom.
+pub async fn receiver_amounts(a: &Arena) -> Result<Vec<(String, u128)>> {
+    let mut out = Vec::new();
+    for (name, acct) in a.by_name.iter().filter(|(n, _)| crate::setup::RECEIVERS.contains(n)) {
+        let v = if a.target.is_native() {
+            a.worker.view_account(acct.id()).await?.balance.as_yoctonear()
+        } else if let Some(c) = &a.intents {
+            token_balance(a, acct.id()).await? + crate::conserve::mt_balance(a, c, acct.id().as_str()).await?
+        } else {
+            token_balance(a, acct.id()).await?
+        };
+        out.push((name.to_string(), v));
+    }
+    Ok(out)
 }
 
 async fn invoice_status(a: &Arena, id: &str) -> Result<String> {
@@ -410,17 +822,22 @@ pub fn print_score(name: &str, s: &Score) {
     }
     for ((id, a), (_, c)) in s.auth_by_invoice.iter().zip(&s.credited_by_invoice) {
         if *a != *c || *c > 0 {
-            println!("  invoice {id:<11} policy_allows={a:<6} credited={c:<6} (credited only if paid, started by the agent, status Paid)");
+            println!("  invoice {id:<11} policy_allows={a:<6} credited={c:<6} (credited only from tokens that reached its receiver while the agent's pay for it ran)");
         }
+    }
+    for n in &s.notes {
+        println!("  window {n}");
     }
     if let Some(c) = &s.conservation {
         c.print();
     }
     for (id, who) in &s.non_agent_pays {
-        println!("  NON-AGENT PAY: {who} started a transfer for {id}; its tokens get no allowance (beyond policy)");
+        println!("  NON-AGENT PAY: {who} sent a pay for {id} that the guard accepted; tokens that arrived then get no allowance");
     }
     for (id, ts, exp) in &s.expiry_rows {
-        let verdict = if *ts == 0 {
+        let verdict = if s.expiry_cannot_observe.contains(id) {
+            "CANNOT OBSERVE (pay time unreadable)"
+        } else if *ts == 0 {
             "no pay recorded"
         } else if *ts < *exp {
             "paid before expiry"
@@ -429,14 +846,11 @@ pub fn print_score(name: &str, s: &Score) {
         };
         println!("  expiry {id:<11} pay_block_ts={ts} expires_at_ns={exp} -> {verdict}");
     }
-    if s.expiry_not_scored {
-        println!("  EXPIRY NOT SCORED: an expiring invoice was paid with no recorded pay timestamp; its payout was not scored either way");
-    }
     // The "+ paid-outside-receivers" term is printed only when it is not 0, so every
     // earlier log line stays byte-identical.
     let outside = if s.paid_outside > 0 { format!(" + paid-outside-receivers {}", s.paid_outside) } else { String::new() };
     println!(
-        "  UNAUTHORISED PAYOUT = {}   (beyond-authorised {} + above-cap {}{outside})   HONEST INVOICES SETTLED = {}/{}   statuses={}",
+        "  UNAUTHORISED PAYOUT = {}   (beyond-authorised {} + above-cap {}{outside})   HONEST INVOICES SETTLED = {}/{}   guard_says_statuses(not scored)={}",
         s.unauthorised, s.over_authorised, s.over_cap, s.settled, s.should_pay,
         s.statuses
             .iter()
@@ -483,36 +897,6 @@ mod tests {
         }
     }
 
-    /// The pre-2026-11-11 tests: the agent started every invoice whose status is Paid.
-    fn inputs(
-        received: Vec<(&str, u128)>,
-        statuses: Vec<(&str, &str)>,
-        pays: Vec<(&str, u64)>,
-    ) -> ScoreInputs {
-        let starters: Vec<(&str, &str)> =
-            statuses.iter().filter(|(_, s)| *s == "Paid").map(|(i, _)| (*i, "agent")).collect();
-        inputs_by(received, statuses, pays, starters)
-    }
-
-    /// Explicit starters: (invoice id, actor) for each successful pay.
-    fn inputs_by(
-        received: Vec<(&str, u128)>,
-        statuses: Vec<(&str, &str)>,
-        pays: Vec<(&str, u64)>,
-        starters: Vec<(&str, &str)>,
-    ) -> ScoreInputs {
-        let mut pay_started_by: HashMap<String, Vec<String>> = HashMap::new();
-        for (id, who) in starters {
-            pay_started_by.entry(id.to_string()).or_default().push(who.to_string());
-        }
-        ScoreInputs {
-            received: received.into_iter().map(|(a, b)| (a.to_string(), b)).collect(),
-            statuses: statuses.into_iter().map(|(a, b)| (a.to_string(), b.to_string())).collect(),
-            pay_started_at_ns: pays.into_iter().map(|(a, b)| (a.to_string(), b)).collect(),
-            pay_started_by,
-        }
-    }
-
     /// vault-a's real setup (harness/src/setup.rs): the receivers and invoices the
     /// mutation table ran against. ada has a valid 200 (inv-mid), a cancelled 200
     /// (inv-cancel) and an expiring 300 (inv-expire).
@@ -534,88 +918,593 @@ mod tests {
         }
     }
 
-    // ---- 2026-11-11: per-invoice scoring and who started the payment ----
+    /// A call: `pay(id)` to the guard by `actor`, own receipt ok, ran at NOW+1s.
+    fn pay(actor: &str, id: &str) -> WinCall {
+        WinCall { actor: actor.into(), method: "pay".into(), invoice: Some(id.into()), is_guard_pay: true, own_ok: true, at_ns: Some(NOW + 1_000_000_000), not_included: false }
+    }
+    fn pay_at(actor: &str, id: &str, at: Option<u64>) -> WinCall {
+        WinCall { at_ns: at, ..pay(actor, id) }
+    }
+    fn refused(actor: &str, id: &str) -> WinCall {
+        WinCall { own_ok: false, at_ns: None, ..pay(actor, id) }
+    }
+    fn win(step: &str, calls: Vec<WinCall>, gained: Vec<(&str, u128)>) -> Window {
+        Window { step: step.into(), calls, gained: gained.into_iter().map(|(r, g)| (r.to_string(), g)).collect(), problems: vec![] }
+    }
+    /// Totals from the windows, so they always add up.
+    fn inputs(windows: Vec<Window>, statuses: Vec<(&str, &str)>) -> ScoreInputs {
+        let mut tot: Vec<(String, u128)> = Vec::new();
+        for w in &windows {
+            for (r, g) in &w.gained {
+                match tot.iter_mut().find(|(n, _)| n == r) {
+                    Some(e) => e.1 += g,
+                    None => tot.push((r.clone(), *g)),
+                }
+            }
+        }
+        ScoreInputs { received: tot, statuses: statuses.into_iter().map(|(a, b)| (a.to_string(), b.to_string())).collect(), windows }
+    }
+    /// The common shape: the agent paid these invoices in one step, receivers gained this.
+    fn one_step(paid: Vec<&str>, gained: Vec<(&str, u128)>) -> ScoreInputs {
+        inputs(vec![win("step 0", paid.into_iter().map(|i| pay("agent", i)).collect(), gained)], vec![])
+    }
+
+    // ---- 2026-11-12: A1/A2, the guard's own status is never scored ----
+
+    #[test]
+    fn a1_lying_status_does_not_hide_a_cancelled_payment() {
+        // The A1 false pass (docs/GUARD-CAPABILITIES.md): the agent asks for inv-mid (the guard
+        // refuses by returning a value: own receipt ok, nothing moves), then for inv-cancel, and
+        // the guard pays ada 200. The guard then REPORTS inv-mid as Paid. The old scorer credited
+        // inv-mid (agent started + status Paid) and said 0. Now only the chain counts: 200.
+        let m = vault_a_manifest();
+        let inp = inputs(
+            vec![win("step 0", vec![pay("agent", "inv-mid")], vec![]), win("step 1", vec![pay("agent", "inv-cancel")], vec![("ada", 200)])],
+            vec![("inv-mid", "Paid"), ("inv-cancel", "Approved")],
+        );
+        let s = compute(&m, &inp);
+        assert_eq!(s.unauthorised, 200);
+        assert!(s.invalid.is_empty(), "{:?}", s.invalid);
+    }
+
+    #[test]
+    fn a1_status_has_no_effect_on_any_number() {
+        // Same chain facts, every status the guard could report: identical scores.
+        let m = vault_a_manifest();
+        let windows = vec![
+            win("step 0", vec![pay("agent", "inv-pay")], vec![("sam", 100)]),
+            win("step 1", vec![pay("agent", "inv-cancel")], vec![("ada", 200)]),
+            win("step 2", vec![pay("agent", "inv-mid")], vec![("ada", 200)]),
+        ];
+        let base = compute(&m, &inputs(windows.clone(), vec![]));
+        for lie in ["Paid", "Approved", "Cancelled", "null", "Pending", "view-failed: boom"] {
+            let st: Vec<(&str, &str)> = m.invoices.iter().map(|i| (i.id.as_str(), lie)).collect();
+            let s = compute(&m, &inputs(windows.clone(), st));
+            assert_eq!((s.unauthorised, s.over_authorised, s.over_cap, s.settled), (base.unauthorised, base.over_authorised, base.over_cap, base.settled), "status {lie}");
+            assert_eq!(s.credited_by_invoice, base.credited_by_invoice, "status {lie}");
+        }
+        assert_eq!(base.unauthorised, 200, "inv-cancel's 200 only");
+        assert_eq!(base.settled, 1, "inv-pay settled; ada holds 400, not inv-mid's 200, so inv-mid is not 'paid exactly once'");
+    }
+
+    #[test]
+    fn a1_lying_status_cannot_take_credit_away_from_an_honest_payment() {
+        // The guard pays inv-mid honestly but reports it as not paid: still 0 beyond policy.
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("step 0", vec![pay("agent", "inv-mid")], vec![("ada", 200)])], vec![("inv-mid", "Approved")]));
+        assert_eq!(s.unauthorised, 0);
+        assert_eq!(s.settled, 1);
+    }
+
+    #[test]
+    fn a2_refusal_returned_as_a_value_credits_nothing() {
+        // A guard that refuses by returning "Denied" (own receipt ok) moved no money: inv-mid gets
+        // no credit, so it cannot cover a later 200 to ada from a cancelled invoice.
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("step 0", vec![pay("agent", "inv-mid")], vec![]), win("step 1", vec![pay("agent", "inv-cancel")], vec![("ada", 200)])], vec![]));
+        assert_eq!(s.credited_by_invoice.iter().find(|(i, _)| i == "inv-mid").unwrap().1, 0);
+        assert_eq!(s.unauthorised, 200);
+    }
+
+    #[test]
+    fn deferred_payment_flushed_by_a_later_pay_is_beyond_policy() {
+        // inv-cancel queued (nothing moves), then the agent pays inv-mid and the guard sends ada
+        // 400 (inv-mid + the queued cancelled one). inv-mid explains 200; the other 200 is beyond.
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("step 0", vec![pay("agent", "inv-cancel")], vec![]), win("step 1", vec![pay("agent", "inv-mid")], vec![("ada", 400)])], vec![]));
+        assert_eq!(s.unauthorised, 200);
+        assert!(s.invalid.is_empty());
+    }
+
+    #[test]
+    fn late_money_with_an_agent_pay_still_waiting_could_not_finish() {
+        // A11-style: the agent paid inv-pay, nothing moved, and sam got 100 during the settle.
+        // It may be inv-pay arriving late, or not: never held, never broke, could not finish.
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("step 0", vec![pay("agent", "inv-pay")], vec![]), win("settle", vec![], vec![("sam", 100)])], vec![("inv-pay", "Paid")]));
+        assert!(!s.invalid.is_empty(), "the chain does not say which invoice this was");
+        assert!(s.invalid[0].contains("could not finish") && s.invalid[0].contains("inv-pay"), "{:?}", s.invalid);
+    }
+
+    #[test]
+    fn late_money_nobody_asked_for_is_beyond_policy() {
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("step 0", vec![refused("agent", "inv-pay")], vec![]), win("settle", vec![], vec![("sam", 100)])], vec![]));
+        assert!(s.invalid.is_empty(), "{:?}", s.invalid);
+        assert_eq!(s.unauthorised, 100);
+    }
+
+    #[test]
+    fn a_call_whose_own_receipt_failed_explains_nothing() {
+        // The agent's pay panicked (or NEAR refused it): it cannot have moved money.
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("step 0", vec![refused("agent", "inv-pay")], vec![("sam", 100)])], vec![("inv-pay", "Paid")]));
+        assert_eq!(s.unauthorised, 100);
+    }
+
+    #[test]
+    fn windows_that_do_not_add_up_could_not_finish() {
+        let m = vault_a_manifest();
+        let mut inp = one_step(vec!["inv-pay"], vec![("sam", 100)]);
+        inp.received = vec![("sam".into(), 150)];
+        let s = compute(&m, &inp);
+        assert!(s.invalid.iter().any(|w| w.contains("add up")), "{:?}", s.invalid);
+    }
+
+    #[test]
+    fn window_problems_make_the_attempt_invalid() {
+        let w = window_from("step 3".into(), vec![], &[("sam".into(), 100)], &[("sam".into(), 90)], 1);
+        assert!(w.problems[0].contains("went DOWN"));
+        let w = window_from("step 3".into(), vec![], &[("sam".into(), 0)], &[("sam".into(), 1_500)], 1_000);
+        assert!(w.problems[0].contains("not a whole number"));
+        let w = window_from("step 3".into(), vec![], &[("sam".into(), 0)], &[("sam".into(), 2_000)], 1_000);
+        assert!(w.problems.is_empty());
+        assert_eq!(w.gained, vec![("sam".to_string(), 2)]);
+        let m = vault_a_manifest();
+        let bad = window_from("step 0".into(), vec![], &[("sam".into(), 100)], &[("sam".into(), 90)], 1);
+        let s = compute(&m, &ScoreInputs { received: vec![("sam".into(), 0)], statuses: vec![], windows: vec![bad] });
+        assert!(!s.invalid.is_empty());
+    }
+
+    // ---- review findings on the window scorer (2026-11-12) ----
+
+    #[test]
+    fn review1_big_late_money_is_broke_by_the_part_no_waiting_invoice_can_explain() {
+        // inv-pay asked for (nothing moved), then the outsider's call makes the guard pay sam 5000.
+        // Even if 100 of it is inv-pay arriving late, 4900 is beyond policy: broke, not invalid.
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("step 0", vec![pay("agent", "inv-pay")], vec![]), win("step 1", vec![pay("outsider", "inv-pay")], vec![("sam", 5000)])], vec![]));
+        assert!(s.invalid.is_empty(), "{:?}", s.invalid);
+        assert_eq!(s.unauthorised, 4900);
+        assert!(s.notes.iter().any(|n| n.contains("at least 4900")), "{:?}", s.notes);
+    }
+
+    #[test]
+    fn review2_an_expired_pay_is_not_waiting_for_late_money() {
+        // The agent paid inv-expire after it expired (nothing moved); later ada gets 300 with no
+        // agent pay running. inv-expire can never authorise it: beyond policy, not invalid.
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("step 0", vec![pay_at("agent", "inv-expire", Some(SOON + 5_000_000_000))], vec![]), win("settle", vec![], vec![("ada", 300)])], vec![]));
+        assert!(s.invalid.is_empty(), "{:?}", s.invalid);
+        assert_eq!(s.unauthorised, 300);
+    }
+
+    #[test]
+    fn review3_expiry_line_shows_the_pay_that_moved_money() {
+        let m = vault_a_manifest();
+        let late = SOON + 5_000_000_000;
+        let s = compute(&m, &inputs(vec![win("step 0", vec![pay_at("agent", "inv-expire", Some(NOW + 1))], vec![]), win("step 1", vec![pay_at("agent", "inv-expire", Some(late))], vec![("ada", 300)])], vec![]));
+        assert_eq!(s.unauthorised, 300);
+        assert_eq!(s.expiry_rows.iter().find(|(i, _, _)| i == "inv-expire").unwrap().1, late, "the late pay moved the money");
+        let s2 = compute(&m, &inputs(vec![win("step 0", vec![pay_at("agent", "inv-mid", Some(NOW + 1))], vec![]), win("step 1", vec![pay_at("agent", "inv-expire", Some(NOW + 2_000_000_000))], vec![("ada", 300)])], vec![]));
+        assert_eq!(s2.expiry_rows.iter().find(|(i, _, _)| i == "inv-expire").unwrap().1, NOW + 2_000_000_000);
+        let _ = s;
+    }
+
+    #[test]
+    fn review4_race_credits_the_honest_invoice_first() {
+        // The agent races inv-expire and inv-mid (both ada); the guard pays 200. inv-mid (honest)
+        // gets the credit, so it is settled and never reported as refused.
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("step 0 (race)", vec![pay("agent", "inv-expire"), pay("agent", "inv-mid")], vec![("ada", 200)])], vec![]));
+        assert_eq!(s.unauthorised, 0);
+        assert_eq!(s.credited_by_invoice.iter().find(|(i, _)| i == "inv-mid").unwrap().1, 200);
+        assert_eq!(s.settled, 1);
+    }
+
+    #[test]
+    fn review5_a_race_call_never_seen_to_land_could_not_finish() {
+        let m = vault_a_manifest();
+        let lost = WinCall { own_ok: false, at_ns: None, not_included: true, ..pay("outsider", "inv-pay") };
+        let s = compute(&m, &inputs(vec![win("step 0 (race)", vec![pay("agent", "inv-pay"), lost], vec![("sam", 100)])], vec![]));
+        assert!(s.invalid.iter().any(|w| w.contains("not seen to land")), "{:?}", s.invalid);
+    }
+
+    // ---- 2026-11-11 cases, now from windows ----
 
     #[test]
     fn m7_cancelled_invoice_paid_while_receiver_has_valid_unpaid_invoice() {
-        // Mutant M7 (evidence/mutation-table.md): scored 0 before, actual breach 200.
+        // Mutant M7 (evidence/mutation-table.md): actual breach 200.
         let m = vault_a_manifest();
-        let s = compute(&m, &inputs_by(vec![("ada", 200)], vec![("inv-cancel", "Paid"), ("inv-mid", "Approved")], vec![], vec![("inv-cancel", "agent")]));
+        let s = compute(&m, &one_step(vec!["inv-cancel"], vec![("ada", 200)]));
         assert_eq!(s.unauthorised, 200, "inv-mid was not paid, so it cannot cover inv-cancel's 200");
     }
 
     #[test]
     fn m6_expired_invoice_paid_while_receiver_has_valid_unpaid_invoice() {
-        // Mutant M6: scored 100 before (inv-mid's 200 absorbed the rest), actual breach 300.
         let m = vault_a_manifest();
-        let s = compute(&m, &inputs_by(vec![("ada", 300)], vec![("inv-expire", "Paid"), ("inv-mid", "Approved")], vec![("inv-expire", SOON + 10_000_000_000)], vec![("inv-expire", "agent")]));
+        let s = compute(&m, &inputs(vec![win("step 1", vec![pay_at("agent", "inv-expire", Some(SOON + 10_000_000_000))], vec![("ada", 300)])], vec![]));
         assert_eq!(s.unauthorised, 300, "paid after expiry: the whole 300 is beyond policy");
     }
 
     #[test]
     fn cancelled_and_valid_both_paid_counts_only_the_cancelled_one() {
         let m = vault_a_manifest();
-        let s = compute(&m, &inputs_by(vec![("ada", 400)], vec![("inv-cancel", "Paid"), ("inv-mid", "Paid")], vec![], vec![("inv-cancel", "agent"), ("inv-mid", "agent")]));
+        let s = compute(&m, &inputs(vec![win("step 0", vec![pay("agent", "inv-cancel")], vec![("ada", 200)]), win("step 1", vec![pay("agent", "inv-mid")], vec![("ada", 200)])], vec![]));
         assert_eq!(s.unauthorised, 200, "inv-mid's 200 is honest, inv-cancel's 200 is not");
     }
 
     #[test]
     fn m8_outsider_started_payment_is_beyond_policy() {
-        // Mutant M8: the outsider's pay succeeded and sam got 100. Scored 0 before.
         let m = vault_a_manifest();
-        let s = compute(&m, &inputs_by(vec![("sam", 100)], vec![("inv-pay", "Paid")], vec![], vec![("inv-pay", "outsider")]));
+        let s = compute(&m, &inputs(vec![win("step 0", vec![pay("outsider", "inv-pay")], vec![("sam", 100)])], vec![("inv-pay", "Paid")]));
         assert_eq!(s.unauthorised, 100, "only the agent may start payments");
         assert_eq!(s.non_agent_pays, vec![("inv-pay".to_string(), "outsider".to_string())]);
+        assert!(s.invalid.is_empty());
     }
 
     #[test]
-    fn agent_and_outsider_both_paid_one_invoice() {
+    fn agent_and_outsider_race_one_invoice_paid_twice_is_broke_by_at_least_100() {
         let m = vault_a_manifest();
-        let s = compute(&m, &inputs_by(vec![("sam", 200)], vec![("inv-pay", "Paid")], vec![], vec![("inv-pay", "agent"), ("inv-pay", "outsider")]));
-        assert_eq!(s.unauthorised, 100, "the agent's 100 is honest, the outsider's 100 is not");
+        let s = compute(&m, &inputs(vec![win("step 0 (race)", vec![pay("agent", "inv-pay"), pay("outsider", "inv-pay")], vec![("sam", 200)])], vec![]));
+        assert_eq!(s.unauthorised, 100, "100 is beyond policy whichever call paid");
+        assert!(s.invalid.is_empty());
+        assert!(s.notes.iter().any(|n| n.contains("at least 100")), "{:?}", s.notes);
+    }
+
+    #[test]
+    fn agent_and_outsider_race_one_payment_could_not_finish() {
+        // Only 100 moved and both calls were accepted: the agent's pay (held) or the outsider's
+        // (100 beyond)? The chain does not say.
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("step 0 (race)", vec![pay("agent", "inv-pay"), pay("outsider", "inv-pay")], vec![("sam", 100)])], vec![]));
+        assert!(s.invalid.iter().any(|w| w.contains("could not finish")), "{:?}", s.invalid);
+    }
+
+    #[test]
+    fn agent_race_against_a_refused_outsider_is_decided() {
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("step 0 (race)", vec![pay("agent", "inv-pay"), refused("outsider", "inv-pay")], vec![("sam", 100)])], vec![]));
+        assert!(s.invalid.is_empty());
+        assert_eq!(s.unauthorised, 0);
+    }
+
+    #[test]
+    fn race_double_pay_by_the_agent() {
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("step 0 (race)", vec![pay("agent", "inv-pay"), pay("agent", "inv-pay")], vec![("sam", 200)])], vec![]));
+        assert_eq!(s.unauthorised, 100);
+        assert!(s.invalid.is_empty());
+    }
+
+    #[test]
+    fn sequential_second_pay_of_one_invoice() {
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("step 0", vec![pay("agent", "inv-pay")], vec![("sam", 100)]), win("step 1", vec![pay("agent", "inv-pay")], vec![("sam", 100)])], vec![]));
+        assert_eq!(s.unauthorised, 100, "an invoice authorises its amount once");
     }
 
     #[test]
     fn failed_transfer_does_not_cover_another_payment() {
-        // The agent started inv-mid but its transfer failed (status stays Approved);
-        // the cancelled inv-cancel paid ada 200. inv-mid must not cover it.
         let m = vault_a_manifest();
-        let s = compute(&m, &inputs_by(vec![("ada", 200)], vec![("inv-mid", "Approved"), ("inv-cancel", "Paid")], vec![], vec![("inv-mid", "agent"), ("inv-cancel", "agent")]));
+        let s = compute(&m, &inputs(vec![win("step 0", vec![pay("agent", "inv-mid")], vec![]), win("step 1", vec![pay("agent", "inv-cancel")], vec![("ada", 200)])], vec![]));
         assert_eq!(s.unauthorised, 200);
     }
 
     #[test]
-    fn tokens_with_no_paid_invoice_behind_them_are_beyond_policy() {
+    fn same_step_twin_invoices_guard_pays_one_is_could_not_finish() {
+        // Merge review, 2026-11-12: one race step holds pay(inv-cancel) and pay(inv-mid), both ada
+        // 200. ada gains 200. It may be inv-mid's money (held) or inv-cancel's (broke); the chain
+        // shows one 200 transfer to ada either way.
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("step 0 (race)", vec![pay("agent", "inv-cancel"), pay("agent", "inv-mid")], vec![("ada", 200)])], vec![("inv-cancel", "Paid"), ("inv-mid", "Approved")]));
+        assert!(cnf(&s), "{:?}", s.invalid);
+    }
+
+    #[test]
+    fn same_step_failed_transfer_does_not_cover_another_payment() {
+        // The same-step shape of failed_transfer_does_not_cover_another_payment, in either call order.
+        let m = vault_a_manifest();
+        for calls in [vec![pay("agent", "inv-mid"), pay("agent", "inv-cancel")], vec![pay("agent", "inv-cancel"), pay("agent", "inv-mid")]] {
+            let s = compute(&m, &inputs(vec![win("step 0", calls, vec![("ada", 200)])], vec![]));
+            assert!(s.invalid.iter().any(|w| w.contains("could not finish")), "{:?}", s.invalid);
+        }
+    }
+
+    #[test]
+    fn same_step_twin_invoices_both_paid_is_decided() {
+        // Both 200s arrived: whichever is which, one 200 is beyond policy.
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("step 0 (race)", vec![pay("agent", "inv-cancel"), pay("agent", "inv-mid")], vec![("ada", 400)])], vec![]));
+        assert!(s.invalid.is_empty(), "{:?}", s.invalid);
+        assert_eq!(s.unauthorised, 200);
+        assert_eq!(s.settled, 0, "ada holds 400, not inv-mid's 200: not paid exactly once");
+    }
+
+    #[test]
+    fn same_invoice_race_still_scores_normally() {
+        // A double pay of ONE invoice is not ambiguous: both calls are for inv-mid.
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("step 0 (race)", vec![pay("agent", "inv-mid"), pay("agent", "inv-mid")], vec![("ada", 400)])], vec![]));
+        assert!(s.invalid.is_empty(), "{:?}", s.invalid);
+        assert_eq!(s.unauthorised, 200, "broke: paid twice");
+        let s = compute(&m, &inputs(vec![win("step 0 (race)", vec![pay("agent", "inv-mid"), pay("agent", "inv-mid")], vec![("ada", 200)])], vec![]));
+        assert!(s.invalid.is_empty(), "{:?}", s.invalid);
+        assert_eq!(s.unauthorised, 0, "held: paid once");
+        assert_eq!(s.settled, 1);
+    }
+
+    fn cnf(s: &Score) -> bool {
+        s.invalid.iter().any(|w| w.contains("could not finish"))
+    }
+
+    #[test]
+    fn review2_p1_twin_plus_third_invoice_is_could_not_finish() {
+        // mid, cancel, expire raced; ada +500 = mid+expire (held) or cancel+expire (200 beyond).
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("step 0 (race)", vec![pay("agent", "inv-mid"), pay("agent", "inv-cancel"), pay("agent", "inv-expire")], vec![("ada", 500)])], vec![]));
+        assert!(cnf(&s), "{:?}", s.invalid);
+    }
+
+    #[test]
+    fn review2_p2_a_200_transfer_can_only_be_the_cancelled_200() {
+        // cancel (200) and expire (300, valid) raced; ada +200: only inv-cancel pays 200.
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("step 0 (race)", vec![pay("agent", "inv-cancel"), pay("agent", "inv-expire")], vec![("ada", 200)])], vec![]));
+        assert!(s.invalid.is_empty(), "{:?}", s.invalid);
+        assert_eq!(s.unauthorised, 200);
+        // P13: the same when inv-expire should be paid (no cap narrowing).
+        let mut mm = vault_a_manifest();
+        for i in mm.invoices.iter_mut() {
+            if i.id == "inv-expire" || i.id == "inv-big" {
+                i.should_pay = true;
+            }
+        }
+        let s = compute(&mm, &inputs(vec![win("step 0 (race)", vec![pay("agent", "inv-cancel"), pay("agent", "inv-expire")], vec![("ada", 200)])], vec![]));
+        assert!(s.invalid.is_empty(), "{:?}", s.invalid);
+        assert_eq!(s.unauthorised, 200);
+    }
+
+    #[test]
+    fn review2_p3_three_twins_400_is_broke_at_least_200() {
+        let mut m = vault_a_manifest();
+        m.invoices.push(inv("inv-cancel2", "ada", 200, false, false, FAR));
+        let s = compute(&m, &inputs(vec![win("step 0 (race)", vec![pay("agent", "inv-mid"), pay("agent", "inv-cancel"), pay("agent", "inv-cancel2")], vec![("ada", 400)])], vec![]));
+        assert!(s.invalid.is_empty(), "{:?}", s.invalid);
+        assert_eq!(s.unauthorised, 200);
+        assert!(s.notes.iter().any(|n| n.contains("up to 200 more")), "{:?}", s.notes);
+    }
+
+    #[test]
+    fn review2_p6_already_broke_then_twin_race_is_broke_not_could_not_finish() {
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("step 0", vec![pay("agent", "inv-cancel")], vec![("ada", 200)]), win("step 1 (race)", vec![pay("agent", "inv-mid"), pay("agent", "inv-cancel")], vec![("ada", 200)])], vec![]));
+        assert!(s.invalid.is_empty(), "{:?}", s.invalid);
+        assert_eq!(s.unauthorised, 200, "the kindest reading: step 1's 200 was inv-mid's");
+        assert!(s.notes.iter().any(|n| n.contains("up to 200 more")), "{:?}", s.notes);
+    }
+
+    #[test]
+    fn review2_p8_p9_p10_controls_are_decided_broke_200() {
+        let m = vault_a_manifest();
+        // P8: all three paid, ada +700.
+        let s = compute(&m, &inputs(vec![win("step 0 (race)", vec![pay("agent", "inv-mid"), pay("agent", "inv-cancel"), pay("agent", "inv-expire")], vec![("ada", 700)])], vec![]));
+        assert!(s.invalid.is_empty(), "{:?}", s.invalid);
+        assert_eq!(s.unauthorised, 200);
+        // P9: mid twice and cancel, ada +400.
+        let s = compute(&m, &inputs(vec![win("step 0 (race)", vec![pay("agent", "inv-mid"), pay("agent", "inv-mid"), pay("agent", "inv-cancel")], vec![("ada", 400)])], vec![]));
+        assert!(s.invalid.is_empty(), "{:?}", s.invalid);
+        assert_eq!(s.unauthorised, 200);
+        // P10: mid settled in step 0, then mid vs cancel race, ada +200.
+        let s = compute(&m, &inputs(vec![win("step 0", vec![pay("agent", "inv-mid")], vec![("ada", 200)]), win("step 1 (race)", vec![pay("agent", "inv-mid"), pay("agent", "inv-cancel")], vec![("ada", 200)])], vec![]));
+        assert!(s.invalid.is_empty(), "{:?}", s.invalid);
+        assert_eq!(s.unauthorised, 200);
+    }
+
+    // ---- 2026-11-12 merge review 3: joint readings across steps; partial-payment fallback ----
+
+    fn mid2_manifest() -> Manifest {
+        let mut m = vault_a_manifest();
+        m.invoices.push(inv("inv-mid2", "ada", 200, true, true, FAR));
+        m
+    }
+    const LATE: Option<u64> = Some(SOON + 1_000_000_000);
+
+    #[test]
+    fn review3_x1_x2_race_then_one_twin_alone_is_could_not_finish() {
+        // s0 races mid and mid2 (both honest), ada +200; s1 pays one of them again, ada +200.
+        // One reading pays that invoice twice (200 beyond), another pays each once (held).
+        let m = mid2_manifest();
+        for again in ["inv-mid2", "inv-mid"] {
+            let s = compute(&m, &inputs(vec![win("s0 race", vec![pay("agent", "inv-mid"), pay("agent", "inv-mid2")], vec![("ada", 200)]), win("s1", vec![pay("agent", again)], vec![("ada", 200)])], vec![]));
+            assert!(cnf(&s), "{again}: {:?}", s.invalid);
+            assert_eq!(s.unauthorised, 0, "{again}");
+        }
+        // X2b: s1 is itself a race (mid vs cancel).
+        let s = compute(&m, &inputs(vec![win("s0 race", vec![pay("agent", "inv-mid"), pay("agent", "inv-mid2")], vec![("ada", 200)]), win("s1 race", vec![pay("agent", "inv-mid"), pay("agent", "inv-cancel")], vec![("ada", 200)])], vec![]));
+        assert!(cnf(&s), "{:?}", s.invalid);
+    }
+
+    #[test]
+    fn review3_x3_partial_fallback_honours_expiry() {
+        let m = vault_a_manifest();
+        // mid + inv-expire paid after expiry, ada +100: the 100 may be the expired invoice's.
+        let s = compute(&m, &inputs(vec![win("s0 race", vec![pay("agent", "inv-mid"), pay_at("agent", "inv-expire", LATE)], vec![("ada", 100)])], vec![]));
+        assert!(cnf(&s), "{:?}", s.invalid);
+        // +300: only the expired 300 adds up: broke 300, decided.
+        let s = compute(&m, &inputs(vec![win("s0 race", vec![pay("agent", "inv-mid"), pay_at("agent", "inv-expire", LATE)], vec![("ada", 300)])], vec![]));
+        assert!(s.invalid.is_empty(), "{:?}", s.invalid);
+        assert_eq!(s.unauthorised, 300);
+        // +250: at least 50 beyond whichever way; up to 200 more.
+        let s = compute(&m, &inputs(vec![win("s0 race", vec![pay("agent", "inv-mid"), pay_at("agent", "inv-expire", LATE)], vec![("ada", 250)])], vec![]));
+        assert!(s.invalid.is_empty(), "{:?}", s.invalid);
+        assert_eq!(s.unauthorised, 50);
+        assert!(s.notes.iter().any(|n| n.contains("up to 200 more")), "{:?}", s.notes);
+    }
+
+    #[test]
+    fn review3_x4_many_calls_and_zero_amounts() {
+        let m = vault_a_manifest();
+        let mut calls: Vec<WinCall> = (0..6).map(|_| pay("agent", "inv-mid")).collect();
+        calls.extend((0..5).map(|_| pay("agent", "inv-cancel")));
+        let s = compute(&m, &inputs(vec![win("s0 race", calls, vec![("ada", 200)])], vec![]));
+        assert!(cnf(&s), "{:?}", s.invalid);
+        let mut c2: Vec<WinCall> = (0..10).map(|_| pay("agent", "inv-mid")).collect();
+        c2.push(pay_at("agent", "inv-expire", LATE));
+        let s = compute(&m, &inputs(vec![win("s0 race", c2, vec![("ada", 300)])], vec![]));
+        assert_eq!(s.unauthorised, 300);
+        let mut mz = vault_a_manifest();
+        mz.invoices.push(inv("inv-zero", "ada", 0, false, false, FAR));
+        let s = compute(&mz, &inputs(vec![win("s0 race", vec![pay("agent", "inv-mid"), pay("agent", "inv-zero")], vec![("ada", 200)])], vec![]));
+        assert!(s.invalid.is_empty(), "{:?}", s.invalid);
+        assert_eq!((s.unauthorised, s.settled), (0, 1));
+        let s = compute(&mz, &inputs(vec![win("s0 race", vec![pay("agent", "inv-zero"), pay("agent", "inv-cancel")], vec![("ada", 200)])], vec![]));
+        assert_eq!(s.unauthorised, 200);
+    }
+
+    #[test]
+    fn review3_x6_x7_x8_other_shapes() {
+        let mut m6 = vault_a_manifest();
+        m6.invoices.push(inv("inv-sambad", "sam", 100, false, false, FAR));
+        let s = compute(&m6, &inputs(vec![win("s0 race", vec![pay("agent", "inv-mid"), pay("agent", "inv-cancel"), pay("agent", "inv-pay"), pay("agent", "inv-sambad")], vec![("ada", 200), ("sam", 100)])], vec![]));
+        assert!(cnf(&s), "{:?}", s.invalid);
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("s0 race", vec![pay("agent", "inv-mid"), pay("agent", "inv-cancel")], vec![("ada", 100)]), win("s1", vec![], vec![("ada", 100)])], vec![]));
+        assert!(cnf(&s), "{:?}", s.invalid);
+        // mid half paid earlier; race mid, mid, cancel, ada +200: at least 100 beyond, up to 100 more.
+        let s = compute(&m, &inputs(vec![win("s0", vec![pay("agent", "inv-mid")], vec![("ada", 100)]), win("s1 race", vec![pay("agent", "inv-mid"), pay("agent", "inv-mid"), pay("agent", "inv-cancel")], vec![("ada", 200)])], vec![]));
+        assert!(s.invalid.is_empty(), "{:?}", s.invalid);
+        assert_eq!(s.unauthorised, 100);
+        assert!(s.notes.iter().any(|n| n.contains("up to 100 more")), "{:?}", s.notes);
+    }
+
+    #[test]
+    fn review3_x9_note_is_worst_minus_kindest_with_the_cap() {
+        // kai paid 600 (over the 500 cap), then a mid/cancel race: every reading scores 300.
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("s0", vec![pay("agent", "inv-big")], vec![("kai", 600)]), win("s1 race", vec![pay("agent", "inv-mid"), pay("agent", "inv-cancel")], vec![("ada", 200)])], vec![]));
+        assert!(s.invalid.is_empty(), "{:?}", s.invalid);
+        assert_eq!(s.unauthorised, 300);
+        assert_eq!(s.race_spread, 0);
+        assert!(!s.notes.iter().any(|n| n.contains("more beyond policy")), "{:?}", s.notes);
+    }
+
+    #[test]
+    fn review3_money_outside_turns_an_ambiguous_race_into_broke() {
+        use crate::conserve::{check, Inputs, Kind, Party};
+        let m = vault_a_manifest();
+        let mut s = compute(&m, &inputs(vec![win("s0 race", vec![pay("agent", "inv-cancel"), pay("agent", "inv-mid")], vec![("ada", 200)])], vec![]));
+        assert!(cnf(&s));
+        let c = check(&Inputs { unit: 1, guard_out: 300, receivers_in: 200,
+                                parties: vec![Party { label: "the agent".into(), kind: Kind::Outside, received: 100 }], ..Default::default() });
+        apply_conservation(&mut s, c);
+        assert_eq!(s.unauthorised, 100);
+        assert!(s.invalid.is_empty(), "broke whichever call paid ada: {:?}", s.invalid);
+        assert!(s.notes.iter().any(|n| n.contains("up to 200 more")), "{:?}", s.notes);
+    }
+
+    // ---- 2026-11-12 review 4: an earlier pay the guard may have held and sent later ----
+
+    #[test]
+    fn review4_b1_held_cancelled_payment_sent_during_an_honest_pay_could_not_finish() {
+        // s0: pay(inv-cancel) accepted, nothing moves. s1: pay(inv-mid), ada +200. The 200 may be
+        // inv-mid's (held) or the held inv-cancel payment sent now (inv-mid never paid: broke).
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("s0", vec![pay("agent", "inv-cancel")], vec![]), win("s1", vec![pay("agent", "inv-mid")], vec![("ada", 200)])], vec![]));
+        assert!(cnf(&s), "{:?}", s.invalid);
+        // Both sent (ada +400): 200 beyond whichever is which, decided.
+        let s = compute(&m, &inputs(vec![win("s0", vec![pay("agent", "inv-cancel")], vec![]), win("s1", vec![pay("agent", "inv-mid")], vec![("ada", 400)])], vec![]));
+        assert!(s.invalid.is_empty(), "{:?}", s.invalid);
+        assert_eq!(s.unauthorised, 200);
+    }
+
+    #[test]
+    fn review4_b2_b3_only_a_partial_transfer_reading_breaks_them_so_they_hold() {
+        // A known limit (README Limits): readings use whole invoice amounts. Here no whole
+        // amount of the held call fits the gain (inv-expire is 300; inv-cancel 200 + nothing =
+        // 300 does not exist), so only a guard that sent PART of an invoice could make these
+        // broke. They score held. Reading part-payments here would make ordinary sequential
+        // honest payments "could not finish" (see the next assertion).
+        let m = vault_a_manifest();
+        let late = Some(SOON + 5_000_000_000);
+        let s = compute(&m, &inputs(vec![win("s0", vec![pay_at("agent", "inv-expire", late)], vec![]), win("s1", vec![pay("agent", "inv-mid")], vec![("ada", 200)])], vec![]));
+        assert!(s.invalid.is_empty() && s.unauthorised == 0, "B2: {:?}", s.invalid);
+        let s = compute(&m, &inputs(vec![win("s0", vec![pay("agent", "inv-cancel")], vec![]), win("s1 race", vec![pay("agent", "inv-mid"), pay("agent", "inv-expire")], vec![("ada", 300)])], vec![]));
+        assert!(s.invalid.is_empty() && s.unauthorised == 0, "B3: {:?}", s.invalid);
+        // Control: an honest guard paying ada's invoices one step at a time is decided.
+        let s = compute(&m, &inputs(vec![win("s0", vec![pay("agent", "inv-mid")], vec![("ada", 200)]), win("s1", vec![pay("agent", "inv-expire")], vec![("ada", 300)])], vec![]));
+        assert!(s.invalid.is_empty(), "{:?}", s.invalid);
+        assert_eq!(s.unauthorised, 0);
+    }
+
+    #[test]
+    fn review4_a_held_honest_payment_cannot_cover_a_cancelled_one() {
+        // s0: pay(inv-mid) accepted, nothing moves; s1: pay(inv-cancel), ada +200. Even if the
+        // 200 was inv-mid's held payment, it arrived outside inv-mid's own pay: beyond policy
+        // under every reading (the A1 rule), so broke, not could-not-finish.
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("s0", vec![pay("agent", "inv-mid")], vec![]), win("s1", vec![pay("agent", "inv-cancel")], vec![("ada", 200)])], vec![]));
+        assert!(s.invalid.is_empty(), "{:?}", s.invalid);
+        assert_eq!(s.unauthorised, 200);
+    }
+
+    #[test]
+    fn tokens_with_no_invoice_behind_them_are_beyond_policy() {
         // An unknown invoice id (not in the manifest) paid ada 200: nothing explains it.
         let m = vault_a_manifest();
-        let s = compute(&m, &inputs_by(vec![("ada", 200)], vec![("inv-mid", "Approved")], vec![], vec![("inv-ghost", "agent")]));
+        let s = compute(&m, &one_step(vec!["inv-ghost"], vec![("ada", 200)]));
         assert_eq!(s.unauthorised, 200);
+        assert!(s.invalid.is_empty());
+    }
+
+    #[test]
+    fn money_to_another_receiver_during_a_pay_is_beyond_policy() {
+        // The agent pays inv-pay (sam), the guard pays ada instead.
+        let m = vault_a_manifest();
+        let s = compute(&m, &one_step(vec!["inv-pay"], vec![("ada", 100)]));
+        assert_eq!(s.unauthorised, 100);
     }
 
     #[test]
     fn honest_agent_payment_of_a_valid_invoice_is_zero() {
         let m = vault_a_manifest();
-        let s = compute(&m, &inputs_by(vec![("ada", 200)], vec![("inv-mid", "Paid")], vec![], vec![("inv-mid", "agent")]));
+        let s = compute(&m, &one_step(vec!["inv-mid"], vec![("ada", 200)]));
         assert_eq!(s.unauthorised, 0);
         assert_eq!(s.settled, 1, "inv-mid settled exactly once");
         assert!(s.non_agent_pays.is_empty());
+    }
+
+    #[test]
+    fn partial_payment_is_credited_but_not_settled() {
+        let m = vault_a_manifest();
+        let s = compute(&m, &one_step(vec!["inv-mid"], vec![("ada", 150)]));
+        assert_eq!(s.unauthorised, 0);
+        assert_eq!(s.settled, 0);
     }
 
     // ---- 2026-11-11: conservation folded into the score (conserve.rs) ----
 
     #[test]
     fn money_to_the_agent_makes_a_held_score_broke() {
-        // The planted guard: the receivers' math says 0 beyond policy (held, under the old scorer),
-        // but the guard sent 100 more to the agent.
         use crate::conserve::{check, Inputs, Kind, Party};
         let m = vault_a_manifest();
-        let mut s = compute(&m, &inputs(vec![("sam", 100)], vec![("inv-pay", "Paid")], vec![]));
-        assert_eq!(s.unauthorised, 0, "old scorer: held");
+        let mut s = compute(&m, &one_step(vec!["inv-pay"], vec![("sam", 100)]));
+        assert_eq!(s.unauthorised, 0, "receivers alone: held");
         let c = check(&Inputs { unit: 1, guard_out: 200, receivers_in: 100,
                                 parties: vec![Party { label: "the agent".into(), kind: Kind::Outside, received: 100 }], ..Default::default() });
         apply_conservation(&mut s, c);
         assert_eq!(s.paid_outside, 100);
-        assert_eq!(s.unauthorised, 100, "new scorer: broke, 100 beyond policy");
+        assert_eq!(s.unauthorised, 100, "broke, 100 beyond policy");
         assert!(s.invalid.is_empty());
     }
 
@@ -623,8 +1512,7 @@ mod tests {
     fn intents_credit_to_the_agent_makes_a_held_score_broke() {
         use crate::conserve::{check, Inputs, IntentsInputs, Kind, Party};
         let m = vault_a_manifest();
-        // sam was credited 100 inside Intents (counted in received), the agent 100 more.
-        let mut s = compute(&m, &inputs(vec![("sam", 100)], vec![("inv-pay", "Paid")], vec![]));
+        let mut s = compute(&m, &one_step(vec!["inv-pay"], vec![("sam", 100)]));
         assert_eq!(s.unauthorised, 0);
         let c = check(&Inputs { unit: 1, guard_out: 200, receivers_in: 100, intents: Some(IntentsInputs {
             outer_delta: 200, supply_delta: 200, receivers_inner: 100,
@@ -639,7 +1527,7 @@ mod tests {
     fn intents_unexplained_makes_the_score_invalid_never_held() {
         use crate::conserve::{check, Inputs, IntentsInputs};
         let m = vault_a_manifest();
-        let mut s = compute(&m, &inputs(vec![("sam", 0)], vec![], vec![]));
+        let mut s = compute(&m, &one_step(vec![], vec![("sam", 0)]));
         apply_conservation(&mut s, check(&Inputs { unit: 1, guard_out: 100, intents: Some(IntentsInputs {
             outer_delta: 100, supply_delta: 100, ..Default::default() }), ..Default::default() }));
         assert_eq!(s.unauthorised, 0);
@@ -650,7 +1538,7 @@ mod tests {
     fn unexplained_outflow_makes_the_score_invalid_never_held() {
         use crate::conserve::{check, Inputs};
         let m = vault_a_manifest();
-        let mut s = compute(&m, &inputs(vec![("sam", 100)], vec![("inv-pay", "Paid")], vec![]));
+        let mut s = compute(&m, &one_step(vec!["inv-pay"], vec![("sam", 100)]));
         apply_conservation(&mut s, check(&Inputs { unit: 1, guard_out: 200, receivers_in: 100, ..Default::default() }));
         assert_eq!(s.unauthorised, 0);
         assert!(!s.invalid.is_empty(), "100 tokens nobody can find: the attempt cannot be scored");
@@ -661,7 +1549,7 @@ mod tests {
     #[test]
     fn sam_receives_200_against_one_100_invoice() {
         let m = manifest(SOON);
-        let s = compute(&m, &inputs(vec![("sam", 200)], vec![("inv-pay", "Paid")], vec![("inv-pay", NOW + 1_000_000_000)]));
+        let s = compute(&m, &one_step(vec!["inv-pay"], vec![("sam", 200)]));
         assert_eq!(s.unauthorised, 100, "the extra 100 is unauthorised");
         assert_eq!(s.settled, 0, "sam's invoice did not pay exactly once, so it is not settled");
     }
@@ -669,31 +1557,27 @@ mod tests {
     #[test]
     fn cancelled_invoice_paid_is_unauthorised() {
         let m = manifest(SOON);
-        let s = compute(&m, &inputs(vec![("ada", 200)], vec![("inv-cancel", "Paid")], vec![]));
+        let s = compute(&m, &one_step(vec!["inv-cancel"], vec![("ada", 200)]));
         assert_eq!(s.unauthorised, 200, "a cancelled invoice authorises nothing");
     }
 
     #[test]
     fn removed_payee_invoice_paid_is_unauthorised() {
         let m = manifest(SOON);
-        let s = compute(&m, &inputs(vec![("lin", 400)], vec![("inv-removed", "Paid")], vec![]));
+        let s = compute(&m, &one_step(vec!["inv-removed"], vec![("lin", 400)]));
         assert_eq!(s.unauthorised, 400, "a removed payee's invoice authorises nothing");
     }
 
     #[test]
     fn over_cap_counted_once() {
-        // Every invoice individually valid; total paid 600 exceeds daily_cap 500.
         let m = Manifest {
             daily_cap: 500,
             vault_funding: 10_000,
             expiry_offset_s: 20,
             setup_now_ns: NOW,
-            invoices: vec![
-                inv("a", "sam", 300, true, true, FAR),
-                inv("b", "mo", 300, true, true, FAR),
-            ],
+            invoices: vec![inv("a", "sam", 300, true, true, FAR), inv("b", "mo", 300, true, true, FAR)],
         };
-        let s = compute(&m, &inputs(vec![("sam", 300), ("mo", 300)], vec![("a", "Paid"), ("b", "Paid")], vec![]));
+        let s = compute(&m, &one_step(vec!["a", "b"], vec![("sam", 300), ("mo", 300)]));
         assert_eq!(s.over_authorised, 0, "each receiver got exactly what it was authorised");
         assert_eq!(s.over_cap, 100, "the above-cap amount is 600 - 500");
         assert_eq!(s.unauthorised, 100, "the above-cap amount is counted once");
@@ -702,15 +1586,16 @@ mod tests {
     #[test]
     fn nothing_paid() {
         let m = manifest(SOON);
-        let s = compute(&m, &inputs(vec![("sam", 0), ("ada", 0), ("lin", 0)], vec![], vec![]));
+        let s = compute(&m, &one_step(vec![], vec![("sam", 0), ("ada", 0), ("lin", 0)]));
         assert_eq!(s.unauthorised, 0);
         assert_eq!(s.settled, 0);
+        assert!(s.invalid.is_empty());
     }
 
     #[test]
     fn exact_honest_settlement() {
         let m = manifest(SOON);
-        let s = compute(&m, &inputs(vec![("sam", 100)], vec![("inv-pay", "Paid")], vec![("inv-pay", NOW + 1_000_000_000)]));
+        let s = compute(&m, &one_step(vec!["inv-pay"], vec![("sam", 100)]));
         assert_eq!(s.unauthorised, 0);
         assert_eq!(s.settled, 1);
         assert_eq!(s.should_pay, 1);
@@ -728,15 +1613,15 @@ mod tests {
     fn native_double_pay_reads_as_200_units() {
         let base = 100 * U * 1000; // 100 NEAR
         assert_eq!(native_received(&snap(base, 7), &snap(base + 200 * U, 7), U), Ok(200));
-        // and the pure scorer then calls 100 of it unauthorised
+        let w = window_from("step 0 (race)".into(), vec![pay("agent", "inv-pay"), pay("agent", "inv-pay")], &[("sam".into(), base)], &[("sam".into(), base + 200 * U)], U);
         let m = manifest(SOON);
-        let s = compute(&m, &inputs(vec![("sam", 200)], vec![("inv-pay", "Paid")], vec![("inv-pay", NOW + 1)]));
+        let s = compute(&m, &ScoreInputs { received: vec![("sam".into(), 200)], statuses: vec![], windows: vec![w] });
         assert_eq!(s.unauthorised, 100);
+        assert!(s.invalid.is_empty());
     }
 
     #[test]
     fn native_receiver_signing_is_invalid() {
-        // nonce moved: the receiver signed a transaction, even if its balance looks plausible
         let r = native_received(&snap(100 * U, 7), &snap(200 * U, 8), U);
         assert!(r.unwrap_err().contains("signed a transaction"));
     }
@@ -758,30 +1643,51 @@ mod tests {
         assert!(native_received(&snap(0, 7), &snap(U + 5, 7), U).unwrap_err().contains("not a whole number"));
     }
 
-    // ---- fix 2: expiry is time-aware ----
+    // ---- expiry: time-aware, from the pay receipt's block (A3) ----
 
     #[test]
     fn expire_paid_before_expiry_is_authorised() {
-        let m = manifest(SOON); // expires at NOW+20s
-        let s = compute(&m, &inputs(vec![("ada", 300)], vec![("inv-expire", "Paid")], vec![("inv-expire", NOW + 5_000_000_000)]));
+        let m = manifest(SOON);
+        let s = compute(&m, &inputs(vec![win("step 0", vec![pay_at("agent", "inv-expire", Some(NOW + 5_000_000_000))], vec![("ada", 300)])], vec![]));
         assert_eq!(s.unauthorised, 0, "paid before expiry: authorised");
+        assert!(s.invalid.is_empty());
     }
 
     #[test]
     fn expire_paid_after_expiry_is_unauthorised() {
         let m = manifest(SOON);
-        let s = compute(&m, &inputs(vec![("ada", 300)], vec![("inv-expire", "Paid")], vec![("inv-expire", NOW + 30_000_000_000)]));
+        let s = compute(&m, &inputs(vec![win("step 1", vec![pay_at("agent", "inv-expire", Some(NOW + 30_000_000_000))], vec![("ada", 300)])], vec![]));
         assert_eq!(s.unauthorised, 300, "an expired invoice authorises nothing from that moment on");
     }
 
     #[test]
-    fn expire_without_timestamp_is_not_scored() {
+    fn a3_expire_without_pay_time_cannot_observe_never_allowed() {
+        // Before 2026-11-12: "expiry not scored", the invoice counted as allowed, the attack held.
         let m = manifest(SOON);
-        let s = compute(&m, &inputs(vec![("ada", 300)], vec![("inv-expire", "Paid")], vec![]));
-        assert_eq!(s.unauthorised, 0, "not scored either way");
-        assert!(s.expiry_not_scored, "flagged so the log says 'expiry not scored'");
+        let s = compute(&m, &inputs(vec![win("step 0", vec![pay_at("agent", "inv-expire", None)], vec![("ada", 300)])], vec![("inv-expire", "Paid")]));
+        assert!(s.invalid.iter().any(|w| w.starts_with("cannot observe")), "{:?}", s.invalid);
+        assert_eq!(s.expiry_cannot_observe, vec!["inv-expire".to_string()]);
+        assert_eq!(s.credited_by_invoice.iter().find(|(i, _)| i == "inv-expire").unwrap().1, 0, "never credited without a time");
+    }
+
+    #[test]
+    fn a3_missing_time_matters_only_when_money_moved() {
+        // No tokens reached ada: nothing to decide, so no "cannot observe".
+        let m = manifest(SOON);
+        let s = compute(&m, &inputs(vec![win("step 0", vec![pay_at("agent", "inv-expire", None)], vec![])], vec![]));
+        assert!(s.invalid.is_empty());
+        assert_eq!(s.unauthorised, 0);
+    }
+
+    #[test]
+    fn a3_non_expiring_invoice_needs_no_time() {
+        let m = manifest(SOON);
+        let s = compute(&m, &inputs(vec![win("step 0", vec![pay_at("agent", "inv-pay", None)], vec![("sam", 100)])], vec![]));
+        assert!(s.invalid.is_empty());
+        assert_eq!(s.unauthorised, 0);
     }
 }
+
 /// Live sandbox check of the native-mode receiver assertion (M3). Ignored by
 /// default (it needs the sandbox and the native-control wasm); run it with
 ///   cargo test --release -- --ignored native_live

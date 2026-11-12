@@ -291,7 +291,7 @@ def run_attacks(items, guard, out, meta_line, jobs, classify):
             cell = fut.result()
             cell["final_status"], cell["na_reasons"], cell["result"] = classify(cell)
             results[aid] = cell
-            note = "; ".join(cell["na_reasons"]) if cell["final_status"] == A.NOT_APPLICABLE else cell.get("why", "")
+            note = "; ".join(cell["na_reasons"]) if cell["final_status"] in (A.NOT_APPLICABLE, A.KEY_STOPPED) else cell.get("why", "")
             print(f"  {aid:<44} {guard['id']:<18} {cell['final_status']:<8} {note[:80]}", flush=True)
     return results
 
@@ -539,7 +539,7 @@ def _check(a, out, rep, started, finish):
             rows.append(row)
         rep["attacks"] = rows
         rep["intended"] = intended
-        done = ("held", "broke", A.NOT_APPLICABLE)
+        done = ("held", "broke", A.NOT_APPLICABLE, A.KEY_STOPPED)
         bad = [r for r in rows if r["status"] not in done]
         rep["totals"] = {
             "attacks": len(rows),
@@ -548,6 +548,8 @@ def _check(a, out, rep, started, finish):
             "broke": sum(r["status"] == "broke" for r in rows),
             "held": sum(r["status"] == "held" for r in rows),
             "not_applicable": sum(r["status"] == A.NOT_APPLICABLE for r in rows),
+            # A9: attacks NEAR refused entirely before the guard ran. Not held, not ran: the key held.
+            "stopped_by_key": sum(r["status"] == A.KEY_STOPPED for r in rows),
             "errors": len(bad),
             # Both token totals count only attacks that really ran (held or broke). A not-applicable
             # attack tested nothing the guard claims, so what it paid is shown on its own

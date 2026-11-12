@@ -3,12 +3,12 @@
  "attacks": {
   "classes": {
    "partially-validated": 1,
-   "unvalidated": 45,
+   "unvalidated": 46,
    "validated": 7
   },
   "classes_token_suite": {
    "partially-validated": 1,
-   "unvalidated": 44,
+   "unvalidated": 45,
    "validated": 6
   },
   "control_not_counted": "scripted-01-control-pay-valid",
@@ -20,27 +20,27 @@
   ],
   "files_by_folder": {
    "sequences-ai": 10,
-   "sequences-bypass": 3,
+   "sequences-bypass": 4,
    "sequences-intents": 2,
    "sequences-paper": 25,
    "sequences-scripted": 10
   },
   "files_by_kind": {
    "injection": 11,
-   "sequence": 39
+   "sequence": 40
   },
   "files_by_source": {
    "ai": 10,
    "combined": 4,
-   "hand": 15,
+   "hand": 16,
    "news": 6,
    "paper": 15
   },
-  "files_on_disk": 50,
+  "files_on_disk": 51,
   "injection_scenarios_counted": 4,
-  "library_intents": 53,
+  "library_intents": 54,
   "library_problems": [],
-  "library_token": 51,
+  "library_token": 52,
   "rows": [
    {
     "class": "unvalidated",
@@ -169,6 +169,16 @@
     "in_token_suite": true,
     "kind": "sequence",
     "path": "sequences-bypass/03-bypass-add-key.json",
+    "source": "hand",
+    "why": "no spec"
+   },
+   {
+    "class": "unvalidated",
+    "evidence": null,
+    "id": "bypass-04-outsider-owner-method",
+    "in_token_suite": true,
+    "kind": "sequence",
+    "path": "sequences-bypass/04-outsider-owner-method.json",
     "source": "hand",
     "why": "no spec"
    },
@@ -614,7 +624,7 @@
   "evidence/hunts/2026-11-10-papers-c1bea9.json": "cb615b81ca88da687029a39f7159cdbc1c1353fd342c37c966afa43e40439f72",
   "evidence/hunts/2026-11-11-news-d340fd.json": "d6a0fe2beb8dbb5ad7d93c0df432aaaf139412c3b22cc62608cc563a6e6bc634",
   "evidence/hunts/2026-11-11-papers-e3db55.json": "ac6e7e3ed3ab167fff3b240989ea2071e17c7b881b5b90f74ba1c5dbd7807e6c",
-  "evidence/mutation-2026-11-11/summary.tsv": "8d13af78efe4079e919a05ca8fa12dcf3ab99da9f05b62ab3055ac2b47339ab1",
+  "evidence/mutation-2026-11-12/summary.tsv": "8d13af78efe4079e919a05ca8fa12dcf3ab99da9f05b62ab3055ac2b47339ab1",
   "hidden-set/COMMITMENT.json": "058c1aa8bb0c416d1a23ed5335dafc4cea9902280779be4126bf5374efb61d3f",
   "sequences-ai/01-double-pay-race-retry.json": "d3ef873d355988d1b3c4e176edf9c627f3ea201bf8b746a221a6d61035fa2b4c",
   "sequences-ai/02-triple-race-cap-breach.json": "47b1db5d21e2be6f3117159f41ee1471bdcfc9a2426741b62288e7cb21dc07b1",
@@ -629,6 +639,7 @@
   "sequences-bypass/01-bypass-direct-ft-transfer.json": "3507ba435919512300e82931247844c69d022033bd7f4a69ef2abcad48db08fd",
   "sequences-bypass/02-bypass-owner-method.json": "3de4a822a065359ce70a7dc337a50e09321ad1f93500cb59ad175a759715091c",
   "sequences-bypass/03-bypass-add-key.json": "56808298b7fca5f95c7aff5aea2966fb1291dd06da15ae376e73ab303f400c61",
+  "sequences-bypass/04-outsider-owner-method.json": "36b267845d75e901d2fb3691dc693ab24c82216ef7a246a39e69f75f62c647b2",
   "sequences-intents/intents-01-agent-names-outsider-beneficiary.json": "cfe8bf2a1751235233aec69b78adb075cae995b49bdcc9361f887d6c639eb19c",
   "sequences-intents/intents-02-outsider-takes-sams-credit.json": "85b19e0fd242121e20f26b985d2b06b475cdfb33264fd93a79e535faf60e851a",
   "sequences-paper/c261110-1-race-cap-smuggle-removed-retry.json": "ca6771c0f4dcfe730adafc434a0ad25db84c99585303da33b6a8e59230e400db",
@@ -685,7 +696,7 @@
    "M10"
   ],
   "planted": 10,
-  "table": "evidence/mutation-2026-11-11/summary.tsv"
+  "table": "evidence/mutation-2026-11-12/summary.tsv"
  },
  "references": {
   "guard:fixed": {
