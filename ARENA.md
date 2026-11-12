@@ -71,7 +71,7 @@ How it limits damage:
 - It can only read the repo (`permissions: contents: read`). It never pushes or commits. Results leave only as a downloadable file attached to the run.
 - Everything it reads is treated as untrusted: paper abstracts, news, and the model's own replies. None of it is run. The validator checks it as data, as described above. The model has no tools, so a model fooled by a crafted page can at worst waste a few calls or propose a junk attack that the validator rejects.
 - For papers, the model runs on NEAR AI Cloud private inference. Before its first call, the hunt fetches NEAR's attestation report (a signed record from NEAR's secure hardware of which model is answering), checks it and saves it. You can re-check a saved report offline: `python3 -I tools/hunter/recheck_attestation.py evidence/hunts/2026-11-11-papers-e3db55.json`. Only 1 of the 7 hunts so far ran this way. The others used Muse Spark, which has no attestation.
-- The sandbox processes the hunter starts get only a short list of named variables (`CHILD_ENV_ALLOW` in `tools/hunter/runner.py`), never the model or news keys. `tools/hunter/tests/test_child_env.py` sets fake keys and checks that a child started this way sees none of them.
+- When the hunter, `tools/check/check.py` or the injection runners start the harness, it gets only a short list of named variables (`CHILD_ENV_ALLOW` in `tools/hunter/runner.py`), so no model or news key in a variable reaches it. `tools/hunter/tests/test_child_env.py` sets fake keys and checks that a child started this way sees none of them. Two limits: `run-arena.sh any`, `ai` and `replay`, run by hand, still pass the whole shell environment; and on a local machine the harness can still read key files under `~/.config/arena/`. On GitHub the keys exist only as variables of the hunt step.
 
 What this doesn't protect:
 
@@ -95,7 +95,7 @@ The defences:
 - a GitHub Environment, so only the `main` branch can use the keys;
 - revoking a key after any doubt.
 
-The workflow now reads its keys from an Environment named `hunt` (`environment: hunt` in `.github/workflows/hunt.yml`). Limiting that Environment to `main`, and setting capped keys in it, is the owner's job on GitHub, and this file doesn't claim either is done. None of the other defences are set up today, because no keys are set. This answer will list each one as it is added. No wallet key is involved: the hunter only spends on model and news calls.
+The workflow now reads its keys from an Environment named `hunt` (`environment: hunt` in `.github/workflows/hunt.yml`). Limiting that Environment to `main`, and setting capped keys in it, is the owner's job on GitHub, and this file doesn't claim either is done. Until then it protects nothing: GitHub creates an empty `hunt` Environment on the first run, and a repository secret with the same name would still be used. None of the other defences are set up today, because no keys are set. This answer will list each one as it is added. No wallet key is involved: the hunter only spends on model and news calls.
 
 ### Can the hunter run on NEAR, in secure hardware, instead of GitHub Actions?
 
