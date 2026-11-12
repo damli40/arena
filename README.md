@@ -183,7 +183,7 @@ Guards A to C all held for the same reason: each records the payment before it m
 | The planted mistakes, one row each | `evidence/mutation-table-2026-11-11.md` |
 | The receipts on NEAR testnet | `evidence/receipts-testnet-2026-11-11.md` (first set: `evidence/receipts-testnet-2026-11-10.md`) |
 | How the harness sets up and scores a run | `harness/README.md` |
-| What every evidence file is | `evidence/README.md` |
+| What every evidence file is | `evidence/README.md`, then `evidence/INDEX-2026-11-12.md` for files added after Nov 11 |
 | Each other team's claims and fingerprint | `targets/entrant-A/`, `targets/entrant-B/`, `targets/entrant-C/`, `targets/entrant-G/` |
 | Testing guards that work differently (no invoices), the gate and its self-tests | `docs/GUARD-CAPABILITIES.md` |
 
