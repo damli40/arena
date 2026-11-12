@@ -118,6 +118,13 @@ code{font:12px var(--mono);background:var(--code);color:var(--ink);padding:1px 5
   .onchain p { margin: 6px 0 0; }
   .onchain p.label { font: 12px/1.6 var(--mono); color: var(--muted); margin: 0; }
   @media (max-width: 640px) { main.lookup { padding-top: 36px; } .card { padding: 18px 16px; } }
+  /* Touch screens: 44px targets, and 16px input text so phones do not zoom the page on focus. */
+  @media (pointer: coarse) {
+    input { font-size: 16px; min-height: 44px; }
+    button.go { min-height: 44px; }
+    .examples { gap: 0 14px; align-items: center; }
+    .examples button.ex { min-height: 44px; }
+  }
 </style>
 </head>
 <body>
@@ -128,7 +135,7 @@ code{font:12px var(--mono);background:var(--code);color:var(--ink);padding:1px 5
   <p class="lede">Type a guard's account on NEAR testnet. This page asks the chain which code the account runs and whether Arena has published a test result for that code in the mode the guard reports.</p>
 
   <form id="f">
-    <input id="acct" autocomplete="off" spellcheck="false" placeholder="guard account, e.g. r11cfx4-guard.arena-race-funder-1111.testnet" aria-label="Guard account id">
+    <input id="acct" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="go" placeholder="guard account, e.g. r11cfx4-guard.arena-race-funder-1111.testnet" aria-label="Guard account id">
     <button type="submit" class="go">Check</button>
   </form>
   <div class="examples">Try:
