@@ -1,0 +1,785 @@
+{
+ "about": "Fetch benchmark, public 70%. Gold items must reach the fetch queue; decoys must stay out of lane G. The other 30% is private; see COMMITMENT.json.",
+ "lanes": {
+  "G": "guard attack: a payment action going wrong through ordering, repetition, limits, expiry or caller identity (one of Arena's attack families)",
+  "T": "Arena's own threat model: something Arena runs on is compromised",
+  "O": "out of scope for the guard library"
+ },
+ "expected_lanes_rule": "a lane assignment is right when it is in expected_lanes",
+ "biased_rule": "true when the current hunter's own filter picked or judged this item, so it says little about recall",
+ "fields": [
+  "id",
+  "role",
+  "source",
+  "source_id",
+  "url",
+  "title",
+  "published_utc",
+  "expected_lanes",
+  "reason",
+  "biased",
+  "verified_against"
+ ],
+ "counts": {
+  "gold": 22,
+  "decoy": 28,
+  "biased": 39
+ },
+ "items": [
+  {
+   "id": "advisory:RUSTSEC-2023-0033",
+   "source": "osv",
+   "source_id": "RUSTSEC-2023-0033",
+   "url": "https://rustsec.org/advisories/RUSTSEC-2023-0033.html",
+   "title": "borsh: Parsing borsh messages with ZST which are not-copy/clone is unsound",
+   "published_utc": "2023-04-12T00:00:00Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "biased": false,
+   "reason": "Unsoundness in borsh, NEAR's serialization crate used by near-sdk. A memory-corruption bug, not a payment action; lane O. Alias GHSA-fjx5-qpf4-xjf2.",
+   "verified_against": "Primary: OSV.dev query for crates.io 'borsh' on 2026-11-12 returned RUSTSEC-2023-0033 (published 2023-04-12) with alias GHSA-fjx5-qpf4-xjf2.",
+   "role": "gold"
+  },
+  {
+   "id": "arxiv:2104.08638",
+   "role": "gold",
+   "source": "arxiv",
+   "source_id": "2104.08638",
+   "url": "https://arxiv.org/abs/2104.08638",
+   "title": "SAILFISH: Vetting Smart Contract State-Inconsistency Bugs in Seconds",
+   "published_utc": "2021-04-17T20:21:07Z",
+   "expected_lanes": [
+    "G"
+   ],
+   "reason": "Hunted (pinned) in 2026-11-10-paper-abc6e6 and -cd8587. State inconsistency and reentrancy in contracts map to the repeat-pay and race families.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.05632",
+   "role": "gold",
+   "source": "arxiv",
+   "source_id": "2611.05632",
+   "url": "https://arxiv.org/abs/2611.05632",
+   "title": "Assurance-Conditioned Continuous Authorization for Autonomous AI Agents",
+   "published_utc": "2026-11-03T21:19:46Z",
+   "expected_lanes": [
+    "G"
+   ],
+   "reason": "Missed by the cap (2026-11-03). Authorisations still in flight after an agent's authority changes: removed-payee and expiry families.",
+   "biased": false,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.06727",
+   "role": "gold",
+   "source": "arxiv",
+   "source_id": "2611.06727",
+   "url": "https://arxiv.org/abs/2611.06727",
+   "title": "Airlock: Bounding the Multi-Agent Blast Radius via Selective Online Containment",
+   "published_utc": "2026-11-04T16:16:03Z",
+   "expected_lanes": [
+    "G"
+   ],
+   "reason": "Missed by the cap (2026-11-04). Containing and cancelling pending agent actions after an alert: cancelled family.",
+   "biased": false,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.07050",
+   "role": "gold",
+   "source": "arxiv",
+   "source_id": "2611.07050",
+   "url": "https://arxiv.org/abs/2611.07050",
+   "title": "Authorization Propagation in Agent2Agent Systems: An Experimental Security Evaluation of Multi-Hop Delegation",
+   "published_utc": "2026-11-04T19:09:38Z",
+   "expected_lanes": [
+    "G"
+   ],
+   "reason": "Missed by the cap (2026-11-04). Multi-hop agent delegation where the caller differs from the principal, with replay checks: outsider-caller and repeat-pay families.",
+   "biased": false,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.07222",
+   "role": "gold",
+   "source": "arxiv",
+   "source_id": "2611.07222",
+   "url": "https://arxiv.org/abs/2611.07222",
+   "title": "SPILLWAY: Separating Target Admission from Sanitization to Defend Tool-Using Agents against Prompt Injection",
+   "published_utc": "2026-11-04T23:18:10Z",
+   "expected_lanes": [
+    "G"
+   ],
+   "reason": "Missed by both paper hunts (published 2026-11-04, older than the oldest of the 100 results each hunt got). An injected instruction redirects a payment to an attacker's account: wrong-beneficiary family.",
+   "biased": false,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.08811",
+   "role": "gold",
+   "source": "arxiv",
+   "source_id": "2611.08811",
+   "url": "https://arxiv.org/abs/2611.08811",
+   "title": "I Think, Therefore I Attack: Evaluating Thought Injection Attacks on Reasoning Agents",
+   "published_utc": "2026-11-06T00:06:13Z",
+   "expected_lanes": [
+    "G"
+   ],
+   "reason": "Hunted in 2026-11-10-papers-c1bea9. Thought injection steers an agent's actions; maps to the injection family.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.11104",
+   "role": "gold",
+   "source": "arxiv",
+   "source_id": "2611.11104",
+   "url": "https://arxiv.org/abs/2611.11104",
+   "title": "Tracing MCP Security Vulnerabilities: Constructing and Analyzing an MCP Security Vulnerability Dataset",
+   "published_utc": "2026-11-08T03:36:38Z",
+   "expected_lanes": [
+    "G",
+    "O"
+   ],
+   "reason": "Hunted in 2026-11-11-papers-e3db55. A catalogue of MCP vulnerabilities, not one payment attack; access-control entries map to outsider-caller, the rest is out of scope. Ambiguous on purpose.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.11266",
+   "role": "gold",
+   "source": "arxiv",
+   "source_id": "2611.11266",
+   "url": "https://arxiv.org/abs/2611.11266",
+   "title": "ErosionBench: Probing Alignment Decay in Enterprise Multi-Agent Systems",
+   "published_utc": "2026-11-08T09:40:52Z",
+   "expected_lanes": [
+    "G"
+   ],
+   "reason": "Hunted in 2026-11-10-papers-c1bea9. Poisoned shared state erodes agent limits over time; the hunt mapped it to over-cap and expiry attacks.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.11305",
+   "role": "gold",
+   "source": "arxiv",
+   "source_id": "2611.11305",
+   "url": "https://arxiv.org/abs/2611.11305",
+   "title": "Least-Privilege Auditing of Agent Tool Calls with Intent Graphs and Reasoning-Guided Escalation",
+   "published_utc": "2026-11-08T11:05:45Z",
+   "expected_lanes": [
+    "G"
+   ],
+   "reason": "Hunted in 2026-11-10-papers-c1bea9. Auditing agent tool calls against injected instructions; maps to injection and outsider-caller families.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.11506",
+   "role": "gold",
+   "source": "arxiv",
+   "source_id": "2611.11506",
+   "url": "https://arxiv.org/abs/2611.11506",
+   "title": "On the Relative Security of Prompt Injection: Mechanised Definitions, Defences and Verdicts for LLM Agents",
+   "published_utc": "2026-11-08T17:20:48Z",
+   "expected_lanes": [
+    "G"
+   ],
+   "reason": "Hunted in 2026-11-10-papers-c1bea9. Formal prompt-injection security for agents; maps to the injection family.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.11539",
+   "role": "gold",
+   "source": "arxiv",
+   "source_id": "2611.11539",
+   "url": "https://arxiv.org/abs/2611.11539",
+   "title": "PRISM: Causal Counterfactual Minimization of Agent Tool Privileges via Information Bottleneck Role Induction",
+   "published_utc": "2026-11-08T18:24:07Z",
+   "expected_lanes": [
+    "G",
+    "O"
+   ],
+   "reason": "Hunted in 2026-11-11-papers-e3db55. Shrinks agent tool privileges; relates to outsider-caller, but describes a defence, not an attack. Ambiguous on purpose.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.11929",
+   "role": "gold",
+   "source": "arxiv",
+   "source_id": "2611.11929",
+   "url": "https://arxiv.org/abs/2611.11929",
+   "title": "Can LLM Agents Organize Their Own Memory?",
+   "published_utc": "2026-11-09T05:56:25Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "Hunted in 2026-11-11-papers-e3db55 (chosen by keyword score). Memory organisation for agents with no attack or payment action: belongs in lane O even though the current filter attacked it.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.12386",
+   "role": "gold",
+   "source": "arxiv",
+   "source_id": "2611.12386",
+   "url": "https://arxiv.org/abs/2611.12386",
+   "title": "Say Shibboleth: Fingerprinting the LLMs and Harnesses Behind Agentic Attacks",
+   "published_utc": "2026-11-09T13:27:13Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "Chosen in 2026-11-11-papers-e3db55 but the model call timed out, so never attacked. Fingerprints attacker models from honeypot data: no payment action, lane O.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.12572",
+   "role": "gold",
+   "source": "arxiv",
+   "source_id": "2611.12572",
+   "url": "https://arxiv.org/abs/2611.12572",
+   "title": "Text2NGAC: a multi-LLM pipeline for NGAC policy extraction with mutation-based verification",
+   "published_utc": "2026-11-09T15:32:40Z",
+   "expected_lanes": [
+    "G",
+    "O"
+   ],
+   "reason": "Hunted in 2026-11-11-papers-e3db55. Access-control policy extraction checked by mutation; the hunt turned it into outsider and expiry attacks, but the paper itself is defensive. Ambiguous on purpose.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "elfa:n-59ee7b1817",
+   "role": "gold",
+   "source": "elfa",
+   "source_id": "n-59ee7b1817",
+   "url": "https://x.com/Hercules_Defi/status/2120066626381037922",
+   "title": "Posts cited prompt-injection incidents in which AI agents were reportedly manipulated into moving funds, including a Morse-code instruction that moved about $150K and losses attributed to Bankr, as evidence that trust and security are major obstacles to agentic payments.",
+   "published_utc": "2026-11-10T08:10:47Z",
+   "expected_lanes": [
+    "G"
+   ],
+   "reason": "Attacked by the news hunt. Prompt injection (a Morse-code instruction) reportedly made agents move funds: injection family.",
+   "biased": true,
+   "verified_against": "Hunt record evidence/hunts/2026-11-10-news-21d429.json (an Elfa AI summary of X posts: an unchecked lead). published_utc is the time of the post at links[0], decoded from its X status id; the post itself was not fetched."
+  },
+  {
+   "id": "elfa:n-ae93287baa",
+   "role": "gold",
+   "source": "elfa",
+   "source_id": "n-ae93287baa",
+   "url": "https://x.com/CobaltHere/status/2118976749765583235",
+   "title": "Security writeups described risks in agent skills and MCP servers: Snyk reportedly found many popular skills promoting unsafe behavior and a skill that persistently injected instructions into ~/.claude/CLAUDE.md, while another writeup warned that coding agents may install deprecated MCP servers from",
+   "published_utc": "2026-11-07T08:00:00Z",
+   "expected_lanes": [
+    "G"
+   ],
+   "reason": "Attacked by the news hunt. Risky agent skills and MCP servers that push agents to act: injection family.",
+   "biased": true,
+   "verified_against": "Hunt record evidence/hunts/2026-11-10-news-21d429.json (an Elfa AI summary of X posts: an unchecked lead). published_utc is the time of the post at links[0], decoded from its X status id; the post itself was not fetched."
+  },
+  {
+   "id": "elfa:n-f473f3d4ba",
+   "role": "gold",
+   "source": "elfa",
+   "source_id": "n-f473f3d4ba",
+   "url": "https://x.com/fr0gger_/status/2119730348699640060",
+   "title": "Security researchers flagged an active Miasma/testmetest supply-chain worm that poisoned GitHub repos and used a “DEVOPS-SEALED” CLAUDE.md prompt injection to tell coding agents to run an obfuscated setup.js without displaying output or asking for confirmation.",
+   "published_utc": "2026-11-09T09:54:32Z",
+   "expected_lanes": [
+    "T",
+    "G"
+   ],
+   "reason": "Attacked by the news hunt. A supply-chain worm poisoned GitHub repos with a CLAUDE.md prompt injection: lane T because Arena runs on GitHub Actions, lane G through the injection family.",
+   "biased": true,
+   "verified_against": "Hunt record evidence/hunts/2026-11-10-news-21d429.json (an Elfa AI summary of X posts: an unchecked lead). published_utc is the time of the post at links[0], decoded from its X status id; the post itself was not fetched."
+  },
+  {
+   "id": "incident:near-ai-sglang-2026-11-08",
+   "source": "near-ai-blog",
+   "source_id": "security-incident-report-sglang-vulnerability",
+   "url": "https://near.ai/blog/security-incident-report-sglang-vulnerability",
+   "title": "NEAR AI Security Incident Report: SGLang Vulnerability",
+   "published_utc": "2026-11-09T12:00:00Z",
+   "expected_lanes": [
+    "T",
+    "O"
+   ],
+   "biased": false,
+   "reason": "Remote code execution in the SGLang inference engine on NEAR AI Cloud; account details of about 100 users downloaded and two customers' API keys exposed in logs. Lane T: the hunter's paper model runs on NEAR AI Cloud. Lane O for the guard library: no sequence of guard calls expresses it.",
+   "verified_against": "Primary: the NEAR AI page itself, read 2026-11-12 (title, article:published_time 2026-11-09T12:00:00+00:00, summary).",
+   "role": "gold"
+  },
+  {
+   "id": "incident:near-web-wallet-analytics-leak-2022",
+   "source": "near-blog",
+   "source_id": "near-web-wallet-security-update",
+   "url": "https://www.near.org/blog/near-web-wallet-security-update",
+   "title": "NEAR Web Wallet Security Update",
+   "published_utc": "2022-08-04T21:20:59Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "biased": false,
+   "reason": "A code change sent recovery data of email/SMS wallet users to a third-party analytics service. Key exposure, not a guard method; lane O.",
+   "verified_against": "Primary: NEAR's own post, read 2026-11-12 (title, article:published_time 2022-08-04T21:20:59Z).",
+   "role": "gold"
+  },
+  {
+   "id": "incident:nearcore-p2p-handshake-crash",
+   "source": "researcher-post",
+   "source_id": "zellic.io/blog/near-protocol-bug",
+   "url": "https://www.zellic.io/blog/near-protocol-bug/",
+   "title": "Web3 Ping of Death: Finding and Fixing a Chain-Halting Vulnerability in NEAR",
+   "published_utc": "2024-09-26T00:00:00Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "biased": false,
+   "reason": "One malformed P2P handshake could crash any nearcore node. Node availability, not a payment action; lane O.",
+   "verified_against": "Primary: the finder's post (zellic.io, published 2024-09-26 per page metadata) and the fix, github.com/near/nearcore/pull/10385 'Handshake security fixes included in 1.36.4', merged 2024-01-09, both read 2026-11-12.",
+   "role": "gold"
+  },
+  {
+   "id": "incident:rainbow-bridge-attack-2022-05-01",
+   "source": "project-post",
+   "source_id": "x.com/AlexAuroraDev/status/1520810591803293696",
+   "url": "https://x.com/AlexAuroraDev/status/1520810591803293696",
+   "title": "Rainbow Bridge attack attempt stopped automatically, no bridged funds lost",
+   "published_utc": "2022-05-01T17:01:15Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "biased": false,
+   "reason": "A failed attack on the NEAR to Ethereum bridge, stopped by the bridge's own checks. Bridge light-client security, not a guard call sequence; lane O.",
+   "verified_against": "Primary: thread by the Aurora (bridge operator) CEO, read 2026-11-12 (time and outcome quote). The attack mechanics are not in the part of the thread that could be read.",
+   "role": "gold"
+  },
+  {
+   "id": "arxiv:2611.09399",
+   "role": "decoy",
+   "source": "arxiv",
+   "source_id": "2611.09399",
+   "url": "https://arxiv.org/abs/2611.09399",
+   "title": "Artificial Shoppers and Attention Competition",
+   "published_utc": "2026-11-06T12:34:40Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "In the visible window both paper hunts searched (keyword relevance 0, the hunt's 'not relevant' group; reconstructed on 2026-11-12, see the private log). AI shoppers and attention competition: purchase words, no attack.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.09445",
+   "role": "decoy",
+   "source": "arxiv",
+   "source_id": "2611.09445",
+   "url": "https://arxiv.org/abs/2611.09445",
+   "title": "Incentive Pathologies in a Live LLM Agent Arena: An Empirical Study of Concentration, Reward-Rule Implementation Discrepancy, and Network Dilution",
+   "published_utc": "2026-11-06T13:19:48Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "In the visible window both paper hunts searched (keyword relevance 0, the hunt's 'not relevant' group; reconstructed on 2026-11-12, see the private log). Incentive problems in a live agent arena with rewards: 'arena' and reward words, no payment flaw.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.09771",
+   "role": "decoy",
+   "source": "arxiv",
+   "source_id": "2611.09771",
+   "url": "https://arxiv.org/abs/2611.09771",
+   "title": "A Cross-Domain TARA-to-NAC Rule Mapping Methodology: From Automotive OEM Networks to Energy Storage Systems",
+   "published_utc": "2026-11-06T17:33:46Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "In the visible window both paper hunts searched (keyword relevance 0, the hunt's 'not relevant' group; reconstructed on 2026-11-12, see the private log). Automotive threat analysis mapped to network rules.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.10414",
+   "role": "decoy",
+   "source": "arxiv",
+   "source_id": "2611.10414",
+   "url": "https://arxiv.org/abs/2611.10414",
+   "title": "Track or Follow? A Jev-Compatible Multi-Agent Trading System When Web News Lags the Market",
+   "published_utc": "2026-11-07T02:47:13Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "In the visible window both paper hunts searched (keyword relevance 0, the hunt's 'not relevant' group; reconstructed on 2026-11-12, see the private log). Multi-agent trading when news lags the market: money words, no attack.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.10612",
+   "role": "decoy",
+   "source": "arxiv",
+   "source_id": "2611.10612",
+   "url": "https://arxiv.org/abs/2611.10612",
+   "title": "An Agentic Multi-Agent Framework for System Log Anomaly Detection",
+   "published_utc": "2026-11-07T09:30:17Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "In the visible window both paper hunts searched (keyword relevance 0, the hunt's 'not relevant' group; reconstructed on 2026-11-12, see the private log). Log anomaly detection with agents.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.10628",
+   "role": "decoy",
+   "source": "arxiv",
+   "source_id": "2611.10628",
+   "url": "https://arxiv.org/abs/2611.10628",
+   "title": "Towards Identity-Preserving LLM Agents under Model Transition",
+   "published_utc": "2026-11-07T10:10:14Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "In the visible window both paper hunts searched (keyword relevance 0, the hunt's 'not relevant' group; reconstructed on 2026-11-12, see the private log). Agent identity across model upgrades.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.10961",
+   "role": "decoy",
+   "source": "arxiv",
+   "source_id": "2611.10961",
+   "url": "https://arxiv.org/abs/2611.10961",
+   "title": "Improving Analytic Constants via Interpretable AI-Guided Lean Proof Refinement",
+   "published_utc": "2026-11-07T21:03:25Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "Scored and not chosen in 2026-11-10-papers-c1bea9 and 2026-11-11-papers-e3db55: AI-guided Lean proof refinement, no attack.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.11172",
+   "role": "decoy",
+   "source": "arxiv",
+   "source_id": "2611.11172",
+   "url": "https://arxiv.org/abs/2611.11172",
+   "title": "Do Benign-Trained Hidden-State Probes Detect Tool Errors Under Adversarial Conditions?",
+   "published_utc": "2026-11-08T06:27:15Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "In the visible window both paper hunts searched (keyword relevance 0, the hunt's 'not relevant' group; reconstructed on 2026-11-12, see the private log). Probes that detect tool errors in model hidden states.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.11306",
+   "role": "decoy",
+   "source": "arxiv",
+   "source_id": "2611.11306",
+   "url": "https://arxiv.org/abs/2611.11306",
+   "title": "ScrapeBench: Evaluating Legal Compliance of AI Agents in Website Scraping",
+   "published_utc": "2026-11-08T11:19:18Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "In the visible window both paper hunts searched (keyword relevance 0, the hunt's 'not relevant' group; reconstructed on 2026-11-12, see the private log). Legal compliance of scraping agents.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.11657",
+   "role": "decoy",
+   "source": "arxiv",
+   "source_id": "2611.11657",
+   "url": "https://arxiv.org/abs/2611.11657",
+   "title": "Inside the Trading Loop: Markets, Models, and Moves with LLM Agents",
+   "published_utc": "2026-11-08T22:27:56Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "In the visible window both paper hunts searched (keyword relevance 0, the hunt's 'not relevant' group; reconstructed on 2026-11-12, see the private log). LLM agents trading in markets: money words, no attack.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.11910",
+   "role": "decoy",
+   "source": "arxiv",
+   "source_id": "2611.11910",
+   "url": "https://arxiv.org/abs/2611.11910",
+   "title": "Late but Valuable: Why Deadlines Change the Measured Value of LLM Reasoning",
+   "published_utc": "2026-11-09T05:32:11Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "In the visible window both paper hunts searched (keyword relevance 0, the hunt's 'not relevant' group; reconstructed on 2026-11-12, see the private log). Deadlines and the value of reasoning: 'deadline' word, nothing to do with payment expiry.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.12269",
+   "role": "decoy",
+   "source": "arxiv",
+   "source_id": "2611.12269",
+   "url": "https://arxiv.org/abs/2611.12269",
+   "title": "Agent4Crypto: A Dual-Reflective and Market-Feedback-Aligned LLM-Based Multi-Agent System for Cryptocurrency Trading",
+   "published_utc": "2026-11-09T11:57:33Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "In the visible window both paper hunts searched (keyword relevance 0, the hunt's 'not relevant' group; reconstructed on 2026-11-12, see the private log). Multi-agent crypto trading system: money words, no attack.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.12325",
+   "role": "decoy",
+   "source": "arxiv",
+   "source_id": "2611.12325",
+   "url": "https://arxiv.org/abs/2611.12325",
+   "title": "An Explicit Below Half Threshold Bound for the Local Leakage Resilience of Shamir's Secret Sharing Scheme",
+   "published_utc": "2026-11-09T12:46:04Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "In the visible window both paper hunts searched (keyword relevance 0, the hunt's 'not relevant' group; reconstructed on 2026-11-12, see the private log). Leakage bound for Shamir secret sharing (cryptography theory).",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.12377",
+   "role": "decoy",
+   "source": "arxiv",
+   "source_id": "2611.12377",
+   "url": "https://arxiv.org/abs/2611.12377",
+   "title": "Detecting Shadow AI: Unsanctioned LLM Agents on Enterprise Endpoints: A Taxonomy, an Open Detector and a Controlled Evaluation",
+   "published_utc": "2026-11-09T13:19:45Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "In the visible window both paper hunts searched (keyword relevance 0, the hunt's 'not relevant' group; reconstructed on 2026-11-12, see the private log). Detecting unsanctioned AI agents on company laptops.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.12622",
+   "role": "decoy",
+   "source": "arxiv",
+   "source_id": "2611.12622",
+   "url": "https://arxiv.org/abs/2611.12622",
+   "title": "Reconfiguring System-Level Protection Through Bounded Delegation in RISC-V MCUs",
+   "published_utc": "2026-11-09T16:04:21Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "In the visible window both paper hunts searched (keyword relevance 0, the hunt's 'not relevant' group; reconstructed on 2026-11-12, see the private log). Hardware memory protection on RISC-V microcontrollers.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.12636",
+   "role": "decoy",
+   "source": "arxiv",
+   "source_id": "2611.12636",
+   "url": "https://arxiv.org/abs/2611.12636",
+   "title": "BioBind: Binding Biometric Deduplication to Zero-Knowledge Authentication",
+   "published_utc": "2026-11-09T16:13:20Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "Attacked in 2026-11-10-papers-c1bea9, but the plan names it a decoy: biometric deduplication for zero-knowledge login, no payment action. The current filter wrongly sent it to lane G.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "arxiv:2611.12703",
+   "role": "decoy",
+   "source": "arxiv",
+   "source_id": "2611.12703",
+   "url": "https://arxiv.org/abs/2611.12703",
+   "title": "Checking DER Commands Against Grid Context Catches Credentialed Attacks Static Checks Miss",
+   "published_utc": "2026-11-09T16:58:25Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "In the visible window both paper hunts searched (keyword relevance 0, the hunt's 'not relevant' group; reconstructed on 2026-11-12, see the private log). Grid command checks against credentialed attacks: security, but no agent payment.",
+   "biased": true,
+   "verified_against": "arXiv API id_list query on 2026-11-12 (title and v1 published date match)"
+  },
+  {
+   "id": "elfa:n-0fbb4e6122",
+   "role": "decoy",
+   "source": "elfa",
+   "source_id": "n-0fbb4e6122",
+   "url": "https://x.com/DarkLord_gr/status/2119293853480169690",
+   "title": "A DeFi update posted and reposted said Nasdaq-listed Hyperliquid Strategies (PURR) had a subsidiary apply to become a CFTC futures commission merchant for permissioned HIP-3 perps; it noted this was an application only and that US accounts still need regulatory approval.",
+   "published_utc": "2026-11-08T05:00:03Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "Company applies for a futures licence: business news. Returned but never scored.",
+   "biased": false,
+   "verified_against": "Hunt record evidence/hunts/2026-11-10-news-21d429.json (an Elfa AI summary of X posts: an unchecked lead). published_utc is the time of the post at links[0], decoded from its X status id; the post itself was not fetched."
+  },
+  {
+   "id": "elfa:n-2309bbe516",
+   "role": "decoy",
+   "source": "elfa",
+   "source_id": "n-2309bbe516",
+   "url": "https://x.com/AGTPinsights/status/2120203765559038450",
+   "title": "Posts described Google’s release of Gemini 4 Carbon and highlighted benchmark claims, including a 0% prompt-injection success rate and top rankings on coding and automation benchmarks.",
+   "published_utc": "2026-11-10T17:15:43Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "The Gemini post (named in the plan): model launch benchmark claims, not an attack.",
+   "biased": true,
+   "verified_against": "Hunt record evidence/hunts/2026-11-10-news-21d429.json (an Elfa AI summary of X posts: an unchecked lead). published_utc is the time of the post at links[0], decoded from its X status id; the post itself was not fetched."
+  },
+  {
+   "id": "elfa:n-260804dc33",
+   "role": "decoy",
+   "source": "elfa",
+   "source_id": "n-260804dc33",
+   "url": "https://x.com/Jeremybtc/status/2120138245212340593",
+   "title": "Tweets discussed Anthropic's Claude Fable 5.2/Mythos 5.2 launch and pricing. One noted $40 per million output tokens and $80 in fast mode with up to 2.5x speed; others summarized benchmark claims and Anthropic's advice to use Opus 5.5 for everyday coding and Fable for larger jobs.",
+   "published_utc": "2026-11-10T12:55:22Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "Model launch and pricing news.",
+   "biased": true,
+   "verified_against": "Hunt record evidence/hunts/2026-11-11-news-d340fd.json (an Elfa AI summary of X posts: an unchecked lead). published_utc is the time of the post at links[0], decoded from its X status id; the post itself was not fetched."
+  },
+  {
+   "id": "elfa:n-2c31125bdc",
+   "role": "decoy",
+   "source": "elfa",
+   "source_id": "n-2c31125bdc",
+   "url": "https://x.com/elder_plinius/status/2119944696852341064",
+   "title": "Posts discussed a leaked Claude web-app system prompt for Fable 5.2, focusing on its prompt-injection defenses, memory rules, and instructions about forged notices and untrusted authority.",
+   "published_utc": "2026-11-10T00:06:17Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "Leaked chatbot system prompt discussion: no payment attack.",
+   "biased": true,
+   "verified_against": "Hunt record evidence/hunts/2026-11-10-news-21d429.json (an Elfa AI summary of X posts: an unchecked lead). published_utc is the time of the post at links[0], decoded from its X status id; the post itself was not fetched."
+  },
+  {
+   "id": "elfa:n-556636b7ec",
+   "role": "decoy",
+   "source": "elfa",
+   "source_id": "n-556636b7ec",
+   "url": "https://x.com/RonakDaya/status/2118722797627216059",
+   "title": "Articles argued that per-agent spending caps are insufficient for autonomous money: one proposed a shared, enforceable record of household or team budgets across agents and payment providers, while another described a risk-underwriting layer that checks whether an agent’s payment is authorized and m",
+   "published_utc": "2026-11-06T15:10:53Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "Arguments that per-agent spending caps are not enough: a proposal, not a payment going wrong. Near miss on purpose ('cap').",
+   "biased": true,
+   "verified_against": "Hunt record evidence/hunts/2026-11-10-news-21d429.json (an Elfa AI summary of X posts: an unchecked lead). published_utc is the time of the post at links[0], decoded from its X status id; the post itself was not fetched."
+  },
+  {
+   "id": "elfa:n-56a502ab66",
+   "role": "decoy",
+   "source": "elfa",
+   "source_id": "n-56a502ab66",
+   "url": "https://x.com/doctorsatoshiMD/status/2120301084724129929",
+   "title": "Tweets promoted Jack Mallers' Amsterdam presentation that framed Bitcoin as the hardest money and walked through Satoshi's white paper, including the double-spend problem, proof of work, difficulty adjustment, and the line \"Gold is stuck in the ground. Bitcoin is stuck in the future.\"",
+   "published_utc": "2026-11-10T23:42:26Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "Bitcoin talk walking through double-spend theory: education, not an attack. Near miss on purpose ('double spend').",
+   "biased": true,
+   "verified_against": "Hunt record evidence/hunts/2026-11-11-news-d340fd.json (an Elfa AI summary of X posts: an unchecked lead). published_utc is the time of the post at links[0], decoded from its X status id; the post itself was not fetched."
+  },
+  {
+   "id": "elfa:n-8c5bc9d19e",
+   "role": "decoy",
+   "source": "elfa",
+   "source_id": "n-8c5bc9d19e",
+   "url": "https://x.com/brewmarketsxyz/status/2120031258168193426",
+   "title": "Brew said a new program went live on Solana mainnet with on-chain balances, scoped trading keys, on-chain take-profit/stop-loss and paid keepers; it also said a third security review found and closed three holes, including settlement-price and trading-key spending issues, and that 14 attack-replay t",
+   "published_utc": "2026-11-10T05:50:14Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "New Solana trading program launch: product news. Returned but never scored (over the per-hunt limit).",
+   "biased": false,
+   "verified_against": "Hunt record evidence/hunts/2026-11-10-news-21d429.json (an Elfa AI summary of X posts: an unchecked lead). published_utc is the time of the post at links[0], decoded from its X status id; the post itself was not fetched."
+  },
+  {
+   "id": "elfa:n-961908be95",
+   "role": "decoy",
+   "source": "elfa",
+   "source_id": "n-961908be95",
+   "url": "https://x.com/hydration_net/status/2119812254178681207",
+   "title": "Hydration said its XCM kill switch is live: a single Technical Committee member can stop inbound and outbound XCM in one transaction if a cross-chain exploit is detected, with restart requiring stronger governance approval.",
+   "published_utc": "2026-11-09T15:20:00Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "A cross-chain kill switch going live: defence news, not a guard method.",
+   "biased": true,
+   "verified_against": "Hunt record evidence/hunts/2026-11-10-news-21d429.json (an Elfa AI summary of X posts: an unchecked lead). published_utc is the time of the post at links[0], decoded from its X status id; the post itself was not fetched."
+  },
+  {
+   "id": "elfa:n-c2d112beb5",
+   "role": "decoy",
+   "source": "elfa",
+   "source_id": "n-c2d112beb5",
+   "url": "https://x.com/RoushTV/status/2120065280189812760",
+   "title": "Tweets debated the AI data-center buildout and its constraints. One argued 2029 capacity is the main risk because most planned capacity still needs permits, while another said midterm election results increased uncertainty around data-center development and infrastructure stocks.",
+   "published_utc": "2026-11-10T08:05:26Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "Data-center buildout debate: unrelated. Seen by both news hunts under the same id.",
+   "biased": true,
+   "verified_against": "Hunt record evidence/hunts/2026-11-11-news-d340fd.json (an Elfa AI summary of X posts: an unchecked lead). published_utc is the time of the post at links[0], decoded from its X status id; the post itself was not fetched."
+  },
+  {
+   "id": "elfa:n-d1b328211f",
+   "role": "decoy",
+   "source": "elfa",
+   "source_id": "n-d1b328211f",
+   "url": "https://x.com/WraithOnX_/status/2119621069963206950",
+   "title": "Tweets framed wallet risk as increasingly about malicious approvals/signatures and phishing permissions rather than stolen keys: WRAITH described site permissions with daily dollar limits, a signature firewall and phishing/lookalike checks, while TRONSCAN promoted Security Service APIs for flagging ",
+   "published_utc": "2026-11-09T02:40:18Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "Phishing approvals and signatures framed as wallet risk: phishing is out of scope. Near miss on purpose ('approval').",
+   "biased": true,
+   "verified_against": "Hunt record evidence/hunts/2026-11-10-news-21d429.json (an Elfa AI summary of X posts: an unchecked lead). published_utc is the time of the post at links[0], decoded from its X status id; the post itself was not fetched."
+  },
+  {
+   "id": "elfa:n-f269ce928a",
+   "role": "decoy",
+   "source": "elfa",
+   "source_id": "n-f269ce928a",
+   "url": "https://x.com/pbsIdentity/status/2119091287282332024",
+   "title": "Posts detailed the roughly $6.34B Binance theft as a months-long operation involving a tampered AI coding tool, fake recruiting/coding-test malware, and compromised internal AI tooling used to reach wallet-signing operations; they said the FBI attributed the theft to North Korean hackers and that ab",
+   "published_utc": "2026-11-07T15:35:08Z",
+   "expected_lanes": [
+    "O"
+   ],
+   "reason": "The Binance custody theft (named in the plan): exchange hot-wallet theft through malware, not a guard method.",
+   "biased": true,
+   "verified_against": "Hunt record evidence/hunts/2026-11-10-news-21d429.json (an Elfa AI summary of X posts: an unchecked lead). published_utc is the time of the post at links[0], decoded from its X status id; the post itself was not fetched."
+  }
+ ]
+}

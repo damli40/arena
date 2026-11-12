@@ -1,0 +1,29 @@
+{
+ "about": "Fetch benchmark commitment. The private 30% is NOT in this repo; only its hash is.",
+ "private_file_sha256": "06eaf1257ac09648b89f7478996c19d436d5b8f7d544239a748defad30bafdc5",
+ "private_file_definition": "sha256 of the private file's bytes: the private items as one JSON list sorted by id, keys sorted, separators (',', ':'), UTF-8, ensure_ascii off, one trailing newline",
+ "private_set_sha256": "ace869580d72468b1ce5b1d6b382004bca71bf6bb44b184eb6629442b37825b8",
+ "public_set_sha256": "599292c8e98d3876b0b920e2dc7b1c1c2aad1f3ff6a52c7ab9392595db9d0497",
+ "set_sha256_definition": "sha256 of the sorted lines '<sha256 of one item as compact sorted JSON>', one per item, joined by newline (same construction as hidden-set/COMMITMENT.json)",
+ "private_counts": {
+  "gold": 10,
+  "decoy": 12,
+  "biased": 12
+ },
+ "public_counts": {
+  "gold": 22,
+  "decoy": 28,
+  "biased": 39
+ },
+ "total_counts": {
+  "gold": 32,
+  "decoy": 40,
+  "biased": 51
+ },
+ "split_method": "rank = sha256('<seed>:<item id>'); within gold and within decoys, sort by rank and send the lowest round(0.3*n) to the private part. The seed is private; its sha256 is below.",
+ "seed_sha256": "2dc5cae676c723e3f33da30353bf3d67f13e6e127ee20984023b50a2faa68300",
+ "created_at": "2026-11-12T21:49:35Z",
+ "arena_commit_at_creation": "4caeb881a3b254c3907f1a287977bff5e4e27f14",
+ "reveal_policy": "Revealed (file and seed) after 5 scored fetcher versions, as the plan says; a new private part is committed before the old one is revealed; never revealed early because of a result.",
+ "limits": "Proves: the private items existed and were fixed when this file was committed. Does not prove: that the labels are right (one person labelled them), that the set is representative, or that a score was run honestly. Before reveal, outsiders can check only the public 70%."
+}
