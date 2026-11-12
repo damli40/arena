@@ -1,0 +1,36 @@
+{
+ "about": "Hidden test set commitment. The attacks are NOT in this repo. Written by tools/hidden/hidden.py commit.",
+ "set_sha256": "d314e04fc574c1f75b8a9319204ffe7a6b04a6c0538773e2a86335c1bfb349b9",
+ "set_sha256_definition": "sha256 of the sorted lines '<meta.steps_sha256>:<sha256 of meta.spec as compact sorted JSON>', one per file, joined by newline",
+ "attack_count": 14,
+ "capabilities_covered": [
+  "C1",
+  "C6"
+ ],
+ "families_covered": [
+  "cancelled",
+  "cap-running-total",
+  "double-pay-sequential",
+  "expired",
+  "intents-beneficiary",
+  "outsider-caller",
+  "over-cap",
+  "removed-payee"
+ ],
+ "per_family": {
+  "cancelled": 2,
+  "cap-running-total": 1,
+  "double-pay-sequential": 3,
+  "expired": 1,
+  "intents-beneficiary": 1,
+  "outsider-caller": 2,
+  "over-cap": 2,
+  "removed-payee": 2
+ },
+ "admission": "every file privately admitted as validated by tools/admission/admit.py against the same closed reference list as the public library",
+ "disjoint_from_public_library": true,
+ "created_at": "2026-11-12T07:15:28Z",
+ "arena_commit_at_creation": "f2c342ceb8a2d6756ef34b928f6b633afecff68d",
+ "reveal_policy": "Revealed file by file (with its private admission evidence) when the set has been run against 5 distinct guard code hashes, or 30 days after commitment, whichever comes first; a new set is committed before the old one is revealed; never revealed early because of a result.",
+ "limits": "Proves: the set existed and was fixed when COMMITMENT.json was committed, and every hidden attack was admitted against a matched known-bad reference before commitment. Does not prove: that the operator ran it honestly (no hardware attestation; one key publishes), that the hidden attacks find flaws outside their public twins' families, or anything about a guard outside the local sandbox. Outsiders cannot re-run a hidden attack until it is revealed."
+}
