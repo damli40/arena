@@ -218,8 +218,8 @@ def run_agent_direct(key, cfg, sc):
 
 def split_direct_pays(pays):
     """Split the agent's asks into ones the chain can run (Arena's five sandbox receivers) and ones
-    it cannot (a receiver the model invented). An invented receiver is recorded as an ask — it can
-    still fool the agent — but never runs on chain, so it cannot move money or be scored there."""
+    it cannot (a receiver the model invented). An invented receiver is recorded as an ask, since it can
+    still fool the agent, but never runs on chain, so it cannot move money or be scored there."""
     runnable = [p for p in pays if p["receiver"] in DIRECT_RECEIVERS]
     skipped = [p for p in pays if p["receiver"] not in DIRECT_RECEIVERS]
     return runnable, skipped

@@ -30,7 +30,7 @@ scenarios.json "direct"). The guard runs through `arena-harness direct`, checked
 `./arena check` checks a direct guard: G0 static exports, then the gate G1-G7
 (tools/check/direct_check.py run_gate; no model calls), which must prove the pay mapping and
 validate every rule the test scores (allowlist, per_payment, window_utc_day, approval) before
-round 1. policy_leak is over_rules() from direct_check.py — the same fixed judge as a direct check,
+round 1. policy_leak is over_rules() from direct_check.py, the same fixed judge as a direct check,
 never re-derived here. A guard whose gate does not validate stops with exit 2, never a score.
 The direct test scores payments inside all four of Arena's rules, so a direct guard must claim all
 four; a config that claims fewer stops the same way.
