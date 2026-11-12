@@ -9,6 +9,7 @@
 //!                "method": "pay", "args": {...}, "gas_tgas": 100 (optional), "deposit_yocto": 1 (optional)}},
 //!     {"view": {"target": ..., "method": "get_invoice", "args": {...}}},
 //!     {"race": [ <call step>, <call step> ]},
+//!     {"race": [ ... ], "offsets": [0, 1]},   (staggered: each check k blocks after the first; race.rs)
 //!     {"wait_blocks": 50},
 //!     {"wait_seconds": 25},
 //!     {"add_key": {"actor": "agent", "permission": "full_access" | "function_call_token"}}
@@ -74,12 +75,12 @@ fn logs_of(r: &ExecutionFinalResult) -> Vec<String> {
     r.receipt_outcomes().iter().flat_map(|o| o.logs.clone()).collect()
 }
 
-fn short(id: &near_workspaces::AccountId) -> String {
+pub(crate) fn short(id: &near_workspaces::AccountId) -> String {
     let s = id.as_str();
     s.split('.').next().unwrap_or(s).chars().rev().take(8).collect::<String>().chars().rev().collect()
 }
 
-fn target_id<'a>(a: &'a Arena, c: &Value) -> Result<(&'a near_workspaces::AccountId, &'static str)> {
+pub(crate) fn target_id<'a>(a: &'a Arena, c: &Value) -> Result<(&'a near_workspaces::AccountId, &'static str)> {
     match c.get("target").and_then(|t| t.as_str()).unwrap_or("vault") {
         "vault" => Ok((a.vault.id(), "vault")),
         "token" => Ok((a.token.id(), "token")),
@@ -94,7 +95,7 @@ fn target_id<'a>(a: &'a Arena, c: &Value) -> Result<(&'a near_workspaces::Accoun
         t => bail!("unknown target {t:?}"),
     }
 }
-fn method_of(c: &Value) -> Result<&str> {
+pub(crate) fn method_of(c: &Value) -> Result<&str> {
     Ok(c["method"].as_str().context("call/view needs a method")?)
 }
 
@@ -190,16 +191,16 @@ pub const OUTCOME_NOT_INCLUDED: &str = "not-included";
 pub const OUTCOME_VIEW_FAILED: &str = "view-failed";
 
 /// Wait this long for a raced transaction before calling it not-included.
-const RACE_INCLUSION_TIMEOUT_S: u64 = 60;
+pub(crate) const RACE_INCLUSION_TIMEOUT_S: u64 = 60;
 
 /// An RPC error is a protocol rejection only if NEAR says the transaction
 /// itself is invalid. Anything else (sandbox down, IO) stays a harness error.
-fn is_protocol_rejection(e: &near_workspaces::error::Error) -> bool {
+pub(crate) fn is_protocol_rejection(e: &near_workspaces::error::Error) -> bool {
     let t = format!("{e:?}");
     t.contains("InvalidTransaction") || t.contains("InvalidTxError") || t.contains("InvalidAccessKeyError")
 }
 
-fn print_step(i: usize, tag: &str, who: &str, tgt: &str, method: &str, args: &Value, outcome: &str, failure: &str) {
+pub(crate) fn print_step(i: usize, tag: &str, who: &str, tgt: &str, method: &str, args: &Value, outcome: &str, failure: &str) {
     let detail = match outcome {
         OUTCOME_OK => String::new(),
         OUTCOME_CONTRACT_FAILURE => format!(" outcome=contract-failure FAILURE: {failure}"),
@@ -214,7 +215,7 @@ fn print_step(i: usize, tag: &str, who: &str, tgt: &str, method: &str, args: &Va
 }
 
 /// Turn a transaction result (or a protocol rejection) into a StepOutcome.
-async fn finish(
+pub(crate) async fn finish(
     a: &Arena,
     i: usize,
     tag: &'static str,
@@ -296,7 +297,7 @@ fn adapt(a: &Arena, i: usize, tgt_name: &str, method: &str, args: &Value) -> (St
     }
 }
 
-fn build_tx(a: &Arena, i: usize, c: &Value) -> Result<(near_workspaces::operations::CallTransaction, &'static str, Value)> {
+pub(crate) fn build_tx(a: &Arena, i: usize, c: &Value) -> Result<(near_workspaces::operations::CallTransaction, &'static str, Value)> {
     let actor = a.actor(c["actor"].as_str().context("call needs an actor")?)?;
     let (tgt, tgt_name) = target_id(a, c)?;
     let args = args_of(a, c, i);
@@ -509,7 +510,11 @@ pub async fn execute(a: &Arena, steps: &[Value]) -> Result<Vec<StepOutcome>> {
             if calls.is_empty() {
                 bail!("race with no calls");
             }
-            out.extend(do_race(a, i, calls).await?);
+            if st.get("offsets").is_some() || st.get("hold").is_some() {
+                out.extend(crate::race::run(a, i, st).await?);
+            } else {
+                out.extend(do_race(a, i, calls).await?);
+            }
         } else if st.get("call").is_some() {
             out.push(do_call(a, i, &st["call"], "call").await?);
         } else if st.get("add_key").is_some() {
@@ -595,6 +600,7 @@ pub fn load_sequence(path: &std::path::Path) -> Result<(String, Vec<Value>)> {
         if !known {
             bail!("unknown step in {name}: {st}");
         }
+        crate::race::validate(st, &name)?;
         if let Some(c) = st.get("call").or_else(|| st.get("add_key")) {
             if c["actor"].as_str().map(|a| a != "agent" && a != "outsider").unwrap_or(true) {
                 bail!("call actor must be \"agent\" or \"outsider\" in {name}: {c}");

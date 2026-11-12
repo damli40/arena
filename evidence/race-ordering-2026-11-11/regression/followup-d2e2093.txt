@@ -1,0 +1,17 @@
+== judge tests
+Ran 22 tests in 0.005s
+
+OK
+== testnet rows
+testnet-2026-11-10: 10 trials; checks in the same block 7, one block apart 2, two blocks apart 1; judge: overlap-proven 9, tie-unproven 1, sequential 0, not-produced 0
+== c1 traces summary
+race-c1: 15 runs; both checks in one block 15; first callback 2 blocks after the last check 15; judge: overlap-proven 15; broke 9 (M5 100, guard-vulnerable 100, leaky-control-v2 100); held 6 (guard-fixed, vault-a); not counted 0
+exit 0
+== c1.sh 3
+race-c1: 15 runs; both checks in one block 15; first callback 2 blocks after the last check 15; judge: overlap-proven 15; broke 9 (M5 100, guard-vulnerable 100, leaky-control-v2 100); held 6 (guard-fixed, vault-a); not counted 0
+exit 0; 641 s
+== run.py full
+race-c3: 30 cells, 30 passed; counted tries 90, not counted 0; wall 463 s
+exit 0; 492 s
+== git status
+(end)

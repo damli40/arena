@@ -91,7 +91,7 @@ Since 2026-11-12 these three are reported as **stopped by the agent's access key
 - Sandbox only. Real-network timing differs, but the gap of at least two blocks between a call and its callback is how NEAR works.
 - A forced panic stands in for the final step failing. We didn't produce a real out-of-gas failure.
 - `reconcile` handles one stuck invoice at a time and refuses when two are stuck. A plain token transfer into the guard while an invoice is stuck leaves it stuck for good. A transfer of exactly the invoice amount could lead to a second payment. Neither case has a test yet.
-- The race was tested with both requests in the same block only.
+- The race was tested with the second request's check in the same block as the first, one block later, and (with a slow test token holding the first answer back) 4 and 8 blocks later. Block heights: `evidence/race-ordering-2026-11-11.md`.
 
 Full test details, the `reconcile` design and build notes: `docs/guard-tests.md`. Harness design: `harness/README.md`.
 

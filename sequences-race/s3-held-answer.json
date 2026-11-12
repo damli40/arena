@@ -1,0 +1,35 @@
+{
+  "name": "s3-held-answer",
+  "steps": [
+    {
+      "race": [
+        {
+          "actor": "agent",
+          "method": "pay",
+          "args": {
+            "id": "inv-pay"
+          }
+        },
+        {
+          "actor": "agent",
+          "method": "pay",
+          "args": {
+            "id": "inv-pay"
+          }
+        }
+      ],
+      "offsets": [
+        0,
+        4
+      ],
+      "hold": "until-all-checks"
+    }
+  ],
+  "meta": {
+    "title": "S3: second pay checked 4 blocks after the first, while the first payment's answer is held (slow token)",
+    "expect_ordering": "overlap-proven",
+    "needs": "--token slow",
+    "breaks": "A guard whose in-flight lock wears off after 2 blocks (race-m2) pays twice; with the normal token it holds on S1 and S2.",
+    "sequential_twin": "s3-twin-sequential"
+  }
+}

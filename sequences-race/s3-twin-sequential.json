@@ -1,0 +1,28 @@
+{
+  "name": "s3-twin-sequential",
+  "steps": [
+    {
+      "call": {
+        "actor": "agent",
+        "method": "pay",
+        "args": {
+          "id": "inv-pay"
+        }
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "method": "pay",
+        "args": {
+          "id": "inv-pay"
+        }
+      }
+    }
+  ],
+  "meta": {
+    "title": "Sequential twin of s3-held-answer (run with --token slow, holding off)",
+    "expect_ordering": "sequential",
+    "twin_of": "s3-held-answer"
+  }
+}

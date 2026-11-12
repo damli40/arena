@@ -1,0 +1,29 @@
+{
+  "name": "s1-twin-sequential",
+  "steps": [
+    {
+      "call": {
+        "actor": "agent",
+        "method": "pay",
+        "args": {
+          "id": "inv-pay"
+        }
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "method": "pay",
+        "args": {
+          "id": "inv-pay"
+        }
+      }
+    }
+  ],
+  "meta": {
+    "title": "Sequential twin of s1-same-block: the same two pays, one after the other",
+    "expect_ordering": "sequential",
+    "twin_of": "s1-same-block",
+    "why": "Must hold on the flawed guard: shows the break came from the ordering, not from a flaw a plain test would find."
+  }
+}

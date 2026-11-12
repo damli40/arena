@@ -1,0 +1,350 @@
+{
+ "runs": [
+  {
+   "tag": "s2-next-block--guard-vulnerable--01",
+   "secs": 12.9,
+   "verdict": "overlap-proven",
+   "achieved_offsets": [
+    0,
+    1
+   ],
+   "last_check": 81,
+   "first_cb": 82,
+   "reasons": [
+    "last check in block 81, strictly before the first callback in block 82"
+   ],
+   "outcome": "broke",
+   "outcome_why": "beyond policy 100, receiver got 200",
+   "wasm": "0382023bed120866"
+  },
+  {
+   "tag": "s2-next-block--guard-vulnerable--02",
+   "secs": 13.3,
+   "verdict": "overlap-proven",
+   "achieved_offsets": [
+    0,
+    1
+   ],
+   "last_check": 84,
+   "first_cb": 85,
+   "reasons": [
+    "last check in block 84, strictly before the first callback in block 85"
+   ],
+   "outcome": "broke",
+   "outcome_why": "beyond policy 100, receiver got 200",
+   "wasm": "0382023bed120866"
+  },
+  {
+   "tag": "s2-next-block--guard-vulnerable--03",
+   "secs": 12.9,
+   "verdict": "overlap-proven",
+   "achieved_offsets": [
+    0,
+    1
+   ],
+   "last_check": 84,
+   "first_cb": 85,
+   "reasons": [
+    "last check in block 84, strictly before the first callback in block 85"
+   ],
+   "outcome": "broke",
+   "outcome_why": "beyond policy 100, receiver got 200",
+   "wasm": "0382023bed120866"
+  },
+  {
+   "tag": "s2-next-block--guard-vulnerable--04",
+   "secs": 12.1,
+   "verdict": "overlap-proven",
+   "achieved_offsets": [
+    0,
+    1
+   ],
+   "last_check": 81,
+   "first_cb": 82,
+   "reasons": [
+    "last check in block 81, strictly before the first callback in block 82"
+   ],
+   "outcome": "broke",
+   "outcome_why": "beyond policy 100, receiver got 200",
+   "wasm": "0382023bed120866"
+  },
+  {
+   "tag": "s2-next-block--guard-vulnerable--05",
+   "secs": 12.2,
+   "verdict": "overlap-proven",
+   "achieved_offsets": [
+    0,
+    1
+   ],
+   "last_check": 81,
+   "first_cb": 82,
+   "reasons": [
+    "last check in block 81, strictly before the first callback in block 82"
+   ],
+   "outcome": "broke",
+   "outcome_why": "beyond policy 100, receiver got 200",
+   "wasm": "0382023bed120866"
+  },
+  {
+   "tag": "s2-next-block--guard-vulnerable--06",
+   "secs": 12.4,
+   "verdict": "overlap-proven",
+   "achieved_offsets": [
+    0,
+    1
+   ],
+   "last_check": 82,
+   "first_cb": 83,
+   "reasons": [
+    "last check in block 82, strictly before the first callback in block 83"
+   ],
+   "outcome": "broke",
+   "outcome_why": "beyond policy 100, receiver got 200",
+   "wasm": "0382023bed120866"
+  },
+  {
+   "tag": "s2-next-block--guard-vulnerable--07",
+   "secs": 13.0,
+   "verdict": "overlap-proven",
+   "achieved_offsets": [
+    0,
+    1
+   ],
+   "last_check": 83,
+   "first_cb": 84,
+   "reasons": [
+    "last check in block 83, strictly before the first callback in block 84"
+   ],
+   "outcome": "broke",
+   "outcome_why": "beyond policy 100, receiver got 200",
+   "wasm": "0382023bed120866"
+  },
+  {
+   "tag": "s2-next-block--guard-vulnerable--08",
+   "secs": 12.7,
+   "verdict": "overlap-proven",
+   "achieved_offsets": [
+    0,
+    1
+   ],
+   "last_check": 82,
+   "first_cb": 83,
+   "reasons": [
+    "last check in block 82, strictly before the first callback in block 83"
+   ],
+   "outcome": "broke",
+   "outcome_why": "beyond policy 100, receiver got 200",
+   "wasm": "0382023bed120866"
+  },
+  {
+   "tag": "s2-next-block--guard-vulnerable--09",
+   "secs": 12.5,
+   "verdict": "overlap-proven",
+   "achieved_offsets": [
+    0,
+    1
+   ],
+   "last_check": 81,
+   "first_cb": 82,
+   "reasons": [
+    "last check in block 81, strictly before the first callback in block 82"
+   ],
+   "outcome": "broke",
+   "outcome_why": "beyond policy 100, receiver got 200",
+   "wasm": "0382023bed120866"
+  },
+  {
+   "tag": "s2-next-block--guard-vulnerable--10",
+   "secs": 14.6,
+   "verdict": "overlap-proven",
+   "achieved_offsets": [
+    0,
+    1
+   ],
+   "last_check": 88,
+   "first_cb": 89,
+   "reasons": [
+    "last check in block 88, strictly before the first callback in block 89"
+   ],
+   "outcome": "broke",
+   "outcome_why": "beyond policy 100, receiver got 200",
+   "wasm": "0382023bed120866"
+  },
+  {
+   "tag": "s2-next-block--guard-vulnerable--11",
+   "secs": 14.5,
+   "verdict": "overlap-proven",
+   "achieved_offsets": [
+    0,
+    1
+   ],
+   "last_check": 86,
+   "first_cb": 87,
+   "reasons": [
+    "last check in block 86, strictly before the first callback in block 87"
+   ],
+   "outcome": "broke",
+   "outcome_why": "beyond policy 100, receiver got 200",
+   "wasm": "0382023bed120866"
+  },
+  {
+   "tag": "s2-next-block--guard-vulnerable--12",
+   "secs": 14.5,
+   "verdict": "overlap-proven",
+   "achieved_offsets": [
+    0,
+    1
+   ],
+   "last_check": 88,
+   "first_cb": 89,
+   "reasons": [
+    "last check in block 88, strictly before the first callback in block 89"
+   ],
+   "outcome": "broke",
+   "outcome_why": "beyond policy 100, receiver got 200",
+   "wasm": "0382023bed120866"
+  },
+  {
+   "tag": "s2-next-block--guard-vulnerable--13",
+   "secs": 13.1,
+   "verdict": "overlap-proven",
+   "achieved_offsets": [
+    0,
+    1
+   ],
+   "last_check": 84,
+   "first_cb": 85,
+   "reasons": [
+    "last check in block 84, strictly before the first callback in block 85"
+   ],
+   "outcome": "broke",
+   "outcome_why": "beyond policy 100, receiver got 200",
+   "wasm": "0382023bed120866"
+  },
+  {
+   "tag": "s2-next-block--guard-vulnerable--14",
+   "secs": 13.2,
+   "verdict": "overlap-proven",
+   "achieved_offsets": [
+    0,
+    1
+   ],
+   "last_check": 86,
+   "first_cb": 87,
+   "reasons": [
+    "last check in block 86, strictly before the first callback in block 87"
+   ],
+   "outcome": "broke",
+   "outcome_why": "beyond policy 100, receiver got 200",
+   "wasm": "0382023bed120866"
+  },
+  {
+   "tag": "s2-next-block--guard-vulnerable--15",
+   "secs": 13.2,
+   "verdict": "overlap-proven",
+   "achieved_offsets": [
+    0,
+    1
+   ],
+   "last_check": 85,
+   "first_cb": 86,
+   "reasons": [
+    "last check in block 85, strictly before the first callback in block 86"
+   ],
+   "outcome": "broke",
+   "outcome_why": "beyond policy 100, receiver got 200",
+   "wasm": "0382023bed120866"
+  },
+  {
+   "tag": "s2-next-block--guard-vulnerable--16",
+   "secs": 13.2,
+   "verdict": "overlap-proven",
+   "achieved_offsets": [
+    0,
+    1
+   ],
+   "last_check": 85,
+   "first_cb": 86,
+   "reasons": [
+    "last check in block 85, strictly before the first callback in block 86"
+   ],
+   "outcome": "broke",
+   "outcome_why": "beyond policy 100, receiver got 200",
+   "wasm": "0382023bed120866"
+  },
+  {
+   "tag": "s2-next-block--guard-vulnerable--17",
+   "secs": 13.0,
+   "verdict": "overlap-proven",
+   "achieved_offsets": [
+    0,
+    1
+   ],
+   "last_check": 83,
+   "first_cb": 84,
+   "reasons": [
+    "last check in block 83, strictly before the first callback in block 84"
+   ],
+   "outcome": "broke",
+   "outcome_why": "beyond policy 100, receiver got 200",
+   "wasm": "0382023bed120866"
+  },
+  {
+   "tag": "s2-next-block--guard-vulnerable--18",
+   "secs": 13.0,
+   "verdict": "overlap-proven",
+   "achieved_offsets": [
+    0,
+    1
+   ],
+   "last_check": 81,
+   "first_cb": 82,
+   "reasons": [
+    "last check in block 81, strictly before the first callback in block 82"
+   ],
+   "outcome": "broke",
+   "outcome_why": "beyond policy 100, receiver got 200",
+   "wasm": "0382023bed120866"
+  },
+  {
+   "tag": "s2-next-block--guard-vulnerable--19",
+   "secs": 13.8,
+   "verdict": "overlap-proven",
+   "achieved_offsets": [
+    0,
+    1
+   ],
+   "last_check": 82,
+   "first_cb": 83,
+   "reasons": [
+    "last check in block 82, strictly before the first callback in block 83"
+   ],
+   "outcome": "broke",
+   "outcome_why": "beyond policy 100, receiver got 200",
+   "wasm": "0382023bed120866"
+  },
+  {
+   "tag": "s2-next-block--guard-vulnerable--20",
+   "secs": 13.5,
+   "verdict": "overlap-proven",
+   "achieved_offsets": [
+    0,
+    1
+   ],
+   "last_check": 83,
+   "first_cb": 84,
+   "reasons": [
+    "last check in block 83, strictly before the first callback in block 84"
+   ],
+   "outcome": "broke",
+   "outcome_why": "beyond policy 100, receiver got 200",
+   "wasm": "0382023bed120866"
+  }
+ ],
+ "verdicts": {
+  "overlap-proven": 20
+ },
+ "achieved_offsets": {
+  "[0, 1]": 20
+ }
+}

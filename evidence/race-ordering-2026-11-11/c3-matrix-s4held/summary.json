@@ -1,0 +1,177 @@
+{
+ "cells": [
+  {
+   "scenario": "s4-cap-held",
+   "guard": "race-m3",
+   "token": "slow",
+   "must": "cap-broke",
+   "ordering_needed": "overlap-proven",
+   "why": "P4 flawed, checks 0/2/4 blocks apart while answers are held",
+   "counted": 3,
+   "tries": 3,
+   "passed": true,
+   "runs": [
+    {
+     "tag": "s4-cap-held--race-m3-slow--try1",
+     "secs": 18.4,
+     "token": "slow",
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      4,
+      8
+     ],
+     "last_check": 121,
+     "first_cb": 126,
+     "reasons": [
+      "last check in block 121, strictly before the first callback in block 126"
+     ],
+     "outcome": "cap-broke",
+     "outcome_why": "above cap 100, receivers got 600 in all",
+     "wasm": "a16b7573df5cfc33",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s4-cap-held--race-m3-slow--try2",
+     "secs": 18.3,
+     "token": "slow",
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      4,
+      8
+     ],
+     "last_check": 121,
+     "first_cb": 126,
+     "reasons": [
+      "last check in block 121, strictly before the first callback in block 126"
+     ],
+     "outcome": "cap-broke",
+     "outcome_why": "above cap 100, receivers got 600 in all",
+     "wasm": "a16b7573df5cfc33",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s4-cap-held--race-m3-slow--try3",
+     "secs": 18.0,
+     "token": "slow",
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      4,
+      8
+     ],
+     "last_check": 123,
+     "first_cb": 128,
+     "reasons": [
+      "last check in block 123, strictly before the first callback in block 128"
+     ],
+     "outcome": "cap-broke",
+     "outcome_why": "above cap 100, receivers got 600 in all",
+     "wasm": "a16b7573df5cfc33",
+     "counted": true,
+     "match": true
+    }
+   ]
+  },
+  {
+   "scenario": "s4-cap-held",
+   "guard": "vault-a",
+   "token": "slow",
+   "must": "cap-held",
+   "ordering_needed": "overlap-proven",
+   "why": "P4 fixed, held",
+   "counted": 3,
+   "tries": 4,
+   "passed": true,
+   "runs": [
+    {
+     "tag": "s4-cap-held--vault-a-slow--try1",
+     "secs": 18.4,
+     "token": "slow",
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      4,
+      8
+     ],
+     "last_check": 121,
+     "first_cb": 125,
+     "reasons": [
+      "last check in block 121, strictly before the first callback in block 125"
+     ],
+     "outcome": "cap-held",
+     "outcome_why": "above cap 0, receivers got 500 in all",
+     "wasm": "52a40f3200e313c1",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s4-cap-held--vault-a-slow--try2",
+     "secs": 19.0,
+     "token": "slow",
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      4,
+      8
+     ],
+     "last_check": 124,
+     "first_cb": 128,
+     "reasons": [
+      "last check in block 124, strictly before the first callback in block 128"
+     ],
+     "outcome": "cap-held",
+     "outcome_why": "above cap 0, receivers got 500 in all",
+     "wasm": "52a40f3200e313c1",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s4-cap-held--vault-a-slow--try3",
+     "secs": 17.7,
+     "token": "slow",
+     "verdict": "not-produced",
+     "achieved_offsets": [
+      0,
+      3,
+      8
+     ],
+     "last_check": null,
+     "first_cb": null,
+     "reasons": [
+      "achieved offsets [0, 3, 8] differ from requested [0, 4, 8]"
+     ],
+     "outcome": "cap-held",
+     "outcome_why": "above cap 0, receivers got 500 in all",
+     "wasm": "52a40f3200e313c1",
+     "counted": false
+    },
+    {
+     "tag": "s4-cap-held--vault-a-slow--try4",
+     "secs": 17.7,
+     "token": "slow",
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      4,
+      8
+     ],
+     "last_check": 121,
+     "first_cb": 125,
+     "reasons": [
+      "last check in block 121, strictly before the first callback in block 125"
+     ],
+     "outcome": "cap-held",
+     "outcome_why": "above cap 0, receivers got 500 in all",
+     "wasm": "52a40f3200e313c1",
+     "counted": true,
+     "match": true
+    }
+   ]
+  }
+ ],
+ "line": "race-c3: 2 cells, 2 passed; counted tries 6, not counted 1; wall 73 s"
+}

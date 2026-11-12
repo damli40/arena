@@ -1,0 +1,1178 @@
+{
+ "cells": [
+  {
+   "scenario": "s1-same-block",
+   "guard": "guard-vulnerable",
+   "must": "broke",
+   "ordering_needed": "overlap-proven",
+   "why": "P1 flawed: writes paid only in the callback",
+   "counted": 3,
+   "tries": 3,
+   "passed": true,
+   "runs": [
+    {
+     "tag": "s1-same-block--guard-vulnerable--try1",
+     "secs": 16.4,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      0
+     ],
+     "last_check": 86,
+     "first_cb": 88,
+     "reasons": [
+      "last check in block 86, strictly before the first callback in block 88"
+     ],
+     "outcome": "broke",
+     "outcome_why": "beyond policy 100, receiver got 200",
+     "wasm": "0382023bed120866",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s1-same-block--guard-vulnerable--try2",
+     "secs": 14.7,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      0
+     ],
+     "last_check": 85,
+     "first_cb": 87,
+     "reasons": [
+      "last check in block 85, strictly before the first callback in block 87"
+     ],
+     "outcome": "broke",
+     "outcome_why": "beyond policy 100, receiver got 200",
+     "wasm": "0382023bed120866",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s1-same-block--guard-vulnerable--try3",
+     "secs": 13.6,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      0
+     ],
+     "last_check": 83,
+     "first_cb": 85,
+     "reasons": [
+      "last check in block 83, strictly before the first callback in block 85"
+     ],
+     "outcome": "broke",
+     "outcome_why": "beyond policy 100, receiver got 200",
+     "wasm": "0382023bed120866",
+     "counted": true,
+     "match": true
+    }
+   ]
+  },
+  {
+   "scenario": "s1-same-block",
+   "guard": "guard-fixed",
+   "must": "held",
+   "ordering_needed": "overlap-proven",
+   "why": "P1 fixed twin (same wasm bytes, fixed mode)",
+   "counted": 3,
+   "tries": 3,
+   "passed": true,
+   "runs": [
+    {
+     "tag": "s1-same-block--guard-fixed--try1",
+     "secs": 16.5,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      0
+     ],
+     "last_check": 87,
+     "first_cb": 89,
+     "reasons": [
+      "last check in block 87, strictly before the first callback in block 89"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "0382023bed120866",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s1-same-block--guard-fixed--try2",
+     "secs": 15.0,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      0
+     ],
+     "last_check": 85,
+     "first_cb": 87,
+     "reasons": [
+      "last check in block 85, strictly before the first callback in block 87"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "0382023bed120866",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s1-same-block--guard-fixed--try3",
+     "secs": 13.1,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      0
+     ],
+     "last_check": 85,
+     "first_cb": 87,
+     "reasons": [
+      "last check in block 85, strictly before the first callback in block 87"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "0382023bed120866",
+     "counted": true,
+     "match": true
+    }
+   ]
+  },
+  {
+   "scenario": "s1-same-block",
+   "guard": "M5",
+   "must": "broke",
+   "ordering_needed": "overlap-proven",
+   "why": "P1b flawed: vault-a without the in-flight mark",
+   "counted": 3,
+   "tries": 3,
+   "passed": true,
+   "runs": [
+    {
+     "tag": "s1-same-block--M5--try1",
+     "secs": 20.3,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      0
+     ],
+     "last_check": 118,
+     "first_cb": 120,
+     "reasons": [
+      "last check in block 118, strictly before the first callback in block 120"
+     ],
+     "outcome": "broke",
+     "outcome_why": "beyond policy 100, receiver got 200",
+     "wasm": "e92c54bb2744391c",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s1-same-block--M5--try2",
+     "secs": 19.1,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      0
+     ],
+     "last_check": 113,
+     "first_cb": 115,
+     "reasons": [
+      "last check in block 113, strictly before the first callback in block 115"
+     ],
+     "outcome": "broke",
+     "outcome_why": "beyond policy 100, receiver got 200",
+     "wasm": "e92c54bb2744391c",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s1-same-block--M5--try3",
+     "secs": 18.3,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      0
+     ],
+     "last_check": 116,
+     "first_cb": 118,
+     "reasons": [
+      "last check in block 116, strictly before the first callback in block 118"
+     ],
+     "outcome": "broke",
+     "outcome_why": "beyond policy 100, receiver got 200",
+     "wasm": "e92c54bb2744391c",
+     "counted": true,
+     "match": true
+    }
+   ]
+  },
+  {
+   "scenario": "s1-same-block",
+   "guard": "vault-a",
+   "must": "held",
+   "ordering_needed": "overlap-proven",
+   "why": "P1b / P2 fixed",
+   "counted": 3,
+   "tries": 3,
+   "passed": true,
+   "runs": [
+    {
+     "tag": "s1-same-block--vault-a--try1",
+     "secs": 18.5,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      0
+     ],
+     "last_check": 113,
+     "first_cb": 115,
+     "reasons": [
+      "last check in block 113, strictly before the first callback in block 115"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "52a40f3200e313c1",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s1-same-block--vault-a--try2",
+     "secs": 19.0,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      0
+     ],
+     "last_check": 115,
+     "first_cb": 117,
+     "reasons": [
+      "last check in block 115, strictly before the first callback in block 117"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "52a40f3200e313c1",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s1-same-block--vault-a--try3",
+     "secs": 19.0,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      0
+     ],
+     "last_check": 115,
+     "first_cb": 117,
+     "reasons": [
+      "last check in block 115, strictly before the first callback in block 117"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "52a40f3200e313c1",
+     "counted": true,
+     "match": true
+    }
+   ]
+  },
+  {
+   "scenario": "s1-same-block",
+   "guard": "race-m1",
+   "must": "held",
+   "ordering_needed": "overlap-proven",
+   "why": "negative control: a same-block lock does stop a same-block race",
+   "counted": 3,
+   "tries": 3,
+   "passed": true,
+   "runs": [
+    {
+     "tag": "s1-same-block--race-m1--try1",
+     "secs": 19.4,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      0
+     ],
+     "last_check": 115,
+     "first_cb": 117,
+     "reasons": [
+      "last check in block 115, strictly before the first callback in block 117"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "edcac3a94d71207e",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s1-same-block--race-m1--try2",
+     "secs": 18.3,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      0
+     ],
+     "last_check": 113,
+     "first_cb": 115,
+     "reasons": [
+      "last check in block 113, strictly before the first callback in block 115"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "edcac3a94d71207e",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s1-same-block--race-m1--try3",
+     "secs": 18.2,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      0
+     ],
+     "last_check": 112,
+     "first_cb": 114,
+     "reasons": [
+      "last check in block 112, strictly before the first callback in block 114"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "edcac3a94d71207e",
+     "counted": true,
+     "match": true
+    }
+   ]
+  },
+  {
+   "scenario": "s2-next-block",
+   "guard": "race-m1",
+   "must": "broke",
+   "ordering_needed": "overlap-proven",
+   "why": "P2 flawed: in-flight lock only within one block",
+   "counted": 3,
+   "tries": 3,
+   "passed": true,
+   "runs": [
+    {
+     "tag": "s2-next-block--race-m1--try1",
+     "secs": 20.1,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      1
+     ],
+     "last_check": 116,
+     "first_cb": 117,
+     "reasons": [
+      "last check in block 116, strictly before the first callback in block 117"
+     ],
+     "outcome": "broke",
+     "outcome_why": "beyond policy 100, receiver got 200",
+     "wasm": "edcac3a94d71207e",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s2-next-block--race-m1--try2",
+     "secs": 18.7,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      1
+     ],
+     "last_check": 116,
+     "first_cb": 117,
+     "reasons": [
+      "last check in block 116, strictly before the first callback in block 117"
+     ],
+     "outcome": "broke",
+     "outcome_why": "beyond policy 100, receiver got 200",
+     "wasm": "edcac3a94d71207e",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s2-next-block--race-m1--try3",
+     "secs": 19.1,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      1
+     ],
+     "last_check": 116,
+     "first_cb": 117,
+     "reasons": [
+      "last check in block 116, strictly before the first callback in block 117"
+     ],
+     "outcome": "broke",
+     "outcome_why": "beyond policy 100, receiver got 200",
+     "wasm": "edcac3a94d71207e",
+     "counted": true,
+     "match": true
+    }
+   ]
+  },
+  {
+   "scenario": "s2-next-block",
+   "guard": "vault-a",
+   "must": "held",
+   "ordering_needed": "overlap-proven",
+   "why": "P2 fixed",
+   "counted": 3,
+   "tries": 3,
+   "passed": true,
+   "runs": [
+    {
+     "tag": "s2-next-block--vault-a--try1",
+     "secs": 18.7,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      1
+     ],
+     "last_check": 117,
+     "first_cb": 118,
+     "reasons": [
+      "last check in block 117, strictly before the first callback in block 118"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "52a40f3200e313c1",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s2-next-block--vault-a--try2",
+     "secs": 16.9,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      1
+     ],
+     "last_check": 113,
+     "first_cb": 114,
+     "reasons": [
+      "last check in block 113, strictly before the first callback in block 114"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "52a40f3200e313c1",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s2-next-block--vault-a--try3",
+     "secs": 17.5,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      1
+     ],
+     "last_check": 115,
+     "first_cb": 116,
+     "reasons": [
+      "last check in block 115, strictly before the first callback in block 116"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "52a40f3200e313c1",
+     "counted": true,
+     "match": true
+    }
+   ]
+  },
+  {
+   "scenario": "s2-next-block",
+   "guard": "guard-vulnerable",
+   "must": "broke",
+   "ordering_needed": "overlap-proven",
+   "why": "P1 flawed, second check one block later",
+   "counted": 3,
+   "tries": 3,
+   "passed": true,
+   "runs": [
+    {
+     "tag": "s2-next-block--guard-vulnerable--try1",
+     "secs": 15.1,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      1
+     ],
+     "last_check": 86,
+     "first_cb": 87,
+     "reasons": [
+      "last check in block 86, strictly before the first callback in block 87"
+     ],
+     "outcome": "broke",
+     "outcome_why": "beyond policy 100, receiver got 200",
+     "wasm": "0382023bed120866",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s2-next-block--guard-vulnerable--try2",
+     "secs": 12.8,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      1
+     ],
+     "last_check": 84,
+     "first_cb": 85,
+     "reasons": [
+      "last check in block 84, strictly before the first callback in block 85"
+     ],
+     "outcome": "broke",
+     "outcome_why": "beyond policy 100, receiver got 200",
+     "wasm": "0382023bed120866",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s2-next-block--guard-vulnerable--try3",
+     "secs": 13.8,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      1
+     ],
+     "last_check": 88,
+     "first_cb": 89,
+     "reasons": [
+      "last check in block 88, strictly before the first callback in block 89"
+     ],
+     "outcome": "broke",
+     "outcome_why": "beyond policy 100, receiver got 200",
+     "wasm": "0382023bed120866",
+     "counted": true,
+     "match": true
+    }
+   ]
+  },
+  {
+   "scenario": "s2-next-block",
+   "guard": "guard-fixed",
+   "must": "held",
+   "ordering_needed": "overlap-proven",
+   "why": "P1 fixed",
+   "counted": 3,
+   "tries": 3,
+   "passed": true,
+   "runs": [
+    {
+     "tag": "s2-next-block--guard-fixed--try1",
+     "secs": 12.9,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      1
+     ],
+     "last_check": 82,
+     "first_cb": 83,
+     "reasons": [
+      "last check in block 82, strictly before the first callback in block 83"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "0382023bed120866",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s2-next-block--guard-fixed--try2",
+     "secs": 12.5,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      1
+     ],
+     "last_check": 83,
+     "first_cb": 84,
+     "reasons": [
+      "last check in block 83, strictly before the first callback in block 84"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "0382023bed120866",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s2-next-block--guard-fixed--try3",
+     "secs": 12.9,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      1
+     ],
+     "last_check": 82,
+     "first_cb": 83,
+     "reasons": [
+      "last check in block 82, strictly before the first callback in block 83"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "0382023bed120866",
+     "counted": true,
+     "match": true
+    }
+   ]
+  },
+  {
+   "scenario": "s2-next-block",
+   "guard": "M5",
+   "must": "broke",
+   "ordering_needed": "overlap-proven",
+   "why": "P1b flawed, second check one block later",
+   "counted": 3,
+   "tries": 3,
+   "passed": true,
+   "runs": [
+    {
+     "tag": "s2-next-block--M5--try1",
+     "secs": 17.0,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      1
+     ],
+     "last_check": 115,
+     "first_cb": 116,
+     "reasons": [
+      "last check in block 115, strictly before the first callback in block 116"
+     ],
+     "outcome": "broke",
+     "outcome_why": "beyond policy 100, receiver got 200",
+     "wasm": "e92c54bb2744391c",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s2-next-block--M5--try2",
+     "secs": 18.9,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      1
+     ],
+     "last_check": 114,
+     "first_cb": 115,
+     "reasons": [
+      "last check in block 114, strictly before the first callback in block 115"
+     ],
+     "outcome": "broke",
+     "outcome_why": "beyond policy 100, receiver got 200",
+     "wasm": "e92c54bb2744391c",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s2-next-block--M5--try3",
+     "secs": 20.9,
+     "verdict": "overlap-proven",
+     "achieved_offsets": [
+      0,
+      1
+     ],
+     "last_check": 118,
+     "first_cb": 119,
+     "reasons": [
+      "last check in block 118, strictly before the first callback in block 119"
+     ],
+     "outcome": "broke",
+     "outcome_why": "beyond policy 100, receiver got 200",
+     "wasm": "e92c54bb2744391c",
+     "counted": true,
+     "match": true
+    }
+   ]
+  },
+  {
+   "scenario": "s1-twin-sequential",
+   "guard": "guard-vulnerable",
+   "must": "held",
+   "ordering_needed": "sequential",
+   "why": "sequential twin of S1 on P1 flawed",
+   "counted": 3,
+   "tries": 3,
+   "passed": true,
+   "runs": [
+    {
+     "tag": "s1-twin-sequential--guard-vulnerable--try1",
+     "secs": 14.8,
+     "verdict": "sequential",
+     "achieved_offsets": [
+      0,
+      5
+     ],
+     "last_check": 88,
+     "first_cb": 85,
+     "reasons": [
+      "last check in block 88, after the first callback in block 85"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "0382023bed120866",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s1-twin-sequential--guard-vulnerable--try2",
+     "secs": 15.1,
+     "verdict": "sequential",
+     "achieved_offsets": [
+      0,
+      5
+     ],
+     "last_check": 89,
+     "first_cb": 86,
+     "reasons": [
+      "last check in block 89, after the first callback in block 86"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "0382023bed120866",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s1-twin-sequential--guard-vulnerable--try3",
+     "secs": 16.4,
+     "verdict": "sequential",
+     "achieved_offsets": [
+      0,
+      5
+     ],
+     "last_check": 90,
+     "first_cb": 87,
+     "reasons": [
+      "last check in block 90, after the first callback in block 87"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "0382023bed120866",
+     "counted": true,
+     "match": true
+    }
+   ]
+  },
+  {
+   "scenario": "s1-twin-sequential",
+   "guard": "M5",
+   "must": "held",
+   "ordering_needed": "sequential",
+   "why": "sequential twin of S1 on P1b flawed",
+   "counted": 3,
+   "tries": 3,
+   "passed": true,
+   "runs": [
+    {
+     "tag": "s1-twin-sequential--M5--try1",
+     "secs": 20.0,
+     "verdict": "sequential",
+     "achieved_offsets": [
+      0,
+      5
+     ],
+     "last_check": 118,
+     "first_cb": 115,
+     "reasons": [
+      "last check in block 118, after the first callback in block 115"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "e92c54bb2744391c",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s1-twin-sequential--M5--try2",
+     "secs": 18.7,
+     "verdict": "sequential",
+     "achieved_offsets": [
+      0,
+      5
+     ],
+     "last_check": 119,
+     "first_cb": 116,
+     "reasons": [
+      "last check in block 119, after the first callback in block 116"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "e92c54bb2744391c",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s1-twin-sequential--M5--try3",
+     "secs": 20.2,
+     "verdict": "sequential",
+     "achieved_offsets": [
+      0,
+      5
+     ],
+     "last_check": 121,
+     "first_cb": 118,
+     "reasons": [
+      "last check in block 121, after the first callback in block 118"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "e92c54bb2744391c",
+     "counted": true,
+     "match": true
+    }
+   ]
+  },
+  {
+   "scenario": "s2-twin-sequential",
+   "guard": "race-m1",
+   "must": "held",
+   "ordering_needed": "sequential",
+   "why": "sequential twin of S2 on P2 flawed",
+   "counted": 3,
+   "tries": 3,
+   "passed": true,
+   "runs": [
+    {
+     "tag": "s2-twin-sequential--race-m1--try1",
+     "secs": 19.9,
+     "verdict": "sequential",
+     "achieved_offsets": [
+      0,
+      5
+     ],
+     "last_check": 120,
+     "first_cb": 117,
+     "reasons": [
+      "last check in block 120, after the first callback in block 117"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "edcac3a94d71207e",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s2-twin-sequential--race-m1--try2",
+     "secs": 19.6,
+     "verdict": "sequential",
+     "achieved_offsets": [
+      0,
+      5
+     ],
+     "last_check": 119,
+     "first_cb": 116,
+     "reasons": [
+      "last check in block 119, after the first callback in block 116"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "edcac3a94d71207e",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s2-twin-sequential--race-m1--try3",
+     "secs": 18.2,
+     "verdict": "sequential",
+     "achieved_offsets": [
+      0,
+      5
+     ],
+     "last_check": 117,
+     "first_cb": 114,
+     "reasons": [
+      "last check in block 117, after the first callback in block 114"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "edcac3a94d71207e",
+     "counted": true,
+     "match": true
+    }
+   ]
+  },
+  {
+   "scenario": "s2-twin-sequential",
+   "guard": "guard-vulnerable",
+   "must": "held",
+   "ordering_needed": "sequential",
+   "why": "sequential twin of S2 on P1 flawed",
+   "counted": 3,
+   "tries": 3,
+   "passed": true,
+   "runs": [
+    {
+     "tag": "s2-twin-sequential--guard-vulnerable--try1",
+     "secs": 14.9,
+     "verdict": "sequential",
+     "achieved_offsets": [
+      0,
+      5
+     ],
+     "last_check": 87,
+     "first_cb": 84,
+     "reasons": [
+      "last check in block 87, after the first callback in block 84"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "0382023bed120866",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s2-twin-sequential--guard-vulnerable--try2",
+     "secs": 13.9,
+     "verdict": "sequential",
+     "achieved_offsets": [
+      0,
+      5
+     ],
+     "last_check": 88,
+     "first_cb": 85,
+     "reasons": [
+      "last check in block 88, after the first callback in block 85"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "0382023bed120866",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s2-twin-sequential--guard-vulnerable--try3",
+     "secs": 13.8,
+     "verdict": "sequential",
+     "achieved_offsets": [
+      0,
+      5
+     ],
+     "last_check": 84,
+     "first_cb": 81,
+     "reasons": [
+      "last check in block 84, after the first callback in block 81"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "0382023bed120866",
+     "counted": true,
+     "match": true
+    }
+   ]
+  },
+  {
+   "scenario": "s2-twin-sequential",
+   "guard": "M5",
+   "must": "held",
+   "ordering_needed": "sequential",
+   "why": "sequential twin of S2 on P1b flawed",
+   "counted": 3,
+   "tries": 3,
+   "passed": true,
+   "runs": [
+    {
+     "tag": "s2-twin-sequential--M5--try1",
+     "secs": 18.8,
+     "verdict": "sequential",
+     "achieved_offsets": [
+      0,
+      5
+     ],
+     "last_check": 121,
+     "first_cb": 118,
+     "reasons": [
+      "last check in block 121, after the first callback in block 118"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "e92c54bb2744391c",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s2-twin-sequential--M5--try2",
+     "secs": 18.4,
+     "verdict": "sequential",
+     "achieved_offsets": [
+      0,
+      5
+     ],
+     "last_check": 118,
+     "first_cb": 115,
+     "reasons": [
+      "last check in block 118, after the first callback in block 115"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "e92c54bb2744391c",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s2-twin-sequential--M5--try3",
+     "secs": 17.5,
+     "verdict": "sequential",
+     "achieved_offsets": [
+      0,
+      5
+     ],
+     "last_check": 115,
+     "first_cb": 112,
+     "reasons": [
+      "last check in block 115, after the first callback in block 112"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "e92c54bb2744391c",
+     "counted": true,
+     "match": true
+    }
+   ]
+  },
+  {
+   "scenario": "s5-too-late",
+   "guard": "guard-vulnerable",
+   "must": "held",
+   "ordering_needed": "sequential",
+   "why": "S5: the judge must say sequential, never a race",
+   "counted": 3,
+   "tries": 3,
+   "passed": true,
+   "runs": [
+    {
+     "tag": "s5-too-late--guard-vulnerable--try1",
+     "secs": 13.8,
+     "verdict": "sequential",
+     "achieved_offsets": [
+      0,
+      5
+     ],
+     "last_check": 89,
+     "first_cb": 86,
+     "reasons": [
+      "last check in block 89, after the first callback in block 86"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "0382023bed120866",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s5-too-late--guard-vulnerable--try2",
+     "secs": 13.7,
+     "verdict": "sequential",
+     "achieved_offsets": [
+      0,
+      5
+     ],
+     "last_check": 87,
+     "first_cb": 84,
+     "reasons": [
+      "last check in block 87, after the first callback in block 84"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "0382023bed120866",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s5-too-late--guard-vulnerable--try3",
+     "secs": 13.6,
+     "verdict": "sequential",
+     "achieved_offsets": [
+      0,
+      5
+     ],
+     "last_check": 87,
+     "first_cb": 84,
+     "reasons": [
+      "last check in block 87, after the first callback in block 84"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "0382023bed120866",
+     "counted": true,
+     "match": true
+    }
+   ]
+  },
+  {
+   "scenario": "s5-too-late",
+   "guard": "guard-fixed",
+   "must": "held",
+   "ordering_needed": "sequential",
+   "why": "S5 on the fixed guard",
+   "counted": 3,
+   "tries": 3,
+   "passed": true,
+   "runs": [
+    {
+     "tag": "s5-too-late--guard-fixed--try1",
+     "secs": 13.7,
+     "verdict": "sequential",
+     "achieved_offsets": [
+      0,
+      5
+     ],
+     "last_check": 87,
+     "first_cb": 84,
+     "reasons": [
+      "last check in block 87, after the first callback in block 84"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "0382023bed120866",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s5-too-late--guard-fixed--try2",
+     "secs": 13.3,
+     "verdict": "sequential",
+     "achieved_offsets": [
+      0,
+      5
+     ],
+     "last_check": 86,
+     "first_cb": 83,
+     "reasons": [
+      "last check in block 86, after the first callback in block 83"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "0382023bed120866",
+     "counted": true,
+     "match": true
+    },
+    {
+     "tag": "s5-too-late--guard-fixed--try3",
+     "secs": 13.8,
+     "verdict": "sequential",
+     "achieved_offsets": [
+      0,
+      5
+     ],
+     "last_check": 88,
+     "first_cb": 85,
+     "reasons": [
+      "last check in block 88, after the first callback in block 85"
+     ],
+     "outcome": "held",
+     "outcome_why": "beyond policy 0, receiver got 100",
+     "wasm": "0382023bed120866",
+     "counted": true,
+     "match": true
+    }
+   ]
+  }
+ ],
+ "line": "race-c2: 17 cells, 17 passed; counted tries 51, not counted 0; wall 298 s"
+}

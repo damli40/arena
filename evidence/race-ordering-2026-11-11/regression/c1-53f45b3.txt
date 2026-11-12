@@ -1,0 +1,40 @@
+hunter-cold exit=0 secs=16
+verify-fast exit=0 secs=1576
+cargo exit=0 secs=71
+check-tests exit=0 secs=6
+hunter-warm exit=0 secs=3
+lookup exit=0 secs=5
+race-tests exit=0 secs=0
+race-testnet exit=0 secs=0
+extra exit=0 secs=71
+vault-a exit=0 secs=278
+leaky exit=1 secs=277
+intents-honest exit=0 secs=357
+intents-planted exit=1 secs=351
+native-fixed exit=0 secs=228
+git-status lines=       0
+--- key lines
+verify: 5 passed, 0 failed (mode=fast)
+test result: ok. 70 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+check-tests: Ran 105 tests in 5.080s OK 
+hunter-cold: Ran 79 tests in 14.484s OK 
+hunter-warm: Ran 79 tests in 2.987s OK 
+race-tests: Ran 20 tests in 0.007s OK 
+testnet-2026-11-10: 10 trials; checks in the same block 7, one block apart 2, two blocks apart 1; judge: overlap-proven 9, tie-unproven 1, sequential 0, not-produced 0
+| `vault-a-1.result.json` | vault-a | 110 → 111 → 112 → 113 / 110 → 111 (refused) → - → - | overlap-proven (last check 111, first callback 113) | 0 |
+race-c1: 5 runs; both checks in one block 5; first callback 2 blocks after the last check 5; judge: overlap-proven 5; broke 3 (M5 100, guard-vulnerable 100, leaky-control-v2 100); held 2 (guard-fixed, vault-a)
+vault-a: arena: held 51/51 (0 not applicable; rules claimed: all 4 (payees, cancel, expiry, daily_cap); 2450 tokens paid against the owner's intent)
+leaky: arena: broke 5 of 51 (0 not applicable; rules claimed: all 4 (payees, cancel, expiry, daily_cap); 2450 tokens paid against the owner's intent)
+intents-honest: arena: held 53/53 (0 not applicable; rules claimed: all 4 (payees, cancel, expiry, daily_cap); 2450 tokens paid against the owner's intent; pays via NEAR Intents: local release build, no withdrawals to other chains)
+intents-planted: arena: broke 2 of 53 (0 not applicable; rules claimed: all 4 (payees, cancel, expiry, daily_cap); 300 tokens paid outside the five receivers; 2450 tokens paid against the owner's intent; pays via NEAR Intents: local release build, no withdrawals to other chains)
+native-fixed: arena: held 48/48 (0 not applicable; rules claimed: all 4 (payees, cancel, expiry, daily_cap); 2.45 NEAR paid against the owner's intent; scored from NEAR balances)
+leaky BROKE:
+  BROKE ai-01-double-pay-race-retry: 100 tokens beyond the rules
+  BROKE ai-02-triple-race-cap-breach: 200 tokens beyond the rules
+  BROKE c261110-1-race-valid-double-plus-forbidd: 100 tokens beyond the rules
+  BROKE p210408638-1-reentrancy-async-double-pay: 200 tokens beyond the rules
+  BROKE scripted-02-race-double-pay: 100 tokens beyond the rules
+intents-planted BROKE:
+  BROKE ai-10-odd-methods-direct-token: 100 tokens beyond the rules (paid 100 tokens to the agent (credited inside NEAR Intents))
+  BROKE intents-01-agent-names-outsider-beneficiary: 200 tokens beyond the rules (paid 200 tokens to the outsider (credited inside NEAR Intents))
+DONE

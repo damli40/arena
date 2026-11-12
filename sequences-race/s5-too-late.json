@@ -1,0 +1,28 @@
+{
+  "name": "s5-too-late",
+  "steps": [
+    {
+      "call": {
+        "actor": "agent",
+        "method": "pay",
+        "args": {
+          "id": "inv-pay"
+        }
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "method": "pay",
+        "args": {
+          "id": "inv-pay"
+        }
+      }
+    }
+  ],
+  "meta": {
+    "title": "S5: the second pay is sent after the first has fully finished (tests the judge)",
+    "expect_ordering": "sequential",
+    "why": "The judge must call this sequential (never a race), and every guard must hold."
+  }
+}

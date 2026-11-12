@@ -35,6 +35,7 @@ mod chainsig;
 mod conserve;
 mod direct;
 mod direct_ext;
+mod race;
 mod receipts;
 mod effects;
 mod scorer;
@@ -155,7 +156,7 @@ fn honesty(target: &Target) -> &'static str {
 }
 
 /// Flags that take a value (so their value is never read as a positional).
-const VALUE_FLAGS: [&str; 9] = ["--budget", "--label", "--target", "--meta", "--wasm", "--wasm-label", "--out", "--owner-policy", "--guard-config"];
+const VALUE_FLAGS: [&str; 10] = ["--budget", "--label", "--target", "--meta", "--wasm", "--wasm-label", "--out", "--owner-policy", "--guard-config", "--token"];
 
 fn arg_dir(args: &[String], what: &str) -> Result<PathBuf> {
     let mut it = args.iter();
@@ -229,6 +230,7 @@ fn metas(args: &[String]) -> Vec<String> {
 #[tokio::main]
 async fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().skip(1).collect();
+    race::select_token(flag(&args, "--token"))?; // race-ordering: `--token slow` (default: the test token)
     match args.first().map(|s| s.as_str()) {
         Some("manifest") => {
             let a = setup::setup(Target::VaultA).await?;
@@ -427,6 +429,7 @@ async fn run_files(
         }
         // Result JSON (fix 3: the adaptive tester's feedback).
         let mut rj = seq::outcome_json(&a, &name, &outcome, &s);
+        race::mark_result(&mut rj);
         if let Some(v) = applied {
             rj["owner_policy"] = v;
         }

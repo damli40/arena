@@ -1,0 +1,6 @@
+| scenario | guard | token | must | counted tries were | counted | cell | blocks (last check → first callback, achieved offsets) | not counted |
+|---|---|---|---|---|---|---|---|---|
+| s4-cap-held | race-m3 | slow | cap-broke | cap-broke | 3 of 3 | PASS | checks to callback 121→126 offs [0, 4, 8]; checks to callback 121→126 offs [0, 4, 8]; checks to callback 123→128 offs [0, 4, 8] | - |
+| s4-cap-held | vault-a | slow | cap-held | cap-held | 3 of 4 | PASS | checks to callback 121→125 offs [0, 4, 8]; checks to callback 124→128 offs [0, 4, 8]; checks to callback 121→125 offs [0, 4, 8] | try 3: not-produced |
+results: /Users/Admin/Documents/Knowledge base/hackathons/near/arena-race/evidence/race-ordering-2026-11-11/c3-matrix-s4held
+race-c3: 2 cells, 2 passed; counted tries 6, not counted 1; wall 73 s

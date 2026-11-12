@@ -334,8 +334,9 @@ fn ok(r: near_workspaces::result::ExecutionFinalResult) -> Result<()> {
 /// target) starts from exactly this state on a fresh sandbox.
 pub async fn setup(target: Target) -> Result<Arena> {
     let worker = near_workspaces::sandbox().await?;
-    let token_wasm = std::fs::read(resolve(TOKEN_WASM))
-        .with_context(|| format!("{TOKEN_WASM}: run ./run.sh first (it builds the contracts)"))?;
+    let token_rel = crate::race::token_wasm(); // TOKEN_WASM unless --token slow (race.rs)
+    let token_wasm = std::fs::read(resolve(token_rel))
+        .with_context(|| format!("{token_rel}: run ./run.sh first (it builds the contracts){}", crate::race::token_build_hint()))?;
     let vault_wasm = std::fs::read(target.wasm_path())
         .with_context(|| format!("{}: missing", target.wasm_path().display()))?;
 

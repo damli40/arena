@@ -1,0 +1,33 @@
+{
+  "name": "s2-next-block",
+  "steps": [
+    {
+      "race": [
+        {
+          "actor": "agent",
+          "method": "pay",
+          "args": {
+            "id": "inv-pay"
+          }
+        },
+        {
+          "actor": "agent",
+          "method": "pay",
+          "args": {
+            "id": "inv-pay"
+          }
+        }
+      ],
+      "offsets": [
+        0,
+        1
+      ]
+    }
+  ],
+  "meta": {
+    "title": "S2: two pays for one invoice, the second check one block after the first (timed)",
+    "expect_ordering": "overlap-proven",
+    "breaks": "A guard whose 'in flight' lock only works within one block (race-m1) pays twice; it holds on S1.",
+    "sequential_twin": "s2-twin-sequential"
+  }
+}

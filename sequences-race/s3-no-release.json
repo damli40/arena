@@ -1,0 +1,34 @@
+{
+  "name": "s3-no-release",
+  "steps": [
+    {
+      "race": [
+        {
+          "actor": "agent",
+          "method": "pay",
+          "args": {
+            "id": "inv-pay"
+          }
+        },
+        {
+          "actor": "agent",
+          "method": "pay",
+          "args": {
+            "id": "inv-pay"
+          }
+        }
+      ],
+      "offsets": [
+        0,
+        4
+      ],
+      "hold": "no-release"
+    }
+  ],
+  "meta": {
+    "title": "Negative control for the slow token: hold the answers and never release them",
+    "expect_ordering": "not-produced",
+    "needs": "--token slow",
+    "why": "NEAR wakes each parked answer itself after about 200 blocks; the token logs HOLD-TIMEOUT and the judge must say not-produced, never held or broke."
+  }
+}

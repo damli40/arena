@@ -1,0 +1,45 @@
+{
+  "name": "s3-tester-cannot-hold",
+  "steps": [
+    {
+      "call": {
+        "actor": "outsider",
+        "target": "token",
+        "method": "set_hold",
+        "args": {
+          "on": true
+        }
+      }
+    },
+    {
+      "call": {
+        "actor": "outsider",
+        "target": "token",
+        "method": "release",
+        "args": {}
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "target": "token",
+        "method": "set_hold",
+        "args": {
+          "on": true
+        }
+      }
+    },
+    {
+      "view": {
+        "target": "token",
+        "method": "is_holding",
+        "args": {}
+      }
+    }
+  ],
+  "meta": {
+    "title": "Testers cannot switch the slow token's hold on or release it",
+    "needs": "--token slow",
+    "expect": "every call refused (contract-failure or protocol-rejected); is_holding stays false"
+  }
+}

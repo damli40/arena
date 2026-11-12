@@ -1,0 +1,37 @@
+{
+  "name": "s4-twin-sequential",
+  "steps": [
+    {
+      "call": {
+        "actor": "agent",
+        "method": "pay",
+        "args": {
+          "id": "inv-expire"
+        }
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "method": "pay",
+        "args": {
+          "id": "inv-mid"
+        }
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "method": "pay",
+        "args": {
+          "id": "inv-pay"
+        }
+      }
+    }
+  ],
+  "meta": {
+    "title": "Sequential twin of S4: the same three pays one after the other",
+    "expect_ordering": "sequential",
+    "twin_of": "s4-cap-timed"
+  }
+}

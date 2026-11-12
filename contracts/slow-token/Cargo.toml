@@ -1,0 +1,25 @@
+# The slow token (branch race-ordering): the test token, plus a switch that parks each transfer's
+# answer until the harness releases it (NEAR yield/resume). Its own workspace on purpose, so adding
+# it changes nothing in contracts/Cargo.lock or the bytes of test_token.wasm and guard.wasm.
+[workspace]
+
+[package]
+name = "slow-token"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.86"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+near-sdk = "5.17"
+near-contract-standards = "5.17"
+
+[profile.release]
+codegen-units = 1
+opt-level = "z"
+lto = true
+debug = false
+panic = "abort"
+overflow-checks = true

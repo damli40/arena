@@ -1,0 +1,42 @@
+{
+  "name": "s4-cap-timed",
+  "steps": [
+    {
+      "race": [
+        {
+          "actor": "agent",
+          "method": "pay",
+          "args": {
+            "id": "inv-expire"
+          }
+        },
+        {
+          "actor": "agent",
+          "method": "pay",
+          "args": {
+            "id": "inv-mid"
+          }
+        },
+        {
+          "actor": "agent",
+          "method": "pay",
+          "args": {
+            "id": "inv-pay"
+          }
+        }
+      ],
+      "offsets": [
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "meta": {
+    "title": "S4: three invoices (300 + 200 + 100 = 600) past the 500 daily cap, all checked before the first callback (timed)",
+    "expect_ordering": "overlap-proven",
+    "breaks": "A guard that adds the day's spend in the callback (race-m3) pays all three: 100 above the cap. Read the above_cap field.",
+    "note": "inv-expire expires seconds after setup: the race is the first step.",
+    "sequential_twin": "s4-twin-sequential"
+  }
+}

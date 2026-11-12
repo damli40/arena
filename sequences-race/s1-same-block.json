@@ -1,0 +1,33 @@
+{
+  "name": "s1-same-block",
+  "steps": [
+    {
+      "race": [
+        {
+          "actor": "agent",
+          "method": "pay",
+          "args": {
+            "id": "inv-pay"
+          }
+        },
+        {
+          "actor": "agent",
+          "method": "pay",
+          "args": {
+            "id": "inv-pay"
+          }
+        }
+      ],
+      "offsets": [
+        0,
+        0
+      ]
+    }
+  ],
+  "meta": {
+    "title": "S1: two pays for one invoice, both checks in the same block (timed)",
+    "expect_ordering": "overlap-proven",
+    "breaks": "A guard that writes 'paid' only in its callback pays twice.",
+    "sequential_twin": "s1-twin-sequential"
+  }
+}

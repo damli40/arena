@@ -1,0 +1,333 @@
+{
+  "attempt": "s1-same-block",
+  "final": {
+    "credited_by_invoice": [
+      {
+        "credited": "100",
+        "id": "inv-pay"
+      },
+      {
+        "credited": "0",
+        "id": "inv-small"
+      },
+      {
+        "credited": "0",
+        "id": "inv-mid"
+      },
+      {
+        "credited": "0",
+        "id": "inv-big"
+      },
+      {
+        "credited": "0",
+        "id": "inv-cancel"
+      },
+      {
+        "credited": "0",
+        "id": "inv-expire"
+      },
+      {
+        "credited": "0",
+        "id": "inv-removed"
+      }
+    ],
+    "invoice_statuses": [
+      {
+        "id": "inv-pay",
+        "status": "Paid"
+      },
+      {
+        "id": "inv-small",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-mid",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-big",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-cancel",
+        "status": "null"
+      },
+      {
+        "id": "inv-expire",
+        "status": "null"
+      },
+      {
+        "id": "inv-removed",
+        "status": "null"
+      }
+    ],
+    "non_agent_pays": [],
+    "paid_outside_receivers": [],
+    "received": [
+      {
+        "authorised": "100",
+        "over": "100",
+        "received": "200",
+        "receiver": "sam"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "ada"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "lin"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "kai"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "mo"
+      }
+    ]
+  },
+  "score": {
+    "above_cap": "0",
+    "beyond_authorised": "100",
+    "conservation": {
+      "guard_outflow": "200",
+      "measured_in": "tokens",
+      "near_net_gain_yocto": [
+        {
+          "account": "the agent",
+          "gain": "0"
+        },
+        {
+          "account": "the outsider",
+          "gain": "0"
+        }
+      ],
+      "ok": true,
+      "others": [
+        {
+          "account": "the agent",
+          "received": "0"
+        },
+        {
+          "account": "the outsider",
+          "received": "0"
+        },
+        {
+          "account": "the token contract",
+          "received": "0"
+        },
+        {
+          "account": "the owner",
+          "received": "0"
+        }
+      ],
+      "paid_outside_receivers": [],
+      "paid_outside_units": "0",
+      "problems": [],
+      "reward_bound": "0",
+      "seen_at_receivers": "200",
+      "supply_drop": "0",
+      "to_owner": "0",
+      "tolerance": "0",
+      "unaccounted": "0",
+      "unit_yocto": "1"
+    },
+    "expiry": [],
+    "expiry_not_scored": false,
+    "honest_settled": 0,
+    "invalid_reasons": [],
+    "native_yocto": [],
+    "paid_outside_receivers": "0",
+    "scoring": "token",
+    "should_pay": 4,
+    "unauthorised_payout": "100",
+    "valid": true
+  },
+  "steps": [
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-pay"
+      },
+      "failure": "",
+      "kind": "race-call",
+      "logs": [
+        "pay: invoice=inv-pay transfer #1 started, mode=VulnerableFixture",
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111211753-81465298325069.test.near\",\"new_owner_id\":\"dev-20261111211750-59682223021418.test.near\",\"amount\":\"100\",\"memo\":\"invoice inv-pay\"}]}",
+        "on_transfer: invoice=inv-pay confirmed, confirmed_payouts=1"
+      ],
+      "method": "pay",
+      "outcome": "ok",
+      "receipts": {
+        "race": {
+          "blocks_checked": [
+            82,
+            87
+          ],
+          "blocks_contiguous": true,
+          "fast_forward_used": false,
+          "head_after_send": 82,
+          "leg": 1,
+          "mode": "timed",
+          "requested_offset": 0,
+          "send_ms": 7,
+          "sent_when_head_was": 82,
+          "tick_block": 82,
+          "wanted_head": 82
+        },
+        "receipts": [
+          {
+            "block_height": 85,
+            "children": 3,
+            "executor": "dev-20261111211753-81465298325069.test.near",
+            "gas_burnt": "2328716649109",
+            "index": 0,
+            "logs": 1,
+            "ok": true
+          },
+          {
+            "block_height": 86,
+            "children": 1,
+            "executor": "dev-20261111211752-64996450339573.test.near",
+            "gas_burnt": "1791645078616",
+            "index": 1,
+            "logs": 1,
+            "ok": true
+          },
+          {
+            "block_height": 87,
+            "children": 0,
+            "executor": "dev-20261111211749-31745734481010.test.near",
+            "gas_burnt": "223182562500",
+            "index": 2,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 87,
+            "children": 1,
+            "executor": "dev-20261111211753-81465298325069.test.near",
+            "gas_burnt": "1564305818131",
+            "index": 3,
+            "logs": 1,
+            "ok": true
+          },
+          {
+            "block_height": 86,
+            "children": 0,
+            "executor": "dev-20261111211749-31745734481010.test.near",
+            "gas_burnt": "223182562500",
+            "index": 4,
+            "logs": 0,
+            "ok": true
+          }
+        ],
+        "tx_block_height": 84,
+        "tx_hash": "9GvTA7MZFADCJJDwAt2eQFedw4zndaQHPEWD37LfuCyK"
+      },
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-pay"
+      },
+      "failure": "",
+      "kind": "race-call",
+      "logs": [
+        "pay: invoice=inv-pay transfer #2 started, mode=VulnerableFixture",
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261111211753-81465298325069.test.near\",\"new_owner_id\":\"dev-20261111211750-59682223021418.test.near\",\"amount\":\"100\",\"memo\":\"invoice inv-pay\"}]}",
+        "DOUBLE PAYOUT: invoice=inv-pay was already Paid when another transfer confirmed",
+        "on_transfer: invoice=inv-pay confirmed, confirmed_payouts=2"
+      ],
+      "method": "pay",
+      "outcome": "ok",
+      "receipts": {
+        "race": {
+          "blocks_checked": [
+            82,
+            87
+          ],
+          "blocks_contiguous": true,
+          "fast_forward_used": false,
+          "head_after_send": 82,
+          "leg": 2,
+          "mode": "timed",
+          "requested_offset": 0,
+          "send_ms": 5,
+          "sent_when_head_was": 82,
+          "tick_block": 82,
+          "wanted_head": 82
+        },
+        "receipts": [
+          {
+            "block_height": 85,
+            "children": 3,
+            "executor": "dev-20261111211753-81465298325069.test.near",
+            "gas_burnt": "2283116649109",
+            "index": 0,
+            "logs": 1,
+            "ok": true
+          },
+          {
+            "block_height": 86,
+            "children": 1,
+            "executor": "dev-20261111211752-64996450339573.test.near",
+            "gas_burnt": "1714125078616",
+            "index": 1,
+            "logs": 1,
+            "ok": true
+          },
+          {
+            "block_height": 87,
+            "children": 0,
+            "executor": "dev-20261111211749-31745734481010.test.near",
+            "gas_burnt": "223182562500",
+            "index": 2,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 87,
+            "children": 1,
+            "executor": "dev-20261111211753-81465298325069.test.near",
+            "gas_burnt": "1554337083010",
+            "index": 3,
+            "logs": 2,
+            "ok": true
+          },
+          {
+            "block_height": 86,
+            "children": 0,
+            "executor": "dev-20261111211749-31745734481010.test.near",
+            "gas_burnt": "223182562500",
+            "index": 4,
+            "logs": 0,
+            "ok": true
+          }
+        ],
+        "tx_block_height": 84,
+        "tx_hash": "5eW5S8nEzom4Mdq6AuK3biHVnACVZCcRZN6mJQHh63WW"
+      },
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    }
+  ],
+  "target": "guard-vulnerable",
+  "target_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e"
+}

@@ -36,7 +36,10 @@ On NEAR, a contract calling another contract does not happen in one step. Each h
 | N+2 | guard `on_transfer` callback marks the invoice "paid" |
 
 The vulnerable guard writes "paid" only at N+2. Any second `pay` that runs in block N or N+1
-still sees "not paid" and starts a second transfer. In the run, both `pay` calls ran in the same block.
+still sees "not paid" and starts a second transfer. In the run, both `pay` calls were sent together. This test run records no
+block heights; harness runs of the same guard bytes do. In the 14 saved runs both checks ran in the same block and the callback two blocks
+later; one reviewer run of guard-fixed had the checks one block apart (83 and 84, callback 85), still before the callback, and it still held
+(`evidence/race-ordering-2026-11-11.md` section 1).
 
 The fixed guard sets the invoice to `Pending` at block N, in the same step as the check.
 The second `pay` sees `Pending` and is refused ("payment already in flight"). If the transfer
@@ -170,8 +173,10 @@ this twice, by searching the wasm bytes and by paying a `crash-` invoice on the 
 - `sync_ledger` is refused while anything is `Pending`, so an untracked top-up stays out of the ledger
   until every stuck invoice is closed. t11 re-syncs after `resolve_stuck`.
 - `reconcile` handles one stuck invoice at a time. With two stuck it refuses (t9), and there is no tool for that case yet.
-- The race was only tested with both calls in the same block. The table above suggests a
-  call in block N+1 would also get through. That is inferred and was not tested.
+- The race was tested with the second call's check in block N (same block) and in block N+1 (one block later). The
+  vulnerable guard paid twice both ways and the fixed guard held, 3 of 3 each, on the harness, not in this test run
+  (`evidence/race-ordering-2026-11-11.md`). With a slow test token that holds the transfer's answer, a second call
+  4 blocks later was also tested: vulnerable paid twice, fixed held, 3 of 3 each.
 
 ## History of the guard build
 

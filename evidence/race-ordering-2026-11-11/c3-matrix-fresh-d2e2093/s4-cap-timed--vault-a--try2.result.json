@@ -1,0 +1,394 @@
+{
+  "attempt": "s4-cap-timed",
+  "final": {
+    "credited_by_invoice": [
+      {
+        "credited": "0",
+        "id": "inv-pay"
+      },
+      {
+        "credited": "0",
+        "id": "inv-small"
+      },
+      {
+        "credited": "200",
+        "id": "inv-mid"
+      },
+      {
+        "credited": "0",
+        "id": "inv-big"
+      },
+      {
+        "credited": "0",
+        "id": "inv-cancel"
+      },
+      {
+        "credited": "300",
+        "id": "inv-expire"
+      },
+      {
+        "credited": "0",
+        "id": "inv-removed"
+      }
+    ],
+    "invoice_statuses": [
+      {
+        "id": "inv-pay",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-small",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-mid",
+        "status": "Paid"
+      },
+      {
+        "id": "inv-big",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-cancel",
+        "status": "Cancelled"
+      },
+      {
+        "id": "inv-expire",
+        "status": "Paid"
+      },
+      {
+        "id": "inv-removed",
+        "status": "PayeeRemoved"
+      }
+    ],
+    "non_agent_pays": [],
+    "paid_outside_receivers": [],
+    "received": [
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "sam"
+      },
+      {
+        "authorised": "500",
+        "over": "0",
+        "received": "500",
+        "receiver": "ada"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "lin"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "kai"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "mo"
+      }
+    ]
+  },
+  "score": {
+    "above_cap": "0",
+    "beyond_authorised": "0",
+    "conservation": {
+      "guard_outflow": "500",
+      "measured_in": "tokens",
+      "near_net_gain_yocto": [
+        {
+          "account": "the agent",
+          "gain": "0"
+        },
+        {
+          "account": "the outsider",
+          "gain": "0"
+        }
+      ],
+      "ok": true,
+      "others": [
+        {
+          "account": "the agent",
+          "received": "0"
+        },
+        {
+          "account": "the outsider",
+          "received": "0"
+        },
+        {
+          "account": "the token contract",
+          "received": "0"
+        },
+        {
+          "account": "the owner",
+          "received": "0"
+        }
+      ],
+      "paid_outside_receivers": [],
+      "paid_outside_units": "0",
+      "problems": [],
+      "reward_bound": "0",
+      "seen_at_receivers": "500",
+      "supply_drop": "0",
+      "to_owner": "0",
+      "tolerance": "0",
+      "unaccounted": "0",
+      "unit_yocto": "1"
+    },
+    "expiry": [
+      {
+        "expires_at_ns": 1794467074131026000,
+        "id": "inv-expire",
+        "pay_block_ts": 1794467057822461000,
+        "verdict": "paid before expiry"
+      }
+    ],
+    "expiry_not_scored": false,
+    "honest_settled": 0,
+    "invalid_reasons": [],
+    "native_yocto": [],
+    "paid_outside_receivers": "0",
+    "scoring": "token",
+    "should_pay": 3,
+    "unauthorised_payout": "0",
+    "valid": true
+  },
+  "steps": [
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-expire"
+      },
+      "failure": "",
+      "kind": "race-call",
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"vault-a\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":[{\"id\":\"inv-expire\",\"receiver\":\"dev-20261112070405-46827998856997.test.near\",\"amount\":\"300\"}]}",
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261112070407-49883782571365.test.near\",\"new_owner_id\":\"dev-20261112070405-46827998856997.test.near\",\"amount\":\"300\",\"memo\":\"vault-a invoice inv-expire\"}]}",
+        "EVENT_JSON:{\"standard\":\"vault-a\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":[{\"id\":\"inv-expire\",\"amount\":\"300\"}]}"
+      ],
+      "method": "pay",
+      "outcome": "ok",
+      "receipts": {
+        "race": {
+          "blocks_checked": [
+            107,
+            112
+          ],
+          "blocks_contiguous": true,
+          "fast_forward_used": false,
+          "head_after_send": 107,
+          "leg": 1,
+          "mode": "timed",
+          "requested_offset": 0,
+          "send_ms": 3,
+          "sent_when_head_was": 107,
+          "tick_block": 107,
+          "wanted_head": 107
+        },
+        "receipts": [
+          {
+            "block_height": 110,
+            "children": 3,
+            "executor": "dev-20261112070407-49883782571365.test.near",
+            "gas_burnt": "2677937423308",
+            "index": 0,
+            "logs": 1,
+            "ok": true
+          },
+          {
+            "block_height": 111,
+            "children": 1,
+            "executor": "dev-20261112070406-41817149059521.test.near",
+            "gas_burnt": "1786300094817",
+            "index": 1,
+            "logs": 1,
+            "ok": true
+          },
+          {
+            "block_height": 112,
+            "children": 0,
+            "executor": "dev-20261112070404-52137693742169.test.near",
+            "gas_burnt": "223182562500",
+            "index": 2,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 112,
+            "children": 1,
+            "executor": "dev-20261112070407-49883782571365.test.near",
+            "gas_burnt": "1791078843106",
+            "index": 3,
+            "logs": 1,
+            "ok": true
+          },
+          {
+            "block_height": 111,
+            "children": 0,
+            "executor": "dev-20261112070404-52137693742169.test.near",
+            "gas_burnt": "223182562500",
+            "index": 4,
+            "logs": 0,
+            "ok": true
+          }
+        ],
+        "tx_block_height": 109,
+        "tx_hash": "5MLy7QxMJ3ayqbEYtY8hwQUw8WNkuy8PnMtauYXt5uAs"
+      },
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-mid"
+      },
+      "failure": "",
+      "kind": "race-call",
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"vault-a\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":[{\"id\":\"inv-mid\",\"receiver\":\"dev-20261112070405-46827998856997.test.near\",\"amount\":\"200\"}]}",
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261112070407-49883782571365.test.near\",\"new_owner_id\":\"dev-20261112070405-46827998856997.test.near\",\"amount\":\"200\",\"memo\":\"vault-a invoice inv-mid\"}]}",
+        "EVENT_JSON:{\"standard\":\"vault-a\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":[{\"id\":\"inv-mid\",\"amount\":\"200\"}]}"
+      ],
+      "method": "pay",
+      "outcome": "ok",
+      "receipts": {
+        "race": {
+          "blocks_checked": [
+            107,
+            112
+          ],
+          "blocks_contiguous": true,
+          "fast_forward_used": false,
+          "head_after_send": 107,
+          "leg": 2,
+          "mode": "timed",
+          "requested_offset": 0,
+          "send_ms": 0,
+          "sent_when_head_was": 107,
+          "tick_block": 107,
+          "wanted_head": 107
+        },
+        "receipts": [
+          {
+            "block_height": 110,
+            "children": 3,
+            "executor": "dev-20261112070407-49883782571365.test.near",
+            "gas_burnt": "2658778595980",
+            "index": 0,
+            "logs": 1,
+            "ok": true
+          },
+          {
+            "block_height": 111,
+            "children": 1,
+            "executor": "dev-20261112070406-41817149059521.test.near",
+            "gas_burnt": "1716898294260",
+            "index": 1,
+            "logs": 1,
+            "ok": true
+          },
+          {
+            "block_height": 112,
+            "children": 0,
+            "executor": "dev-20261112070404-52137693742169.test.near",
+            "gas_burnt": "223182562500",
+            "index": 2,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 112,
+            "children": 1,
+            "executor": "dev-20261112070407-49883782571365.test.near",
+            "gas_burnt": "1773656641879",
+            "index": 3,
+            "logs": 1,
+            "ok": true
+          },
+          {
+            "block_height": 111,
+            "children": 0,
+            "executor": "dev-20261112070404-52137693742169.test.near",
+            "gas_burnt": "223182562500",
+            "index": 4,
+            "logs": 0,
+            "ok": true
+          }
+        ],
+        "tx_block_height": 109,
+        "tx_hash": "BNg5ezpRgoRAGrEBjyJ1CX8K7zSqqtSJz5co72qJXrYT"
+      },
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-pay"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: daily cap exceeded\")) }) } })",
+      "kind": "race-call",
+      "logs": [],
+      "method": "pay",
+      "outcome": "contract-failure",
+      "receipts": {
+        "race": {
+          "blocks_checked": [
+            107,
+            112
+          ],
+          "blocks_contiguous": true,
+          "fast_forward_used": false,
+          "head_after_send": 108,
+          "leg": 3,
+          "mode": "timed",
+          "requested_offset": 1,
+          "send_ms": 0,
+          "sent_when_head_was": 108,
+          "tick_block": 107,
+          "wanted_head": 108
+        },
+        "receipts": [
+          {
+            "block_height": 111,
+            "children": 1,
+            "executor": "dev-20261112070407-49883782571365.test.near",
+            "gas_burnt": "1515230190193",
+            "index": 0,
+            "logs": 0,
+            "ok": false
+          },
+          {
+            "block_height": 112,
+            "children": 0,
+            "executor": "dev-20261112070404-52137693742169.test.near",
+            "gas_burnt": "223182562500",
+            "index": 1,
+            "logs": 0,
+            "ok": true
+          }
+        ],
+        "tx_block_height": 110,
+        "tx_hash": "3saonGvR9HEtzZA9VmQTD7UgV3ZWtSqn5U7SQjbq1gut"
+      },
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    }
+  ],
+  "target": "vault-a",
+  "target_wasm_sha256": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1"
+}

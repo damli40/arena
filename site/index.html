@@ -383,7 +383,7 @@ python3 -I tools/injection/rescore.py</pre>
     <li>29/29 means each guard kept the rules it wrote down, in these tests. It is not a security proof.</li>
     <li>The 450 is five scripted runs added up. The 500 is one run: the worst case our proof tool (z3) found, replayed on a local test chain. Neither came from the real model.</li>
     <li>Anyone can look up our results on NEAR testnet. The broken and fixed guards share one code fingerprint, so a lookup must also read the guard's mode.</li>
-    <li>Races were tested with both calls in the same block only.</li>
+    <li>Races were tested at a few spacings on a local test chain: the second payment checked in the same block, one block later, or 4 and 8 blocks later while a slow test token held the first answer back.</li>
   </ul>
 </section>
 

@@ -75,6 +75,31 @@ waiting for each other — the double-payment timing), `wait_blocks`,
 to add a `full_access` or `function_call_token` key to its own account; used
 by the bypass sequences).
 
+**Staggered race** (`harness/src/race.rs`): a `race` step may add `"offsets": [0, 1]`, one whole
+number per call, first 0, never decreasing. The harness waits until a block has just been made,
+sends call 1, then sends each later call when the head block is that many blocks later, so its
+guard check runs that many blocks after call 1's check. It cannot place a transaction in a block,
+so it records what happened in each call's `receipts.race` object (requested offset, the head when
+sent, whether every block in the step's range exists) and never scores the ordering itself. The one
+judge is `tools/race/ordering.py`: a try whose achieved offsets differ from the requested ones is
+`not-produced`, never held or broke. Offsets above 1 are refused with the normal token (the first
+callback lands 2 blocks after its check, so a later check would be a payment in a row). A `race` step without `offsets` runs exactly
+the old code (`do_race`).
+
+**Held race** (`"hold": "until-all-checks"`, needs `--token slow`): the slow token
+(`contracts/slow-token`, its own cargo workspace; build it with
+`(cd contracts/slow-token && cargo build --release --target wasm32-unknown-unknown)`) moves the
+money at once but parks its answer with NEAR's yield/resume, so the first payment's callback waits.
+The harness sends each later call so its check lands `offset` blocks after call 1's (any offset up
+to 150), waits until the token parked it or the guard refused it, then releases every parked
+answer. Only the token account can switch holding on or release (`set_hold`, `release`); testers
+cannot (`sequences-race/s3-tester-cannot-hold.json`). If nobody releases, NEAR wakes each answer
+after about 200 blocks, the token logs `HOLD-TIMEOUT`, and the judge says `not-produced`
+(`"hold": "no-release"` is that negative control). `hold` without `--token slow` is a hard error.
+With `--token slow` the result file gains a `token` object (kind and wasm sha256); without it,
+nothing changes. The race sequences are in `sequences-race/` (not part of `arena check`'s
+library); `tools/race/run.py` runs them as matched pairs.
+
 Each transaction step is logged with one of four outcomes: `ok`,
 `contract-failure` (the contract ran and panicked / ran out of gas),
 `REJECTED-BY-PROTOCOL` (NEAR refused the transaction before any contract code
@@ -186,6 +211,7 @@ the replay command, and a finding must replay with the same final balances.
 harness/src/main.rs     CLI: manifest | gen-scripted | run | replay | attempt (--out)
 harness/src/setup.rs    the one setup function + manifest
 harness/src/seq.rs      sequence parsing/execution (call/view/race/waits)
+harness/src/race.rs     staggered race steps (offsets), facts only; judged by tools/race/ordering.py
 harness/src/scorer.rs   policy scoring (token mode, and native mode via native_received)
 harness/src/scripted.rs the scripted tester's 10 sequences
 sequences-bypass/       3 bypass sequences (W3: the agent tries to go around the guard)

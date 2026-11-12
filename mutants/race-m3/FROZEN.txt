@@ -1,0 +1,4 @@
+race-m3 frozen 2026-11-12T00:05:28Z, before its race runs. Planted-flaw TEST FIXTURE: never deploy.
+sha256 vault_a.wasm a16b7573df5cfc33af388fc5e4694880efd79f0d7872d8b2b0f062a4d4a11b9a
+sha256 src/lib.rs   de5b923dc298fb9b4a1f1eb9d69ecdf52b87eacc7849ae02e00bdf3f307d5256
+built from targets/vault-a (wasm 52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1) + MUTATION.md

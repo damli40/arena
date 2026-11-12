@@ -1,0 +1,43 @@
+{
+  "name": "s4-cap-held",
+  "steps": [
+    {
+      "race": [
+        {
+          "actor": "agent",
+          "method": "pay",
+          "args": {
+            "id": "inv-expire"
+          }
+        },
+        {
+          "actor": "agent",
+          "method": "pay",
+          "args": {
+            "id": "inv-mid"
+          }
+        },
+        {
+          "actor": "agent",
+          "method": "pay",
+          "args": {
+            "id": "inv-pay"
+          }
+        }
+      ],
+      "offsets": [
+        0,
+        4,
+        8
+      ],
+      "hold": "until-all-checks"
+    }
+  ],
+  "meta": {
+    "title": "S4 held: the same three invoices, checks 0, 4 and 8 blocks apart while every answer is held (slow token)",
+    "expect_ordering": "overlap-proven",
+    "needs": "--token slow",
+    "sequential_twin": "s4-twin-sequential",
+    "note": "First tried [0, 2, 4]: held mode cannot send a call until the previous one is parked, so every try landed at [0, 4, 8] and the judge threw all 10 away (evidence/race-ordering-2026-11-11/c3-matrix-run1/)."
+  }
+}
