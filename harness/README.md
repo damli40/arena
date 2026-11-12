@@ -205,9 +205,15 @@ evidence/results/       saved per-attempt result JSON, one folder per <tester>-<
 - One UTC day per attempt (the cap term assumes a single day).
 - Per-invoice attribution (since 2026-11-12) is by window: which agent `pay`
   was running when the money arrived. A guard that holds a payment and sends it
-  during a later `pay` for another invoice is scored as broke (a false failure,
-  never a false pass), and money that lands after the step that asked for it
-  ends the attempt invalid. None of Arena's guards does either.
+  during a later `pay` for another invoice of the same receiver is broke if that
+  invoice should not be paid (possibly a false failure, never a false pass) and
+  invalid ("could not finish") if it should; money that lands after the step
+  that asked for it ends the attempt invalid. None of Arena's guards does either.
+- Payments are read as whole invoice amounts; the gain is split only if no set
+  of whole amounts fits. A guard that sends part of an invoice could be scored
+  held where a part-payment reading is broke. With more than 5 invoices of one
+  receiver in one step and no whole fit, only the kindest order is tried (no
+  shipped setup has more than 3).
 - The scorer's should-pay order is greedy in manifest order — a fixed,
   deterministic rule chosen before any tester ran.
 - Sandbox only; real-network timing differs.
