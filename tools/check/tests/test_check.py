@@ -1381,6 +1381,7 @@ class ChainSignatures(unittest.TestCase):
         self.assertIn("never an amount", R.console(r, "r"))
         self.assertNotIn("signing", R.headline(Report.rep(Report())), "token reports unchanged")
         self.assertIn("(a count, not an amount)", R.signing_note({"unauthorised_signing_requests": 1}))
+        self.assertIn("3 unauthorised signing requests (count, not amount)", R.badge_text(r)[0], "the badge carries the qualifier too")
         self.assertEqual(R.signing_note({}), "")
 
     def test_not_run_gives_no_signing_count(self):

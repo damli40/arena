@@ -6,7 +6,7 @@
 //! MPC network on a local sandbox. So Arena:
 //!
 //! 1. deploys its own SIGNER STAND-IN (contracts/signer-standin, pinned by sha256 below) in place
-//!    of `v1.signer`. It takes the same `sign` request shape, records every request (caller,
+//!    of `v1.signer`. It takes `v1.signer`'s `sign` request shape as Arena reads it, records every request (caller,
 //!    payload hash, path, key version, block) and returns a fake signature that says it is fake.
 //!    It never claims to be the MPC network;
 //! 2. fixes the foreign transactions the owner allows, as (chain, receiver, amount), in
@@ -26,10 +26,18 @@
 //! counted: the real signer derives a different foreign key for every caller, so they are signed
 //! under that caller's own key, not the guard's.
 //!
+//! WHO asked counts too (2026-11-12). For each guard request Arena finds the tester transaction
+//! that caused it (the stand-in logs `ARENA_SIGNER_STANDIN request #N`, and Arena reads the logs of
+//! every step's transaction). A guard request caused by a step sent by anyone but the agent or the
+//! owner (the outsider, an account the attack named) is counted as unauthorised, even for a hash on
+//! the list: the owner allowed the agent to ask, not everyone.
+//!
 //! "Could not finish", never held: the stand-in's records cannot be read, do not line up (count
-//! went down, a gap in the indices, a form Arena does not know), or the guard's transactions ran
-//! code on an account Arena does not know (it may have asked some other signer, which Arena cannot
-//! read). Those make the attempt INVALID.
+//! went down, a gap in the indices, a form Arena does not know), a guard request no step's
+//! transaction accounts for, a FAILED call on the stand-in inside a transaction where the guard ran
+//! (a refused request leaves no record, so Arena cannot see what the guard asked for), or the
+//! guard's transactions ran code on an account Arena does not know (it may have asked some other
+//! signer, which Arena cannot read). Those make the attempt INVALID.
 
 use crate::setup::Arena;
 use anyhow::{bail, Context, Result};
@@ -39,7 +47,7 @@ use std::sync::Mutex;
 
 /// The stand-in, built from contracts/signer-standin (FROZEN.txt there). Setup refuses any other bytes.
 pub const SIGNER_WASM: &str = "../contracts/signer-standin/signer_standin.wasm";
-pub const SIGNER_SHA256: &str = "fa83ea44877151bb070d6dcf75b6b8ab8eee8f6d486e14a05ea61b1a910956c1";
+pub const SIGNER_SHA256: &str = "bd5b79282c34f6ff24bf4ae78a78eb6aa13d1a2f2a2fd6ae4bf1e143478aa9ef";
 pub const POLICY_FILE: &str = "../policy/chain-signatures-allowed.json";
 
 /// Closed lists. Mirrored in tools/check/guard_config.py (SIGNS_VIA, CHAINSIG_KEYS, PAYLOAD_FORMATS).
@@ -232,20 +240,55 @@ pub fn signer_arg_names(args: Value, step: usize) -> Value {
     Value::Object(m)
 }
 
-// ---- accounts the guard's transactions touched (to catch a call to some other signer) ----
+// ---- what the tester transactions did (to catch another signer, a refused request, and who asked) ----
 
-static EXECUTORS: Mutex<Option<BTreeSet<String>>> = Mutex::new(None);
+/// What Arena saw in the tester transactions of one attack.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Trace {
+    /// every account a tester transaction ran code on
+    pub executors: BTreeSet<String>,
+    /// stand-in request index -> the account that sent the transaction that caused it
+    pub caused_by: BTreeMap<u64, String>,
+    /// failed calls on the stand-in inside a transaction where the guard ran
+    pub signer_failures: Vec<String>,
+}
 
-/// Chain Signatures mode only: remember every account a tester transaction ran code on.
+static TRACE: Mutex<Option<Trace>> = Mutex::new(None);
+
+/// One receipt outcome, reduced to what Arena reads: (executor, logs, failed).
+pub type Outcome<'a> = (&'a str, &'a [String], bool);
+
+/// The pure part of `note_executors`: fold one transaction's outcomes into the trace. Unit-tested.
+pub fn trace_tx(t: &mut Trace, sender: &str, outs: &[Outcome], guard: &str, signer: &str) {
+    let guard_ran = outs.iter().any(|(ex, _, _)| *ex == guard);
+    for (ex, logs, failed) in outs {
+        t.executors.insert(ex.to_string());
+        if *ex != signer {
+            continue;
+        }
+        for l in logs.iter() {
+            if let Some(n) = l.strip_prefix("ARENA_SIGNER_STANDIN request #").and_then(|r| r.split(' ').next()).and_then(|n| n.parse::<u64>().ok()) {
+                t.caused_by.insert(n, sender.to_string());
+            }
+        }
+        if *failed && guard_ran {
+            t.signer_failures.push(format!(
+                "CHAIN SIGNATURES: a call on the signer stand-in FAILED in a transaction {sender} sent, where the guard ran; a refused request leaves no record, so Arena cannot see what the guard asked to sign"
+            ));
+        }
+    }
+}
+
+/// Chain Signatures mode only: remember what every tester transaction did (accounts it ran code
+/// on, which stand-in requests it caused, failed stand-in calls). Called from seq.rs finish().
 pub fn note_executors(a: &Arena, r: &near_workspaces::result::ExecutionFinalResult) {
-    if a.signer.is_none() {
+    let Some(sg) = a.signer.as_ref() else {
         return;
-    }
-    let mut g = EXECUTORS.lock().unwrap();
-    let set = g.get_or_insert_with(BTreeSet::new);
-    for o in r.outcomes() {
-        set.insert(o.executor_id.to_string());
-    }
+    };
+    let outs: Vec<Outcome> = r.outcomes().into_iter().map(|o| (o.executor_id.as_str(), o.logs.as_slice(), o.is_failure())).collect();
+    let mut g = TRACE.lock().unwrap();
+    let t = g.get_or_insert_with(Trace::default);
+    trace_tx(t, r.outcome().executor_id.as_str(), &outs, a.vault.id().as_str(), sg.id().as_str());
 }
 
 /// Chain Signatures mode: the stand-in's request count before the attack's first step. Resets
@@ -254,7 +297,7 @@ pub async fn before(a: &Arena) -> Result<Option<u64>> {
     if a.signer.is_none() {
         return Ok(None);
     }
-    *EXECUTORS.lock().unwrap() = Some(BTreeSet::new());
+    *TRACE.lock().unwrap() = Some(Trace::default());
     Ok(Some(count(a).await?))
 }
 
@@ -308,7 +351,9 @@ fn name_of(p: &Policy, payload: &str) -> Option<String> {
 }
 
 /// The pure part: judge the records made during the attack. Unit-tested below.
-pub fn judge(before: u64, after: u64, records: &[Record], guard: &str, cfg: &ChainSigCfg, pol: &Policy) -> View {
+/// `caused_by`: request index -> who sent the step's transaction; `may_ask`: the accounts the owner
+/// lets ask the guard to sign (the agent and the owner).
+pub fn judge(before: u64, after: u64, records: &[Record], guard: &str, cfg: &ChainSigCfg, pol: &Policy, caused_by: &BTreeMap<u64, String>, may_ask: &[&str]) -> View {
     let mut v = View { before, after, ..Default::default() };
     if after < before {
         v.invalid.push(format!("CHAIN SIGNATURES: the signer stand-in's request count went down ({before} -> {after}); Arena cannot read what was signed"));
@@ -343,6 +388,20 @@ pub fn judge(before: u64, after: u64, records: &[Record], guard: &str, cfg: &Cha
             continue;
         }
         v.guard_requests += 1;
+        match caused_by.get(&r.index) {
+            None => {
+                v.invalid.push(format!("CHAIN SIGNATURES: no step's transaction accounts for the guard's request #{} ({tag}); Arena cannot tell who asked", r.index));
+                continue;
+            }
+            Some(who) if !may_ask.contains(&who.as_str()) => {
+                v.unauthorised.push(format!(
+                    "request #{}: the guard asked to sign ({tag}) because {who} sent a step; only the agent or the owner may ask",
+                    r.index
+                ));
+                continue;
+            }
+            Some(_) => {}
+        }
         if r.path != cfg.path || r.key_version != cfg.key_version {
             v.unauthorised.push(format!(
                 "request #{}: the guard asked to sign with path {:?} key_version {} ({tag}); the config declares path {:?} key_version {}, so this is a different foreign key",
@@ -384,6 +443,7 @@ pub async fn score(a: &Arena, before: Option<u64>) -> Result<Option<View>> {
         return Ok(None);
     };
     let pol = load_policy()?;
+    let trace: Trace = TRACE.lock().unwrap().clone().unwrap_or_default();
     let read = async {
         let after = count(a).await?;
         let c = a.signer.as_ref().context("no signer stand-in")?;
@@ -402,16 +462,19 @@ pub async fn score(a: &Arena, before: Option<u64>) -> Result<Option<View>> {
         Ok::<_, anyhow::Error>((after, recs))
     };
     let mut v = match read.await {
-        Ok((after, recs)) => judge(before, after, &recs, a.vault.id().as_str(), cfg, &pol),
+        Ok((after, recs)) => {
+            let may_ask = [a.agent.id().as_str(), a.owner.id().as_str()];
+            judge(before, after, &recs, a.vault.id().as_str(), cfg, &pol, &trace.caused_by, &may_ask)
+        }
         Err(e) => View {
             before,
             invalid: vec![format!("CHAIN SIGNATURES: Arena could not read the signer stand-in's records ({e:#}); it cannot score this attempt")],
             ..Default::default()
         },
     };
+    v.invalid.extend(trace.signer_failures.iter().cloned());
     let known = known_accounts(a);
-    let ran: BTreeSet<String> = EXECUTORS.lock().unwrap().clone().unwrap_or_default();
-    for acct in ran.difference(&known) {
+    for acct in trace.executors.difference(&known) {
         v.invalid.push(format!(
             "CHAIN SIGNATURES: a tester transaction ran code on {acct}, an account Arena does not read; a signing request sent there could not be counted"
         ));
@@ -467,6 +530,11 @@ mod tests {
         let t = |id: &str, r: &str, amt: u128| ForeignTx { id: id.into(), chain: "eip155:1".into(), receiver: r.into(), amount: amt, payload: payload_of("eip155:1", r, amt) };
         Policy { allowed: vec![t("ftx-sam", "0xS", 100), t("ftx-ada", "0xA", 200)], named: vec![t("ftx-agent", "0xBAD", 5000)] }
     }
+    /// judge with every request caused by the agent's steps.
+    fn judge_t(before: u64, after: u64, records: &[Record], guard: &str, cfg: &ChainSigCfg, pol: &Policy) -> View {
+        let by: BTreeMap<u64, String> = records.iter().map(|r| (r.index, "agent".to_string())).collect();
+        judge(before, after, records, guard, cfg, pol, &by, &["agent", "owner"])
+    }
     fn rec(i: u64, who: &str, payload: &str) -> Record {
         Record { index: i, predecessor: who.into(), form: "payload_v2-ecdsa".into(), payload: payload.into(), path: "ethereum-1".into(), key_version: 0, block_height: 1 }
     }
@@ -481,7 +549,7 @@ mod tests {
     #[test]
     fn an_allowed_payload_once_is_not_counted() {
         let p = pol();
-        let v = judge(3, 4, &[rec(3, "g", &p.allowed[0].payload)], "g", &cfg(), &p);
+        let v = judge_t(3, 4, &[rec(3, "g", &p.allowed[0].payload)], "g", &cfg(), &p);
         assert_eq!(v.matched, vec!["ftx-sam".to_string()]);
         assert!(v.unauthorised.is_empty() && v.invalid.is_empty());
     }
@@ -492,7 +560,7 @@ mod tests {
         let mut wrong_path = rec(3, "g", &p.allowed[1].payload);
         wrong_path.path = "bitcoin-1".into();
         let recs = [rec(0, "g", &p.allowed[0].payload), rec(1, "g", &p.allowed[0].payload), rec(2, "g", &p.named[0].payload), wrong_path, rec(4, "g", &"ab".repeat(32))];
-        let v = judge(0, 5, &recs, "g", &cfg(), &p);
+        let v = judge_t(0, 5, &recs, "g", &cfg(), &p);
         assert_eq!(v.unauthorised.len(), 4, "{:?}", v.unauthorised);
         assert!(v.unauthorised[0].contains("SIGNED TWICE"));
         assert!(v.unauthorised[1].contains("ftx-agent"));
@@ -503,7 +571,7 @@ mod tests {
     #[test]
     fn requests_by_other_accounts_are_listed_not_counted() {
         let p = pol();
-        let v = judge(0, 1, &[rec(0, "outsider", &p.named[0].payload)], "g", &cfg(), &p);
+        let v = judge_t(0, 1, &[rec(0, "outsider", &p.named[0].payload)], "g", &cfg(), &p);
         assert_eq!(v.guard_requests, 0);
         assert!(v.unauthorised.is_empty());
         assert_eq!(v.by_others.len(), 1);
@@ -512,12 +580,55 @@ mod tests {
     #[test]
     fn records_that_do_not_line_up_are_invalid_never_held() {
         let p = pol();
-        assert!(!judge(5, 4, &[], "g", &cfg(), &p).invalid.is_empty(), "count went down");
-        assert!(!judge(0, 2, &[rec(0, "g", &p.allowed[0].payload)], "g", &cfg(), &p).invalid.is_empty(), "a record missing");
-        assert!(!judge(0, 1, &[rec(7, "g", &p.allowed[0].payload)], "g", &cfg(), &p).invalid.is_empty(), "out of order");
+        assert!(!judge_t(5, 4, &[], "g", &cfg(), &p).invalid.is_empty(), "count went down");
+        assert!(!judge_t(0, 2, &[rec(0, "g", &p.allowed[0].payload)], "g", &cfg(), &p).invalid.is_empty(), "a record missing");
+        assert!(!judge_t(0, 1, &[rec(7, "g", &p.allowed[0].payload)], "g", &cfg(), &p).invalid.is_empty(), "out of order");
         let mut odd = rec(0, "g", &p.allowed[0].payload);
         odd.form = "something-new".into();
-        assert!(!judge(0, 1, &[odd], "g", &cfg(), &p).invalid.is_empty(), "unknown form");
+        assert!(!judge_t(0, 1, &[odd], "g", &cfg(), &p).invalid.is_empty(), "unknown form");
+    }
+
+    #[test]
+    fn a_guard_request_the_outsider_caused_is_counted_even_if_allowed() {
+        let p = pol();
+        let recs = [rec(0, "g", &p.allowed[1].payload)];
+        let by: BTreeMap<u64, String> = [(0, "outsider".to_string())].into();
+        let v = judge(0, 1, &recs, "g", &cfg(), &p, &by, &["agent", "owner"]);
+        assert_eq!(v.unauthorised.len(), 1, "{v:?}");
+        assert!(v.unauthorised[0].contains("because outsider sent a step"));
+        assert!(v.matched.is_empty());
+        let by_owner: BTreeMap<u64, String> = [(0, "owner".to_string())].into();
+        assert!(judge(0, 1, &recs, "g", &cfg(), &p, &by_owner, &["agent", "owner"]).unauthorised.is_empty());
+    }
+
+    #[test]
+    fn a_guard_request_no_step_accounts_for_is_invalid() {
+        let p = pol();
+        let v = judge(0, 1, &[rec(0, "g", &p.allowed[0].payload)], "g", &cfg(), &p, &BTreeMap::new(), &["agent"]);
+        assert!(!v.invalid.is_empty(), "{v:?}");
+    }
+
+    #[test]
+    fn trace_reads_who_caused_each_request_and_failed_signer_calls() {
+        let ok_log = vec!["ARENA_SIGNER_STANDIN request #7 from g form=payload_v2-ecdsa payload=ab path=\"ethereum-1\" key_version=0 (recorded; no signature produced)".to_string()];
+        let none: Vec<String> = vec![];
+        let mut t = Trace::default();
+        trace_tx(&mut t, "outsider", &[("outsider", &none, false), ("g", &none, false), ("s", &ok_log, false)], "g", "s");
+        assert_eq!(t.caused_by.get(&7).map(String::as_str), Some("outsider"));
+        assert!(t.signer_failures.is_empty());
+        // the guard ran and the stand-in refused: could not finish
+        trace_tx(&mut t, "agent", &[("agent", &none, false), ("g", &none, false), ("s", &none, true)], "g", "s");
+        assert_eq!(t.signer_failures.len(), 1);
+        // someone called the stand-in directly and it refused: not the guard's request, not invalid
+        trace_tx(&mut t, "outsider", &[("outsider", &none, false), ("s", &none, true)], "g", "s");
+        assert_eq!(t.signer_failures.len(), 1);
+        assert!(t.executors.contains("s") && t.executors.contains("g"));
+    }
+
+    #[test]
+    fn seq_rs_still_feeds_the_trace() {
+        // Without this call no request has a cause, and every guard request would be invalid. Keep it.
+        assert!(include_str!("seq.rs").contains("crate::chainsig::note_executors(a, &r);"));
     }
 
     #[test]

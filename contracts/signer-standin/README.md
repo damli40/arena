@@ -3,12 +3,17 @@
 It holds no key and produces no signature. Arena deploys it on its local sandbox in place of
 `v1.signer`, for guards whose config says `"signs_via": "chain-signatures"`.
 
-- **Same request shape as `v1.signer`'s `sign`** (github.com/near/mpc, `crates/contract`):
-  `{"request": {"payload_v2": {"Ecdsa": "<64 hex>"}, "path": "...", "domain_id": 0}}`, or the
-  older `{"request": {"payload": [32 bytes], "path": "...", "key_version": 0}}`. It refuses a call
-  with less than 1 yoctoNEAR or 10 TGas attached, an Ecdsa payload that is not 32 bytes, or a
-  domain that does not fit the payload type.
-- **Records every request** (caller, form, payload hex, path, key version or domain id, block
+- **Takes `v1.signer`'s `sign` request shape, as Arena reads it** (github.com/near/mpc):
+  `{"request": {"payload_v2": {"Ecdsa": "<64 hex>"}, "path": "...", "domain_id": 0}}` or the
+  older `{"request": {"payload": [32 bytes], "path": "...", "domain_id": 0}}`. Either form may
+  give `key_version` instead of `domain_id`: the real contract reads it as another name for the
+  same field. It refuses a call with less than 1 yoctoNEAR or 10 TGas attached, with no
+  `domain_id`/`key_version` or with both, an Ecdsa payload that is not 32 bytes, or a domain that
+  does not fit the payload type. These checks are our reading of the real contract, not a copy:
+  the real one may accept or refuse a request this one does not.
+- **A refused request leaves no record.** So Arena treats any failed call on the stand-in inside a
+  transaction where the guard ran as "could not finish", never held.
+- **Records every request** (caller, form, payload hex, path, domain id, block
   height, deposit). Free views: `request_count()`, `requests(from_index, limit)`.
 - **Returns a fake signature at once**, all zeros, with `"arena_stand_in": "NOT A SIGNATURE ..."`.
   The real contract answers later through yield/resume, after the MPC nodes sign.

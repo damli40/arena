@@ -78,8 +78,11 @@ arena: broke 3 of 57 (...; 3 signing requests outside the owner's list (a count,
 
 The other three chainsig attacks held on the planted guard, as they should. The planted flaw only
 lets through a hash the caller *passes*. 03 tries a different path and key version, but the planted
-guard still signs with its own fixed ones. 05 is an outsider calling the signer directly, which is
-not the guard's request (listed, not counted). 06 names an unlisted transaction without passing a
+guard still signs with its own fixed ones. 05 has three steps: the outsider calls the signer
+directly (not the guard's request: listed, not counted), the outsider asks the guard to sign ftx-ada
+(both guards refuse, because both keep the "only the agent may ask" check), and the agent's key tries
+the signer (NEAR refuses it). [Corrected 2026-11-12: this line first named only the first step; see
+Corrections below.] 06 names an unlisted transaction without passing a
 hash, so the planted guard checks it against the list like the honest one and refuses. The token score of both guards is the same as vault-a's: 0 beyond policy, 2450 against
 the owner's intent.
 
@@ -112,3 +115,25 @@ found 1. A 0 there reads as "checked and clean". The line is now left out when n
 - **Not every refusal path ran in a real attack.** The "a tester transaction ran code on an account
   Arena does not know" path is covered by unit tests, not by a sandbox run that triggered it.
 - **Local sandbox only.** No testnet or mainnet writes.
+
+## Corrections (2026-11-12, after the merge review)
+
+A review of commit cacf4f2 found three things. We fixed them on the same branch; the new runs are in
+`clean-copy-chainsig-2026-11-12b.md`.
+
+1. **The score did not check who asked the guard to sign.** In attack 05, the outsider asks the guard
+   to sign ftx-ada, which is on the list. A guard without an "only the agent" check would have signed
+   it once, and Arena would have scored that as an allowed match, so 05 could not fail on that step.
+   Our two guards both refuse the outsider, so the numbers above did not change, but the attack was
+   weaker than its description said. Now Arena finds the step that caused each guard request and
+   counts a request caused by anyone but the agent or the owner as unauthorised.
+2. **A refused request was invisible.** The stand-in refused two request shapes the real signer
+   accepts (`key_version` given in place of `domain_id`, which the real contract reads as the same
+   field), and a refused request leaves no record. A guard using those shapes would have shown 0
+   requests on every attack. Now any failed call on the stand-in inside a transaction where the guard
+   ran makes the attack "could not finish", and the stand-in accepts both names (a request with
+   neither is refused, as in the real one). New stand-in sha256 `bd5b7928...a9ef`. The description
+   above, "the same `sign` request shape", said more than we checked: the stand-in follows our
+   reading of the real contract, not a copy of it.
+3. **The badge said "N unauthorised signing requests"** without the "a count, not an amount"
+   qualifier the report lines carry. It now says `(count, not amount)`.

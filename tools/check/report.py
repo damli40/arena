@@ -130,7 +130,7 @@ def qualifiers(rep, short=False):
     if rep.get("signs_via"):  # a count of requests, never an amount; and never real MPC signing
         n = t.get("unauthorised_signing_requests", 0)
         if n:
-            q.append(f"{n} unauthorised signing requests" if short else f"{n} signing requests outside the owner's list (a count, not an amount)")
+            q.append(f"{n} unauthorised signing requests (count, not amount)" if short else f"{n} signing requests outside the owner's list (a count, not an amount)")
         q.append("signs: stand-in, no real MPC" if short else "signs via Chain Signatures: Arena's stand-in signer, no real MPC signing, nothing sent to another chain")
     if rep.get("pays_in") == "intents":  # so a green badge can never be read as covering real Intents
         q.append("pays via intents, local" if short else "pays via NEAR Intents: local release build, no withdrawals to other chains")

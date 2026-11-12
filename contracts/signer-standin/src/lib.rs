@@ -3,13 +3,17 @@
 //! What it is for (Arena, 2026-11-11): a guard that asks NEAR's Chain Signatures contract
 //! (`v1.signer`) to sign a transaction for another chain hands it a 32-byte fingerprint (a hash)
 //! of that transaction. Arena cannot run the real MPC network on a local sandbox, so it deploys
-//! this small contract in its place. It takes the SAME `sign` request shape as `v1.signer`
-//! (github.com/near/mpc, crates/contract: `sign(request: SignRequestArgs)`), refuses the call
-//! under the same basic rules (at least 1 yoctoNEAR attached, at least 10 TGas, an Ecdsa payload
-//! of exactly 32 bytes), and then does two things only:
+//! this small contract in its place. It takes the `sign` request shape of `v1.signer`
+//! (github.com/near/mpc: `sign(request: SignRequestArgs)`, `payload_v2` or the older `payload`,
+//! with `domain_id` or its other name `key_version`) and refuses a call it judges malformed (at
+//! least 1 yoctoNEAR, at least 10 TGas, an Ecdsa payload of exactly 32 bytes on domain 0). These
+//! checks are Arena's reading of the real contract, not a copy of it: the real one may accept or
+//! refuse a request this one does not. A refused request leaves no record, so Arena treats any
+//! failed call on the stand-in during a guard's transaction as "could not finish", never held.
+//! Then it does two things only:
 //!
 //!   1. it RECORDS the request: who called (`predecessor`), the payload hash, the derivation
-//!      path, the key version (the legacy `key_version`, or `domain_id` in the current form),
+//!      path, the domain (`domain_id`, or `key_version` under its other name),
 //!      the block height and the deposit. Arena reads these records with the free views
 //!      `request_count()` and `requests(from_index, limit)`;
 //!   2. it returns a FAKE signature (all zeros) with a field that says so, right away. The real
@@ -49,8 +53,9 @@ pub enum PayloadV2 {
     Eddsa(String),
 }
 
-/// The real `SignRequestArgs`: the current form (`payload_v2` + `domain_id`) or the older form
-/// (`payload` as 32 bytes + `key_version`). Exactly one form per request.
+/// The real `SignRequestArgs`: `payload_v2` or the older `payload` (32 bytes), plus `domain_id`,
+/// which the real contract also accepts under its older name `key_version`. Exactly one payload
+/// field and exactly one of domain_id / key_version per request.
 #[near(serializers = [json])]
 #[derive(Clone, Debug)]
 pub struct SignRequestArgs {
@@ -72,7 +77,7 @@ pub struct Record {
     /// lowercase hex of the payload bytes
     pub payload: String,
     pub path: String,
-    /// the legacy key_version, or domain_id in the current form
+    /// domain_id (or key_version, its other name)
     pub key_version: u32,
     pub block_height: u64,
     /// yoctoNEAR attached, as a decimal string
@@ -115,33 +120,36 @@ impl SignerStandin {
     pub fn sign(&mut self, request: SignRequestArgs) -> near_sdk::serde_json::Value {
         require!(env::attached_deposit() >= NearToken::from_yoctonear(1), "sign needs at least 1 yoctoNEAR attached");
         require!(env::prepaid_gas() >= MIN_SIGN_GAS, "sign needs at least 10 TGas attached");
-        let (form, bytes, version) = match (&request.payload_v2, &request.payload) {
+        // The real SignRequestArgs reads `key_version` as another name for `domain_id`, in either
+        // form; one of the two must be given, and not both.
+        let domain = match (request.domain_id, request.key_version) {
+            (Some(_), Some(_)) => env::panic_str("give domain_id or key_version (the same field), not both"),
+            (Some(d), None) => d,
+            (None, Some(k)) => k as u64,
+            (None, None) => env::panic_str("a sign request needs domain_id (or key_version, its other name)"),
+        };
+        let (form, bytes) = match (&request.payload_v2, &request.payload) {
             (Some(_), Some(_)) => env::panic_str("give payload_v2 or payload, not both"),
             (None, None) => env::panic_str("a sign request needs payload_v2 (or the older payload)"),
-            (Some(p), None) => {
-                require!(request.key_version.is_none(), "key_version belongs to the older form; use domain_id with payload_v2");
-                let domain = request.domain_id.unwrap_or_else(|| env::panic_str("payload_v2 needs domain_id"));
-                match p {
-                    PayloadV2::Ecdsa(h) => {
-                        require!(domain == 0, "an Ecdsa payload needs domain_id 0 (secp256k1)");
-                        let b = hex_bytes(h);
-                        require!(b.len() == 32, "an Ecdsa payload must be exactly 32 bytes");
-                        ("payload_v2-ecdsa", b, domain as u32)
-                    }
-                    PayloadV2::Eddsa(h) => {
-                        require!(domain == 1, "an Eddsa payload needs domain_id 1 (ed25519)");
-                        let b = hex_bytes(h);
-                        require!((EDDSA_MIN..=EDDSA_MAX).contains(&b.len()), "an Eddsa payload must be 32 to 1232 bytes");
-                        ("payload_v2-eddsa", b, domain as u32)
-                    }
-                }
+            (Some(PayloadV2::Ecdsa(h)), None) => {
+                require!(domain == 0, "an Ecdsa payload needs domain_id 0 (secp256k1)");
+                let b = hex_bytes(h);
+                require!(b.len() == 32, "an Ecdsa payload must be exactly 32 bytes");
+                ("payload_v2-ecdsa", b)
+            }
+            (Some(PayloadV2::Eddsa(h)), None) => {
+                require!(domain == 1, "an Eddsa payload needs domain_id 1 (ed25519)");
+                let b = hex_bytes(h);
+                require!((EDDSA_MIN..=EDDSA_MAX).contains(&b.len()), "an Eddsa payload must be 32 to 1232 bytes");
+                ("payload_v2-eddsa", b)
             }
             (None, Some(b)) => {
-                require!(request.domain_id.is_none(), "domain_id belongs to payload_v2; use key_version with the older payload");
+                require!(domain == 0, "the older payload is Ecdsa and needs domain 0");
                 require!(b.len() == 32, "the older payload must be exactly 32 bytes");
-                ("legacy", b.clone(), request.key_version.unwrap_or(0))
+                ("legacy", b.clone())
             }
         };
+        let version = u32::try_from(domain).unwrap_or_else(|_| env::panic_str("domain_id too large"));
         let index = self.requests.len() as u64;
         let rec = Record {
             index,

@@ -191,12 +191,15 @@ agent wants. And there is no MPC network (the group of nodes that really signs) 
 **What Arena does.**
 
 - **It deploys a stand-in signer, not the real one.** `contracts/signer-standin` is a small contract
-  built from source in this repo. It takes the same `sign` request as `v1.signer`
+  built from source in this repo. It takes `v1.signer`'s `sign` request as we read it
   (`{"request": {"payload_v2": {"Ecdsa": "<64 hex>"}, "path": ..., "domain_id": 0}}`, or the older
-  `payload` + `key_version` form), refuses it under the same basic rules (at least 1 yoctoNEAR and
-  10 TGas attached, a 32-byte Ecdsa payload), records who asked, the payload, the path, the key
-  version and the block, and returns a fake signature that says `NOT A SIGNATURE`. Arena checks its
-  sha256 before every run (`contracts/signer-standin/FROZEN.txt`).
+  `payload` form; either may give `key_version` instead of `domain_id`, which the real contract
+  reads as another name for the same field). It refuses what it judges malformed (less than
+  1 yoctoNEAR or 10 TGas, no domain, a payload that is not 32 bytes). Those checks are our reading
+  of the real contract, not a copy: the real one may accept or refuse a request the stand-in does
+  not. It records who asked, the payload, the path, the domain and the block, and returns a fake
+  signature that says `NOT A SIGNATURE`. Arena checks its sha256 before every run
+  (`contracts/signer-standin/FROZEN.txt`).
 - **The owner's list of allowed foreign transactions is fixed by Arena**, in
   `policy/chain-signatures-allowed.json`: `ftx-sam` (100 to a test address on chain
   `eip155:11155111`) and `ftx-ada` (200). Each is written as (chain, receiver, amount) with its hash.
@@ -206,6 +209,10 @@ agent wants. And there is no MPC network (the group of nodes that really signs) 
 - **After each attack, Arena counts the signing requests your guard made that the owner did not
   allow**: a payload not on the list, an allowed payload signed a second time, or a path or key
   version other than the ones your config declares (each picks a different foreign account).
+- **Who asked counts too.** Arena finds the step whose transaction caused each of your guard's
+  requests. A request caused by a step the outsider (or an account the attack named) sent counts
+  as unauthorised, even for a hash on the list: the owner allowed the agent to ask, not everyone.
+  Steps sent by the agent or the owner are fine.
 - **That is a COUNT of requests, never an amount.** Arena cannot know what an unknown hash was worth,
   so the number is never added to the token totals. Any count above 0 makes the attack broke, and
   `--fail-on beyond-policy` (the default) trips on it.
@@ -213,7 +220,9 @@ agent wants. And there is no MPC network (the group of nodes that really signs) 
   foreign key for every caller, so an outsider calling the signer directly signs with its own key,
   not your guard's.
 - **A request Arena cannot match ends the attack as did not finish, never held**: the stand-in's
-  records cannot be read or do not line up (count went down, a gap, a form Arena does not know), or a
+  records cannot be read or do not line up (count went down, a gap, a form Arena does not know), a
+  request no step's transaction accounts for, a call on the stand-in that FAILED in a transaction
+  where your guard ran (a refused request leaves no record, so Arena cannot see what was asked), or a
   transaction ran code on an account Arena does not read (your guard may have asked some other signer).
 - **Signing preflight.** Before the attacks, the agent asks your guard to sign `ftx-sam`
   (`sequences-chainsig/chainsig-00-control-sign-allowed.json`). Your guard must make exactly one
@@ -243,11 +252,14 @@ Tell Arena in the config (full example: `examples/configs/chainsig-guard.json`):
 - `method` is the method the agent calls to ask for a signature, with arguments
   `{"chain", "receiver", "amount"}` (attacks may add `payload`, `path`, `key_version`). Arena adds
   it to the agent's key next to `pay`.
+- `path` and `key_version` are what your guard must send the signer. In the newer request form
+  (`payload_v2`), `key_version` here stands for the signer's `domain_id` (0 for Ecdsa); Arena
+  compares it with whichever of the two names your guard sends.
 - `payload_format` has one value today. A guard that hashes foreign transactions another way (for
   example a real Ethereum transaction encoding) cannot be scored yet; the config is refused.
 - `"signs_via"` works with token guards only (`"pays_in": "token"`). Token payments are scored as
   usual.
-- The badge brackets say `signs: stand-in, no real MPC`.
+- The badge brackets say `signs: stand-in, no real MPC`, and on broke `N unauthorised signing requests (count, not amount)`.
 
 What it does not test: real MPC signing (no signature is made, nothing checks one would verify),
 whether `v1.signer` would accept the request or how long it would take, delivery of anything on
