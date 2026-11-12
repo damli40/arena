@@ -254,6 +254,12 @@ code was copied. See `docs/DESIGN-CREDIT.md`.
 
 Each row: the claim, the command (from the repo root of a fresh `git archive` export, no network,
 no private files), the line it prints, the exit code, and the time we measured on one Mac (Apple silicon).
+One exception: the `check-public` row needs a full `git clone` (all history). In a `git archive` export or
+a `--depth 1` clone it prints `0 of 18 consistent`, because it checks each run's commit against git history.
+
+**Merge note.** This branch must reach main as a fast-forward or a merge commit, never rebased or squashed:
+the hidden-set run files name the commits they ran at, and `check-public` fails once those commits are not
+in main's history.
 
 | Claim | Command | Line it prints | Exit | Time |
 |---|---|---|---|---|
@@ -264,18 +270,21 @@ no private files), the line it prints, the exit code, and the time we measured o
 | Every attack outside the validated count says why, and a person's reason can never sit on an attack the gate has judged | `python3 -I tools/admission/manifest.py --check`, then read the `why` column of `evidence/MANIFEST.md` (reasons from `tools/admission/unvalidated.json`) | `manifest: up to date`; of the 28 unvalidated, 7 rows `race-ordering-unprovable`, 6 `race-not-what-is-tested`, 4 `no-one-flaw-finds-it`, 3 `stopped-by-access-key`, 3 `intent-only`, 1 `tests-another-contract`, 4 `not-an-attack-file` | 0 | 1 s |
 | A hand-written, edited or copied "validated" stamp is refused, by the validator and by `--recheck` (stamp and spec copied onto another attack, steps edited with the hash recomputed, evidence folder of another attack, run files of another attack, validated claimed on partial runs); a race counts only if each later check ran in a block strictly before the earlier callback (the callback is the earliest guard receipt after the token transfer, not a later one) (same block = tie, never counted); a leg refused before any payment started is dropped rather than calling the whole race sequential; earlier evidence files are byte-identical; a recorded reason on a specced attack is refused; a hidden attack with the steps of ANY tracked file (hunt proposals under `evidence/hunts/` included) is refused, and a hidden run counts only after its commitment in git parent order | `python3 -I -m unittest discover -s tools/admission/tests` | `Ran 73 tests`, `OK` | 0 | 3 s |
 | The gate itself reproduces a validation (local sandbox; needs the build from `./verify.sh fast`) | `python3 -I tools/admission/admit.py sequences-scripted/03-sequential-second-pay.json --runs 3` | `ADMISSION scripted-03-sequential-second-pay: validated (every reference matched in 3 counted runs; matched known-bad: mutant:M4)`; raw runs in `runs/evidence/admission/...` (gitignored) | 0 | 37 s |
-| Every public hidden-set run file is consistent with the set it names, and git parent order puts each run after its commitment (its commit is an ancestor of HEAD, its tree was clean, and `COMMITMENT.json` at that commit names its set). Needs a git clone: an export without history fails this check | `python3 -I tools/hidden/hidden.py check-public` | `hidden-set public files: 12 of 12 consistent with the set each names (6 on current set d314e04fc574c1f7... (14 attacks); 6 on earlier set 835729d9f34fa123... (9 attacks))` | 0 | under 1 s |
+| Every public hidden-set run file is consistent with the set it names, and git parent order puts each run after its commitment (its commit is an ancestor of HEAD, its tree was clean, and `COMMITMENT.json` at that commit names its set). Needs a full git clone: a `git archive` export or a `--depth 1` clone prints `0 of 18 consistent` | `python3 -I tools/hidden/hidden.py check-public` | `hidden-set public files: 18 of 18 consistent with the set each names (6 on current set 9748cbedd7a58c4c... (14 attacks); 6 on earlier set 835729d9f34fa123... (9 attacks); 6 on earlier set d314e04fc574c1f7... (14 attacks))` | 0 | under 1 s |
 | The hunter drops a proposal with the same steps as a hidden attack and records that it matched. The record does not name the hidden attack, but it does name the hunter's own proposal, which is public, so a match reveals that hidden attack's steps: it must be retired at the next set | `python3 -I -m unittest discover -s tools/hunter/tests -p test_hidden_dupes.py` | `Ran 4 tests`, `OK` | 0 | under 1 s |
 
 How an outsider checks the hidden set without seeing it: `hidden-set/COMMITMENT.json` holds the
-set's sha256 (`d314e04f...`), its size (14) and its families. Set 3 (2026-11-12) replaced set 2 before
-either was merged: one attack of sets 1 and 2 had the same steps as a hunt proposal tracked in
-`evidence/hunts/` (the old disjointness check read only the library and the intents suite), so it was
-retired and a new attack took its place. `hidden.py` now compares
-every hidden attack with every tracked file that has steps. Earlier commitments are kept byte for byte
-in `hidden-set/previous/`: set 1 (`835729d9...`, its Nov 11 run files still check against it) and set 2
-(`e35a4c1f...`, no run files: its runs recorded a commit that a rebase took off this branch, so they
-were removed). The order is checked by git parent order only: `check-public` requires each run's
+set's sha256 (`9748cbed...`), its size (14) and its families. Set 4 (2026-11-12) is the third replacement
+made before any of them merged. Sets 1 to 3 each held attacks with the same steps as attack files tracked
+in the repository (exactly, or apart from a wait value) or on
+a sibling branch that had not merged yet. The old check read only the library and the intents suite, on the
+current branch, and only exact copies. Those attacks were retired and replaced. `hidden.py` now compares
+every hidden attack with every attack-shaped `.json` tracked on any branch the repository knows, exactly
+and up to gas and wait values, and refuses a match; it does not refuse other variants. Earlier
+commitments are kept byte for byte in `hidden-set/previous/` (their `disjoint_from_public_library: true`
+was wrong; `previous/NOTE.md` says so): set 1 (`835729d9...`) and set 3 (`d314e04f...`), whose run files
+still check against them, and set 2 (`e35a4c1f...`), whose run files were removed because they recorded a
+commit a rebase took off this branch. The order is checked by git parent order only: `check-public` requires each run's
 `arena_commit` to be an ancestor of HEAD with a clean tree and `COMMITMENT.json` at that commit naming the
 run's set. That trusts git history, which whoever controls the repository can rewrite before
 publishing; it is not a timestamp. If a result is published on testnet, its `suite_version` must equal
@@ -283,7 +292,7 @@ the same hash. What you cannot check: the attacks themselves, or that we ran the
 for the reveal (rule in `COMMITMENT.json`: after 5 guard code hashes or 30 days). Limit of the runs on
 every set: the set has no race variant (a race can be admitted only once the harness on main records
 per-receipt block heights, and it does not yet), so the double-pay guards (`guard:vulnerable_fixture`,
-`leaky-control-v2`) held every attack that applies to them (13 of 14 on set 3); only `intents-planted`
+`leaky-control-v2`) held every attack that applies to them (13 of 14 on sets 3 and 4); only `intents-planted`
 broke (100 beyond policy, 1 attack). Every one-flaw mutant a hidden attack is admitted against (M1, M2,
 M3, M4, M6, M7, M8) is a copy of vault-a and is not among the six guards run, so these runs show the set
 holds on good guards, not that it catches bad ones; the private admission runs show that. On the two
