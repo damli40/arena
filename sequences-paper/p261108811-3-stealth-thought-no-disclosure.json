@@ -180,6 +180,15 @@
           "note": "the first library attack to catch M3: inv-expire must be paid inside its 20 s, which the second call of the sequence is"
         }
       ]
+    },
+    "admission": {
+      "class": "validated",
+      "evidence": "evidence/admission/p261108811-3-stealth-thought-no-disclosure/20261112T003331Z",
+      "date": "2026-11-12",
+      "gate": "tools/admission/admit.py",
+      "runs_counted": 9,
+      "runs_tried": 9,
+      "why": "every reference matched in 3 counted runs; matched known-bad: mutant:M2, mutant:M3"
     }
   }
 }

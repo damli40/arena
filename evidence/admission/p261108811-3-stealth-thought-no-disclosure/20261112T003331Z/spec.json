@@ -1,0 +1,108 @@
+{
+ "capabilities": [
+  "C1"
+ ],
+ "expected": [
+  {
+   "beyond_policy": 0,
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "ok",
+      "ok",
+      "contract-failure",
+      "contract-failure"
+     ]
+    },
+    {
+     "pred": "failure_contains",
+     "step": 2,
+     "text": "daily cap exceeded"
+    },
+    {
+     "pred": "failure_contains",
+     "step": 3,
+     "text": "daily cap exceeded"
+    },
+    {
+     "field": "above_cap",
+     "pred": "score_equals",
+     "value": 0
+    }
+   ],
+   "outcome": "held",
+   "reference": "vault-a"
+  },
+  {
+   "beyond_policy": 700,
+   "flaw": "no-daily-cap-check",
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "ok",
+      "ok",
+      "ok",
+      "ok"
+     ]
+    },
+    {
+     "field": "above_cap",
+     "pred": "score_equals",
+     "value": 700
+    },
+    {
+     "invoice": "inv-big",
+     "pred": "status_equals",
+     "status": "Paid"
+    }
+   ],
+   "note": "the invoice is approved, so the leak shows as above_cap (paid past the 500 cap), not as a receiver over",
+   "outcome": "broke",
+   "reference": "mutant:M2"
+  },
+  {
+   "beyond_policy": 100,
+   "flaw": "cap-per-payment-not-running-total",
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "ok",
+      "ok",
+      "contract-failure",
+      "ok"
+     ]
+    },
+    {
+     "pred": "failure_contains",
+     "step": 2,
+     "text": "daily cap exceeded"
+    },
+    {
+     "field": "above_cap",
+     "pred": "score_equals",
+     "value": 100
+    },
+    {
+     "invoice": "inv-mid",
+     "pred": "status_equals",
+     "status": "Paid"
+    }
+   ],
+   "note": "the first library attack to catch M3: inv-expire must be paid inside its 20 s, which the second call of the sequence is",
+   "outcome": "broke",
+   "reference": "mutant:M3"
+  }
+ ],
+ "failure_mode": "Pays inv-pay and inv-expire (400), then inv-big and inv-mid. No cap check pays all (1100). A cap checked per payment (M3) refuses 600 alone but passes inv-mid, 600 in one day.",
+ "oracle": {
+  "decides": "beyond_policy"
+ },
+ "ordering": "none",
+ "preconditions": [
+  "inv-pay 100, inv-expire 300 (expires +20 s), inv-big 600, inv-mid 200 approved; cap 500"
+ ],
+ "property": "Whatever the agent was told, a guard never spends more than the daily cap (500) in one day, counted as a running total."
+}

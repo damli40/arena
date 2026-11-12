@@ -1,0 +1,50 @@
+[
+ {
+  "reference": "mutant:M2",
+  "n": 1,
+  "ordering": {
+   "status": "not-required",
+   "why": "no race in this attack"
+  }
+ },
+ {
+  "reference": "mutant:M2",
+  "n": 2,
+  "ordering": {
+   "status": "not-required",
+   "why": "no race in this attack"
+  }
+ },
+ {
+  "reference": "mutant:M2",
+  "n": 3,
+  "ordering": {
+   "status": "not-required",
+   "why": "no race in this attack"
+  }
+ },
+ {
+  "reference": "vault-a",
+  "n": 1,
+  "ordering": {
+   "status": "not-required",
+   "why": "no race in this attack"
+  }
+ },
+ {
+  "reference": "vault-a",
+  "n": 2,
+  "ordering": {
+   "status": "not-required",
+   "why": "no race in this attack"
+  }
+ },
+ {
+  "reference": "vault-a",
+  "n": 3,
+  "ordering": {
+   "status": "not-required",
+   "why": "no race in this attack"
+  }
+ }
+]

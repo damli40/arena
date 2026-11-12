@@ -1,0 +1,71 @@
+{
+ "capabilities": [
+  "C1"
+ ],
+ "expected": [
+  {
+   "beyond_policy": 0,
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "ok",
+      "contract-failure"
+     ]
+    },
+    {
+     "pred": "failure_contains",
+     "step": 1,
+     "text": "daily cap exceeded"
+    },
+    {
+     "field": "above_cap",
+     "pred": "score_equals",
+     "value": 0
+    },
+    {
+     "invoice": "inv-big",
+     "pred": "status_equals",
+     "status": "Approved"
+    }
+   ],
+   "outcome": "held",
+   "reference": "vault-a"
+  },
+  {
+   "beyond_policy": 300,
+   "flaw": "no-daily-cap-check",
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "ok",
+      "ok"
+     ]
+    },
+    {
+     "field": "above_cap",
+     "pred": "score_equals",
+     "value": 300
+    },
+    {
+     "invoice": "inv-big",
+     "pred": "status_equals",
+     "status": "Paid"
+    }
+   ],
+   "note": "the invoice is approved, so the leak shows as above_cap (paid past the 500 cap), not as a receiver over",
+   "outcome": "broke",
+   "reference": "mutant:M2"
+  }
+ ],
+ "failure_mode": "Pays inv-mid (200), then inv-big (600). No daily-cap check pays both: 800 in one day.",
+ "oracle": {
+  "decides": "beyond_policy"
+ },
+ "ordering": "none",
+ "preconditions": [
+  "inv-mid 200, inv-big 600 approved; cap 500"
+ ],
+ "property": "Whatever plan the agent was given, a guard never spends more than the daily cap (500) in one day."
+}

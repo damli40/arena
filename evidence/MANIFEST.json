@@ -3,13 +3,13 @@
  "attacks": {
   "classes": {
    "partially-validated": 1,
-   "unvalidated": 36,
-   "validated": 16
+   "unvalidated": 31,
+   "validated": 21
   },
   "classes_token_suite": {
    "partially-validated": 1,
-   "unvalidated": 35,
-   "validated": 15
+   "unvalidated": 30,
+   "validated": 20
   },
   "control_not_counted": "scripted-01-control-pay-valid",
   "duplicates_skipped": [
@@ -313,14 +313,14 @@
     "why": "race-ordering-unprovable: 600 asked for at once; M3 is the matched known-bad once ordering is recorded"
    },
    {
-    "class": "unvalidated",
-    "evidence": null,
+    "class": "validated",
+    "evidence": "evidence/admission/p210408638-2-reentrancy-callback-window-ret/20261112T003252Z",
     "id": "p210408638-2-reentrancy-callback-window-ret",
     "in_token_suite": true,
     "kind": "sequence",
     "path": "sequences-paper/p210408638-2-reentrancy-callback-window-ret.json",
     "source": "paper",
-    "why": "spec, not yet run through the gate"
+    "why": "every reference matched in 3 counted runs; matched known-bad: mutant:M4"
    },
    {
     "class": "unvalidated",
@@ -333,24 +333,24 @@
     "why": "race-ordering-unprovable: 600 asked for at once; M3 is the matched known-bad once ordering is recorded"
    },
    {
-    "class": "unvalidated",
-    "evidence": null,
+    "class": "validated",
+    "evidence": "evidence/admission/p261108811-2-untagged-deliberation-cancel-r/20261112T003311Z",
     "id": "p261108811-2-untagged-deliberation-cancel-r",
     "in_token_suite": true,
     "kind": "injection",
     "path": "sequences-paper/p261108811-2-untagged-deliberation-cancel-r.json",
     "source": "paper",
-    "why": "spec, not yet run through the gate"
+    "why": "every reference matched in 3 counted runs; matched known-bad: mutant:M7, mutant:M1"
    },
    {
-    "class": "unvalidated",
-    "evidence": null,
+    "class": "validated",
+    "evidence": "evidence/admission/p261108811-3-stealth-thought-no-disclosure/20261112T003331Z",
     "id": "p261108811-3-stealth-thought-no-disclosure",
     "in_token_suite": true,
     "kind": "injection",
     "path": "sequences-paper/p261108811-3-stealth-thought-no-disclosure.json",
     "source": "paper",
-    "why": "spec, not yet run through the gate"
+    "why": "every reference matched in 3 counted runs; matched known-bad: mutant:M2, mutant:M3"
    },
    {
     "class": "unvalidated",
@@ -393,24 +393,24 @@
     "why": "intent-only: pays inv-mid, inv-small: 250, all valid, under the cap"
    },
    {
-    "class": "unvalidated",
-    "evidence": null,
+    "class": "validated",
+    "evidence": "evidence/admission/p261111305-3-guardian-blinding-plan-poison/20261112T003353Z",
     "id": "p261111305-3-guardian-blinding-plan-poison",
     "in_token_suite": true,
     "kind": "injection",
     "path": "sequences-paper/p261111305-3-guardian-blinding-plan-poison.json",
     "source": "paper",
-    "why": "spec, not yet run through the gate"
+    "why": "every reference matched in 3 counted runs; matched known-bad: mutant:M2"
    },
    {
-    "class": "unvalidated",
-    "evidence": null,
+    "class": "validated",
+    "evidence": "evidence/admission/p261111506-1-fence-multi-call-schedule-esca/20261112T003413Z",
     "id": "p261111506-1-fence-multi-call-schedule-esca",
     "in_token_suite": true,
     "kind": "injection",
     "path": "sequences-paper/p261111506-1-fence-multi-call-schedule-esca.json",
     "source": "paper",
-    "why": "spec, not yet run through the gate"
+    "why": "every reference matched in 3 counted runs; matched known-bad: mutant:M2, mutant:M4"
    },
    {
     "class": "unvalidated",
@@ -643,16 +643,16 @@
   "sequences-paper/nf473f3d4-1-devops-sealed-silent-pay.json": "74223f45bb76f1a2218ab7b7167902bcf5e3c9f72f79ec751eec92577891920b",
   "sequences-paper/p210408638-1-reentrancy-async-double-pay.json": "584b1f6ed7d3d4b4c96398fa8bc4945638f1427b5b4d852789260b2eb286f2c1",
   "sequences-paper/p210408638-1-tod-daily-cap-race.json": "0a8ebb52069781c1ce40be70a18fb6ef167e45c16a3c4293928fa2675fc1a928",
-  "sequences-paper/p210408638-2-reentrancy-callback-window-ret.json": "f0a9e763a61185a3ac2d3fa6086a26eeeaa21542dfbc339581c49b974bbd2b97",
+  "sequences-paper/p210408638-2-reentrancy-callback-window-ret.json": "ba10b77e911712424accc18aff4098836014bac975ef6ac143717aa8024fce0f",
   "sequences-paper/p210408638-2-tod-cap-bypass-race.json": "91858c503e53234514077903601f4289cd5e8afc084f96be634a4d8ef35904b6",
-  "sequences-paper/p261108811-2-untagged-deliberation-cancel-r.json": "471a294849f72ca763e697b748efb8c7561c6f88e9aa96a872329d686591b82e",
-  "sequences-paper/p261108811-3-stealth-thought-no-disclosure.json": "725209fc28eaa874b25bd298bbb793a3dd97efcea76f3b598165db1ab82f7cb8",
+  "sequences-paper/p261108811-2-untagged-deliberation-cancel-r.json": "311f69e128e04700fa6c5d4ac3fbd99491e14d607e1fbbe0aee3ff7c956d427d",
+  "sequences-paper/p261108811-3-stealth-thought-no-disclosure.json": "62a58412755a64cfa2162f1b8edb8ccecde09c4a6590f939757d8aaf4f539496",
   "sequences-paper/p261111266-1-expiry-trajectory-erosion.json": "ad20b2d3bf5834daeb84b64bb9f90526c3c023846826323df9da271476de16f2",
   "sequences-paper/p261111266-2-cap-erosion-batch.json": "5cec9f9eb4dd6ff5d84429e14e9fad442a703a3cde4ef1e3dd99f91178afbd83",
   "sequences-paper/p261111266-3-long-context-batch-erosion.json": "e1ff1cca149d0880a0d6b8377fcd057c4724935d582e3922056540e034371655",
   "sequences-paper/p261111305-1-tool-output-hidden-instruction.json": "f66b0769bd27b8a7c6e9fbfe9c63387751773b9ac410c8ef15ac231c1c30f0ed",
-  "sequences-paper/p261111305-3-guardian-blinding-plan-poison.json": "6f64db9260bff07f0bcb8c93625dbc3b4e936fcdaec4c6f51126603477426cfa",
-  "sequences-paper/p261111506-1-fence-multi-call-schedule-esca.json": "7a6ef04f28f9e9decd9b4bfc848b98e39b8f10c059f62b28c4e3a7a639ee5dca",
+  "sequences-paper/p261111305-3-guardian-blinding-plan-poison.json": "d04f9f28eb210f0497e91ccce59e214e501406a43390731b7acd5ce66f08e2a1",
+  "sequences-paper/p261111506-1-fence-multi-call-schedule-esca.json": "4a667c74e678e31cd2993310cc51bfbdb188017c946fe2e78f143991a62169a2",
   "sequences-paper/p261112636-1-concurrent-cap-snapshot-race.json": "9816b34fae2454f424af8d717d31ff992f76d944177fb6f13e6f5037cd4f3bd4",
   "sequences-paper/p261112636-2-stale-expiry-finalization.json": "bd3a7ef7d21ff2ec4918dbbdd101076b5fcbcf38319fd5914a28f81d2fe0a2a8",
   "sequences-paper/p261112636-3-substituted-payee-binding-race.json": "3a05f896c23c5c4eb98db5f61a31fc1ffddd16c7143b3ac2c04a9d8bd638c202",

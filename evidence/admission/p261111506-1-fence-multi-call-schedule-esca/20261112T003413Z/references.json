@@ -1,0 +1,29 @@
+{
+ "mutant:M2": {
+  "after": "f0f32f57f3d84bae90d7e971ce07fbbfa60f1ed623adaea6c10d199409dd2b4a",
+  "before": "f0f32f57f3d84bae90d7e971ce07fbbfa60f1ed623adaea6c10d199409dd2b4a",
+  "flaw": "no-daily-cap-check",
+  "kind": "known-bad",
+  "matchable": true,
+  "pinned": "f0f32f57f3d84bae90d7e971ce07fbbfa60f1ed623adaea6c10d199409dd2b4a",
+  "wasm": "mutants/M2/vault_a.wasm"
+ },
+ "mutant:M4": {
+  "after": "f6cf63e2fd27027a810aea78cd835116f49800fa248a11f7521a455ee6c946a4",
+  "before": "f6cf63e2fd27027a810aea78cd835116f49800fa248a11f7521a455ee6c946a4",
+  "flaw": "no-already-paid-check",
+  "kind": "known-bad",
+  "matchable": true,
+  "pinned": "f6cf63e2fd27027a810aea78cd835116f49800fa248a11f7521a455ee6c946a4",
+  "wasm": "mutants/M4/vault_a.wasm"
+ },
+ "vault-a": {
+  "after": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+  "before": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+  "flaw": null,
+  "kind": "known-good",
+  "matchable": false,
+  "pinned": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+  "wasm": "targets/vault-a/vault_a.wasm"
+ }
+}

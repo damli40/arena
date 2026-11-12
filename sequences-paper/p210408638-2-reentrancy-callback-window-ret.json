@@ -125,6 +125,15 @@
           "receiver": "ada"
         }
       ]
+    },
+    "admission": {
+      "class": "validated",
+      "evidence": "evidence/admission/p210408638-2-reentrancy-callback-window-ret/20261112T003252Z",
+      "date": "2026-11-12",
+      "gate": "tools/admission/admit.py",
+      "runs_counted": 6,
+      "runs_tried": 6,
+      "why": "every reference matched in 3 counted runs; matched known-bad: mutant:M4"
     }
   }
 }

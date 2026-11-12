@@ -1,0 +1,198 @@
+{
+ "attack_file_sha256": "7a6ef04f28f9e9decd9b4bfc848b98e39b8f10c059f62b28c4e3a7a639ee5dca",
+ "attack_id": "p261111506-1-fence-multi-call-schedule-esca",
+ "class": "validated",
+ "date": "2026-11-12",
+ "gate": "tools/admission/admit.py",
+ "gate_sha256": "ac77e3a3dbd43be40a2c007c92230d80f4d6f72e592e10d84549d0f808aace50",
+ "gate_version": 1,
+ "git_head": "5de36979b284ee8742c5769f32ff44d93365d416",
+ "git_tree_clean": true,
+ "harness_sha256": "ce4724f3b1c4da37e5916d767504d611425b1842a0fe75afe43995335fdd2db6",
+ "matched": [
+  "mutant:M2",
+  "mutant:M4"
+ ],
+ "references": {
+  "mutant:M2": {
+   "after": "f0f32f57f3d84bae90d7e971ce07fbbfa60f1ed623adaea6c10d199409dd2b4a",
+   "before": "f0f32f57f3d84bae90d7e971ce07fbbfa60f1ed623adaea6c10d199409dd2b4a",
+   "flaw": "no-daily-cap-check",
+   "kind": "known-bad",
+   "matchable": true,
+   "pinned": "f0f32f57f3d84bae90d7e971ce07fbbfa60f1ed623adaea6c10d199409dd2b4a",
+   "wasm": "mutants/M2/vault_a.wasm"
+  },
+  "mutant:M4": {
+   "after": "f6cf63e2fd27027a810aea78cd835116f49800fa248a11f7521a455ee6c946a4",
+   "before": "f6cf63e2fd27027a810aea78cd835116f49800fa248a11f7521a455ee6c946a4",
+   "flaw": "no-already-paid-check",
+   "kind": "known-bad",
+   "matchable": true,
+   "pinned": "f6cf63e2fd27027a810aea78cd835116f49800fa248a11f7521a455ee6c946a4",
+   "wasm": "mutants/M4/vault_a.wasm"
+  },
+  "vault-a": {
+   "after": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+   "before": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+   "flaw": null,
+   "kind": "known-good",
+   "matchable": false,
+   "pinned": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+   "wasm": "targets/vault-a/vault_a.wasm"
+  }
+ },
+ "runs": [
+  {
+   "counted": true,
+   "file": "run-mutant-m2-1.result.json",
+   "file_sha256": "41a21a599010df245250f1951c5ab8d755ad6c6006673371a302be4df91fa0d4",
+   "harness_status": "broke",
+   "harness_why": "paid 200 beyond the policy",
+   "n": 1,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "mutant:M2",
+   "seconds": 19.4
+  },
+  {
+   "counted": true,
+   "file": "run-mutant-m2-2.result.json",
+   "file_sha256": "772bc6502d5b9a91c26aabbc5273d4e461775f1f2ca44f407355dfef50d3e887",
+   "harness_status": "broke",
+   "harness_why": "paid 200 beyond the policy",
+   "n": 2,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "mutant:M2",
+   "seconds": 20.8
+  },
+  {
+   "counted": true,
+   "file": "run-mutant-m2-3.result.json",
+   "file_sha256": "418f01b2941dfe9ceba308f4b8dca6ef21701b7f5f6a826c8fda0c6d455ebea6",
+   "harness_status": "broke",
+   "harness_why": "paid 200 beyond the policy",
+   "n": 3,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "mutant:M2",
+   "seconds": 19.7
+  },
+  {
+   "counted": true,
+   "file": "run-mutant-m4-1.result.json",
+   "file_sha256": "98d2aa7f0bf9c95786c1d307e345d9c4801d8e36dfbbb7248d482b169d684c45",
+   "harness_status": "broke",
+   "harness_why": "paid 100 beyond the policy",
+   "n": 1,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "mutant:M4",
+   "seconds": 20.2
+  },
+  {
+   "counted": true,
+   "file": "run-mutant-m4-2.result.json",
+   "file_sha256": "00428b4ae7f3779c7f91d1954bea0fddd73e5e8a0d8a8f0b326262f5ec650a3a",
+   "harness_status": "broke",
+   "harness_why": "paid 100 beyond the policy",
+   "n": 2,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "mutant:M4",
+   "seconds": 20.4
+  },
+  {
+   "counted": true,
+   "file": "run-mutant-m4-3.result.json",
+   "file_sha256": "1afadb10f141301bbcae56ed7f30ea0722c4cc29ad0467bca1e4a756bccf200f",
+   "harness_status": "broke",
+   "harness_why": "paid 100 beyond the policy",
+   "n": 3,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "mutant:M4",
+   "seconds": 19.7
+  },
+  {
+   "counted": true,
+   "file": "run-vault-a-1.result.json",
+   "file_sha256": "76a729f7b4751e403fb09118bc0d4f5917413261e0080b1c12eeaeaa4c4b00ae",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 1,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "vault-a",
+   "seconds": 18.9
+  },
+  {
+   "counted": true,
+   "file": "run-vault-a-2.result.json",
+   "file_sha256": "6b1c9f59279614d52528ec9fa46b4e8ec293199f3eaf9ddee981497520bb14b5",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 2,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "vault-a",
+   "seconds": 20.1
+  },
+  {
+   "counted": true,
+   "file": "run-vault-a-3.result.json",
+   "file_sha256": "2908ff1287ade7e6c9811e3153794baf43e54f508b119db3ed16c0ac9a5754d5",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 3,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "vault-a",
+   "seconds": 19.2
+  }
+ ],
+ "runs_counted": 9,
+ "runs_required": 3,
+ "runs_tried": 9,
+ "spec_sha256": "73002aea040360d45c2f46436088a86b0877b1715d6956cda906171cb912fe94",
+ "stamp": "20261112T003413Z",
+ "steps_sha256": "08c4d14808d1d05e64bcb6b83316473038c3ab3657eb829ce4f26f91553fb7c4",
+ "why": "every reference matched in 3 counted runs; matched known-bad: mutant:M2, mutant:M4"
+}

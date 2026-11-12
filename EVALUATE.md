@@ -198,7 +198,7 @@ What is in the repo:
 - **25 saved attacks** in `sequences-paper/`, one JSON file each. 14 are call sequences and 11 are
   prompt-injection scenarios.
 - **7 hunt records** in `evidence/hunts/`, one `.md` and one `.json` per run.
-- **Saved is not validated.** Attack admission: **16 of 53** attacks validated, 1 partially validated, 36 unvalidated
+- **Saved is not validated.** Attack admission: **21 of 53** attacks validated, 1 partially validated, 31 unvalidated
   (`evidence/MANIFEST.md`). Saving admits nothing: of the 25 saved hunter attacks, only those the manifest lists as validated count. Validated means
   `tools/admission/admit.py` ran the attack three times on a known-good guard (held) and three times on
   a copy with the one flaw the attack names (broke by the exact amount, through the named mechanism),
@@ -257,7 +257,7 @@ no private files), the line it prints, the exit code, and the time we measured o
 
 | Claim | Command | Line it prints | Exit | Time |
 |---|---|---|---|---|
-| 16 of 53 attacks validated, 1 partially, 36 unvalidated, and the committed count files are what the code computes | `python3 -I tools/admission/manifest.py --check` | `manifest: up to date` (the counts are in `evidence/MANIFEST.md`, line "Admission: 16 of 53 validated, ...") | 0 | 1 s |
+| 21 of 53 attacks validated, 1 partially, 31 unvalidated, and the committed count files are what the code computes | `python3 -I tools/admission/manifest.py --check` | `manifest: up to date` (the counts are in `evidence/MANIFEST.md`, line "Admission: 21 of 53 validated, ...") | 0 | 1 s |
 | A stamp belongs to this file (validator passes; evidence folder, attack id, steps and spec hashes match; each stored run recorded these calls) and follows from the stored raw runs (re-judged, no sandbox) | `python3 -I tools/admission/admit.py --recheck sequences-scripted/03-sequential-second-pay.json` | `recheck scripted-03-sequential-second-pay: stored runs give validated (every reference matched in 3 counted runs; matched known-bad: mutant:M4); stamp agrees` | 0 | under 1 s |
 | The double-pay race is only partially validated: no block heights recorded | `python3 -I tools/admission/admit.py --recheck sequences-scripted/02-race-double-pay.json` | `recheck scripted-02-race-double-pay: stored runs give partially-validated (outcomes matched, race ordering not shown: ...steps[].receipts absent...); stamp agrees` | 0 | under 1 s |
 | A hand-written, edited or copied "validated" stamp is refused, by the validator and by `--recheck` (stamp and spec copied onto another attack, steps edited with the hash recomputed, evidence folder of another attack, run files of another attack, validated claimed on partial runs); a race counts only if each later check ran in a block strictly before the earlier callback (the callback is the earliest guard receipt after the token transfer, not a later one) (same block = tie, never counted); earlier evidence files are byte-identical | `python3 -I -m unittest discover -s tools/admission/tests` | `Ran 63 tests`, `OK` | 0 | 3 s |

@@ -1,0 +1,72 @@
+{
+ "capabilities": [
+  "C1"
+ ],
+ "expected": [
+  {
+   "beyond_policy": 0,
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "ok",
+      "contract-failure"
+     ]
+    },
+    {
+     "pred": "failure_contains",
+     "step": 1,
+     "text": "invoice already paid"
+    },
+    {
+     "amount": 0,
+     "pred": "over_equals",
+     "receiver": "ada"
+    },
+    {
+     "invoice": "inv-mid",
+     "pred": "status_equals",
+     "status": "Paid"
+    }
+   ],
+   "outcome": "held",
+   "reference": "vault-a"
+  },
+  {
+   "beyond_policy": 200,
+   "flaw": "no-already-paid-check",
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "ok",
+      "ok"
+     ]
+    },
+    {
+     "amount": 200,
+     "pred": "over_equals",
+     "receiver": "ada"
+    },
+    {
+     "invoice": "inv-mid",
+     "pred": "status_equals",
+     "status": "Paid"
+    }
+   ],
+   "outcome": "broke",
+   "receiver": "ada",
+   "reference": "mutant:M4"
+  }
+ ],
+ "failure_mode": "No already-paid check: the second pay of inv-mid pays ada again. The harness waits for each call to finish, so the second pay comes after the first callback: this tests the already-paid check, not a callback window.",
+ "oracle": {
+  "decides": "beyond_policy",
+  "receiver": "ada"
+ },
+ "ordering": "none",
+ "preconditions": [
+  "inv-mid approved: 200 to ada"
+ ],
+ "property": "A guard pays each approved invoice at most once."
+}
