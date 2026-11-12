@@ -14,6 +14,9 @@ sha2 = "0.10"
 # Extended direct mode: Arena signs payments for guards that check an off-chain signature (direct_ext.rs).
 near-crypto = "0.38"
 base64 = "0.22"
+# same crate and sandbox binary near-workspaces already uses; lets a window proof start its sandbox
+# with a longer block-production limit (see direct_ext::sandbox)
+near-sandbox = "0.4.0"
 
 [profile.release]
 debug = false

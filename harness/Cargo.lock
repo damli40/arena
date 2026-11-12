@@ -59,6 +59,7 @@ dependencies = [
  "base64 0.22.1",
  "futures",
  "near-crypto",
+ "near-sandbox",
  "near-workspaces",
  "serde_json",
  "sha2",

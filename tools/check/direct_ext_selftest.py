@@ -8,6 +8,8 @@ one config. Two kinds of test, for every new capability:
 
   positive   the right mapping for that shape: every rule validates, and no attack is anything but
              held, stopped by the access key, or not applicable (the fixture enforces every rule)
+  broke      a right mapping on a fixture with one planted flaw: the rule validates and the
+             attack on the flaw is "broke"
   refused    a WRONG mapping for that shape (the kind a person or an AI could plausibly write):
              the gate must refuse it, so the affected rule (or the whole check) is "could not
              finish", and nothing is held or broke on it
@@ -70,9 +72,24 @@ def versioned_cfg():
     return c
 
 
-def window_cfg(kind, claim):
-    return cfg(window=(kind, WIN), claims=["allowlist", "per_payment", claim, "approval"],
-               ext={"window": {"claim": claim, "secs": WIN}})
+def window_cfg(kind, claim, secs=WIN, defect="none"):
+    return cfg(window=(kind, secs), claims=["allowlist", "per_payment", claim, "approval"], defect=defect,
+               ext={"window": {"claim": claim, "secs": secs}})
+
+
+DAY = 86400  # a real 24 h window: its proof moves about 26 h of sandbox clock
+
+
+def broke_on_window(rule):
+    """The window rule validated (its kind proven by moving the clock) AND at least one attack on it
+    broke: a planted flaw behind a correctly labelled 24 h window must be found, not hidden."""
+    def f(rep):
+        st = rep.get("rules_status", {}).get(rule, {})
+        broke = [a["attack"] for a in rows(rep) if a["result"] == D.BROKE]
+        on = [a["attack"] for a in rows(rep) if a["result"] == D.BROKE and a["rule"] == rule]
+        ok = bool(st.get("validated")) and bool(st.get("g8_kind")) and bool(on)
+        return ok, f"{rule}: validated={st.get('validated')} kind proven={st.get('g8_kind')}; broke: {broke or 'none'}"
+    return f
 
 
 # ------------------------------------------------------------------ assertions
@@ -145,6 +162,10 @@ TESTS = [
     ("X13", "window", "REFUSED: anchored period labelled rolling", window_cfg("anchored", "window_rolling"), refused_rule("window_rolling")),
     ("X14", "window", "lifetime budget, labelled lifetime", window_cfg("lifetime", "window_lifetime"), all_held),
     ("X15", "window", "REFUSED: rolling window labelled lifetime", window_cfg("rolling", "window_lifetime"), refused_rule("window_lifetime")),
+    ("X19", "window", "rolling 24 h window, labelled rolling (the proof moves about 26 h of clock)",
+     window_cfg("rolling", "window_rolling", DAY), all_held),
+    ("X20", "window", "BROKE: rolling 24 h window with a planted flaw (payments sent together all pass the window check)",
+     window_cfg("rolling", "window_rolling", DAY, defect="cap_race"), broke_on_window("window_rolling")),
     ("X16", "signing", "guard checks a signature per payment; Arena holds the signer key and signs", signed_cfg(), all_held),
     ("X18", "setup calls", "a policy cannot be edited, each change needs a fresh version ($policy_version)", versioned_cfg(), all_held_and_owner_changes_work),
     ("X17", "signing", "REFUSED: mapping signs a different message than the guard checks",

@@ -488,6 +488,36 @@ pub async fn before_step(w: &near_workspaces::Worker<near_workspaces::network::S
     Ok(())
 }
 
+/// The sandbox for one sequence. A sequence that moves the clock (an `advance` step) gets a sandbox
+/// whose `max_block_production_delay` is longer, because fast-forward moves the clock by
+/// (min + max block-production delay) / 2 per skipped block: about 0.31 s with the defaults
+/// (0.12 s and 0.5 s), so a 24 h window would need about 300,000 skipped blocks. With the max set
+/// to `ARENA_FF_MAX_DELAY_SECS` (default 20 s) a skipped block moves about 10 s. Every other
+/// sequence keeps near-workspaces' own sandbox. Same sandbox binary either way (no new download).
+pub async fn sandbox(advances: bool) -> Result<(near_workspaces::Worker<near_workspaces::network::Sandbox>, Option<near_sandbox::Sandbox>)> {
+    if !advances {
+        return Ok((near_workspaces::sandbox().await?, None));
+    }
+    let max_s: f64 = std::env::var("ARENA_FF_MAX_DELAY_SECS").ok().and_then(|v| v.parse().ok()).unwrap_or(20.0);
+    if !(0.5..=120.0).contains(&max_s) {
+        bail!("ARENA_FF_MAX_DELAY_SECS must be between 0.5 and 120 (got {max_s})");
+    }
+    let (secs, nanos) = (max_s.trunc() as u64, ((max_s.fract()) * 1e9) as u64);
+    let cfg = near_sandbox::SandboxConfig {
+        additional_accounts: vec![near_sandbox::GenesisAccount::default_with_name("registrar".parse()?)],
+        additional_config: Some(json!({"consensus": {"max_block_production_delay": {"secs": secs, "nanos": nanos}}})),
+        ..Default::default()
+    };
+    let sb = near_sandbox::Sandbox::start_sandbox_with_config_and_version(cfg, near_sandbox::DEFAULT_NEAR_SANDBOX_VERSION)
+        .await
+        .map_err(|e| anyhow::anyhow!("could not start the window-proof sandbox: {e}"))?;
+    let w = near_workspaces::sandbox()
+        .rpc_addr(&sb.rpc_addr)
+        .validator_key(near_workspaces::network::ValidatorKey::HomeDir(sb.home_dir.path().to_path_buf()))
+        .await?;
+    Ok((w, Some(sb)))
+}
+
 /// Move the sandbox clock forward by at least `secs` with fast-forward, in chunks, and return
 /// (seconds the clock really moved, blocks skipped). Skipped blocks do not exist: no code runs
 /// in them, so this only tests windows the guard computes from the block time on its next call.
@@ -497,7 +527,11 @@ pub async fn advance(w: &near_workspaces::Worker<near_workspaces::network::Sandb
     // The clock gained per skipped block varies (0.3 to 0.5 s measured). Approach the target from
     // below: assume the fastest rate seen so far (start at 1 s per block) and cover at most 80% of
     // what is left per round, so the last rounds are a few blocks and the overshoot stays small.
-    let mut fastest_ns: f64 = 1_000_000_000.0;
+    // At most 500 blocks per fast-forward call: measured, one call of about 2,000 blocks took
+    // 24 s but one of about 2,900 took 360 s, so many small calls are much faster than one big one.
+    // The first round skips 1 block to measure the rate (it depends on the sandbox's block
+    // production delays, see `sandbox`), so the first real jump does not overshoot.
+    let mut fastest_ns: f64 = 0.0;
     let mut skipped = 0u64;
     for _ in 0..400 {
         let b0 = w.view_block().await?;
@@ -505,12 +539,15 @@ pub async fn advance(w: &near_workspaces::Worker<near_workspaces::network::Sandb
         if now >= target {
             return Ok(((now - t0) / 1_000_000_000, skipped));
         }
-        let n = ((0.8 * (target - now) as f64 / fastest_ns).floor() as u64).clamp(1, 20_000);
+        let n = if fastest_ns <= 0.0 { 1 } else { ((0.8 * (target - now) as f64 / fastest_ns).floor() as u64).clamp(1, 500) };
         w.fast_forward(n).await?;
         let b = w.view_block().await?;
         skipped += b.height().saturating_sub(b0.height());
         if b.timestamp() > now {
             fastest_ns = fastest_ns.max((b.timestamp() - now) as f64 / n as f64);
+        }
+        if std::env::var_os("ARENA_FF_DEBUG").is_some() {
+            eprintln!("ff-debug n={n} blocks={} clock_gain_s={} at={:?}", b.height().saturating_sub(b0.height()), (b.timestamp().saturating_sub(now)) / 1_000_000_000, std::time::SystemTime::now());
         }
     }
     bail!("advance: the clock did not reach +{secs} s after 400 fast-forward rounds")

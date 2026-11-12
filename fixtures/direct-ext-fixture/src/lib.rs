@@ -24,6 +24,9 @@
 //! defect   one deliberate defect for negative self-tests, or "none":
 //!          "skip_signature"  accepts any signature
 //!          "any_key"         (guard_key) accepts any key on this account, registered or not
+//!          "cap_race"        a payment paid at once is charged to the window only when its
+//!                            transfer settles (in the callback), so payments sent together all
+//!                            pass the window check before any of them is counted
 use near_sdk::json_types::{Base64VecU8, U128, U64};
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::{env, near, serde_json, AccountId, Allowance, Gas, NearToken, PanicOnDefault, Promise, PromiseResult, PublicKey};
@@ -100,7 +103,7 @@ impl Fixture {
         assert!(["account", "guard_key"].contains(&opts.signer.as_str()), "E_OPT_SIGNER");
         assert!(["in_policy", "per_call"].contains(&opts.payees.as_str()), "E_OPT_PAYEES");
         assert!(["utc_day", "rolling", "anchored", "lifetime"].contains(&opts.window.kind.as_str()), "E_OPT_WINDOW");
-        assert!(["none", "skip_signature", "any_key"].contains(&opts.defect.as_str()), "E_OPT_DEFECT");
+        assert!(["none", "skip_signature", "any_key", "cap_race"].contains(&opts.defect.as_str()), "E_OPT_DEFECT");
         let now = env::block_timestamp();
         Self {
             owner, agent, opts, agent_key: None, per_payment: 0, window_limit: 0, approval_above: 0,
@@ -175,14 +178,18 @@ impl Fixture {
         assert!(self.allowlist.contains(&receiver), "E_NOT_ALLOWLISTED");
         assert!(amount.0 <= self.per_payment, "E_PER_PAYMENT");
         assert!(self.counted() + amount.0 <= self.window_limit, "E_WINDOW");
-        self.charge(amount.0);
         let id = self.next_id;
         self.next_id += 1;
         if amount.0 > self.approval_above {
+            self.charge(amount.0);
             self.pending.insert(id, Req { receiver, amount: amount.0 });
             return serde_json::json!({"status": "pending", "id": U64(id)});
         }
-        self.send(receiver, amount.0);
+        let late = self.opts.defect == "cap_race";
+        if !late {
+            self.charge(amount.0);
+        }
+        self.send_settle(receiver, amount.0, late);
         serde_json::json!({"status": "paid", "id": U64(id)})
     }
 
@@ -190,7 +197,7 @@ impl Fixture {
     pub fn approve(&mut self, id: U64) {
         self.owner_only();
         let r = self.pending.remove(&id.0).expect("E_REQUEST");
-        self.send(r.receiver, r.amount);
+        self.send_settle(r.receiver, r.amount, false);
     }
 
     #[payable]
@@ -201,9 +208,13 @@ impl Fixture {
     }
 
     #[private]
-    pub fn on_transfer(&mut self, amount: U128) -> bool {
+    pub fn on_transfer(&mut self, amount: U128, charge_now: Option<bool>) -> bool {
         let ok = env::promise_results_count() == 1 && matches!(env::promise_result(0), PromiseResult::Successful(_));
-        if !ok {
+        if charge_now == Some(true) {
+            if ok {
+                self.charge(amount.0);
+            }
+        } else if !ok {
             self.uncharge(amount.0);
         }
         ok
@@ -277,11 +288,11 @@ impl Fixture {
             _ => self.period_total = self.period_total.saturating_sub(amount),
         }
     }
-    fn send(&mut self, to: AccountId, amount: u128) {
+    fn send_settle(&mut self, to: AccountId, amount: u128, charge_now: bool) {
         Promise::new(to).transfer(NearToken::from_yoctonear(amount)).then(
             Promise::new(env::current_account_id()).function_call(
                 "on_transfer",
-                serde_json::to_vec(&serde_json::json!({ "amount": U128(amount) })).unwrap(),
+                serde_json::to_vec(&serde_json::json!({ "amount": U128(amount), "charge_now": charge_now })).unwrap(),
                 NearToken::from_yoctonear(0),
                 Gas::from_tgas(20),
             ),

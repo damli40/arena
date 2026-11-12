@@ -420,12 +420,12 @@ What this does not do:
 - **A UTC-day label is not proven by moving the clock.** It is checked as before: the in-window
   payment pairs, and the attempt must stay inside one UTC day. A guard with another kind of window
   that is labelled "UTC day" passes those checks. Label your window with its real kind.
-- **Long windows are not proven.** Fast-forward (the sandbox's way to move its clock) gains only
-  about 0.3 to 0.5 s of clock per skipped block, and the skipped blocks do not exist: no code runs
-  in them. Proving a 24 h window means moving about 26 h of clock, which takes hours here. Arena
-  moves at most `ARENA_MAX_ADVANCE_SECS` (default 7200 s) per proof. A longer window is reported as
-  not validated, with the reason, and its attacks as "could not finish". If your guard lets the
-  owner choose the window length, choose a short one in the config.
+- **Skipped blocks do not exist.** Fast-forward (the sandbox's way to move its clock) skips
+  blocks, and no code runs in them, so this tests windows the guard computes from the block time
+  on its next call. A sequence that moves the clock runs on a sandbox whose longest wait between
+  blocks is set to 20 s (`ARENA_FF_MAX_DELAY_SECS`), so each skipped block moves the clock about
+  10 s instead of 0.3 s. Proving a 24 h window moves about 26 h of clock: about 95 s of wall time
+  on a quiet machine. Arena moves at most `ARENA_MAX_ADVANCE_SECS` (default 14 days) per proof.
 - **A guard that only answers allow or refuse, and moves no money, cannot be checked this way.**
   Arena scores money that moved.
 - **No callback in the config means the forged-callback attack is not run.** Arena cannot tell a

@@ -667,7 +667,9 @@ pub async fn run(seq_path: &std::path::Path, wasm: &std::path::Path, cfg_path: &
         "claims": cfg.claims, "unit": "1 milliNEAR", "ghost": GHOST,
     });
 
-    let worker = near_workspaces::sandbox().await?;
+    // A sequence that moves the clock gets a sandbox where each skipped block moves it further
+    // (direct_ext::sandbox); `_sb` keeps that sandbox process alive until the run ends.
+    let (worker, _sb) = crate::direct_ext::sandbox(steps.iter().any(|st| st.get("advance").is_some())).await?;
     let owner = worker.dev_create_account().await?;
     let agent_full = worker.dev_create_account().await?;
     let outsider = worker.dev_create_account().await?;

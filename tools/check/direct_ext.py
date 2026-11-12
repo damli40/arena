@@ -50,11 +50,16 @@ def window_claim(claims):
     return w[0] if w else None
 
 
-# The most sandbox clock (seconds) one window-kind proof may move. Fast-forward gains about 0.3 to
-# 0.5 s of clock per skipped block and runs at a few clock-seconds per wall-second when several
-# sandboxes share the machine, so a 24 h window (about 26 h of clock) would take hours. Raise it
-# with ARENA_MAX_ADVANCE_SECS if you can wait.
-MAX_ADVANCE_SECS = int(os.environ.get("ARENA_MAX_ADVANCE_SECS", "7200"))
+# The most sandbox clock (seconds) one window-kind proof may move. Fast-forward moves the clock by
+# (min + max block-production delay) / 2 per skipped block. A sequence that moves the clock runs on
+# a sandbox whose max delay is 20 s (harness direct_ext::sandbox), so a skipped block moves about
+# 10 s instead of 0.31 s. Measured on 2026-11-12: 26.4 h of clock in about 95 s of wall time. The
+# default, 14 days, covers every window Arena accepts (up to 7 days; a lifetime proof waits 2
+# windows). Lower it with ARENA_MAX_ADVANCE_SECS if you cannot wait.
+MAX_ADVANCE_SECS = int(os.environ.get("ARENA_MAX_ADVANCE_SECS", str(14 * 86400)))
+# Wall-clock budget for a proof: assume no faster than 100 clock-seconds per wall-second (measured
+# about 1,000 on a quiet machine).
+ADVANCE_RATE_FLOOR = 100
 ADVANCE_WINDOWS = {"window_rolling": 1.1, "window_anchored": 1.1, "window_lifetime": 2.0}
 
 
@@ -79,9 +84,11 @@ def gate_extra(cfg, claims):
 
 def timeout_for(cfg, seq_name, default):
     """Wall-clock budget for one sequence: a window-kind proof gets time for its fast-forward
-    (assumed no faster than 2 clock-seconds per wall-second)."""
+    (ADVANCE_RATE_FLOOR clock-seconds per wall-second, for the clock this window's proof moves)."""
     if seq_name in KIND_SEQ.values():
-        return int(default + 0.5 * MAX_ADVANCE_SECS)
+        w = next((k for k, v in KIND_SEQ.items() if v == seq_name), None)
+        need = ADVANCE_WINDOWS.get(w, 2.0) * window_secs(cfg)
+        return int(default + need / ADVANCE_RATE_FLOOR)
     return default
 
 
