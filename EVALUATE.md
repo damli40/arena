@@ -442,7 +442,7 @@ See `docs/CHECK-BEFORE-YOU-PAY.md` for more and `docs/ON-CHAIN.md` for what is s
   owner-change attack cannot count because that guard cannot remove a payee), 1 more cannot be
   tested (it moves no money). Five of the 10
   have 24-hour windows; each was proven by moving the local chain's clock about 26 hours. In all 10 the forged-callback attack was
-  not run, because no config maps a callback. For the two that need a signed request on every
+  not run, because no config maps a callback; the counts predate the current exit rule, so a re-run today ends `could not finish 1` (exit 2) on that attack. For the two that need a signed request on every
   payment, Arena signed as the signing service: that tests the guard's on-chain checks, not the
   team's real service.
 - **The real-model runs** need a model API key: `NEARAI_API_KEY` for NEAR AI Cloud (the default),

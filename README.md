@@ -143,7 +143,7 @@ Guards A to C all held for the same reason: each records the payment before it m
 **10 more teams' guards, where the agent names who gets paid:** 10 checked, 0 broke, 10 held on
 every rule they claim. In one of them, one owner-change attack could not count, because that guard
 has no way to remove a payee. In all 10 the forged-callback attack was not run, because no config
-maps a callback. One more team's guard moves no money, so Arena cannot test it. We publish counts
+maps a callback, so a re-run today ends `could not finish 1` (exit 2), not `held`. One more team's guard moves no money, so Arena cannot test it. We publish counts
 only: no letters, names or code. How to read these and what you can re-run: `EVALUATE.md` section 6.
 
 ## Limits
