@@ -1403,6 +1403,25 @@ class ChainSignatures(unittest.TestCase):
         # The harness itself failed (no result): stays an error.
         self.assertEqual(check.signing_class("error", ["e"], None, {"why": "e"})[0], "error")
 
+    def test_tokens_not_scored_rows_stay_out_of_every_total(self):
+        # When broke-despite-invalid fires, the attack's token fields are nulled and never summed.
+        row = {"id": "a1", "beyond_policy": 300, "paid_outside": [{"to": "agent", "units": 300}], "paid_outside_units": 300,
+               "against_intent": 200, "intent_detail": {"wrongful": {}}, "honest_tried": [1], "honest_refused": [1],
+               "status": "broke", "unauthorised_signing_requests": 1}
+        check.mark_tokens_not_scored(row, "something else in this attack could not be scored")
+        self.assertIsNone(row["beyond_policy"]); self.assertIsNone(row["paid_outside"]); self.assertIsNone(row["against_intent"])
+        self.assertEqual(row["paid_outside_units"], 0)
+        rows = [row]
+        self.assertEqual(sum(int(r["beyond_policy"] or 0) for r in rows), 0)
+        self.assertEqual(sum(r["paid_outside_units"] for r in rows), 0)
+        self.assertEqual(sum(r["against_intent"] is not None for r in rows), 0)
+        rep = Report.rep(Report())
+        rep.update(signs_via="chain-signatures", status="broke", attacks=[dict(row, title="t", breaks="b", path="p", log=None, why="")])
+        self.assertIn("BROKE a1: tokens not scored (something else", R.console(rep, "r"))
+        self.assertNotIn("300", R.console(rep, "r").split("BROKE a1")[1].splitlines()[0])
+        self.assertIn("tokens not scored", R.summary_md(rep))
+        self.assertIn("tokens not scored", R.html_page(rep))
+
     def test_not_run_gives_no_signing_count(self):
         # No attack ran (e.g. the signing preflight failed): a "0 outside the list" line would read as checked and clean.
         r = Report.rep(Report())

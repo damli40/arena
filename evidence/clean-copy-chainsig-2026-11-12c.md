@@ -23,5 +23,7 @@ sign call.
 
 **What this does not show.** The new rule (a recorded unauthorised request is broke even when
 something else failed) did not fire in a sandbox run; only the two unit tests cover it. When it does
-fire, the attack's token numbers are not used, but its `paid_outside` and against-intent fields in
-`report.json` are still read from the result and are not marked as unreliable.
+fire, the attack's token numbers are not used. [Fixed later on 2026-11-12, commit after `75712e3`:
+its `beyond_policy`, `paid_outside`, against-intent and honest-payment fields are now null or empty
+in `report.json`, with `tokens_not_scored` saying why, no total sums them, and the report prints
+"tokens not scored". Test: `test_tokens_not_scored_rows_stay_out_of_every_total`.]

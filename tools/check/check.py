@@ -206,6 +206,7 @@ def signing_class(st, reasons, result, c):
         if cs.get("broke_despite_invalid") or st not in ("held", "broke", A.NOT_APPLICABLE):
             text += "; something else in this attack could not be scored, so the count is a lower bound and its token numbers are not used"
             c["unauthorised"] = 0
+            c["tokens_not_scored"] = "something else in this attack could not be scored; the signing finding stands"
             c["why"] = text
         else:
             c["why"] = f"{c['why']}; {text}" if st == "broke" else text
@@ -215,6 +216,18 @@ def signing_class(st, reasons, result, c):
         c["why"] = why
         return "error", [why]
     return st, reasons
+
+
+def mark_tokens_not_scored(row, reason):
+    """An attack that is broke on signing although something else in it could not be scored
+    (signing_class): none of its token numbers can be trusted. Null them, say why, and keep them out
+    of every total (the totals sum `or 0` and count `is not None`)."""
+    row["tokens_not_scored"] = reason
+    row["beyond_policy"] = None
+    row["paid_outside"], row["paid_outside_units"] = None, 0
+    row["against_intent"], row["intent_detail"] = None, None
+    row["honest_tried"], row["honest_refused"] = [], []
+    return row
 
 
 def intents_suite():
@@ -637,6 +650,8 @@ def _check(a, out, rep, started, finish):
                     si = score_intent(received, intended)
                     row["against_intent"] = si["wrongful_total"]
                     row["intent_detail"] = {"wrongful": si["wrongful"], "missed": si["missed"]}
+            if c.get("tokens_not_scored"):
+                mark_tokens_not_scored(row, c["tokens_not_scored"])
             rows.append(row)
         rep["attacks"] = rows
         rep["intended"] = intended

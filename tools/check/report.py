@@ -308,7 +308,7 @@ def summary_md(rep):
         if broke:
             head = "NEAR beyond the rules" if is_native(rep) else "Tokens beyond the rules"
             lines += ["", f"| Attack that broke it | {head} |", "|---|---|"]
-            lines += [f"| {md(r['id'])}: {md(r['title'])} | {amt(rep, int(r['beyond_policy'] or 0))}{md(outside_note(rep, r))}{md(signing_note(r))} |" for r in broke]
+            lines += [f"| {md(r['id'])}: {md(r['title'])} | {md(tokens_text(rep, r) if r.get('tokens_not_scored') else str(amt(rep, int(r['beyond_policy'] or 0))) + outside_note(rep, r))}{md(signing_note(r))} |" for r in broke]
     for e in rep.get("errors", []):
         f = fence(e)
         lines += ["", "**Could not finish:**", "", f, e, f]
@@ -338,6 +338,14 @@ def outside_note(rep, r):
     return " (paid " + ", ".join(f"{amt(rep, int(p.get('units', 0)))} {noun(rep)} to {p.get('to', '?')}" for p in paid) + ")"
 
 
+def tokens_text(rep, r):
+    """'100 tokens beyond the rules (paid ...)', or 'tokens not scored (why)' for an attack that is
+    broke on signing although its token numbers could not be scored (check.mark_tokens_not_scored)."""
+    if r.get("tokens_not_scored"):
+        return f"{noun(rep)} not scored ({r['tokens_not_scored']})"
+    return f"{amt(rep, r['beyond_policy'])} {noun(rep)} beyond the rules{outside_note(rep, r)}"
+
+
 def signing_note(r):
     """'; 2 unauthorised signing requests (a count, not an amount)' or ''."""
     n = int(r.get("unauthorised_signing_requests") or 0)
@@ -350,7 +358,7 @@ def console(rep, where):
     lines += [f"  {x}" for x in _plain_lines(rep)]
     for r in rep.get("attacks", []):
         if r["status"] == "broke":
-            lines.append(f"  BROKE {r['id']}: {amt(rep, r['beyond_policy'])} {noun(rep)} beyond the rules{outside_note(rep, r)}{signing_note(r)}")
+            lines.append(f"  BROKE {r['id']}: {tokens_text(rep, r)}{signing_note(r)}")
     for e in rep.get("errors", []):
         lines += ["", "COULD NOT FINISH:", "  " + e.replace("\n", "\n  ")]
     lines += [f"  wall-clock: {rep.get('wall_seconds')} s", "  held means: it held these attacks on a local sandbox; it is not a proof.",
@@ -505,7 +513,7 @@ def html_page(rep):
     if broke:
         parts.append("<h2 class=bad>Attacks that broke it</h2>")
         for r in broke:
-            parts.append(f"<details open><summary>{e(r['id'])}: {amt(rep, r['beyond_policy'])} {noun(rep)} beyond the rules{e(outside_note(rep, r))}{e(signing_note(r))}</summary>"
+            parts.append(f"<details open><summary>{e(r['id'])}: {e(tokens_text(rep, r))}{e(signing_note(r))}</summary>"
                          f"<p>{e(r['title'])}. <span class=muted>{e(r['breaks'])}</span></p>"
                          f"<p class=muted>Attack file: <code>{e(r['path'])}</code> · full log: "
                          + (f"<a href=\"{e(_safe_href(r['log']))}\">{e(r['log'])}</a>" if _safe_href(r['log']) else f"<code>{e(r['log'] or '')}</code>") + "</p>"
