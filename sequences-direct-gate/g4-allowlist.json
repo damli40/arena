@@ -1,0 +1,59 @@
+{
+  "name": "g4-allowlist",
+  "purpose": "G4: pairs, on-list pays and off-list (lin, the outsider as caller) must move nothing",
+  "gate_rule": "allowlist",
+  "steps": [
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "sam",
+        "amount": 50
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "lin",
+        "amount": 50
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "ada",
+        "amount": 30
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "lin",
+        "amount": 30
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "kai",
+        "amount": 70
+      }
+    },
+    {
+      "pay": {
+        "actor": "outsider",
+        "receiver": "sam",
+        "amount": 70
+      }
+    }
+  ],
+  "expect": {
+    "received": {
+      "sam": 50,
+      "ada": 30,
+      "kai": 70,
+      "lin": 0,
+      "mo": 0
+    },
+    "outside": 0
+  }
+}

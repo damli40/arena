@@ -52,6 +52,7 @@ Check it yourself: `./verify.sh fast` (about 8 min), `proofs/run.sh` (about
 | Worst case under the broad rules: z3 searched every sequence of up to 10 pay requests, and we replayed its answer twice on a local test chain | 500 tokens against the owner's intent in one run, 0 beyond policy, both replays | `evidence/proofs-2026-11-10.md` |
 | 10 mistakes planted in our own guard (vault-a), one at a time | our attacks caught 7 of 10. The other 3 sit on paths no attack walks down | `evidence/mutation-table-2026-11-11.md` |
 | The bug in our own fix: `reconcile` reopened a paid bill after an outside top-up, so the guard paid 200 on a 100 bill | a review of the proofs found it; we fixed it and re-ran everything: proofs 30 of 30, near-tla 25 of 25 as planned | `evidence/proofs-adversarial-review-2026-11-11.md`, `evidence/fix-plan-2026-11-11.md`, `evidence/proofs-inductive-2026-11-11.md` |
+| A fourth team's guard (Guard G), which pays directly with no invoices: a fixed gate proved Arena was calling it correctly, then came 12 attacks | 11 held, 1 stopped by NEAR's access key, 0 broke. 25 of 25 self-tests on a deliberately broken fixture gave the result each defect demands. Two AI-proposed mappings each had one wrong field; for both, the layout of the owner's policy arguments was copied from the hand mapping and every fixed extra argument of the payment call was set to "arena", so the AI chose method and field names and the claimed rules. The gate caught both: what each got wrong could not finish, and none of it came out held | `evidence/direct-2026-11-11.md` |
 | Three other teams' guards (Guard A, B, C), tests written from each guard's own claims | 29 of 29 tests of their own rules held. 0 tokens paid beyond policy | `evidence/coverage-table.md` |
 | Fully fooled agent (a script that obeys every injection), 5 separate scenario runs | 0 tokens paid beyond policy. 450 tokens against the owner's intent across the five runs added up; at most 200 in any one run | `evidence/injection-intent-by-recipient.md` |
 | Real model (Muse Spark 1.3): 25 trials, then 30 trials against an attacker model that rewrote its email after each failure | 0 fooled in 52 trials where it read the email. 0 tokens paid against the owner's intent | `evidence/injection-2026-11-09-model.md`, `evidence/injection-2026-11-09-adaptive.md` |
@@ -129,7 +130,9 @@ We name them only by letter. Before any run, for each guard, we wrote down what 
 
 That is 29 tests, and 29 held. Each guard also made one normal payment to show it works, and all 3 went through. Guard A faced one more test, on a rule it never promised, and it held. So the coverage table has 33 rows: 29, plus 3, plus 1.
 
-All three held for the same reason: each records the payment before it moves the money. Their source code, built files and test runners are not in this repo, to keep them anonymous. Per-test detail, including the two corrections we made during the runs: `evidence/coverage-table.md`.
+Guard G is tested on a separate path, because it has no invoices: 12 attacks, 11 held, 1 stopped by NEAR's access key before its code ran, 0 broke (`evidence/direct-2026-11-11.md`). Its code is not in this repo; `targets/entrant-G/fetch.py` reads it from testnet and refuses any build but the frozen one.
+
+Guards A to C all held for the same reason: each records the payment before it moves the money. Their source code, built files and test runners are not in this repo, to keep them anonymous. Per-test detail, including the two corrections we made during the runs: `evidence/coverage-table.md`.
 
 ## Limits
 
@@ -147,7 +150,14 @@ All three held for the same reason: each records the payment before it moves the
 - **When no pay start time was recorded, expiry is not scored.** If an expiring invoice ends `Paid` but the bench recorded no start time for its payment, it cannot tell whether the payment came before or after expiry. It counts the invoice as allowed and prints `expiry not scored`.
 - **On chain, a result is not tied to the guard's mode or to an opt-in.** The contract's answer does not read the guard's mode, so a contract asking about a wasm that has results under more than one mode must name the suite (`docs/ON-CHAIN.md`). `publish_result` does not check the opt-in table, so a result on chain does not show that the guard's owner agreed to be tested.
 - **"Validated" is only as strong as the attack's written checks.** "Broke through the named mechanism" means the checks the attack's spec lists passed on every counted run (one check is the minimum), and the flaw counts as matched because the broken copy's flaw label equals the one the spec names; nobody checked which line of code fired.
+- **In direct-pay mode, an AI-proposed config also picks which rules the guard claims.** A rule it leaves out is marked not applicable and is never tested, so a proposal that claims fewer rules than the guard enforces tests fewer rules. If every attack is not applicable, the check says could not finish (exit 2), never held. Check the `claims` list in the report before you rely on a result.
+- **The direct-pay callback check has limits.** The gate confirms the callback only by seeing the guard call that method on itself after a payment, with the id the payment returned, of the same JSON type. Each forged call (attack i03) sends exactly what the guard sent itself for the payment it forges against, so per-payment values (amount, nonce, receiver) match; only the caller differs. Held on i03 now means one thing: every forged call was refused by a caller check, either near-sdk's `Method <name> is private` or the refusal text the config names (`direct.callback.refusal_text`). Any other failure, such as a bare wasm trap, a promise-result error or out of gas, ends could not finish (exit 2), because Arena cannot tell it from a forge that never reached the guard's logic. So an honest guard can come out could not finish: one whose own refusal is a bare trap, one whose callback quietly does nothing, or one whose payment returns the id with a different JSON type than its callback takes (self-test S26). If the config names a different method that the guard also calls on itself and that does nothing with the payment, i03 can still come out held. A guard with no callback at all always ends could not finish, because i03 cannot run. Pressing Ctrl-C stops the check with Python's interrupt exit (130 in a shell), which is not a result.
+- **The config author is trusted to name a real caller check.** `direct.callback.refusal_text` is matched as a substring of the error, and the `Method ... is private` pattern can match text a guard writes itself. Only hand-written configs set `refusal_text`.
+- **i03 forges a callback only after a payment settled, never while one is in flight.**
+- **A correct guard whose "already settled" check runs before its caller check gets could not finish on i03.** The forged call is refused, but not by the caller check.
+- **A `refusal_text` that is not a string gives could not finish.**
 - **The double-pay guard (`contracts/guard`, mode `vulnerable_fixture`) is a labelled test case.** Never deploy it.
+- **Direct-pay guards: one tested so far, fixed amounts.** Guard G is the only external guard on the direct-pay path. Arena's amounts and receivers are fixed, so a guard that special-cases them could pass the gate. Re-running Guard G needs network access to fetch its code.
 
 ## Where to look next
 
@@ -166,7 +176,8 @@ All three held for the same reason: each records the payment before it moves the
 | The receipts on NEAR testnet | `evidence/receipts-testnet-2026-11-11.md` (first set: `evidence/receipts-testnet-2026-11-10.md`) |
 | How the harness sets up and scores a run | `harness/README.md` |
 | What every evidence file is | `evidence/README.md` |
-| Each other team's claims and fingerprint | `targets/entrant-A/`, `targets/entrant-B/`, `targets/entrant-C/` |
+| Each other team's claims and fingerprint | `targets/entrant-A/`, `targets/entrant-B/`, `targets/entrant-C/`, `targets/entrant-G/` |
+| Testing guards that work differently (no invoices), the gate and its self-tests | `docs/GUARD-CAPABILITIES.md` |
 
 Built with Rust 1.86, near-sdk 5.27, near-workspaces 0.24 and near-sandbox (nearcore 2.14); the other teams' guards were built from their source with Rust 1.99.1. AI coding agents wrote parts of the code, under review. All code was written from Nov 8, 2026, inside the hackathon window (Nov 1 to 14). MIT licence (`LICENSE`).
 

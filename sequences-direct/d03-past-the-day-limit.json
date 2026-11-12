@@ -1,0 +1,38 @@
+{
+  "name": "d03-past-the-day-limit",
+  "meta": {
+    "rule": "window_utc_day",
+    "needs": [],
+    "purpose": "Use the whole day limit (300) in three payments, then ask for 50 more."
+  },
+  "steps": [
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "sam",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "ada",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "mo",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "kai",
+        "amount": 50
+      }
+    }
+  ]
+}

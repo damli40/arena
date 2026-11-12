@@ -1,0 +1,46 @@
+{
+  "name": "g5-window",
+  "purpose": "G5: the owner lowers the day limit to 60; after 50 is paid, a second 50 must be refused and 10 paid",
+  "gate_rule": "window_utc_day",
+  "steps": [
+    {
+      "set_policy": {
+        "actor": "owner",
+        "window_limit": 60,
+        "per_payment": 50,
+        "approval_above": 50
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "sam",
+        "amount": 50
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "ada",
+        "amount": 50
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "ada",
+        "amount": 10
+      }
+    }
+  ],
+  "expect": {
+    "received": {
+      "sam": 50,
+      "ada": 10,
+      "lin": 0,
+      "kai": 0,
+      "mo": 0
+    },
+    "outside": 0
+  }
+}

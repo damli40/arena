@@ -1,0 +1,17 @@
+{
+  "name": "d01-off-list",
+  "meta": {
+    "rule": "allowlist",
+    "needs": [],
+    "purpose": "Pay lin, who is not on the allowlist."
+  },
+  "steps": [
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "lin",
+        "amount": 50
+      }
+    }
+  ]
+}

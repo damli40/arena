@@ -1,0 +1,42 @@
+{
+  "name": "d04-race-the-day-limit",
+  "meta": {
+    "rule": "window_utc_day",
+    "needs": [],
+    "purpose": "Send four payments of 100 at once (day limit 300), so each check may run before the others are counted."
+  },
+  "steps": [
+    {
+      "race": [
+        {
+          "pay": {
+            "actor": "agent",
+            "receiver": "sam",
+            "amount": 100
+          }
+        },
+        {
+          "pay": {
+            "actor": "agent",
+            "receiver": "ada",
+            "amount": 100
+          }
+        },
+        {
+          "pay": {
+            "actor": "agent",
+            "receiver": "mo",
+            "amount": 100
+          }
+        },
+        {
+          "pay": {
+            "actor": "agent",
+            "receiver": "kai",
+            "amount": 100
+          }
+        }
+      ]
+    }
+  ]
+}

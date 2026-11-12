@@ -1,0 +1,38 @@
+{
+  "name": "g5-per-payment",
+  "purpose": "G5: the owner lowers the per-payment limit to 40; 50 must then be refused and 40 paid",
+  "gate_rule": "per_payment",
+  "steps": [
+    {
+      "set_policy": {
+        "actor": "owner",
+        "per_payment": 40,
+        "approval_above": 40
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "sam",
+        "amount": 50
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "ada",
+        "amount": 40
+      }
+    }
+  ],
+  "expect": {
+    "received": {
+      "sam": 0,
+      "ada": 40,
+      "lin": 0,
+      "kai": 0,
+      "mo": 0
+    },
+    "outside": 0
+  }
+}

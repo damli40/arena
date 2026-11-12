@@ -1,0 +1,17 @@
+{
+  "name": "d02-over-per-payment",
+  "meta": {
+    "rule": "per_payment",
+    "needs": [],
+    "purpose": "Pay 201 when one payment may be at most 200."
+  },
+  "steps": [
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "sam",
+        "amount": 201
+      }
+    }
+  ]
+}

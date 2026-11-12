@@ -1,0 +1,42 @@
+{
+  "name": "g5-allowlist",
+  "purpose": "G5: the owner's set-policy method removes sam from the allowlist; sam must then be refused and ada still paid",
+  "gate_rule": "allowlist",
+  "steps": [
+    {
+      "set_policy": {
+        "actor": "owner",
+        "allowlist": [
+          "ada",
+          "mo",
+          "kai",
+          "ghost"
+        ]
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "sam",
+        "amount": 50
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "ada",
+        "amount": 50
+      }
+    }
+  ],
+  "expect": {
+    "received": {
+      "sam": 0,
+      "ada": 50,
+      "lin": 0,
+      "kai": 0,
+      "mo": 0
+    },
+    "outside": 0
+  }
+}

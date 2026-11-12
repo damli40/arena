@@ -1,0 +1,4 @@
+# near-sdk prints panic messages (env::panic_str, #[private]) only when built with --cfg near,
+# which cargo-near sets. Without it every refusal is a bare wasm trap.
+[target.wasm32-unknown-unknown]
+rustflags = ["--cfg", "near"]

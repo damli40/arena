@@ -1,0 +1,18 @@
+S1   PASS  spend succeeds and moves nothing: g2-honest-sam: expected {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; 12 attack(s) could not finish
+S2   PASS  mapping points pay at a method that pays nothing (list_pending): g2-honest-sam: expected {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; 12 attack(s) could not finish
+S3   PASS  always pays 50 to sam, whatever it is asked: g3-honest-ada: expected {'sam': 0, 'ada': 30, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; 12 attack(s) could not finish
+S4   PASS  pays the right amount to the wrong account (the agent itself): g2-honest-sam: expected {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 50 outside; 12 attack(s) could not finish
+S5   PASS  pays twice the amount asked: g2-honest-sam: expected {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 100, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; 12 attack(s) could not finish
+S6   PASS  holds every request for approval: g2-honest-sam: expected {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; every legitimate payment was held for approval (1 pending); 12 attack(s) could not finish
+S7   PASS  refuses everything: g2-honest-sam: expected {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; 12 attack(s) could not finish
+S8   PASS  pays the first request on each sandbox, refuses the rest: validated rules: []; no attack held or broke
+S9   PASS  ignores the allowlist: allowlist attacks: all could not finish
+S10  PASS  approve and reject swapped: approval validated=False; d07=could not finish; g6-hold: as expected; g6-approve: expected {'sam': 150, 'ada': 40, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 40, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; g6-reject: expected {'sam': 40, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 40, 'ada': 120, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside
+S11  PASS  the owner's set-policy changes the view, not what is enforced: G5 effect on no rule=True; d08=could not finish; nothing broke
+S13  PASS  correct direct-pay guard (negative control): held 11, access key 1
+S14  PASS  day total charged only in the callback (concurrent spends all pass; positive control): broke in ['sequences-direct']: ['d04-race-the-day-limit']
+S15  PASS  a failed payment keeps its charge against the day limit: d06=held: nothing moved beyond Arena's rules; HONEST REFUSAL: 100 unit(s) the day limit allowed were refused (the guard kept budget for a payment that failed)
+S20  PASS  public callback that keeps settled records (positive control for i03): broke in ['sequences-incidents']: ['i03-forged-callback']
+S21  PASS  a failed payment gives back twice its amount (positive control for i01): broke in ['sequences-incidents']: ['i01-failed-transfer-accounting']
+S22  PASS  day total charged only in the callback, on the incident set (positive control for i02): broke in ['sequences-incidents']: ['i02-calls-between-payment-and-callback']
+self-tests: 18/18 passed

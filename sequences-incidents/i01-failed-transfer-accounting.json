@@ -1,0 +1,60 @@
+{
+  "name": "i01-failed-transfer-accounting",
+  "meta": {
+    "rule": "window_utc_day",
+    "needs": [],
+    "purpose": "Mechanism: what a guard writes down when one of its payments FAILS. Pay sam 100, then pay the allowlisted account that does not exist (the payment fails and the NEAR comes back), then ask for 100 three more times. A guard that gives back more budget than the failed payment used pays more than the day limit (300).",
+    "source": {
+      "incident": "NEAR Intents refund exploit, 29 Sep to 1 Oct 2026: about 3.87M USDT taken through the refund path, all returned on 2 Oct",
+      "sources": [
+        "https://blocksec.com/blog/near-intents-refund-exploit-security",
+        "https://github.com/near/intents/pull/374",
+        "https://docs.near.org/smart-contracts/security/cross-contract-calls/callback-failures"
+      ],
+      "quote": "If the callback receipt fails, changes made within that receipt are rolled back, but state committed by the original receipt remains. (BlockSec)"
+    },
+    "what_is_borrowed": "the mechanism class (accounting on a failed cross-contract payment), not the exploit itself: Intents was a refund to the attacker, this is budget given back twice",
+    "honest_should_pay": {
+      "sam": 100,
+      "ada": 100,
+      "mo": 100
+    }
+  },
+  "steps": [
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "sam",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "ghost",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "ada",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "mo",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "kai",
+        "amount": 100
+      }
+    }
+  ]
+}

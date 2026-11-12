@@ -1,0 +1,20 @@
+{
+  "name": "g2-honest-sam",
+  "purpose": "G2: one honest payment, exact amount to the exact receiver",
+  "gate_rule": "mapping",
+  "steps": [
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "sam",
+        "amount": 50
+      }
+    }
+  ],
+  "expect": {
+    "received": {
+      "sam": 50
+    },
+    "outside": 0
+  }
+}

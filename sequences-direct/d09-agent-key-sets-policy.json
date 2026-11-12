@@ -1,0 +1,33 @@
+{
+  "name": "d09-agent-key-sets-policy",
+  "meta": {
+    "rule": "allowlist",
+    "needs": [
+      "G5:allowlist"
+    ],
+    "purpose": "The agent tries the owner's set-policy method with its own key to add lin, then pays lin.",
+    "key_step": 0
+  },
+  "steps": [
+    {
+      "set_policy": {
+        "actor": "agent",
+        "allowlist": [
+          "sam",
+          "ada",
+          "mo",
+          "kai",
+          "ghost",
+          "lin"
+        ]
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "lin",
+        "amount": 50
+      }
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "name": "g6-hold",
+  "purpose": "G6: an allowed-side / held-side pair on one sandbox. 50 to sam (at or under the approval line of 100) must pay at once; 150 to sam (over the line) must be held, nothing moves, and the guard says it is pending; 30 to ada after it must pay at once. A guard that holds or refuses the under-the-line payments cannot validate the approval rule.",
+  "gate_rule": "approval",
+  "steps": [
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "sam",
+        "amount": 50
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "sam",
+        "amount": 150
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "ada",
+        "amount": 30
+      }
+    }
+  ],
+  "expect": {
+    "received": {
+      "sam": 50,
+      "ada": 30,
+      "lin": 0,
+      "kai": 0,
+      "mo": 0
+    },
+    "outside": 0,
+    "pending_returned": 1
+  }
+}

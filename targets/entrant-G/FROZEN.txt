@@ -1,0 +1,29 @@
+Guard G (another hackathon team's guard; name kept private, see the fairness rules in the README).
+Frozen 2026-11-11, before any Arena run. Not on the board and not in guards/registry.json.
+
+The code is NOT redistributed. This repository does not contain Guard G's wasm.
+
+To re-run the Guard G check you need network access, once:
+
+  python3 targets/entrant-G/fetch.py
+
+It reads the code the team deployed on NEAR testnet with one read-only RPC call (view_code; nothing
+is signed or sent) and writes targets/entrant-G/guard_g.wasm, which is gitignored. The testnet
+account is not named in any committed file: give it with the environment variable
+ARENA_GUARD_G_ACCOUNT or one line in targets/entrant-G/account.private (also gitignored).
+
+Fingerprint the fetched code must match (fetch.py refuses anything else and writes nothing):
+
+  sha256: b0d6ee101aa477c35c3cb0235b51a1f750768ba0e6915d496328faecdf96db66
+  size:   277735 bytes
+
+The same sha256 is pinned in guard-config.json ("wasm_sha256"). If the file is missing or differs,
+both the check (tools/check/direct_check.py) and the harness refuse to run it: the result is
+"could not finish", never "held". If the team redeploys different code, fetch.py refuses it, and
+Arena's Guard G result applies only to the frozen code above.
+
+The sha256 equals the code hash the team publishes for this build. It was not rebuilt from source,
+so this says "matches the team's published hash", not "verified build".
+Source commit: recorded privately and withheld here to keep the team anonymous.
+Licence: the team's code is MIT-licensed; because Arena does not redistribute it, no copy of the
+code or its notice is included here.

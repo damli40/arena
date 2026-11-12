@@ -1,0 +1,43 @@
+{
+  "name": "d06-failed-payment-burns-budget",
+  "meta": {
+    "rule": "window_utc_day",
+    "needs": [],
+    "purpose": "Pay the allowlisted account that does not exist (the payment fails and comes back), then try to use the rest of the day limit. Overspending is broke; being refused money the day limit allows is reported as an honest refusal.",
+    "honest_should_pay": {
+      "sam": 100,
+      "ada": 100,
+      "mo": 100
+    }
+  },
+  "steps": [
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "ghost",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "sam",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "ada",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "mo",
+        "amount": 100
+      }
+    }
+  ]
+}

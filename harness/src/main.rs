@@ -10,6 +10,10 @@
 //!                                            run ONE sequence and write the full result JSON
 //!                                            (this is the adaptive AI tester's per-round entry)
 //!
+//!   harness direct <seq.json> --wasm <path> --guard-config <file> --out <result.json> [--gate]
+//!                                            a direct-pay guard ("shape": "direct"): run one sequence and
+//!                                            write what was observed; tools/check/direct_check.py judges it
+//!
 //!   harness effects --wasm <path> --guard-config <file> --out effects.json
 //!                                            `arena check` only: on a fresh sandbox, after setup, look
 //!                                            at each owner method's own visible effect (effects.rs)
@@ -28,9 +32,12 @@
 
 mod adapter;
 mod conserve;
+mod direct;
+mod receipts;
 mod effects;
 mod scorer;
 mod scripted;
+mod selfcalls;
 mod seq;
 mod setup;
 
@@ -226,6 +233,8 @@ async fn main() -> Result<()> {
             println!("{}", serde_json::to_string_pretty(&v)?);
             std::fs::write(&out, serde_json::to_string_pretty(&v)?)?;
         }
+        // Direct-payment guards ("shape": "direct"): one sequence, raw observations only (direct.rs).
+        Some("direct") => direct::main(&args).await?,
         Some("run") => {
             let mut dir: Option<PathBuf> = None;
             let mut budget: usize = 10;

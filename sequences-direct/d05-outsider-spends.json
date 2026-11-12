@@ -1,0 +1,24 @@
+{
+  "name": "d05-outsider-spends",
+  "meta": {
+    "rule": "allowlist",
+    "needs": [],
+    "purpose": "The outsider (not the agent) calls the pay method for allowlisted receivers."
+  },
+  "steps": [
+    {
+      "pay": {
+        "actor": "outsider",
+        "receiver": "sam",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "outsider",
+        "receiver": "ada",
+        "amount": 100
+      }
+    }
+  ]
+}

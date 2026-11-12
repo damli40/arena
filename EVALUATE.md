@@ -61,6 +61,12 @@ reads that run's own logs. `run-arena.sh` and the prompt-injection scripts do th
 | 11 | The double-pay result and its fix are saved on NEAR testnet, and anyone can look them up. | section 5 | section 5 | 1 to 2 s | `evidence/receipts-testnet-2026-11-11.md`, `evidence/testnet-2026-11-11.md` |
 | 12 | A guard owner can sign a note on NEAR testnet saying "Arena may test this exact code", and another contract can ask for a result before it pays. | section 5 | `opt-in:    opted_in` in the lookup | 1 to 2 s | `evidence/onchain-2026-11-11.md`, `evidence/results-testnet-2026-11-11.md`, `docs/ON-CHAIN.md` |
 | 13 | When the hunter's model runs on NEAR AI Cloud, the run saves NEAR's attestation report (a record, signed inside NEAR's sealed hardware, of which model and configuration answered). | `python3 -I tools/hunter/recheck_attestation.py evidence/hunts/2026-11-11-papers-e3db55.json` | `recheck: all checks pass (Intel and NVIDIA signatures are not checked offline)`, exit 0 | under 1 s | `evidence/nearai-2026-11-11.md` |
+| 14 | The direct-pay path (no invoices) tells a broken guard from a correct one: 25 self-tests on a fixture with one deliberate defect each, each giving the result its defect demands. S20 (a callback anyone can call) breaks on i03 with the right callback mapping; S23 and S24 map the callback to a view method instead, and i03 is could not finish, never held. S25 (the callback takes a second argument only the guard's own call passes) still breaks on i03, because the forged call copies the guard's own arguments; S26 (the id comes back as a number, the callback wants a string) is could not finish. S27 and S28 (the callback also checks the amount, or a nonce) break on i03, because each forged call sends what the guard sent itself for that payment; S29 (a `#[callback_result]` callback, whose direct call fails reading the promise result) is not held. Local sandbox, no network, no key. Build the harness before it: `(cd harness && cargo build --release)` | `python3 -I tools/check/direct_selftest.py --out runs/direct-selftest --jobs 6` | `self-tests: 25/25 passed`, exit 0 | about 15 min | `evidence/direct-2026-11-11.md` |
+| 15 | The direct-pay judging rules, with no sandbox: a guard's own error text never decides; a run across 00:00 UTC or with money still moving is could not finish; an attack that calls the callback is could not finish unless the gate saw the guard call that method on itself with the returned id (same JSON type), and i03 is held only if every forged call was refused by a caller check (`Method X is private`, or the config's refusal text), any other failure being could not finish; if every attack is not applicable the exit is 2; a config that is not JSON, a missing config file or a file that is not wasm exits 2 with one line, never 1; exit 0 only when nothing could not finish. | `python3 -I tools/check/tests/test_direct.py` | `Ran 28 tests`, `OK`, exit 0 | under 1 s | `evidence/direct-2026-11-11.md` |
+| 16 | Guard G's code is not in this repo, and without it the check refuses to run: could not finish, never held. No network. | `python3 -I tools/check/direct_check.py --wasm targets/entrant-G/guard_g.wasm --guard-config targets/entrant-G/guard-config.json --out runs/guard-g-nowasm` | `verdict: could not finish before G0: the wasm targets/entrant-G/guard_g.wasm is not there (...)`, exit 2 | under 1 s | `targets/entrant-G/FROZEN.txt` |
+| 17 | The Guard G fetch refuses when it cannot read the code, and writes nothing. No network needed (it points at a closed local port). | `ARENA_GUARD_G_ACCOUNT=example.testnet ARENA_TESTNET_RPC=http://127.0.0.1:9 python3 targets/entrant-G/fetch.py` | `REFUSED: RPC call failed: URLError: ...; nothing written`, exit 1 | under 1 s | `targets/entrant-G/FROZEN.txt` |
+| 18 | Guard G (another team's direct-pay guard): gate 15 of 15, 11 of 12 attacks held, the 12th stopped by NEAR's access key, 0 broke. **Needs network** (one read-only testnet call) **and the Guard G account name, which is withheld from this repo to keep the team anonymous** (set `ARENA_GUARD_G_ACCOUNT`; without it `fetch.py` prints `fetch: no account given. Set ARENA_GUARD_G_ACCOUNT or write it to targets/entrant-G/account.private` and exits 1, and the check after `&&` never runs). Harness built as in row 14. Recorded on Nov 11, before the callback check was added to the gate on Nov 12; not re-run since, so whether Guard G's i03 still comes out held under that check is unconfirmed | `python3 targets/entrant-G/fetch.py && python3 -I tools/check/direct_check.py --wasm targets/entrant-G/guard_g.wasm --guard-config targets/entrant-G/guard-config.json --out runs/guard-g --jobs 6` | `ok: wrote targets/entrant-G/guard_g.wasm, sha256 b0d6ee10... matches the frozen fingerprint (277735 bytes)`, then `verdict: held 11, stopped by the access key 1`, exit 0 | about 2 s fetch, 48 s check | `evidence/direct-2026-11-11.md` |
+| 19 | The two AI-proposed Guard G mappings (saved; re-running them needs no model call) each had one wrong field, and the gate caught both. Same network and account needs as row 18 (run the fetch before it). Recorded on Nov 11, before the callback check; not re-run since | `python3 -I tools/check/direct_check.py --wasm targets/entrant-G/guard_g.wasm --guard-config evidence/direct-2026-11-11/guard-g-muse-proposed-config.json --out runs/guard-g-muse --jobs 6`, then the same with `guard-g-nearai-proposed-config.json` and `--out runs/guard-g-nearai` | Muse: `verdict: could not finish at G2/G3: ...`, exit 2. NEAR AI: `verdict: could not finish 1, held 10, stopped by the access key 1`, exit 2 | 25 s, 50 s | `evidence/direct-2026-11-11.md` |
 
 Claim 6 needs the harness built first; `./verify.sh fast` does that.
 
@@ -69,11 +75,12 @@ set `ARENA_LOOKUP_OFFLINE=1` to skip those.
 
 ```
 python3 -I tools/check/tests/test_check.py
+python3 -I tools/check/tests/test_direct.py
 python3 -I -m unittest discover -s tools/hunter/tests
 node --test tools/lookup/test.mjs
 ```
 
-You should see `Ran 105 tests` and `OK (skipped=1)`, then `Ran 79 tests` and `OK`, then `pass 37`
+You should see `Ran 105 tests` and `OK (skipped=1)`, then `Ran 19 tests` and `OK`, then `Ran 79 tests` and `OK`, then `pass 37`
 and `fail 0`. The hunter tests pass on a fresh copy before anything is built. These counts are for
 the current commit: `evidence/clean-copy-2026-11-11.md` records 98 and 77 at the older commit it ran.
 
@@ -329,6 +336,15 @@ See `docs/CHECK-BEFORE-YOU-PAY.md` for more and `docs/ON-CHAIN.md` for what is s
   runners are not in this repo, to keep them anonymous. You can read what each one claims
   (`targets/entrant-A/`, `-B/`, `-C/`) and the per-test results (`evidence/coverage-table.md`), but
   not re-run them.
+- **Guard G without its account name.** Its code is not in this repo either. Rows 18 and 19 fetch
+  it from testnet, which needs network and the account name, withheld to keep the team anonymous.
+  Without it you can still run rows 14 to 17 (the self-tests, the judging rules, and the two
+  refusals), and read the saved summaries in `evidence/direct-2026-11-11/`.
+- **The AI proposals for Guard G** (`tools/check/direct_muse.py`) need a model key; the two saved
+  proposals re-run through the gate without one (row 19).
+- **The capability counts for the 17 researched guards** (`docs/GUARD-CAPABILITIES.md` section 2.4)
+  come from reading each team's public source and deployed code; the per-guard notes are private,
+  to keep the teams anonymous, so the counts cannot be re-derived from this repo.
 - **The real-model runs** need a model API key: `NEARAI_API_KEY` for NEAR AI Cloud (the default),
   or `MUSE_API_KEY` with `ARENA_MODEL_PROVIDER=muse`. Without one, read the saved trials in
   `evidence/`.

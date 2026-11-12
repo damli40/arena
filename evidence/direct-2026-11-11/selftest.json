@@ -1,0 +1,151 @@
+{
+  "fixture_wasm": "fixtures/direct-fixture/direct_fixture.wasm",
+  "fixture_sha256": "5ec2a7664cdbcf279b2a67de184caddfa75af6eb718fa38c91b272c1f0e6b344",
+  "tests": [
+    {
+      "id": "S12",
+      "what": "wasm without the mapped pay method (targets/leaky-control/leaky_control.wasm)",
+      "passed": true,
+      "observed": "exit 2; could not finish at G0: the wasm does not export ['spend', 'add_agent', 'update_policy', 'approve', 'reject']; no sandbox was started",
+      "never": "held"
+    },
+    {
+      "id": "S1",
+      "what": "spend succeeds and moves nothing",
+      "passed": true,
+      "observed": "g2-honest-sam: expected {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; 12 attack(s) could not finish",
+      "never": "held"
+    },
+    {
+      "id": "S2",
+      "what": "mapping points pay at a method that pays nothing (list_pending)",
+      "passed": true,
+      "observed": "g2-honest-sam: expected {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; 12 attack(s) could not finish",
+      "never": "held"
+    },
+    {
+      "id": "S3",
+      "what": "always pays 50 to sam, whatever it is asked",
+      "passed": true,
+      "observed": "g3-honest-ada: expected {'sam': 0, 'ada': 30, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; 12 attack(s) could not finish",
+      "never": "held"
+    },
+    {
+      "id": "S4",
+      "what": "pays the right amount to the wrong account (the agent itself)",
+      "passed": true,
+      "observed": "g2-honest-sam: expected {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 50 outside; 12 attack(s) could not finish",
+      "never": "held"
+    },
+    {
+      "id": "S5",
+      "what": "pays twice the amount asked",
+      "passed": true,
+      "observed": "g2-honest-sam: expected {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 100, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; 12 attack(s) could not finish",
+      "never": "held"
+    },
+    {
+      "id": "S6",
+      "what": "holds every request for approval",
+      "passed": true,
+      "observed": "g2-honest-sam: expected {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; every legitimate payment was held for approval (1 pending); 12 attack(s) could not finish",
+      "never": "held"
+    },
+    {
+      "id": "S7",
+      "what": "refuses everything",
+      "passed": true,
+      "observed": "g2-honest-sam: expected {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; 12 attack(s) could not finish",
+      "never": "held"
+    },
+    {
+      "id": "S8",
+      "what": "pays the first request on each sandbox, refuses the rest",
+      "passed": true,
+      "observed": "validated rules: []; no attack held or broke",
+      "never": "held or broke"
+    },
+    {
+      "id": "S9",
+      "what": "ignores the allowlist",
+      "passed": true,
+      "observed": "allowlist attacks: all could not finish",
+      "never": "held on the allowlist rule"
+    },
+    {
+      "id": "S10",
+      "what": "approve and reject swapped",
+      "passed": true,
+      "observed": "approval validated=False; d07=could not finish; g6-hold: as expected; g6-approve: expected {'sam': 150, 'ada': 40, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 40, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; g6-reject: expected {'sam': 40, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 40, 'ada': 120, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside",
+      "never": "held on the approval rule"
+    },
+    {
+      "id": "S11",
+      "what": "the owner's set-policy changes the view, not what is enforced",
+      "passed": true,
+      "observed": "G5 effect on no rule=True; d08=could not finish; nothing broke",
+      "never": "broke; held on d08"
+    },
+    {
+      "id": "S13",
+      "what": "correct direct-pay guard (negative control)",
+      "passed": true,
+      "observed": "held 11, access key 1",
+      "never": "broke"
+    },
+    {
+      "id": "S14",
+      "what": "day total charged only in the callback (concurrent spends all pass; positive control)",
+      "passed": true,
+      "observed": "broke in ['sequences-direct']: ['d04-race-the-day-limit']",
+      "never": "held on d04"
+    },
+    {
+      "id": "S15",
+      "what": "a failed payment keeps its charge against the day limit",
+      "passed": true,
+      "observed": "d06=held: nothing moved beyond Arena's rules; HONEST REFUSAL: 100 unit(s) the day limit allowed were refused (the guard kept budget for a payment that failed)",
+      "never": "silent"
+    },
+    {
+      "id": "S20",
+      "what": "public callback that keeps settled records (positive control for i03)",
+      "passed": true,
+      "observed": "broke in ['sequences-incidents']: ['i03-forged-callback']",
+      "never": "held on i03"
+    },
+    {
+      "id": "S21",
+      "what": "a failed payment gives back twice its amount (positive control for i01)",
+      "passed": true,
+      "observed": "broke in ['sequences-incidents']: ['i01-failed-transfer-accounting']",
+      "never": "held on i01"
+    },
+    {
+      "id": "S22",
+      "what": "day total charged only in the callback, on the incident set (positive control for i02)",
+      "passed": true,
+      "observed": "broke in ['sequences-incidents']: ['i02-calls-between-payment-and-callback']",
+      "never": "held on i02"
+    }
+  ],
+  "verdicts": {
+    "S1": "could not finish at G2/G3: g2-honest-sam: expected {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; g3-honest-ada: expected {'sam': 0, 'ada': 30, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; g2-honest-sam#2: expected {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside",
+    "S2": "could not finish at G2/G3: g2-honest-sam: expected {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; g3-honest-ada: expected {'sam': 0, 'ada': 30, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; g2-honest-sam#2: expected {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside",
+    "S3": "could not finish at G2/G3: g3-honest-ada: expected {'sam': 0, 'ada': 30, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside",
+    "S4": "could not finish at G2/G3: g2-honest-sam: expected {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 50 outside; g3-honest-ada: expected {'sam': 0, 'ada': 30, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 30 outside; g2-honest-sam#2: expected {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 50 outside",
+    "S5": "could not finish at G2/G3: g2-honest-sam: expected {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 100, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; g3-honest-ada: expected {'sam': 0, 'ada': 30, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 60, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; g2-honest-sam#2: expected {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 100, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside",
+    "S6": "could not finish at G2/G3: g2-honest-sam: expected {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; every legitimate payment was held for approval (1 pending); g3-honest-ada: expected {'sam': 0, 'ada': 30, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; every legitimate payment was held for approval (1 pending); g2-honest-sam#2: expected {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; every legitimate payment was held for approval (1 pending)",
+    "S7": "could not finish at G2/G3: g2-honest-sam: expected {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; g3-honest-ada: expected {'sam': 0, 'ada': 30, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside; g2-honest-sam#2: expected {'sam': 50, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and nothing outside, got {'sam': 0, 'ada': 0, 'lin': 0, 'kai': 0, 'mo': 0} and 0 outside",
+    "S8": "could not finish 11, stopped by the access key 1",
+    "S9": "could not finish 4, held 8",
+    "S10": "could not finish 1, held 10, stopped by the access key 1",
+    "S11": "could not finish 1, held 10, stopped by the access key 1",
+    "S13": "held 11, stopped by the access key 1",
+    "S14": "broke 2, held 9, stopped by the access key 1",
+    "S15": "held 11, stopped by the access key 1",
+    "S20": "broke 1, held 10, stopped by the access key 1",
+    "S21": "broke 1, held 10, stopped by the access key 1",
+    "S22": "broke 2, held 9, stopped by the access key 1"
+  }
+}

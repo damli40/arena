@@ -1,0 +1,72 @@
+{
+  "arena_guard_config": 1,
+  "shape": "direct",
+  "pays_in": "native",
+  "wasm_sha256": "b0d6ee101aa477c35c3cb0235b51a1f750768ba0e6915d496328faecdf96db66",
+  "notes": "Hand-written mapping (the control). Written from Guard G's own source: spend(receiver, amount, memo); owner add_agent / update_policy(agent, policy{per_tx_max, daily_max, allowlist, approval_threshold, paused}); approve / reject(request_id); private callback on_transfer(transfer_id); a held request returns {\"status\": \"pending\", \"request_id\": ...}.",
+  "init": {
+    "method": "new",
+    "args": {
+      "owner": "$owner"
+    }
+  },
+  "direct": {
+    "claims": [
+      "allowlist",
+      "per_payment",
+      "window_utc_day",
+      "approval"
+    ],
+    "pay": {
+      "method": "spend",
+      "receiver_field": "receiver",
+      "amount_field": "amount",
+      "extra_args": {
+        "memo": "arena"
+      }
+    },
+    "policy": {
+      "method": "add_agent",
+      "args": {
+        "agent": "$agent",
+        "policy": {
+          "per_tx_max": "$per_payment",
+          "daily_max": "$window_limit",
+          "allowlist": "$allowlist",
+          "approval_threshold": "$approval_above",
+          "paused": false
+        }
+      }
+    },
+    "set_policy": {
+      "method": "update_policy",
+      "args": {
+        "agent": "$agent",
+        "policy": {
+          "per_tx_max": "$per_payment",
+          "daily_max": "$window_limit",
+          "allowlist": "$allowlist",
+          "approval_threshold": "$approval_above",
+          "paused": false
+        }
+      }
+    },
+    "approve": {
+      "method": "approve",
+      "id_field": "request_id"
+    },
+    "reject": {
+      "method": "reject",
+      "id_field": "request_id"
+    },
+    "pending": {
+      "status_field": "status",
+      "pending_value": "pending",
+      "id_field": "request_id"
+    },
+    "callback": {
+      "method": "on_transfer",
+      "id_field": "transfer_id"
+    }
+  }
+}

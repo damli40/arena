@@ -1,0 +1,79 @@
+{
+  "name": "i03-forged-callback",
+  "meta": {
+    "rule": "window_utc_day",
+    "needs": [],
+    "purpose": "Mechanism: a callback anyone can call. Use the whole day limit, then the outsider calls the guard's payment callback itself three times, hoping the guard reads it as a failed payment and gives the budget back, then the agent asks for 100 three more times.",
+    "source": {
+      "incident": "none: a documented NEAR pitfall and a static-analysis rule, not a dated incident",
+      "sources": [
+        "https://docs.near.org/smart-contracts/security/cross-contract-calls/callbacks",
+        "https://github.com/blocksecteam/rustle",
+        "https://sigmaprime.io/blog/near-sharding-cross-contract-calls/"
+      ],
+      "quote": "a malicious user could call the callback directly and pretend that the cross-contract call succeeded or failed (NEAR docs)"
+    }
+  },
+  "steps": [
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "sam",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "ada",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "mo",
+        "amount": 100
+      }
+    },
+    {
+      "callback": {
+        "actor": "outsider",
+        "id": "last_transfer"
+      }
+    },
+    {
+      "callback": {
+        "actor": "outsider",
+        "id": "last_transfer"
+      }
+    },
+    {
+      "callback": {
+        "actor": "outsider",
+        "id": "last_transfer"
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "kai",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "sam",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "ada",
+        "amount": 100
+      }
+    }
+  ]
+}

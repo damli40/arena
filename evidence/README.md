@@ -14,7 +14,7 @@ On Nov 10 we fixed a bug in the guard and re-ran everything on the same day. To 
 | `2026-11-10` | Nov 10, before the fix | `fcce82bf…` |
 | `2026-11-11` | Nov 10 after the fix, or Nov 11 | `0382023b…` (current) |
 
-Made on Nov 11: `check-native-2026-11-11.md`, `check-outflow-2026-11-11.md`, `onchain-2026-11-11.md`, `results-testnet-2026-11-11.md`, `nearai-2026-11-11.md`, `injection-2026-11-11-nearai-model.md`, and the two hunt records whose names start `hunts/2026-11-11-`. Every other file with this tag was made on Nov 10.
+Made on Nov 11: `direct-2026-11-11.md` and its folder, `check-native-2026-11-11.md`, `check-outflow-2026-11-11.md`, `onchain-2026-11-11.md`, `results-testnet-2026-11-11.md`, `nearai-2026-11-11.md`, `injection-2026-11-11-nearai-model.md`, and the two hunt records whose names start `hunts/2026-11-11-`. Every other file with this tag was made on Nov 10.
 
 The names are kept because the receipts saved on NEAR testnet point at these paths and carry a hash of each file. Renaming a file, or editing its text, would break that link. The same tag appears in some code comments for the same reason.
 
@@ -32,6 +32,7 @@ The names are kept because the receipts saved on NEAR testnet point at these pat
 | Did the full check suite pass on the current build? | `verify-2026-11-11.md`, `verify-summary.log` |
 | Do the commands in `EVALUATE.md` work from a fresh copy with no build folders? | `clean-copy-2026-11-11.md` (12 commands, all matched, at commit `adaa69d`; test counts have grown since, see `EVALUATE.md`) |
 | Did every check still pass, from a fresh copy, after adding NEAR Intents testing? | `clean-copy-intents-2026-11-11.md` (10 checks, all matched; then merged) |
+| Did every existing result stay the same after adding the direct-pay path, from a fresh copy? | `clean-copy-universal-2026-11-11.md` (20 checks, all matched, at commit `bfb6f16`) |
 | What did two independent reviewers find, and do the fixes hold on a fresh copy? | `judge-fixes-2026-11-11.md` (11 commands matched; no committed file changed by a run) |
 | What did the paper-driven and news-driven attack runs find? | `hunts/` (one `.md` and one `.json` per run) |
 | Which model writes the hunter's attacks, where does it run, and what does NEAR AI's attestation show? | `nearai-2026-11-11.md`; re-check a saved report offline with `python3 -I tools/hunter/recheck_attestation.py evidence/hunts/2026-11-11-papers-e3db55.json` |
@@ -43,6 +44,7 @@ The names are kept because the receipts saved on NEAR testnet point at these pat
 | How does a guard owner opt in on chain, and how does a contract ask for a result before it pays? | `onchain-2026-11-11.md` (what is live on testnet), `../docs/ON-CHAIN.md` (how to use it) |
 | Which results can a contract read on testnet today? | `results-testnet-2026-11-11.md` (Arena's own guards only; Guards A, B and C get none) |
 | Does the model on NEAR AI resist the same injections as the first model? | `injection-2026-11-11-nearai-model.md` |
+| Can Arena test a guard with no invoices (the agent names receiver and amount), and how did Guard G do? Does an AI-proposed mapping get through the gate? | `direct-2026-11-11.md`, `direct-2026-11-11/` (made on Nov 11) |
 | How long from a paper or a hack report to a tested attack? | `response-time-2026-11-11.md` (a replay of the planned schedule, not a measurement of it) |
 
 ## Plans come before runs

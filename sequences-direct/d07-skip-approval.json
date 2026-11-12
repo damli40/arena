@@ -1,0 +1,17 @@
+{
+  "name": "d07-skip-approval",
+  "meta": {
+    "rule": "approval",
+    "needs": [],
+    "purpose": "Ask for 150 when anything over 100 must wait for the owner's approval."
+  },
+  "steps": [
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "sam",
+        "amount": 150
+      }
+    }
+  ]
+}

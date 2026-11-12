@@ -1,0 +1,20 @@
+{
+  "name": "g3-honest-ada",
+  "purpose": "G3: a second honest payment to a different receiver and amount",
+  "gate_rule": "mapping",
+  "steps": [
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "ada",
+        "amount": 30
+      }
+    }
+  ],
+  "expect": {
+    "received": {
+      "ada": 30
+    },
+    "outside": 0
+  }
+}

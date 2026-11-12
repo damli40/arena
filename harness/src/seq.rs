@@ -50,6 +50,8 @@ pub struct StepOutcome {
     pub failure: String,
     pub logs: Vec<String>,
     pub view_json: Option<Value>,
+    /// receipts.rs trace (block height per receipt); None for views and rejected/unincluded calls
+    pub receipts: Option<Value>,
 }
 
 fn failure_text(r: &ExecutionFinalResult) -> String {
@@ -234,17 +236,18 @@ async fn finish(
 ) -> Result<StepOutcome> {
     let who = c["actor"].as_str().unwrap_or("?").to_string();
     let method = method_of(c)?.to_string();
-    let (outcome, failure, logs) = match res {
+    let (outcome, failure, logs, receipts) = match res {
         Ok(r) => {
             let failure = failure_text(&r);
             let logs = logs_of(&r);
+            let trace = crate::receipts::trace(&a.worker, &r).await;
             record_pay_ts(a, &r, c, tgt).await?;
             // Conservation check (conserve.rs): what the signer paid in gas and deposits.
             let dep = c.get("deposit_yocto").and_then(|v| v.as_u64()).unwrap_or(0) as u128;
             crate::conserve::record(a, c["actor"].as_str().unwrap_or("?"), tgt_name, dep, &r);
-            (if r.is_success() { OUTCOME_OK } else { OUTCOME_CONTRACT_FAILURE }, failure, logs)
+            (if r.is_success() { OUTCOME_OK } else { OUTCOME_CONTRACT_FAILURE }, failure, logs, Some(trace))
         }
-        Err(e) if is_protocol_rejection(&e) => (OUTCOME_PROTOCOL_REJECTED, format!("{e:?}"), vec![]),
+        Err(e) if is_protocol_rejection(&e) => (OUTCOME_PROTOCOL_REJECTED, format!("{e:?}"), vec![], None),
         Err(e) => return Err(anyhow::anyhow!("step {i}: harness/RPC error (not a protocol rejection): {e:?}")),
     };
     print_step(i, tag, &who, &short(tgt), &method, &args, outcome, &failure);
@@ -262,6 +265,7 @@ async fn finish(
         failure,
         logs,
         view_json: None,
+        receipts,
     })
 }
 
@@ -361,6 +365,7 @@ async fn do_add_key(a: &Arena, i: usize, k: &Value) -> Result<StepOutcome> {
         failure,
         logs: vec![format!("access keys after: {} ({full} full-access)", keys.len())],
         view_json: None,
+        receipts: None,
     })
 }
 
@@ -396,6 +401,7 @@ async fn do_view(a: &Arena, i: usize, v: &Value) -> Result<StepOutcome> {
                 failure,
                 logs: vec![],
                 view_json: None,
+                receipts: None,
             });
         }
     };
@@ -411,6 +417,7 @@ async fn do_view(a: &Arena, i: usize, v: &Value) -> Result<StepOutcome> {
         failure: String::new(),
         logs: vec![],
         view_json: Some(j),
+        receipts: None,
     })
 }
 
@@ -450,6 +457,7 @@ async fn do_race(a: &Arena, i: usize, calls: &[Value]) -> Result<Vec<StepOutcome
                     failure,
                     logs: vec![],
                     view_json: None,
+                    receipts: None,
                 });
             }
         }
@@ -473,6 +481,7 @@ async fn do_race(a: &Arena, i: usize, calls: &[Value]) -> Result<Vec<StepOutcome
                     failure,
                     logs: vec![],
                     view_json: None,
+                    receipts: None,
                 });
             }
         }
@@ -591,6 +600,7 @@ fn outcome_json_base(a: &Arena, name: &str, outcome: &[StepOutcome], s: &crate::
             "failure": o.failure,
             "logs": o.logs,
             "view": o.view_json,
+            "receipts": o.receipts,
         })).collect::<Vec<_>>(),
         "final": {
             "received": s.rows.iter().map(|(r, got, au)| json!({

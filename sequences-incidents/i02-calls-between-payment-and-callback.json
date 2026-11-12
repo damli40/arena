@@ -1,0 +1,57 @@
+{
+  "name": "i02-calls-between-payment-and-callback",
+  "meta": {
+    "rule": "window_utc_day",
+    "needs": [],
+    "purpose": "Mechanism: other calls run between a guard's payment and its callback. Send five payments of 100 at once, one of them to the account that does not exist, so several checks run while earlier payments are still in flight (day limit 300).",
+    "source": {
+      "incident": "none: this is a documented NEAR pitfall, not a dated incident",
+      "sources": [
+        "https://docs.near.org/smart-contracts/security/cross-contract-calls/reentrancy",
+        "https://sigmaprime.io/blog/near-sharding-cross-contract-calls/"
+      ],
+      "quote": "Between a cross-contract call and its callback, any public method of your contract can execute. (NEAR docs)"
+    }
+  },
+  "steps": [
+    {
+      "race": [
+        {
+          "pay": {
+            "actor": "agent",
+            "receiver": "ghost",
+            "amount": 100
+          }
+        },
+        {
+          "pay": {
+            "actor": "agent",
+            "receiver": "sam",
+            "amount": 100
+          }
+        },
+        {
+          "pay": {
+            "actor": "agent",
+            "receiver": "ada",
+            "amount": 100
+          }
+        },
+        {
+          "pay": {
+            "actor": "agent",
+            "receiver": "mo",
+            "amount": 100
+          }
+        },
+        {
+          "pay": {
+            "actor": "agent",
+            "receiver": "kai",
+            "amount": 100
+          }
+        }
+      ]
+    }
+  ]
+}

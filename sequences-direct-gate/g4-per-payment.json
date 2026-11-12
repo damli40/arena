@@ -1,0 +1,59 @@
+{
+  "name": "g4-per-payment",
+  "purpose": "G4: pairs, at or under the per-payment limit pays, over it moves nothing (limit 200; amounts kept at or under the approval line pay at once)",
+  "gate_rule": "per_payment",
+  "steps": [
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "sam",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "sam",
+        "amount": 201
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "ada",
+        "amount": 80
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "ada",
+        "amount": 250
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "mo",
+        "amount": 60
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "mo",
+        "amount": 1000
+      }
+    }
+  ],
+  "expect": {
+    "received": {
+      "sam": 100,
+      "ada": 80,
+      "mo": 60,
+      "lin": 0,
+      "kai": 0
+    },
+    "outside": 0
+  }
+}

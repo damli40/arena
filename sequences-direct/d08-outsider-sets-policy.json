@@ -1,0 +1,32 @@
+{
+  "name": "d08-outsider-sets-policy",
+  "meta": {
+    "rule": "allowlist",
+    "needs": [
+      "G5:allowlist"
+    ],
+    "purpose": "The outsider calls the owner's set-policy method to add lin, then the agent pays lin."
+  },
+  "steps": [
+    {
+      "set_policy": {
+        "actor": "outsider",
+        "allowlist": [
+          "sam",
+          "ada",
+          "mo",
+          "kai",
+          "ghost",
+          "lin"
+        ]
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "lin",
+        "amount": 50
+      }
+    }
+  ]
+}

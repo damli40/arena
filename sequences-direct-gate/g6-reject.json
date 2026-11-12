@@ -1,0 +1,37 @@
+{
+  "name": "g6-reject",
+  "purpose": "G6: 40 to sam (under the line) pays at once; 120 to ada is held; the owner rejects it; nothing more moves",
+  "gate_rule": "approval",
+  "steps": [
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "sam",
+        "amount": 40
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "ada",
+        "amount": 120
+      }
+    },
+    {
+      "reject": {
+        "actor": "owner"
+      }
+    }
+  ],
+  "expect": {
+    "received": {
+      "sam": 40,
+      "ada": 0,
+      "lin": 0,
+      "kai": 0,
+      "mo": 0
+    },
+    "outside": 0,
+    "pending_returned": 1
+  }
+}

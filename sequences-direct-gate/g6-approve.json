@@ -1,0 +1,37 @@
+{
+  "name": "g6-approve",
+  "purpose": "G6: 40 to ada (under the line) pays at once; 150 to sam is held; the owner approves it; exactly 150 more reaches sam",
+  "gate_rule": "approval",
+  "steps": [
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "ada",
+        "amount": 40
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "sam",
+        "amount": 150
+      }
+    },
+    {
+      "approve": {
+        "actor": "owner"
+      }
+    }
+  ],
+  "expect": {
+    "received": {
+      "sam": 150,
+      "ada": 40,
+      "lin": 0,
+      "kai": 0,
+      "mo": 0
+    },
+    "outside": 0,
+    "pending_returned": 1
+  }
+}

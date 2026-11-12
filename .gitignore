@@ -8,3 +8,8 @@ guards/outside/
 arena-report/
 # Fresh runs of verify.sh / run-arena.sh / tools/injection (ARENA_RECORD=1 writes evidence/ instead)
 runs/
+
+# Guard G is not redistributed: fetch it with targets/entrant-G/fetch.py (see FROZEN.txt)
+targets/entrant-G/guard_g.wasm
+targets/entrant-G/guard_g.wasm.tmp
+targets/entrant-G/account.private

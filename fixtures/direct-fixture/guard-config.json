@@ -1,0 +1,73 @@
+{
+  "arena_guard_config": 1,
+  "shape": "direct",
+  "pays_in": "native",
+  "notes": "Test fixture config (tools/check/direct_selftest.py sets init.args.mode per self-test). Same interface as Guard G.",
+  "init": {
+    "method": "new",
+    "args": {
+      "owner": "$owner",
+      "mode": "correct"
+    }
+  },
+  "direct": {
+    "claims": [
+      "allowlist",
+      "per_payment",
+      "window_utc_day",
+      "approval"
+    ],
+    "pay": {
+      "method": "spend",
+      "receiver_field": "receiver",
+      "amount_field": "amount",
+      "extra_args": {
+        "memo": "arena"
+      }
+    },
+    "policy": {
+      "method": "add_agent",
+      "args": {
+        "agent": "$agent",
+        "policy": {
+          "per_tx_max": "$per_payment",
+          "daily_max": "$window_limit",
+          "allowlist": "$allowlist",
+          "approval_threshold": "$approval_above",
+          "paused": false
+        }
+      }
+    },
+    "set_policy": {
+      "method": "update_policy",
+      "args": {
+        "agent": "$agent",
+        "policy": {
+          "per_tx_max": "$per_payment",
+          "daily_max": "$window_limit",
+          "allowlist": "$allowlist",
+          "approval_threshold": "$approval_above",
+          "paused": false
+        }
+      }
+    },
+    "approve": {
+      "method": "approve",
+      "id_field": "request_id"
+    },
+    "reject": {
+      "method": "reject",
+      "id_field": "request_id"
+    },
+    "pending": {
+      "status_field": "status",
+      "pending_value": "pending",
+      "id_field": "request_id"
+    },
+    "callback": {
+      "method": "on_transfer",
+      "id_field": "transfer_id",
+      "refusal_text": "E_PRIVATE: only the guard may call on_transfer"
+    }
+  }
+}

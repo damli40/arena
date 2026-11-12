@@ -1,0 +1,11 @@
+{
+  "provider": "nearai",
+  "calls": 1,
+  "replies": [
+    "{\"arena_direct_mapping\": 1, \"pay\": \"spend\", \"pay_receiver_field\": \"receiver\", \"pay_amount_field\": \"amount\", \"pay_extra\": {\"memo\": \"payment memo\"}, \"policy\": \"add_agent\", \"set_policy\": \"update_policy\", \"approve\": \"approve\", \"reject\": \"reject\", \"request_id_field\": \"request_id\", \"callback\": \"on_transfer\", \"callback_id_field\": \"transfer_id\", \"pending\": {\"status_field\": \"status\", \"pending_value\": \"pending\", \"id_field\": \"id\"}, \"claims\": [\"allowlist\", \"per_payment\", \"window_utc_day\", \"approval\"]}"
+  ],
+  "result": "accepted after checks",
+  "methods_shown": 23,
+  "words_shown": 300,
+  "model": "z-ai/glm-5.3-flash"
+}
