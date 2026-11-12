@@ -167,6 +167,8 @@ td.held{color:var(--ink)}
 td.none,td.error,td.invalid,td.unchecked,td.not-applicable{color:var(--muted)}
 td.not-applicable{font-size:12px}
 tbody tr:last-child td{border-bottom:0}
+td[title],th[title]{cursor:help}
+th small.tip,td small.tip{white-space:normal;min-width:150px;color:var(--ink);font:400 12px/1.45 var(--sans);margin-top:6px;padding-top:6px;border-top:1px dashed var(--line)}
 .foot{font-size:13px;color:var(--muted);margin:14px 0 0;max-width:80ch}
 .foot + .foot{margin-top:6px}
 /* The summary, legend and table are drawn by the script at the end of the page. On a slow connection the
@@ -247,6 +249,17 @@ __FOOTER__
     h += '</tr>';
   });
   document.getElementById('board-table').innerHTML = h + '</tbody>';
+  // A header or cell's title (the guard's policy, what the attack breaks, when and why a result) shows on mouse
+  // hover only. A tap or click opens the same text inside the cell, and a second tap closes it, so touch
+  // screens can read it too. Links inside a cell keep working as links.
+  document.getElementById('board-table').addEventListener('click', function(e){
+    if (e.target.closest('a')) return;
+    var cell = e.target.closest('td[title],th[title]'); if (!cell || !cell.getAttribute('title')) return;
+    var tip = cell.querySelector('.tip');
+    if (tip) { tip.remove(); return; }
+    tip = document.createElement('small'); tip.className = 'tip'; tip.textContent = cell.getAttribute('title');
+    cell.appendChild(tip);
+  });
 
   var ctl = (d.control && d.control.results || []).filter(function(r){return shown[r.guard];});
   var ce = document.getElementById('board-control');
