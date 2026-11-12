@@ -48,18 +48,21 @@ reads that run's own logs. `run-arena.sh` and the prompt-injection scripts do th
 | # | Claim | Command | You should see | Our time | Our saved run |
 |---|---|---|---|---|---|
 | 1 | Two `pay` calls at once make the planted-flaw guard pay 200 on a 100 invoice. The fixed guard pays 100. | `./verify.sh fast` | `verify: 5 passed, 0 failed (mode=fast)` | 481 s cold, 196 s warm | `evidence/verify-2026-11-11.md` |
-| 2 | Every local sandbox result in the README. | `./verify.sh` | `verify: 43 passed, 0 failed (mode=full)` | 943 to 965 s (four runs) | `evidence/verify-2026-11-11.md`, `evidence/verify-summary.log` |
+| 2 | Every local sandbox result in the README. | `./verify.sh` | `verify: 43 passed, 0 failed (mode=full)` | 943 to 965 s (four runs); 1,910 s on Nov 12 with other builds running | `evidence/verify-2026-11-11.md`, `evidence/verify-summary.log`, `evidence/invoice-fixes-2026-11-12/verify/` |
 | 3 | The fixed guard never pays one invoice twice when pay calls race. Checked on a model of the guard for any number of calls, and on the real code for every order of up to 4 pay calls. | `proofs/run.sh` | 30 checks, each `PASS` | 1,504 s | `evidence/proofs-inductive-2026-11-11.md`, `evidence/proofs-2026-11-10.md` |
 | 4 | The same property in near-tla, NEAR's own model of how calls run, up to 3 pay calls. | `tla/run.sh` (all 25), or `tla/run.sh vuln_race fixed_1inv h1_outside_transfer_reconcile` (3 of them) | 25 checks as planned, or the 3 quick ones | about 46 min, or about 15 s | `evidence/tla-2026-11-11/` |
-| 5 | We planted 10 mistakes in our own guard, one at a time. Our attacks caught 7. | `tools/mutation/run.sh` | `summary.tsv` with M1, M2, M4, M5, M6, M7, M8 caught and M3, M9, M10 not | one mutant: 573 s, including the two baseline checks; all ten: 2,410 s (about 40 min). Our re-run on Nov 11 matched the saved table row for row | `evidence/mutation-table-2026-11-11.md` |
+| 5 | We planted 10 mistakes in our own guard, one at a time. Our attacks caught 7. | `tools/mutation/run.sh` | `summary.tsv` with M1, M2, M4, M5, M6, M7, M8 caught and M3, M9, M10 not | one mutant: 573 s, including the two baseline checks; all ten: 2,410 s (about 40 min). Our re-runs on Nov 11 and, with the chain-only scorer, on Nov 12 (3,513 s) matched the saved table row for row | `evidence/mutation-table-2026-11-11.md`, `evidence/mutation-2026-11-12/` |
 | 6 | An agent that obeys every injected instruction pays 0 tokens beyond the guard's rules, and 450 tokens against the owner's intent across five runs. | `ARENA_AGENT=compromised python3 -I tools/injection/run.py` then `python3 -I tools/injection/rescore.py` | rescore ends `Check: recomputed wrong-payment totals match the intent_leak recorded at run time (0 mismatches).` | 80 s, then under 1 s | `evidence/injection-intent-by-recipient.md` |
-| 7 | One command checks a guard against the whole attack library and says held or broke. | section 3 | `arena: held 51/51 ...` for vault-a, `arena: broke 5 of 51 ...` for the leaky guard | about 275 s each | `evidence/check-fixes-2-2026-11-11.md`, `evidence/check-outflow-2026-11-11.md` |
-| 8 | The same check works for a guard that pays in plain NEAR, not a token. | section 3 | `arena: held 48/48 ...` for native-fixed, `arena: broke 5 of 48 ...` for native-control | about 230 s each | `evidence/check-native-2026-11-11.md` |
-| 9 | If a guard pays any account the attack was not supposed to reach (the agent, the outsider, an account the attack named), the check says broke and names who got it. Money it cannot find makes the check incomplete, never held. | section 3 | `arena: broke 11 of 51 (... 1800 tokens paid outside the five receivers ...)` for planted-outflow | about 280 s | `evidence/check-outflow-2026-11-11.md` |
-| 9b | A guard that pays into NEAR Intents is scored from who Intents credited. Our honest Intents guard holds; our planted copy, which lets the caller pick who is credited, breaks, and the report names who got the credit. | section 3 | `arena: held 53/53 ...` for intents-honest (exit 0), `arena: broke 2 of 53 (... 300 tokens paid outside the five receivers ...)` for intents-planted (exit 1) | about 315 s each | `evidence/check-intents-2026-11-11.md` |
+| 7 | One command checks a guard against the whole attack library and says held or broke. | section 3 | `arena: held 49/49 (0 not applicable; 3 stopped by the agent's access key before the guard ran; ...)` for vault-a (exit 0), `arena: broke 5 of 49 (...)` for the leaky guard (exit 1) | 301 s and 299 s (Nov 12, two other builds running on the machine) | `evidence/invoice-fixes-2026-11-12.md` |
+| 8 | The same check works for a guard that pays in plain NEAR, not a token. | section 3 | `arena: held 48/48 (0 not applicable; 1 stopped by the agent's access key before the guard ran; ...)` for native-fixed (exit 0), `arena: broke 5 of 48 (...)` for native-control (exit 1) | 257 s and 244 s | `evidence/invoice-fixes-2026-11-12.md` |
+| 9 | If a guard pays any account the attack was not supposed to reach (the agent, the outsider, an account the attack named), the check says broke and names who got it. Money it cannot find makes the check incomplete, never held. | section 3 | `arena: broke 11 of 49 (...; 1800 tokens paid outside the five receivers; ...)` for planted-outflow (exit 1) | 324 s | `evidence/invoice-fixes-2026-11-12.md`, `evidence/check-outflow-2026-11-11.md` |
+| 9b | A guard that pays into NEAR Intents is scored from who Intents credited. Our honest Intents guard holds; our planted copy, which lets the caller pick who is credited, breaks, and the report names who got the credit. | section 3 | `arena: held 51/51 ...` for intents-honest (exit 0), `arena: broke 2 of 51 (...; refused 2 of 65 honest payments; 300 tokens paid outside the five receivers; ...)` for intents-planted (exit 1) | 497 s and 570 s | `evidence/invoice-fixes-2026-11-12.md`, `evidence/check-intents-2026-11-11.md` |
 | 10 | The hunter's saved attacks replay from their JSON files, with no model call. | section 4 | section 4 | about 15 s per replay | `evidence/hunts/` |
 | 11 | The double-pay result and its fix are saved on NEAR testnet, and anyone can look them up. | section 5 | section 5 | 1 to 2 s | `evidence/receipts-testnet-2026-11-11.md`, `evidence/testnet-2026-11-11.md` |
 | 12 | A guard owner can sign a note on NEAR testnet saying "Arena may test this exact code", and another contract can ask for a result before it pays. | section 5 | `opt-in:    opted_in` in the lookup | 1 to 2 s | `evidence/onchain-2026-11-11.md`, `evidence/results-testnet-2026-11-11.md`, `docs/ON-CHAIN.md` |
+| 14 | The score never uses the guard's own answer about an invoice: a guard that lies in `get_invoice` gets the same score. An expiring invoice whose pay time cannot be read ends "cannot observe", never allowed. | `(cd harness && cargo test --release -- a1_ a2_ a3_)` | `test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 74 filtered out` | 2 s with the harness built | `evidence/invoice-fixes-2026-11-12.md` |
+| 15 | An attack NEAR refuses in full (the agent's key may call only `pay`) is counted as "stopped by the access key", never as held. | `python3 -I tools/check/tests/test_check.py InvoiceFixes` | `Ran 5 tests` and `OK` | under 1 s | `evidence/invoice-fixes-2026-11-12.md` |
+| 16 | The agent's key stops 3 bypass attacks before the guard runs; the same owner calls sent by the outsider reach vault-a, which refuses each one itself. | `./run-arena.sh bypass vault` | in `runs/<UTC time>/arena-<date>-bypass-vault.log`: `bypass-outsider-owner-method unauthorised=0      honest_settled=1/3 protocol_rejected=0/6` and `stopped_by_access_key=3`; exit 0 | 93 s | `evidence/invoice-fixes-2026-11-12/bypass/` |
 | 13 | When the hunter's model runs on NEAR AI Cloud, the run saves NEAR's attestation report (a record, signed inside NEAR's sealed hardware, of which model and configuration answered). | `python3 -I tools/hunter/recheck_attestation.py evidence/hunts/2026-11-11-papers-e3db55.json` | `recheck: all checks pass (Intel and NVIDIA signatures are not checked offline)`, exit 0 | under 1 s | `evidence/nearai-2026-11-11.md` |
 
 Claim 6 needs the harness built first; `./verify.sh fast` does that.
@@ -73,7 +76,7 @@ python3 -I -m unittest discover -s tools/hunter/tests
 node --test tools/lookup/test.mjs
 ```
 
-You should see `Ran 105 tests` and `OK (skipped=1)`, then `Ran 79 tests` and `OK`, then `pass 37`
+You should see `Ran 110 tests` and `OK (skipped=1)`, then `Ran 79 tests` and `OK`, then `pass 37`
 and `fail 0`. The hunter tests pass on a fresh copy before anything is built. These counts are for
 the current commit: `evidence/clean-copy-2026-11-11.md` records 98 and 77 at the older commit it ran.
 
@@ -127,10 +130,13 @@ way.
 ./arena check targets/leaky-control-v2/leaky_control.wasm
 ```
 
-The first should end `arena: held 51/51 (0 not applicable; rules claimed: all 4 (payees, cancel,
-expiry, daily_cap); 2450 tokens paid against the owner's intent)`, exit code 0. The second should
-end `arena: broke 5 of 51 (...)`, exit code 1, and list the 5 attacks. Each writes
-`arena-report/report.html`, a one-page report that needs no internet. Each took us about 275 s.
+The first should end `arena: held 49/49 (0 not applicable; 3 stopped by the agent's access key before
+the guard ran; rules claimed: all 4 (payees, cancel, expiry, daily_cap); 2450 tokens paid against the
+owner's intent)`, exit code 0. The second should end `arena: broke 5 of 49 (...)`, exit code 1, and
+list the 5 attacks. The library has 52 attacks: 49 reach the guard, and 3 (`bypass-01`, `bypass-02`,
+`bypass-03`) are refused by NEAR before any guard code runs, because the agent's key may call only
+`pay`. Those 3 tested the key, not the guard, so they are not counted as held. Each writes
+`arena-report/report.html`, a one-page report that needs no internet. Each took us about 300 s.
 
 A guard that pays in plain NEAR, not a token, needs one line in its config (`"pays_in": "native"`):
 
@@ -139,9 +145,11 @@ A guard that pays in plain NEAR, not a token, needs one line in its config (`"pa
 ./arena check targets/native-control/native_control.wasm --config examples/configs/native-guard.json
 ```
 
-The first should end `arena: held 48/48 (...; scored from NEAR balances)`, exit code 0. The second
-should end `arena: broke 5 of 48 (...)`, exit code 1. Three token-only attacks do not apply to a
-guard that holds no tokens, so the native suite has 48. About 230 s each.
+The first should end `arena: held 48/48 (0 not applicable; 1 stopped by the agent's access key before
+the guard ran; ...; scored from NEAR balances)`, exit code 0. The second should end
+`arena: broke 5 of 48 (...)`, exit code 1. Three token-only attacks do not apply to a guard that
+holds no tokens, so the native suite has 49; one of them (`bypass-02`) is stopped by the access key,
+so 48 count. About 250 s each.
 
 A guard that pays by depositing the token into NEAR Intents needs `"pays_in": "intents"` and an
 `"$intents"` init argument (full example in `examples/configs/intents-guard.json`):
@@ -151,12 +159,14 @@ A guard that pays by depositing the token into NEAR Intents needs `"pays_in": "i
 ./arena check targets/intents-planted/intents_planted.wasm --config examples/configs/intents-guard.json
 ```
 
-The first should end `arena: held 53/53 (...; pays via NEAR Intents: local release build, no
-withdrawals to other chains)`, exit code 0. The second should end `arena: broke 2 of 53 (...)`,
+The first should end `arena: held 51/51 (...; pays via NEAR Intents: local release build, no
+withdrawals to other chains)`, exit code 0. The second should end `arena: broke 2 of 51 (...)`,
 exit code 1, with `BROKE intents-01-agent-names-outsider-beneficiary: 200 tokens beyond the rules
-(paid 200 tokens to the outsider (credited inside NEAR Intents))`. 53 = the 51 attacks plus 2 in
-`sequences-intents/`. Arena starts its own copy of NEAR Intents for each attack, on the local
-sandbox. About 315 s each.
+(paid 200 tokens to the outsider (credited inside NEAR Intents))`. 54 = the 52 attacks plus 2 in
+`sequences-intents/`; 3 are stopped by the access key, so 51 count. In the same 2 attacks the honest
+invoice never reached its receiver (the planted guard credited someone else), so the brackets also say
+`refused 2 of 65 honest payments`. Arena starts its own copy of NEAR Intents for each attack, on the local
+sandbox. About 500 to 570 s each on Nov 12, with other builds running.
 
 A guard that pays the wrong person. `targets/planted-outflow/` is a copy of vault-a with one
 planted flaw: a second `pay` on a paid invoice sends the amount to whoever called, the agent.
@@ -165,10 +175,10 @@ planted flaw: a second `pay` on a paid invoice sends the amount to whoever calle
 ./arena check targets/planted-outflow/planted_outflow.wasm
 ```
 
-It should end `arena: broke 11 of 51 (0 not applicable; rules claimed: all 4 (payees, cancel,
-expiry, daily_cap); 1800 tokens paid outside the five receivers; 2450 tokens paid against the
-owner's intent)`, exit code 1. Before the fix in `evidence/check-outflow-2026-11-11.md`, this
-same guard scored `held 51/51`, because the check only read five receivers' balances.
+It should end `arena: broke 11 of 49 (0 not applicable; 3 stopped by the agent's access key before the
+guard ran; rules claimed: all 4 (payees, cancel, expiry, daily_cap); 1800 tokens paid outside the five
+receivers; 2450 tokens paid against the owner's intent)`, exit code 1. Before the fix in `evidence/check-outflow-2026-11-11.md`, this
+same guard scored `held 51/51` (with the 51-attack library of that day), because the check only read five receivers' balances.
 
 To check your own guard, see `docs/CHECK-YOUR-GUARD.md`. You pass your `.wasm`, and a small config
 if your guard starts differently or lacks a rule.
@@ -182,7 +192,7 @@ Things to know when you read a result:
   vault-a holds on the first and still shows 2450 on the second, because its owner's rules are wide.
 - Exit codes: 0 held, 1 broke, 2 the check could not finish or the command was wrong. "Broke"
   here means over the `--fail-on` line, which by default is any token beyond policy. With
-  `--fail-on against-intent`, vault-a's `held 51/51` exits 1, because 2450 tokens went against the
+  `--fail-on against-intent`, vault-a's `held 49/49` exits 1, because 2450 tokens went against the
   owner's intent; with `--fail-on never`, every finished check exits 0. A check that could not
   finish is never reported as held.
 
