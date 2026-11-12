@@ -1,5 +1,5 @@
 ## seq.rs fn target_id<
-fn target_id<'a>(a: &'a Arena, c: &Value) -> Result<(&'a near_workspaces::AccountId, &'static str)> {
+pub(crate) fn target_id<'a>(a: &'a Arena, c: &Value) -> Result<(&'a near_workspaces::AccountId, &'static str)> {
 match c.get("target").and_then(|t| t.as_str()).unwrap_or("vault") {
 "vault" => Ok((a.vault.id(), "vault")),
 "token" => Ok((a.token.id(), "token")),
@@ -7,15 +7,19 @@ match c.get("target").and_then(|t| t.as_str()).unwrap_or("vault") {
 Some(c) => Ok((c.id(), "intents")),
 None => bail!("target \"intents\" needs a guard whose config says \"pays_in\": \"intents\" (no NEAR Intents contract was deployed)"),
 },
+"signer" => match &a.signer {
+Some(c) => Ok((c.id(), "signer")),
+None => bail!("target \"signer\" needs a guard whose config says \"signs_via\": \"chain-signatures\" (no signer stand-in was deployed)"),
+},
 t => bail!("unknown target {t:?}"),
 }
 }
 ## seq.rs fn method_of(
-fn method_of(c: &Value) -> Result<&str> {
+pub(crate) fn method_of(c: &Value) -> Result<&str> {
 Ok(c["method"].as_str().context("call/view needs a method")?)
 }
 ## seq.rs fn build_tx(
-fn build_tx(a: &Arena, i: usize, c: &Value) -> Result<(near_workspaces::operations::CallTransaction, &'static str, Value)> {
+pub(crate) fn build_tx(a: &Arena, i: usize, c: &Value) -> Result<(near_workspaces::operations::CallTransaction, &'static str, Value)> {
 let actor = a.actor(c["actor"].as_str().context("call needs an actor")?)?;
 let (tgt, tgt_name) = target_id(a, c)?;
 let args = args_of(a, c, i);
@@ -51,12 +55,12 @@ p => bail!("add_key permission must be full_access | function_call_token, got {p
 };
 let pk = SecretKey::from_random(KeyType::ED25519).public_key();
 let res = actor.batch(actor.id()).add_key(pk, ak).transact().await;
-let (outcome, failure) = match res {
+let (outcome, failure, own_ok) = match res {
 Ok(r) => {
 crate::conserve::record(a, who, "self", 0, &r);
-(if r.is_success() { OUTCOME_OK } else { OUTCOME_CONTRACT_FAILURE }, failure_text(&r))
+(if r.is_success() { OUTCOME_OK } else { OUTCOME_CONTRACT_FAILURE }, failure_text(&r), r.is_success())
 }
-Err(e) if is_protocol_rejection(&e) => (OUTCOME_PROTOCOL_REJECTED, format!("{e:?}")),
+Err(e) if is_protocol_rejection(&e) => (OUTCOME_PROTOCOL_REJECTED, format!("{e:?}"), false),
 Err(e) => bail!("step {i}: harness/RPC error (not a protocol rejection): {e:?}"),
 };
 let args = json!({"permission": perm});
@@ -75,6 +79,9 @@ outcome,
 failure,
 logs: vec![format!("access keys after: {} ({full} full-access)", keys.len())],
 view_json: None,
+receipts: None,
+own_ok,
+ran_at_ns: None,
 })
 }
 ## seq.rs async fn do_view(
@@ -86,6 +93,8 @@ let (vm, sent) = adapt(a, i, tgt_name, m, &args);
 let res = if tgt == a.vault.id() {
 a.vault.view(&vm).args_json(sent).await
 } else if let Some(c) = a.intents.as_ref().filter(|_| tgt_name == "intents") {
+c.view(m).args_json(args.clone()).await
+} else if let Some(c) = a.signer.as_ref().filter(|_| tgt_name == "signer") {
 c.view(m).args_json(args.clone()).await
 } else {
 a.token.view(m).args_json(args.clone()).await
@@ -106,6 +115,9 @@ outcome: OUTCOME_VIEW_FAILED,
 failure,
 logs: vec![],
 view_json: None,
+receipts: None,
+own_ok: false,
+ran_at_ns: None,
 });
 }
 };
@@ -121,6 +133,9 @@ outcome: OUTCOME_OK,
 failure: String::new(),
 logs: vec![],
 view_json: Some(j),
+receipts: None,
+own_ok: false,
+ran_at_ns: None,
 })
 }
 ## seq.rs async fn do_race(
@@ -156,6 +171,9 @@ outcome: OUTCOME_NOT_INCLUDED,
 failure,
 logs: vec![],
 view_json: None,
+receipts: None,
+own_ok: false,
+ran_at_ns: None,
 });
 }
 }
@@ -179,6 +197,9 @@ outcome: OUTCOME_NOT_INCLUDED,
 failure,
 logs: vec![],
 view_json: None,
+receipts: None,
+own_ok: false,
+ran_at_ns: None,
 });
 }
 }
@@ -188,12 +209,19 @@ Ok(out)
 ## seq.rs pub async fn execute(
 pub async fn execute(a: &Arena, steps: &[Value]) -> Result<Vec<StepOutcome>> {
 let mut out = Vec::new();
+let mut before = crate::scorer::receiver_amounts(a).await?;
 for (i, st) in steps.iter().enumerate() {
+let first = out.len();
+let label = if st.get("race").is_some() { format!("step {i} (race)") } else { format!("step {i}") };
 if let Some(calls) = st.get("race").and_then(|r| r.as_array()) {
 if calls.is_empty() {
 bail!("race with no calls");
 }
+if st.get("offsets").is_some() || st.get("hold").is_some() {
+out.extend(crate::race::run(a, i, st).await?);
+} else {
 out.extend(do_race(a, i, calls).await?);
+}
 } else if st.get("call").is_some() {
 out.push(do_call(a, i, &st["call"], "call").await?);
 } else if st.get("add_key").is_some() {
@@ -210,6 +238,10 @@ println!("  step {i} [wait] {s}s (real time, so block timestamps move)");
 } else {
 bail!("unknown step: {st}");
 }
+let after = crate::scorer::receiver_amounts(a).await?;
+let calls = out[first..].iter().filter(|o| o.kind != "view").map(win_call).collect();
+record_window(a, label, calls, &before, &after);
+before = after;
 }
 Ok(out)
 }
@@ -222,4 +254,65 @@ Ok(&self.outsider)
 } else {
 bail!("sequence actor must be \"agent\" or \"outsider\", got {name:?} (owner is not available to testers)")
 }
+}
+## race.rs pub async fn run(
+pub async fn run(a: &Arena, i: usize, step: &Value) -> Result<Vec<StepOutcome>> {
+let calls = step["race"].as_array().context("race step needs calls")?;
+let offs = offsets_of(step)?.context("staggered race needs offsets")?;
+let held_mode = step.get("hold").is_some();
+if held_mode && !slow() {
+bail!("step {i}: \"hold\" needs the slow token (run with --token slow); refusing (never a silent fallback to timed mode)");
+}
+let legs: Vec<&Value> = calls
+.iter()
+.map(|w| match w.get("call") {
+Some(inner) => {
+println!("  FORMAT FIX step {i}: race element wrapped in a \"call\" object; unwrapped");
+inner
+}
+None => w,
+})
+.collect();
+let mut built = Vec::new();
+for c in &legs {
+let (tx, tgt_name, args) = build_tx(a, i, c)?;
+let (tgt, _) = target_id(a, c)?;
+built.push((tx, tgt, tgt_name, args));
+}
+if held_mode {
+let release = step["hold"].as_str() != Some("no-release");
+return run_held(a, i, &legs, built, &offs, release).await;
+}
+let tick = wait_for_tick(a).await?;
+println!("  step {i} [race-timed] offsets {offs:?}; block {tick} just made, sending leg 1 now");
+let mut sent = Vec::new(); // (leg, c, tgt, tgt_name, args, Option<status>, facts)
+let mut early: Vec<(usize, StepOutcome)> = Vec::new();
+for (k, ((tx, tgt, tgt_name, args), c)) in built.into_iter().zip(legs.iter()).enumerate() {
+let target_head = tick + offs[k];
+let head_before = wait_until_head(a, target_head).await?;
+let t0 = Instant::now();
+let res = tx.transact_async().await;
+let send_ms = t0.elapsed().as_millis() as u64;
+let head_after = head(a).await?;
+let facts = json!({
+"leg": k + 1, "requested_offset": offs[k], "mode": "timed",
+"tick_block": tick, "wanted_head": target_head,
+"sent_when_head_was": head_before, "head_after_send": head_after, "send_ms": send_ms,
+"fast_forward_used": false,
+});
+match res {
+Ok(status) => sent.push((k, *c, tgt, tgt_name, args, status, facts)),
+Err(e) if is_protocol_rejection(&e) => {
+let mut o = finish(a, i, "race-call", c, tgt, tgt_name, args, Err(e)).await?;
+o.receipts = Some(json!({"race": facts}));
+early.push((k, o));
+}
+Err(e) => {
+let mut o = not_included(i, c, &short(tgt), tgt_name, args, format!("async broadcast failed, no protocol reason given: {e:?}"))?;
+o.receipts = Some(json!({"race": facts}));
+early.push((k, o));
+}
+}
+}
+finish_legs(a, i, early, sent, tick, RACE_INCLUSION_TIMEOUT_S).await
 }

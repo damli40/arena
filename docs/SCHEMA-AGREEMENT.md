@@ -20,16 +20,18 @@ so one unreadable file stops the whole run, not only that attack.
 python3 -I tools/agreement/compare.py
 ```
 
-It writes 3,169 attack files and gives each one to both sides, with no sandbox:
+It writes 3,478 attack files and gives each one to both sides, with no sandbox:
 
-- 169 hand-picked cases: valid files at every limit (12 steps, races of 2 and 4, waits of 1
+- 178 hand-picked cases: valid files at every limit (12 steps, races of 2 and 4, waits of 1
   and 200 blocks, 60 seconds of waiting in total, gas 1 and 300, deposit 0 and 10^18, an
   argument string of 128 characters, exactly 1,024 bytes of arguments), and files just past each
   limit or broken on purpose (unknown step kinds, a step with two keys, a race holding a view,
   a race inside a race, an empty race, waits written as text, decimals or negatives, numbers too
   big for 64 bits, the owner as actor, unknown targets, extra keys, duplicate keys, `NaN`, `-0`,
   lone surrogate escapes, bad UTF-8, a 5,000-digit number, nesting 2,000 deep, U+2028 and
-  U+0085 inside an argument, `parents` holding objects or lists, a date in Arabic-Indic digits);
+  U+0085 inside an argument, `parents` holding objects or lists, a date in Arabic-Indic digits,
+  the `signer` target in and out of the Chain Signatures suite, and a race step with the
+  stagger keys `offsets` and `hold`);
 - 3,000 random files from a fixed seed (`--seed 20261112`): valid files, and valid files
   changed one to three times at random (a value swapped for another type, a key dropped or
   added, a step doubled or wrapped in a race).
@@ -57,7 +59,7 @@ total).
 Our run on Nov 12, after the fixes below:
 
 ```
-agreement: 3169 files (seed 20261112), 0 disagreements; both accept 1359 and read them the same, both refuse 1457, engine-only accepts 353 (the gatekeeper is meant to be stricter)
+agreement: 3478 files (seed 20261112), 0 disagreements; both accept 1492 and read them the same, both refuse 1600, engine-only accepts 386 (the gatekeeper is meant to be stricter)
 ```
 
 Exit code 0, about 10 seconds once the harness is built (`--harness <path>` skips the cargo
@@ -80,7 +82,7 @@ Six Rust unit tests in `seqcheck.rs` now run with `cargo test` to narrow that ga
 
 1. the schema's step kinds equal the engine's six;
 2. `load_sequence` knows the same six;
-3. `execute` tests the step keys in the order the copy uses;
+3. `execute` tests the step keys in the order the copy uses, and reads only `offsets` and `hold` on top of them (the staggered race);
 4. the copy reads the six kinds and refuses an empty race, the owner, and `intents` without
    an Intents guard;
 5. a regression test of the copy: a table of what the copy decides at the boundaries (missing, non-string and unknown
@@ -89,13 +91,13 @@ Six Rust unit tests in `seqcheck.rs` now run with `cargo test` to narrow that ga
    against breaking the copy, not against the engine drifting away from it;
 6. a stopgap snapshot, the only drift protection: the full text of every engine function the
    copy mirrors (`target_id`, `method_of`, `build_tx`, `do_call`, `do_add_key`, `do_view`,
-   `do_race`, `execute`, `Arena::actor`), with blank and comment-only lines dropped, must
+   `do_race`, `execute`, `Arena::actor`, and `race::run` for a staggered race), with blank and comment-only lines dropped, must
    equal `harness/src/seqcheck.snapshot`. Any edit to a code line of those functions fails
    it and prints the line that changed.
 
 Edits A to F each make test 6 fail (we applied each alone, ran `cargo test`, then reverted
 `seq.rs`). Tests reduce the risk of drift; they cannot remove it. The snapshot only sees those
-nine functions: a change inside a helper they call (`args_of`, `adapt`, `translate_args`) or a new
+ten functions: a change inside a helper they call (`args_of`, `adapt`, `translate_args`) or a new
 engine path can still slip past. (`load_sequence` is not copied: `check-seq` calls the real
 one.) It also fails on harmless edits to those functions, by design. The real fix is
 "Next step" below: one shared function that both `execute` and `check-seq` call.
@@ -108,12 +110,18 @@ one.) It also fails on harmless edits to those functions, by design. The real fi
   not tested here; the sandbox runs cover that.
 - `check-seq` is a copy of the engine's decisions, not the engine. See "The copy can drift"
   above.
-- Only the main library and the intents suite are modelled. After the open branches merge,
-  the chain-signatures `signer` target (in `--chainsig-suite`), and any new call field that
-  only `build_tx` reads, would pass this test silently: `check-seq` does not know them, and
-  the comparison does not generate them. A `check-seq --chainsig` mode, and cases for each new
-  field, are needed when that branch lands. Test 6 will fail when `build_tx` or `target_id`
-  change, which is the reminder.
+- Three suites are modelled: the main library, the intents suite (`check-seq --intents`) and,
+  since the rebase onto main on Nov 12, the Chain Signatures suite (`check-seq --chainsig`,
+  where the `signer` target exists; 309 of the 3,478 files: 300 random from seed + 1, so the
+  main and intents files are the same as before, and 9 hand cases). A guard that both pays
+  into Intents and signs via Chain Signatures is not modelled (no suite allows both targets).
+  Any new call field that only `build_tx` reads would still pass silently; test 6 fails when
+  `build_tx` or `target_id` change, which is the reminder.
+- A race step with `offsets` or `hold` (the staggered race, `harness/src/race.rs`) is refused
+  by the gatekeeper (a step has exactly one key) and run by the engine, so it is counted as
+  engine-only, never failed. `check-seq` refuses `hold` unless given `--token slow`, as the
+  run does. The files in `sequences-race/` are not gatekeeper-valid for that reason; they are
+  run by `tools/race/run.py`, never through the hunter or the admission gate.
 - `ARXIV_RE` in `validate.py` (and the schema's matching pattern) still uses `\d`, which
   accepts digits from other scripts. It only checks a recorded paper id, not a step; left for
   review because changing it means changing the schema too.

@@ -78,14 +78,15 @@ PAY = call(args={"id": "inv-1"})
 
 
 def hand_cases():
-    """(label, doc or text, intents_suite). Each is one thing at or just past a limit."""
+    """(label, doc or text, suite). suite: "main", "intents" or "chainsig" (the folder the file
+    would live in, which decides its allowed targets). Each is one thing at or just past a limit."""
     C = []
 
-    def add(label, doc, intents=False, raw=None):
-        C.append((label, doc_text(doc, raw), intents))
+    def add(label, doc, intents=False, raw=None, suite=None):
+        C.append((label, doc_text(doc, raw), suite or ("intents" if intents else "main")))
 
-    def steps_case(label, steps, intents=False, raw=None):
-        add(label, attack(steps), intents, raw)
+    def steps_case(label, steps, intents=False, raw=None, suite=None):
+        add(label, attack(steps), intents, raw, suite)
 
     # --- valid, at every limit
     steps_case("ok-min", [PAY])
@@ -161,6 +162,18 @@ def hand_cases():
     for t in ("owner", "self", "Vault", None, 5, ""):
         steps_case(f"bad-target-{json.dumps(t)}", [call(target=t)])
     steps_case("bad-target-intents-main-suite", [call(target="intents", method="ft_withdraw")])
+    # Chain Signatures suite (merged into main Nov 12): "signer" only there, "intents" never there.
+    steps_case("ok-signer-target", [call(target="signer", method="sign"), {"view": {"target": "signer", "method": "x"}}], suite="chainsig")
+    steps_case("ok-chainsig-plain", [PAY, {"race": [PAY["call"]] * 2}], suite="chainsig")
+    steps_case("bad-target-signer-main-suite", [call(target="signer", method="sign")])
+    steps_case("bad-view-target-signer-main-suite", [PAY, {"view": {"target": "signer", "method": "x"}}])
+    steps_case("bad-target-signer-intents-suite", [call(target="signer", method="sign")], intents=True)
+    steps_case("bad-target-intents-chainsig-suite", [call(target="intents", method="ft_withdraw")], suite="chainsig")
+    # Staggered race keys (race-ordering): the gatekeeper has no such keys, so it refuses them;
+    # the engine runs a timed one and refuses a held one without the slow token.
+    steps_case("race-offsets-timed", [{"race": [PAY["call"]] * 2, "offsets": [0, 1]}])
+    steps_case("race-offsets-held", [{"race": [PAY["call"]] * 2, "offsets": [0, 4], "hold": "until-all-checks"}])
+    steps_case("race-offsets-bad-shape", [{"race": [PAY["call"]] * 2, "offsets": [1, 0]}])
     steps_case("bad-view-target-intents-main-suite", [PAY, {"view": {"target": "intents", "method": "x"}}])
     for m in ("", "Pay", "m" * 65, None, 5, "pay;rm", "pay.x"):
         steps_case(f"bad-method-{json.dumps(m)[:20]}", [call(method=m)])
@@ -229,10 +242,10 @@ def hand_cases():
     add("bad-added-arabic-digits", attack([PAY], added="\u0662\u0660\u0662\u0666-11-12"))
 
     # --- raw text the parsers might read differently
-    C.append(("bad-bom", "﻿" + doc_text(attack([PAY])), False))
-    C.append(("bad-trailing-data", doc_text(attack([PAY])) + "\n{}", False))
-    C.append(("bad-not-json", "{'name': 'x'}", False))
-    C.append(("bad-invalid-utf8", doc_text(attack([PAY], title="@B@")).replace('"@B@"', '"t\udcff"'), False))
+    C.append(("bad-bom", "﻿" + doc_text(attack([PAY])), "main"))
+    C.append(("bad-trailing-data", doc_text(attack([PAY])) + "\n{}", "main"))
+    C.append(("bad-not-json", "{'name': 'x'}", "main"))
+    C.append(("bad-invalid-utf8", doc_text(attack([PAY], title="@B@")).replace('"@B@"', '"t\udcff"'), "main"))
     # Duplicate keys: both parsers must keep the same one, or the gatekeeper checks one step
     # and the engine runs another.
     dup_step = '{"call": {"actor": "agent", "method": "steal", "target": "token"}, "call": {"actor": "agent", "method": "pay", "args": {"id": "inv-1"}}}'
@@ -346,7 +359,18 @@ def random_cases(seed, n):
             for _ in range(r.randint(1, 3)):
                 steps = mutate(r, steps)
             tag = "rand-mut"
-        C.append((f"{tag}-{i:05d}", doc_text(attack(steps)), intents))
+        C.append((f"{tag}-{i:05d}", doc_text(attack(steps)), "intents" if intents else "main"))
+    # Chain Signatures suite: its own generator (seed + 1), so adding it left the main and
+    # intents files above exactly as they were.
+    r = random.Random(seed + 1)
+    for i in range(n // 10):
+        steps = random_valid_steps(r, V.CHAINSIG_TARGETS)
+        tag = "rand-cs-ok"
+        if r.random() < 0.6:
+            for _ in range(r.randint(1, 3)):
+                steps = mutate(r, steps)
+            tag = "rand-cs-mut"
+        C.append((f"{tag}-{i:05d}", doc_text(attack(steps)), "chainsig"))
     return C
 
 
@@ -400,16 +424,19 @@ def first_difference(a, b, path="steps"):
     return f"{path}: gatekeeper read {json.dumps(a)[:80]}, engine would use {json.dumps(b)[:80]}"
 
 
-def gatekeeper(path, intents):
+def gatekeeper(path, suite):
     try:
-        err = V.validate_path(path, intents_suite=intents)
+        err = V.validate_path(path, intents_suite=suite == "intents", chainsig_suite=suite == "chainsig")
     except BaseException as e:  # noqa: BLE001 - a crash is itself a finding
         return "crash", f"{type(e).__name__}: {str(e)[:120]}"
     return ("reject", err.split(": ", 1)[-1]) if err else ("accept", None)
 
 
-def run_engine(harness, folder, intents):
-    cmd = harness + ["check-seq"] + (["--intents"] if intents else []) + [str(folder)]
+SUITE_FLAGS = {"main": [], "intents": ["--intents"], "chainsig": ["--chainsig"]}
+
+
+def run_engine(harness, folder, suite):
+    cmd = harness + ["check-seq"] + SUITE_FLAGS[suite] + [str(folder)]
     p = subprocess.run(cmd, capture_output=True, text=True)
     if p.returncode != 0:
         sys.exit(f"engine check-seq failed (exit {p.returncode}): {p.stderr[-2000:]}")
@@ -433,25 +460,25 @@ def main(argv):
                                              "--manifest-path", str(ROOT / "harness" / "Cargo.toml"), "--"]
     cases = hand_cases() + random_cases(a.seed, a.random)
     work = pathlib.Path(a.keep) if a.keep else pathlib.Path(tempfile.mkdtemp(prefix="arena-agree-"))
-    dirs = {False: work / "main", True: work / "intents"}
+    dirs = {s: work / s for s in SUITE_FLAGS}
     for d in dirs.values():
         shutil.rmtree(d, ignore_errors=True)
         d.mkdir(parents=True)
     names = {}
-    for n, (label, text, intents) in enumerate(cases):
+    for n, (label, text, suite) in enumerate(cases):
         fn = f"{n:05d}-" + re.sub(r"[^A-Za-z0-9._^-]", "_", label)[:60] + ".json"
-        (dirs[intents] / fn).write_bytes(text.encode("utf-8", "surrogatepass"))
-        names[(intents, fn)] = label
+        (dirs[suite] / fn).write_bytes(text.encode("utf-8", "surrogatepass"))
+        names[(suite, fn)] = label
     engine = {}
-    for intents, d in dirs.items():
-        for fn, j in run_engine(harness, d, intents).items():
-            engine[(intents, fn)] = j
+    for suite, d in dirs.items():
+        for fn, j in run_engine(harness, d, suite).items():
+            engine[(suite, fn)] = j
 
     fails, engine_only, both_ok, both_no = [], [], 0, 0
-    for (intents, fn), label in sorted(names.items(), key=lambda x: x[1]):
-        path = dirs[intents] / fn
-        g, why = gatekeeper(path, intents)
-        e = engine.get((intents, fn))
+    for (suite, fn), label in sorted(names.items(), key=lambda x: x[1]):
+        path = dirs[suite] / fn
+        g, why = gatekeeper(path, suite)
+        e = engine.get((suite, fn))
         if e is None:
             fails.append((label, "engine printed no line for this file"))
             continue
