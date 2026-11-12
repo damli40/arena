@@ -32,8 +32,8 @@ harness can show the race really happened (ordering below). Classes:
 
 Race ordering ("overlap"). Read from steps[].receipts (per-receipt block heights, added by the
 harness on the universal-guards branch). For one race step, each leg's GUARD CHECK is its first
-receipt (run by the guard account) and its CALLBACK is the last guard receipt after some other
-account's receipt (the token transfer). Proven only if, for every leg X that reached a callback,
+receipt (run by the guard account) and its CALLBACK is the earliest guard receipt after the leg's
+first receipt run by another account (the token transfer). Proven only if, for every leg X that reached a callback,
 every other leg Y whose check ran in the same block or later ran its check in a block STRICTLY
 BEFORE X's callback. A check in the SAME block as that callback is a tie: "unproven", never
 counted, for a hold and a break alike. A missing trace, a missing height, a leg not included, or
@@ -194,12 +194,16 @@ def race_ordering(result, idxs):
         guard, check = rs[0].get("executor"), rs[0].get("block_height")
         if not isinstance(check, int):
             return {"status": "unproven", "why": f"race leg {i}: guard check block height unknown", "legs": legs}
+        # callback = the EARLIEST guard receipt after the leg's first other-account receipt (the token
+        # transfer): that is where the guard writes the payment's result. A later guard receipt (after a
+        # second token receipt, say) is not the callback, and picking it would stretch the window.
         cb, seen_other = None, False
         for r in rs[1:]:
             if r.get("executor") != guard:
                 seen_other = True
             elif seen_other:
                 cb = r
+                break
         if cb is not None and not isinstance(cb.get("block_height"), int):
             return {"status": "unproven", "why": f"race leg {i}: callback block height unknown", "legs": legs}
         legs.append({"step": i, "guard": guard, "check_height": check, "check_ok": bool(rs[0].get("ok")),

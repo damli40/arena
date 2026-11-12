@@ -405,6 +405,29 @@ class RaceOrdering(unittest.TestCase):
         r = with_receipts(self.good, trace(self.g, 105, 110), trace(self.g, 100, None, ok=False))
         self.assertEqual(judge(self.doc, "vault-a", r)["ordering"]["status"], "not-overlapping")
 
+    def _legs(self, *receipt_lists):
+        # receipt_lists: per leg, [(executor, block_height, ok), ...]; receipt index order = list order
+        return {"steps": [{"kind": "race-call", "outcome": "ok", "receipts": {"tx_hash": "x", "receipts": [
+            {"index": k, "executor": e, "block_height": h, "ok": ok} for k, (e, h, ok) in enumerate(rl)]}}
+            for rl in receipt_lists]}
+
+    def test_T1_callback_is_earliest_guard_receipt_after_token(self):
+        # race-ordering reviewer T1: leg A check 10, token 11, callback 12, token 13, guard 14; leg B
+        # checked at 13, after A's result was written at 12: sequential. Picking the LAST guard
+        # receipt (14) as the callback called this a proven overlap.
+        g, t = self.g, "token.test.near"
+        a = [(g, 10, True), (t, 11, True), (g, 12, True), (t, 13, True), (g, 14, True)]
+        refused = self._legs(a, [(g, 13, False)])
+        self.assertEqual(A.race_ordering(refused, [0, 1])["status"], "not-overlapping")
+        paying = self._legs(a, [(g, 13, True), (t, 14, True), (g, 15, True)])
+        self.assertEqual(A.race_ordering(paying, [0, 1])["status"], "not-overlapping")
+
+    def test_T3_refused_before_any_paying_check_is_not_overlapping(self):
+        # race-ordering reviewer T3: the refused leg's check (9) ran before the paying leg's check (10)
+        g, t = self.g, "token.test.near"
+        r = self._legs([(g, 10, True), (t, 11, True), (g, 12, True)], [(g, 9, False)])
+        self.assertEqual(A.race_ordering(r, [0, 1])["status"], "not-overlapping")
+
     def test_unknown_height_unproven(self):
         t = trace(self.g, 111, 113)
         t["receipts"][2]["block_height"] = None
