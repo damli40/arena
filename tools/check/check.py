@@ -245,7 +245,7 @@ def run_effects(guard, out, timeout=runner.ATTEMPT_TIMEOUT_S):
     path, log = out / "effects.json", out / "effects.log"
     cmd = [str(runner.HARNESS), "effects", *guard["harness_flags"], "--out", str(path)]
     with open(log, "w") as f:
-        p = subprocess.Popen(cmd, cwd=ROOT, stdout=f, stderr=subprocess.STDOUT, start_new_session=True)
+        p = subprocess.Popen(cmd, cwd=ROOT, env=runner.child_env(), stdout=f, stderr=subprocess.STDOUT, start_new_session=True)
         try:
             rc = p.wait(timeout=timeout)
         except subprocess.TimeoutExpired:

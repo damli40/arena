@@ -33,6 +33,7 @@ import hashlib, json, os, secrets, subprocess, sys, time, urllib.request, urllib
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools/hunter"))
 import muse, nearai  # noqa: E402  shared provider settings, key loading, attestation and signature checks
+from runner import child_env  # noqa: E402  the harness gets an allow-listed environment, never the model key
 
 HARNESS = ROOT / "harness/target/release/arena-harness"
 
@@ -196,7 +197,7 @@ def run_chain(pays, workdir, cache):
     log = workdir / f"seq-{n:02d}.log"
     with open(log, "w") as fh:
         subprocess.run([str(HARNESS), "attempt", str(seq), "--target", "vault", "--out", str(out),
-                        "--meta", f"tester=injection model={MODEL}"], cwd=ROOT, stdout=fh, stderr=subprocess.STDOUT, check=False)
+                        "--meta", f"tester=injection model={MODEL}"], cwd=ROOT, env=child_env(), stdout=fh, stderr=subprocess.STDOUT, check=False)
     res = json.loads(out.read_text())
     cache[key] = (res, seq.name)
     return cache[key]

@@ -43,7 +43,7 @@ def run_chain(pays, workdir, cache, policy_file):
     with open(log, "w") as fh:
         rc = subprocess.run([str(HARNESS), "attempt", str(seq), "--target", "vault", "--out", str(out),
                              "--owner-policy", str(policy_file), "--meta", "tester=injection agent=compromised policy=narrow"],
-                            cwd=ROOT, stdout=fh, stderr=subprocess.STDOUT, check=False).returncode
+                            cwd=ROOT, env=base.child_env(), stdout=fh, stderr=subprocess.STDOUT, check=False).returncode
     if rc != 0 or not out.exists():
         sys.exit(f"harness failed (exit {rc}); see {log}")
     res = json.loads(out.read_text())

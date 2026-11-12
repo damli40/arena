@@ -1125,7 +1125,7 @@ class OutflowStoredFixtures(unittest.TestCase):
 import json, os, pathlib, sys
 a = sys.argv[1:]
 out = pathlib.Path(a[a.index("--out") + 1])
-fix = pathlib.Path(os.environ["ARENA_TEST_FIXTURES"])
+fix = pathlib.Path(__file__).resolve().parent / "fx"  # next to this stand-in; the runner passes it no ARENA_TEST_FIXTURES (allow-listed env)
 if a[0] == "effects":
     roles = ["add_payee", "remove_payee", "cancel_invoice", "set_daily_cap", "set_agent"]
     out.write_text(json.dumps({r: {"result": "confirmed", "detail": "stand-in"} for r in roles}))

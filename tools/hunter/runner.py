@@ -4,6 +4,10 @@ One attempt = `arena-harness attempt <seq.json> <guard flags> --out <result.json
 sandbox, the harness's one setup function, the attack's steps, the existing scorer. Each attempt
 runs in its own process group with a hard timeout; on timeout the whole group (harness + its
 neard sandbox) is killed and the cell is recorded as "error: timeout", never as "held".
+
+The harness and its sandbox get an allow-listed environment (child_env), never this process's own:
+the hunt holds model and news keys (NEARAI_API_KEY, MUSE_API_KEY, ELFA_API_KEY) and the attack steps
+come from untrusted text, so nothing those steps drive should be able to read a key.
 """
 import concurrent.futures as cf
 import json, os, pathlib, signal, subprocess, time
@@ -11,6 +15,28 @@ import json, os, pathlib, signal, subprocess, time
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 HARNESS = ROOT / "harness" / "target" / "release" / "arena-harness"
 ATTEMPT_TIMEOUT_S = 240
+
+# The only variables a harness child (and the neard sandbox it starts) may see. Each one is read by
+# the harness or by the near-workspaces 0.24 / near-sandbox 0.4 crates it uses (versions pinned in
+# harness/Cargo.lock); anything else, keys included, is dropped.
+#   PATH, HOME               ordinary process basics (the harness and neard are started by full path)
+#   TMPDIR                   near-sandbox makes each sandbox's home dir and its port lock files there
+#   RUST_LOG, RUST_BACKTRACE logging and crash traces, only if the operator set them
+#   ARENA_RESULTS_DIR        harness/src/main.rs: where `run` mode writes per-attempt results
+#   NEAR_SANDBOX_BIN_PATH, SANDBOX_ARTIFACT_URL       which neard binary to use / where to fetch it
+#   NEAR_SANDBOX_LOG, NEAR_SANDBOX_LOG_STYLE, NEAR_ENABLE_SANDBOX_LOG   sandbox log settings
+#   NEAR_RPC_TIMEOUT_SECS, NEAR_SANDBOX_MAX_PAYLOAD_SIZE, NEAR_SANDBOX_MAX_FILES,
+#   NEAR_SANDBOX_PORT_TRANSFER_RETRY                  sandbox tuning knobs
+# Exact names, no prefix match: a prefix like NEAR_ would let a future NEAR_API_KEY through.
+CHILD_ENV_ALLOW = ("PATH", "HOME", "TMPDIR", "RUST_LOG", "RUST_BACKTRACE", "ARENA_RESULTS_DIR",
+                   "NEAR_SANDBOX_BIN_PATH", "SANDBOX_ARTIFACT_URL", "NEAR_SANDBOX_LOG", "NEAR_SANDBOX_LOG_STYLE",
+                   "NEAR_ENABLE_SANDBOX_LOG", "NEAR_RPC_TIMEOUT_SECS", "NEAR_SANDBOX_MAX_PAYLOAD_SIZE",
+                   "NEAR_SANDBOX_MAX_FILES", "NEAR_SANDBOX_PORT_TRANSFER_RETRY")
+
+
+def child_env():
+    """The environment for a harness child: only CHILD_ENV_ALLOW, copied from this process."""
+    return {k: os.environ[k] for k in CHILD_ENV_ALLOW if k in os.environ}
 
 
 def _kill_group(p):
@@ -27,7 +53,7 @@ def run_one(seq_path, guard, out_dir, meta_line, timeout=ATTEMPT_TIMEOUT_S):
     cmd = [str(HARNESS), "attempt", str(seq_path), *guard["harness_flags"], "--out", str(rjson), "--meta", meta_line]
     t0 = time.time()
     with open(rlog, "w") as logf:
-        p = subprocess.Popen(cmd, cwd=ROOT, stdout=logf, stderr=subprocess.STDOUT, start_new_session=True)
+        p = subprocess.Popen(cmd, cwd=ROOT, env=child_env(), stdout=logf, stderr=subprocess.STDOUT, start_new_session=True)
         try:
             rc = p.wait(timeout=timeout)
         except subprocess.TimeoutExpired:
