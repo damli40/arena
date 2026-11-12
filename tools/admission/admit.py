@@ -214,12 +214,17 @@ def race_ordering(result, idxs):
     if not with_cb:
         return {"status": "unproven", "why": "no race leg reached a callback: nothing for the other calls to overlap", "legs": legs}
     first_pay = min(l["check_height"] for l in with_cb)
-    for y in legs:
-        if y["callback_height"] is None and y["check_height"] < first_pay:
-            return {"status": "not-overlapping", "legs": legs,
-                    "why": f"leg {y['step']} was refused in block {y['check_height']}, before any paying leg's check (block {first_pay}): it did not overlap a payment in flight"}
+    # A leg refused before any paying leg's check overlapped nothing. Drop it and judge the rest: if the
+    # whole race were called sequential because of it, a stray early refusal would hide a real overlap
+    # (and a break) between the other legs. Fewer than 2 legs left = no race at all.
+    early = [y for y in legs if y["callback_height"] is None and y["check_height"] < first_pay]
+    judged = [y for y in legs if y not in early]
+    if early and len(judged) < 2:
+        y = early[0]
+        return {"status": "not-overlapping", "legs": legs,
+                "why": f"leg {y['step']} was refused in block {y['check_height']}, before any paying leg's check (block {first_pay}): it did not overlap a payment in flight"}
     for x in with_cb:
-        for y in legs:
+        for y in judged:
             if y is x or y["check_height"] < x["check_height"]:
                 continue
             if y["check_height"] == x["callback_height"]:
@@ -231,8 +236,9 @@ def race_ordering(result, idxs):
             if y["check_height"] > x["callback_height"]:
                 return {"status": "not-overlapping", "legs": legs,
                         "why": f"leg {y['step']} checked in block {y['check_height']}, after leg {x['step']}'s callback in block {x['callback_height']}: calls in a row, not a race"}
+    dropped = f" (leg(s) {', '.join(str(y['step']) for y in early)} refused before any payment started: not counted)" if early else ""
     return {"status": "proven", "legs": legs,
-            "why": "every later call's guard check ran in a block strictly before every earlier call's callback"}
+            "why": "every later call's guard check ran in a block strictly before every earlier call's callback" + dropped}
 
 
 def judge_run(result, entry, spec, attack_steps, ref_sha256, target_label=None):
