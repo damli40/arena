@@ -24,6 +24,20 @@ The Rust harness (`harness/src/seq.rs`) then carries out each step on a throwawa
 
 A real example from `sequences-paper/`: the agent sends four `pay` calls in one race, then waits 3 blocks. That list of steps is the whole attack.
 
+### Why is the step menu fixed, and how does it grow?
+
+The menu is the wall between what the hunter reads and what the machine runs. The hunter reads papers and news that anyone can write. If the model could write code, a crafted page could get code run on our machine. With a fixed menu, the worst a fooled model can produce is a bad attack made of the six steps, and the fixed harness runs only those.
+
+The same rules live in three places:
+
+- `schema/attack.schema.json`: the written rules, for outside readers;
+- `tools/hunter/validate.py`: the gatekeeper, which rejects anything off the menu or over a limit;
+- `harness/src/seq.rs`: the engine. It knows only the six actions and stops with "unknown step" on anything else, so a gatekeeper bug still can't make it do something new.
+
+**Is it formally verified? No.** `python3 -I tools/hunter/validate.py --self-test` checks that the gatekeeper and the written schema agree on every list and limit. Nothing yet checks that the engine agrees with them, and nothing proves the six actions are harmless; that rests on reading `seq.rs`. A test that feeds random attack files to both the gatekeeper and the engine, and fails if they disagree, is planned.
+
+**How it grows.** The hunter can't add a step; only a person can. A new action means changing the schema, the gatekeeper and the engine together, then building a reference guard with the matching flaw and a fixed version, so attacks using the new step can pass the admission bar. That has already happened once: the NEAR Intents target was added on Nov 11. Some attacks only need a bigger limit (for example, more than 4 calls in one race). Others need a new action, and some (a real second chain, waiting hours) may never fit a local sandbox.
+
 ### Where can I see the attacks and what the hunter did?
 
 - `sequences-paper/`: the 25 attacks the hunter saved. Each one is a short, readable list of steps.
