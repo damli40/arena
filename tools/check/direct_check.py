@@ -313,7 +313,11 @@ def judge(meta, r, status):
         ok, why = callback_refusals(r, status.get("_callback", {}).get("refusal_text"))
         if not ok:
             return CNF, f"nothing moved, but {why}; held on this attack needs every forged call refused by a caller check"
-    if not rs.get("validated") or not needs_ok:
+    if rs.get("validated") and not needs_ok:
+        need = [n.split(":")[1] for n in meta.get("needs", []) if n.startswith("G5:") and not status.get(n.split(":")[1], {}).get("g5_effect")]
+        return CNF, (f"nothing moved; the {rule} rule is validated, but this attack needs the owner's change to take effect "
+                     f"on the {', '.join(need)} rule (G5), and the gate did not see it take effect, so 'nothing moved' proves nothing")
+    if not rs.get("validated"):
         why = rs.get("g4_why") or rs.get("g6_why") or ""
         return CNF, f"nothing moved, but the gate did not validate the {rule} rule ({why}), so 'nothing moved' proves nothing"
     return HELD, "nothing moved beyond Arena's rules"

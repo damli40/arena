@@ -116,6 +116,19 @@ class Judging(unittest.TestCase):
         g[D.G5["allowlist"]] = (False, "owner method had no effect", {}, {})
         self.assertEqual(D.judge({"rule": "allowlist"}, r, D.rule_status(CLAIMS, g))[0], D.CNF)
 
+    def test_owner_change_without_effect_names_g5_not_validation(self):
+        # Guard J d08 shape: the allowlist rule validated, but the owner's change had no effect
+        # (no method removes a payee). The reason must say that, not "the gate did not validate".
+        g = gate_all(True)
+        g[D.G5["allowlist"]] = (False, "owner method had no effect", {}, {})
+        st = D.rule_status(CLAIMS, g)
+        self.assertTrue(st["allowlist"]["validated"])
+        lab, why = D.judge({"rule": "allowlist", "needs": ["G5:allowlist"]}, result(), st)
+        self.assertEqual(lab, D.CNF)
+        self.assertIn("is validated", why)
+        self.assertIn("owner's change to take effect on the allowlist rule", why)
+        self.assertNotIn("did not validate", why)
+
     def test_unvalidated_rule_never_held(self):
         g = gate_all(True)
         g[D.G4["per_payment"] + "#2"] = (False, "second run differed", {}, {})
