@@ -1,0 +1,56 @@
+{
+  "arena_guard_config": 1,
+  "pays_in": "intents",
+  "init": {
+    "method": "new",
+    "args": {
+      "owner": "$owner",
+      "agent": "$agent",
+      "token": "$token",
+      "intents": "$intents",
+      "bridge": "$bridge",
+      "destinations": "$foreign_destinations",
+      "daily_cap": "$daily_cap"
+    }
+  },
+  "features": {
+    "payees": true,
+    "cancel": true,
+    "expiry": true,
+    "daily_cap": true
+  },
+  "methods": {
+    "pay": "pay",
+    "approve_invoice": "approve_invoice",
+    "add_payee": "add_payee",
+    "remove_payee": "remove_payee",
+    "cancel_invoice": "cancel_invoice",
+    "set_daily_cap": "set_daily_cap",
+    "set_agent": "set_agent",
+    "get_invoice": "get_invoice",
+    "get_config": "get_config",
+    "is_payee": "is_payee",
+    "paid_today": "paid_today"
+  },
+  "shapes": {
+    "invoice_id_field": "id",
+    "receiver_field": "receiver",
+    "payee_field": "account",
+    "expiry_field": "expires_at_ns",
+    "expiry_unit": "ns",
+    "amount_encoding": "u128_string",
+    "daily_cap_field": "daily_cap",
+    "status_field": "status",
+    "paid_value": "Paid"
+  },
+  "deposits": {
+    "approve_invoice": 1,
+    "add_payee": 1,
+    "remove_payee": 0,
+    "cancel_invoice": 0,
+    "set_daily_cap": 1
+  },
+  "intents": {
+    "pays_by": "ft_withdraw"
+  }
+}
