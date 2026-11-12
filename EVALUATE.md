@@ -438,10 +438,9 @@ See `docs/CHECK-BEFORE-YOU-PAY.md` for more and `docs/ON-CHAIN.md` for what is s
   configs (the self-tests above, `ext self-tests: 20/20 passed`), and that an attack on a rule the
   gate did not validate, or one that hit a harness error, is never counted as held
   (`python3 -I tools/check/tests/test_direct.py`, ends `OK`). The counts themselves you
-  have to take from us: 10 checked, 0 broke, 8 held on every rule they claim, 2 held on every rule
-  but had 2 or 3 attacks that could not finish (a local RPC timeout on the two attacks that send
-  payments at the same moment, in both; in one, an owner-change attack that cannot count because
-  that guard cannot remove a payee), 1 more cannot be tested (it moves no money). Five of the 10
+  have to take from us: 10 checked, 0 broke, 10 held on every rule they claim (in one, an
+  owner-change attack cannot count because that guard cannot remove a payee), 1 more cannot be
+  tested (it moves no money). Five of the 10
   have 24-hour windows; each was proven by moving the local chain's clock about 26 hours. In all 10 the forged-callback attack was
   not run, because no config maps a callback. For the two that need a signed request on every
   payment, Arena signed as the signing service: that tests the guard's on-chain checks, not the

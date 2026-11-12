@@ -140,12 +140,11 @@ Guard G is tested on a separate path, because it has no invoices: 12 attacks, 11
 
 Guards A to C all held for the same reason: each records the payment before it moves the money. Their source code, built files and test runners are not in this repo, to keep them anonymous. Per-test detail, including the two corrections we made during the runs: `evidence/coverage-table.md`.
 
-**10 more teams' guards, where the agent names who gets paid:** 10 checked, 0 broke. 8 held on
-every rule they claim. 2 held on every rule they claim, but 2 or 3 attacks each could not finish (a
-local RPC timeout on the two attacks that send payments at the same moment; one guard has no way to
-remove a payee, so one owner-change attack cannot count). One more team's guard moves no money, so
-Arena cannot test it. We publish counts only: no letters, names or code. How to read these and what
-you can re-run: `EVALUATE.md` section 6.
+**10 more teams' guards, where the agent names who gets paid:** 10 checked, 0 broke, 10 held on
+every rule they claim. In one of them, one owner-change attack could not count, because that guard
+has no way to remove a payee. In all 10 the forged-callback attack was not run, because no config
+maps a callback. One more team's guard moves no money, so Arena cannot test it. We publish counts
+only: no letters, names or code. How to read these and what you can re-run: `EVALUATE.md` section 6.
 
 ## Limits
 
