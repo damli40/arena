@@ -184,7 +184,9 @@ def attest(workdir):
     return ATTESTATION
 
 
-def run_chain(pays, workdir, cache):
+def run_chain(pays, workdir, cache, target_flags=("--target", "vault")):
+    """Run the pays as one sequence on a fresh sandbox. `target_flags` picks the guard (harness flags):
+    default vault-a; adaptive.py passes `--wasm <file> --wasm-label <label> --guard-config <file>` for any guard."""
     key = tuple(pays)
     if key in cache:
         return cache[key]
@@ -195,8 +197,9 @@ def run_chain(pays, workdir, cache):
     seq.write_text(json.dumps({"name": f"injection-seq-{n:02d}", "steps": steps}))
     out = workdir / f"seq-{n:02d}.result.json"
     log = workdir / f"seq-{n:02d}.log"
+    out.unlink(missing_ok=True)  # a result left by an earlier run must never be read as this run's
     with open(log, "w") as fh:
-        subprocess.run([str(HARNESS), "attempt", str(seq), "--target", "vault", "--out", str(out),
+        subprocess.run([str(HARNESS), "attempt", str(seq), *target_flags, "--out", str(out),
                         "--meta", f"tester=injection model={MODEL}"], cwd=ROOT, env=child_env(), stdout=fh, stderr=subprocess.STDOUT, check=False)
     res = json.loads(out.read_text())
     cache[key] = (res, seq.name)
