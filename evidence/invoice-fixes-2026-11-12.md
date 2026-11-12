@@ -104,6 +104,22 @@ exit codes are identical to the table above (`invoice-fixes-2026-11-12/checks/RE
 vault-a 309 s, leaky 308 s, native-fixed 259 s, native-control 260 s, intents-honest 458 s,
 intents-planted 506 s, planted-outflow 319 s).
 
+## Fresh-export regression (`12b652f`)
+
+`git archive 12b652f` unpacked into an empty folder, `git init`, one commit, then each command run
+there with no private files and no network beyond what `./verify.sh fast` already uses. `git status`
+in the export was clean afterwards.
+
+| Command | Exit | Time | Line |
+|---|---|---|---|
+| hunter tests (before and after) | 0, 0 | 10 s, 3 s | `Ran 79 tests` OK |
+| `./verify.sh fast` | 0 | 2,324 s (machine shared with other builds) | `verify: 5 passed, 0 failed (mode=fast)` |
+| `(cd harness && cargo test --release)` | 0 | 73 s | `85 passed; 0 failed; 1 ignored` |
+| EVALUATE row 14 | 0 | 1 s | `7 passed; 0 failed; 0 ignored; 0 measured; 79 filtered out` |
+| `tools/check/tests/test_check.py` / row 15 | 0, 0 | 9 s, under 1 s | `Ran 110 tests` OK / `Ran 5 tests` OK |
+| row 16 `./run-arena.sh bypass vault` | 0 | 85 s | `stopped_by_access_key=3`, outsider-owner-method `unauthorised=0` |
+| `./arena check` vault-a / leaky-control-v2 / native-fixed / intents-honest | 0 / 1 / 0 / 0 | 292 / 284 / 236 / 322 s | same `arena:` lines as the table above |
+
 ## What this does not do
 
 - **Two known costs of the chain-only rule** (README Limits): a guard that holds a payment and sends
