@@ -13,7 +13,7 @@
 #   HUNT_NEWS_FILE (canned Elfa replies: the no-network stand-in for Elfa), ARENA_MODEL_PROVIDER
 #   (papers job: nearai = NEAR AI Cloud, the default; muse) and ARENA_NEWS_MODEL_PROVIDER (news job:
 #   muse, the default; nearai). The model keys (NEARAI_API_KEY, MUSE_API_KEY) and the optional
-#   ELFA_API_KEY come from the environment (repo secrets in CI) and are never echoed: `set -x` is never
+#   ELFA_API_KEY come from the environment (secrets of the GitHub Environment `hunt` in CI) and are never echoed: `set -x` is never
 #   used in this file. No ELFA_API_KEY, or no key for the news model = the news source is skipped,
 #   the hunt runs.
 set -euo pipefail
@@ -24,6 +24,16 @@ step="${1:?usage: ci-steps.sh build|test|hunt|collect}"
 OUT_DIR="${HUNT_OUT_DIR:-evidence/hunts}"
 BOARD_OUT="${HUNT_BOARD_OUT:-site}"
 ART="${HUNT_ARTIFACT_DIR:-hunt-artifact}"
+
+# A missing model key: a scheduled run skips cleanly (exit 0, one notice line), so a workflow left
+# enabled without secrets does not turn red every day; a manual or local run still fails (exit 2),
+# so a watched run with a forgotten key is never mistaken for a hunt that found nothing.
+no_key() { # $1 message
+  if [ "${GITHUB_EVENT_NAME:-}" = "schedule" ]; then
+    echo "::notice::$1; scheduled run skipped, nothing hunted"; mkdir -p "$OUT_DIR"; exit 0
+  fi
+  echo "$1; not hunting" >&2; exit 2
+}
 
 int_in() { # $1 name, $2 value, $3 min, $4 max
   [[ "$2" =~ ^[0-9]+$ ]] && [ "$2" -ge "$3" ] && [ "$2" -le "$4" ] || { echo "bad $1: must be $3-$4" >&2; exit 2; }
@@ -73,10 +83,10 @@ case "$step" in
     if [ -z "${HUNT_OFFLINE_REPLIES:-}" ]; then
       # The papers job needs its model key; the news job (Muse by default) is skipped by the hunt itself if its key is missing.
       if [ "$SOURCE" != news ] && [ "$PROVIDER" = nearai ] && [ -z "${NEARAI_API_KEY:-}" ] && [ ! -f "$HOME/.config/arena/nearai.env" ]; then
-        echo "NEARAI_API_KEY is not set (add it as a repository secret); not hunting" >&2; exit 2
+        no_key "NEARAI_API_KEY is not set (add it to the GitHub Environment named hunt)"
       fi
       if [ "$SOURCE" != news ] && [ "$PROVIDER" = muse ] && [ -z "${MUSE_API_KEY:-}" ] && [ ! -f "$HOME/.config/arena/model.env" ]; then
-        echo "MUSE_API_KEY is not set (needed because ARENA_MODEL_PROVIDER=muse); not hunting" >&2; exit 2
+        no_key "MUSE_API_KEY is not set (needed because ARENA_MODEL_PROVIDER=muse)"
       fi
     fi
     mkdir -p "$OUT_DIR"

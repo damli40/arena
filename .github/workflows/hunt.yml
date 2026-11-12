@@ -22,7 +22,9 @@
 # The used list (papers and news post links) survives between runs through actions/cache, so a
 # paper or news item is not re-attacked every day even though nothing is committed.
 #
-# Repository secrets: NEARAI_API_KEY (papers), MUSE_API_KEY (news; without it the news source is
+# Secrets come from the GitHub Environment named `hunt` (job setting `environment: hunt` below), not from
+# repository secrets, so the owner can limit which branch may use them (main only) and remove them in one place.
+# Environment secrets: NEARAI_API_KEY (papers), MUSE_API_KEY (news; without it the news source is
 # skipped with a log line and the paper hunt still runs), ELFA_API_KEY (optional: without it the news
 # source is skipped too). Each news hunt makes at most 2 Elfa calls
 # (about 5 credits each; the free tier fails closed and never bills). The schedule below runs 4 news
@@ -44,6 +46,9 @@
 name: paper-hunt
 
 on:
+  # Path A: the workflow stays DISABLED on GitHub. The owner enables it for one watched manual
+  # workflow_dispatch run, then disables it again, so these schedule lines do not fire. They are kept so
+  # the daily plan is written down in one place; they only run if the workflow is left enabled.
   schedule:
     - cron: "17 1 * * *"    # papers + news, just after arXiv's daily release
     - cron: "17 7 * * *"    # news only
@@ -67,13 +72,14 @@ on:
 permissions:
   contents: read
 
-concurrency:
+concurrency:  # one hunt at a time: a second run waits for the first instead of overlapping it
   group: paper-hunt
   cancel-in-progress: false
 
 jobs:
   hunt:
     runs-on: ubuntu-24.04
+    environment: hunt   # the keys live in this Environment; the owner limits it to the main branch
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
