@@ -663,7 +663,7 @@ ul.guides span{display:block;color:var(--muted);font-size:13.5px}
 </style></head>
 <body class="iso" data-theme="light">
 ${topbar("results")}
-<div class="wrap">
+<main class="wrap">
 <header class="hero">
   <div>
     <div class="eyebrow">NEAR hackathon · AI Security</div>
@@ -762,7 +762,7 @@ python3 -I tools/injection/rescore.py</pre>
   </ul>
 </section>
 
-</div>
+</main>
 ${footer("Numbers are read from <code>evidence/</code> at build time. Fig 1 uses the anatomy kit (MIT, © 2026 Ryan).")}
 <script>${revealJs}</script>
 <script type="module">${(kitScript() + live).replace(/<\/(script)/gi, "<\\/$1")}</script>
