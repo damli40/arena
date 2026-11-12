@@ -196,7 +196,8 @@ def rule_status(claims, gate):
             s["g8_why"] = gate[kind][1]
             s["validated"] = s["validated"] and s["g8_kind"]
             if not s["g8_kind"]:
-                s["g4_why"] = f"the window did not behave as {rule} ({kind}: {gate[kind][1]})"
+                s["g4_why"] = (f"the window's kind ({rule}) was not proven: {gate[kind][1]}" if gate[kind][1].startswith("not run")
+                               else f"the window did not behave as {rule} ({kind}: {gate[kind][1]})")
         s["broke_at_gate"] = False
         if not s["g4"] and st["_mapping"]["proven"] and s["g5_effect"]:
             extra = max(gate_overpaid(g4[2], g4[3]) if len(g4) > 3 else 0, gate_overpaid(g4b[2], g4b[3]) if len(g4b) > 3 else 0)
