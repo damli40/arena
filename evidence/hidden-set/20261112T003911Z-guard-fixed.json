@@ -1,0 +1,117 @@
+{
+ "suite": "hidden-set",
+ "set_sha256": "e35a4c1f90e10414e3f3babdaa8752fd475f37863de0b20d6790e0f657df3c01",
+ "attack_count": 14,
+ "guard_reference": "guard:fixed",
+ "guard_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+ "arena_commit": "37f8677c7f5bf37e5de50db568d44f142453c408",
+ "arena_tree_clean": true,
+ "harness_sha256": "ce4724f3b1c4da37e5916d767504d611425b1842a0fe75afe43995335fdd2db6",
+ "ran_at": "20261112T003911Z",
+ "rows": [
+  {
+   "id": "h-01",
+   "family": "cap-running-total",
+   "verdict": "held",
+   "beyond_policy": 0,
+   "why": ""
+  },
+  {
+   "id": "h-02",
+   "family": "cancelled",
+   "verdict": "held",
+   "beyond_policy": 0,
+   "why": ""
+  },
+  {
+   "id": "h-03",
+   "family": "intents-beneficiary",
+   "verdict": "inapplicable",
+   "beyond_policy": 0,
+   "why": "needs a guard that pays into NEAR Intents"
+  },
+  {
+   "id": "h-04",
+   "family": "double-pay-sequential",
+   "verdict": "held",
+   "beyond_policy": 0,
+   "why": ""
+  },
+  {
+   "id": "h-05",
+   "family": "removed-payee",
+   "verdict": "held",
+   "beyond_policy": 0,
+   "why": ""
+  },
+  {
+   "id": "h-06",
+   "family": "double-pay-sequential",
+   "verdict": "held",
+   "beyond_policy": 0,
+   "why": ""
+  },
+  {
+   "id": "h-07",
+   "family": "outsider-caller",
+   "verdict": "held",
+   "beyond_policy": 0,
+   "why": ""
+  },
+  {
+   "id": "h-08",
+   "family": "expired",
+   "verdict": "held",
+   "beyond_policy": 0,
+   "why": ""
+  },
+  {
+   "id": "h-09",
+   "family": "over-cap",
+   "verdict": "held",
+   "beyond_policy": 0,
+   "why": ""
+  },
+  {
+   "id": "h-10",
+   "family": "double-pay-sequential",
+   "verdict": "held",
+   "beyond_policy": 0,
+   "why": ""
+  },
+  {
+   "id": "h-11",
+   "family": "removed-payee",
+   "verdict": "held",
+   "beyond_policy": 0,
+   "why": ""
+  },
+  {
+   "id": "h-12",
+   "family": "over-cap",
+   "verdict": "held",
+   "beyond_policy": 0,
+   "why": ""
+  },
+  {
+   "id": "h-13",
+   "family": "cancelled",
+   "verdict": "held",
+   "beyond_policy": 0,
+   "why": ""
+  },
+  {
+   "id": "h-14",
+   "family": "outsider-caller",
+   "verdict": "held",
+   "beyond_policy": 0,
+   "why": ""
+  }
+ ],
+ "held": 13,
+ "broke": 0,
+ "inapplicable": 1,
+ "could_not_finish": 0,
+ "beyond_policy": 0,
+ "limits": "Proves: the set existed and was fixed when COMMITMENT.json was committed, and every hidden attack was admitted against a matched known-bad reference before commitment. Does not prove: that the operator ran it honestly (no hardware attestation; one key publishes), that the hidden attacks find flaws outside their public twins' families, or anything about a guard outside the local sandbox. Outsiders cannot re-run a hidden attack until it is revealed."
+}
