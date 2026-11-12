@@ -56,7 +56,7 @@ reads that run's own logs. `run-arena.sh` and the prompt-injection scripts do th
 | 7 | One command checks a guard against the whole attack library and says held or broke. | section 3 | `arena: held 49/49 (0 not applicable; 3 stopped by the agent's access key before the guard ran; ...)` for vault-a (exit 0), `arena: broke 5 of 49 (...)` for the leaky guard (exit 1) | 301 s and 299 s (Nov 12, two other builds running on the machine) | `evidence/invoice-fixes-2026-11-12.md` |
 | 8 | The same check works for a guard that pays in plain NEAR, not a token. | section 3 | `arena: held 48/48 (0 not applicable; 1 stopped by the agent's access key before the guard ran; ...)` for native-fixed (exit 0), `arena: broke 5 of 48 (...)` for native-control (exit 1) | 257 s and 244 s | `evidence/invoice-fixes-2026-11-12.md` |
 | 9 | If a guard pays any account the attack was not supposed to reach (the agent, the outsider, an account the attack named), the check says broke and names who got it. Money it cannot find makes the check incomplete, never held. | section 3 | `arena: broke 11 of 49 (...; 1800 tokens paid outside the five receivers; ...)` for planted-outflow (exit 1) | 324 s | `evidence/invoice-fixes-2026-11-12.md`, `evidence/check-outflow-2026-11-11.md` |
-| 9b | A guard that pays into NEAR Intents is scored from who Intents credited. Our honest Intents guard holds; our planted copy, which lets the caller pick who is credited, breaks, and the report names who got the credit. | section 3 | `arena: held 51/51 ...` for intents-honest (exit 0), `arena: broke 2 of 51 (...; refused 2 of 65 honest payments; 300 tokens paid outside the five receivers; ...)` for intents-planted (exit 1) | 497 s and 570 s | `evidence/invoice-fixes-2026-11-12.md`, `evidence/check-intents-2026-11-11.md` |
+| 9b | A guard that pays into NEAR Intents is scored from who Intents credited. Our honest Intents guard holds; our planted copy, which lets the caller pick who is credited, breaks, and the report names who got the credit. | section 3 | `arena: held 51/51 (0 not applicable; 3 stopped by the agent's access key before the guard ran; ...)` for intents-honest (exit 0), `arena: broke 2 of 51 (0 not applicable; 3 stopped by the agent's access key before the guard ran; ...; refused 2 of 65 honest payments; 300 tokens paid outside the five receivers; ...)` for intents-planted (exit 1) | 497 s and 570 s | `evidence/invoice-fixes-2026-11-12.md`, `evidence/check-intents-2026-11-11.md` |
 | 10 | The hunter's saved attacks replay from their JSON files, with no model call. | section 4 | section 4 | about 15 s per replay | `evidence/hunts/` |
 | 11 | The double-pay result and its fix are saved on NEAR testnet, and anyone can look them up. | section 5 | section 5 | 1 to 2 s | `evidence/receipts-testnet-2026-11-11.md`, `evidence/testnet-2026-11-11.md` |
 | 12 | A guard owner can sign a note on NEAR testnet saying "Arena may test this exact code", and another contract can ask for a result before it pays. | section 5 | `opt-in:    opted_in` in the lookup | 1 to 2 s | `evidence/onchain-2026-11-11.md`, `evidence/results-testnet-2026-11-11.md`, `docs/ON-CHAIN.md` |
@@ -159,8 +159,10 @@ A guard that pays by depositing the token into NEAR Intents needs `"pays_in": "i
 ./arena check targets/intents-planted/intents_planted.wasm --config examples/configs/intents-guard.json
 ```
 
-The first should end `arena: held 51/51 (...; pays via NEAR Intents: local release build, no
-withdrawals to other chains)`, exit code 0. The second should end `arena: broke 2 of 51 (...)`,
+The first should end `arena: held 51/51 (0 not applicable; 3 stopped by the agent's access key
+before the guard ran; ...; pays via NEAR Intents: local release build, no withdrawals to other
+chains)`, exit code 0. The second should end `arena: broke 2 of 51 (0 not applicable; 3 stopped by
+the agent's access key before the guard ran; ...)`,
 exit code 1, with `BROKE intents-01-agent-names-outsider-beneficiary: 200 tokens beyond the rules
 (paid 200 tokens to the outsider (credited inside NEAR Intents))`. 54 = the 52 attacks plus 2 in
 `sequences-intents/`; 3 are stopped by the access key, so 51 count. In the same 2 attacks the honest
