@@ -2,6 +2,7 @@
 
   python3 -I -m unittest discover -s tools/admission/tests -v
 
+Disjointness covers every branch (refs/heads, refs/remotes) and near-duplicates (gas and wait values ignored).
 Case 1 is the one a merge review found: a hidden attack whose steps equal a hunt proposal tracked under
 evidence/hunts/**/attacks/, which the old check (library + intents only) did not see.
 """
@@ -55,6 +56,28 @@ class Disjoint(unittest.TestCase):
         git(self.tmp, "add", "sequences-ai/a.json"); git(self.tmp, "commit", "-qm", "y")
         self.assertEqual(H.public_overlap([self.hidden_doc(STEPS)], self.tmp), [])
 
+
+    def test_file_tracked_only_on_another_branch_is_public(self):
+        # re-review: a sibling branch (merging first) tracked a hidden attack's steps; HEAD did not
+        write(self.tmp, "README.json", {"x": 1})
+        git(self.tmp, "add", "-A"); git(self.tmp, "commit", "-qm", "base")
+        git(self.tmp, "checkout", "-q", "-b", "sibling")
+        write(self.tmp, "sequences-race/s4.json", {"steps": STEPS})
+        git(self.tmp, "add", "-A"); git(self.tmp, "commit", "-qm", "sibling")
+        git(self.tmp, "checkout", "-q", "-")
+        self.assertFalse((self.tmp / "sequences-race/s4.json").exists())
+        self.assertEqual(H.public_overlap([self.hidden_doc(STEPS)], self.tmp), ["hv-01-x.json"])
+
+    def test_near_duplicate_differing_only_in_wait_or_gas_is_refused(self):
+        pub = [{"wait_seconds": 30}, {"call": {"actor": "agent", "method": "pay", "args": {"id": "inv-expire"}, "gas_tgas": 100}}]
+        hid = [{"wait_seconds": 25}, {"call": {"actor": "agent", "method": "pay", "args": {"id": "inv-expire"}}}]
+        self.assertNotEqual(H.V.steps_hash(pub), H.V.steps_hash(hid))
+        self.assertEqual(H.loose_hash(pub), H.loose_hash(hid))
+        write(self.tmp, "sequences-ai/a.json", {"steps": pub})
+        git(self.tmp, "add", "-A"); git(self.tmp, "commit", "-qm", "x")
+        self.assertEqual(len(H.public_overlap([self.hidden_doc(hid)], self.tmp)), 1)
+        other = [{"wait_seconds": 25}, {"call": {"actor": "agent", "method": "pay", "args": {"id": "inv-mid"}}}]
+        self.assertEqual(H.public_overlap([self.hidden_doc(other)], self.tmp), [])
 
 class Order(unittest.TestCase):
     """check-public: a run counts only if git parent order puts it after its commitment."""

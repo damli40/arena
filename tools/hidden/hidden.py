@@ -87,42 +87,91 @@ def check_file(p, doc, private_root):
     V._need(meta["admission"]["class"] == "validated", f"{p.name}: gate class {meta['admission']['class']}, not validated")
 
 
-def tracked_json(root=ROOT):
-    """Every tracked .json file in the repo (git ls-files); every .json file on disk if this copy has no git."""
-    r = subprocess.run(["git", "ls-files", "-z", "--", "*.json"], cwd=root, capture_output=True)
-    if r.returncode == 0:
-        return [root / n for n in r.stdout.decode().split("\0") if n]
-    return [p for p in root.rglob("*.json") if not {"runs", "target", "node_modules", ".git"} & set(p.relative_to(root).parts)]
+WAITS = ("wait_blocks", "wait_seconds")
 
 
-def public_hashes(root=ROOT):
-    """The steps hash of every attack-shaped file the repo tracks: the library, the intents suite, and every
-    hunt proposal under evidence/hunts/**/attacks/ (or anywhere else). Both the hash of the steps as written
-    and any meta.steps_sha256 are counted, so a stale meta cannot hide a match."""
-    hs = set()
-    for p in tracked_json(root):
-        try:
-            if p.stat().st_size > 1_000_000:
+def loose_hash(steps):
+    """A near-duplicate fingerprint: the canonical steps with every call's gas dropped and every wait's
+    length replaced by a placeholder. Two attacks that differ only in gas or wait values share it."""
+    out = []
+    for st in V.canonical_steps(steps):
+        (k, v), = st.items()
+        if k == "call":
+            out.append({"call": {a: b for a, b in v.items() if a != "gas_tgas"}})
+        elif k == "race":
+            out.append({"race": [{a: b for a, b in el.items() if a != "gas_tgas"} for el in v]})
+        elif k in WAITS:
+            out.append({"wait": "*"})
+        else:
+            out.append({k: v})
+    return sha(json.dumps(out, sort_keys=True, separators=(",", ":")).encode())
+
+
+def _attack_blobs(root):
+    """Text of every .json blob (up to 1 MB) tracked at the tip of ANY branch this repository knows
+    (refs/heads and refs/remotes), not only HEAD: a sibling branch merges too. Falls back to the .json
+    files on disk if this copy has no git."""
+    git = lambda *a, **k: subprocess.run(["git", *a], cwd=root, capture_output=True, **k)
+    refs = git("for-each-ref", "--format=%(objectname)", "refs/heads", "refs/remotes")
+    if refs.returncode != 0:
+        for p in root.rglob("*.json"):
+            if not {"runs", "target", "node_modules", ".git"} & set(p.relative_to(root).parts) and p.stat().st_size <= 1_000_000:
+                yield p.read_bytes()
+        return
+    blobs = set()
+    for c in sorted(set(refs.stdout.decode().split())):
+        for line in git("ls-tree", "-r", "-l", "-z", c).stdout.decode().split("\0"):
+            if not line:
                 continue
-            d = json.loads(p.read_text())
-        except (OSError, ValueError):
+            meta, name = line.split("\t", 1)
+            _mode, typ, obj, size = meta.split()
+            if typ == "blob" and name.endswith(".json") and size.isdigit() and int(size) <= 1_000_000:
+                blobs.add(obj)
+    if not blobs:
+        return
+    out = git("cat-file", "--batch", input="\n".join(sorted(blobs)).encode() + b"\n").stdout
+    i = 0
+    while i < len(out):
+        nl = out.index(b"\n", i)
+        header = out[i:nl].split()
+        n = int(header[2])
+        yield out[nl + 1:nl + 1 + n]
+        i = nl + 1 + n + 1
+
+
+def public_fingerprints(root=ROOT):
+    """{"exact": steps hashes, "loose": near-duplicate fingerprints} of every attack-shaped .json file
+    on any branch: the library, the intents suite, hunt proposals under evidence/hunts/**/attacks/, a
+    sibling branch's new suites, anything. Exact = the steps as written AND any meta.steps_sha256."""
+    ex, lo = set(), set()
+    for b in _attack_blobs(root):
+        try:
+            d = json.loads(b)
+        except ValueError:
             continue
         if not (isinstance(d, dict) and isinstance(d.get("steps"), list)):
             continue
         try:
-            hs.add(V.steps_hash(d["steps"]))
+            ex.add(V.steps_hash(d["steps"]))
+            lo.add(loose_hash(d["steps"]))
         except Exception:  # not valid steps: nothing to match against
             pass
         m = d.get("meta")
         if isinstance(m, dict) and isinstance(m.get("steps_sha256"), str):
-            hs.add(m["steps_sha256"])
-    return hs
+            ex.add(m["steps_sha256"])
+    return {"exact": ex, "loose": lo}
+
+
+def public_hashes(root=ROOT):
+    return public_fingerprints(root)["exact"]
 
 
 def public_overlap(docs, root=ROOT):
-    """Names of the hidden files whose steps (as written, or as their meta claims) equal any tracked file's."""
-    pub = public_hashes(root)
-    return [p.name for p, doc in docs if {V.steps_hash(doc["steps"]), doc["meta"]["steps_sha256"]} & pub]
+    """Names of the hidden files whose steps equal any tracked file's on any branch, exactly or up to
+    gas and wait values."""
+    fp = public_fingerprints(root)
+    return [p.name for p, doc in docs
+            if {V.steps_hash(doc["steps"]), doc["meta"]["steps_sha256"]} & fp["exact"] or loose_hash(doc["steps"]) in fp["loose"]]
 
 
 def cmd_commit(a):
@@ -142,9 +191,9 @@ def cmd_commit(a):
             print("NOT ADMITTED", e)
     overlap = public_overlap(docs)
     for n in overlap:
-        print("IN A TRACKED FILE", n)
+        print("SAME OR NEAR-SAME STEPS AS A TRACKED FILE ON SOME BRANCH", n)
     if bad or overlap:
-        sys.exit(f"refused: {bad} not validated, {len(overlap)} with the same steps as a file this repo tracks")
+        sys.exit(f"refused: {bad} not validated, {len(overlap)} with the same or near-same steps as a file tracked on some branch")
     head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
     c = {"about": "Hidden test set commitment. The attacks are NOT in this repo. Written by tools/hidden/hidden.py commit.",
          "set_sha256": set_sha256(docs),
@@ -191,7 +240,7 @@ def cmd_run(a):
         sys.exit(f"refused: the set on disk hashes to {got}, the committed set is {c['set_sha256']}")
     overlap = public_overlap(docs)
     if overlap:
-        sys.exit(f"refused: {len(overlap)} hidden attack(s) now have the same steps as a file this repo tracks; commit a new set without them")
+        sys.exit(f"refused: {len(overlap)} hidden attack(s) now have the same or near-same steps as a file tracked on some branch; commit a new set without them")
     refs = V.load_references()
     if a.reference not in refs:
         sys.exit(f"unknown reference {a.reference} (closed list: tools/admission/references.json)")
