@@ -49,3 +49,27 @@ Counts at this commit: 21 validated, 10 partially validated, 22 unvalidated with
 - The hidden-set runs were not repeated here. The private set is outside the repository, so a clean copy
   cannot run it. Step 11 checks only the public files against the committed hashes.
 - No testnet write.
+
+## After rebasing onto main ac98c39 (the `--recheck` binding fix and the new race-callback rule)
+
+Branch rebased with `git rebase --onto ac98c39 1a39fdb admission-2`. The only conflicts were in `EVALUATE.md` rows.
+Main's wording was kept for the recheck rows, and the branch's counts and new rows were kept. `tools/admission/admit.py`,
+`harness/` and `tools/check/` are identical to main, so the sandbox baseline above was not re-run. The checks
+below ran on a fresh `git archive` export of the rebased commit (the one that adds this section's parent, 932fe0e).
+
+| command | exit | result |
+|---|---|---|
+| `python3 -I tools/admission/manifest.py --check` | 0 | `manifest: up to date` (21 validated, 10 partially, 22 unvalidated: unchanged) |
+| `python3 -I tools/hunter/validate.py` / `--intents-suite` | 0 | `48 valid, 0 invalid` / `2 valid, 0 invalid` |
+| `admit.py --recheck` on all 31 stamped files (now runs the full validator and the call binding first) | 0 on all 31 | 21 `validated ... stamp agrees`, 10 `partially-validated ... stamp agrees`; no file refused |
+| `python3 -I tools/hidden/hidden.py check-public` | 0 | `12 of 12 consistent ... (6 on current set e35a4c1f... (14 attacks); 6 on earlier set 835729d9... (9 attacks))` |
+| admission tests | 0 | `Ran 65 tests`, `OK` (main's 63 + the 2 manifest-reason tests) |
+| hunter tests | 0 | `Ran 85 tests`, `OK` (includes 4 hidden-dupes tests) |
+| `node --test tools/lookup/test.mjs` | 0 | `pass 37`, `fail 0` |
+| `git status --porcelain` afterwards | | empty |
+
+No class changed under the new race judge: all 10 race stamps stay partially validated, because no stored run
+has a per-receipt trace, so ordering is unproven under either callback rule. No stamp hit the known too-strict
+case (a race that pays two different invoices with legs recorded out of order): none was refused.
+The first caveat above (`--recheck` did not bind a stamp to its file) is fixed by the rebase: `--recheck` now
+refuses an unbound stamp itself.
