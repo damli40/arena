@@ -21,11 +21,11 @@ branch). Branch `invoice-fixes`, from `3065988`.
   the settle) while an earlier agent `pay` to it is still unpaid: it may be that payment landing late;
 - in a race, the agent's `pay` and another accepted call ran together, and the answer depends on
   which one paid. (If every reading has tokens beyond policy, the smallest amount is scored as broke.)
-  This includes two agent `pay` calls in one step for different invoices of the same receiver and
-  the same amount, one of which should not be paid (for example `inv-mid` and the cancelled
-  `inv-cancel`, both 200 to ada): the two transfers look the same on the chain. A double pay of one
-  invoice is not ambiguous and is still scored held or broke. (Added after the merge review; see
-  the end of this file.)
+  This includes a step where the agent paid several invoices of one receiver: Arena reads the
+  gain as whole invoice amounts and tries every set of those calls that adds up to it (for example
+  `inv-mid` or the cancelled `inv-cancel`, both 200 to ada). A double pay of one invoice is not
+  ambiguous and is still scored held or broke. (Added after the merge reviews; see the end of this
+  file.)
 - the steps' gains do not add up to the final balances.
 
 **Honest refusals** (`refused K of M honest payments`) now also come from the chain: an honest
@@ -124,19 +124,27 @@ in the export was clean afterwards.
 | row 16 `./run-arena.sh bypass vault` | 0 | 85 s | `stopped_by_access_key=3`, outsider-owner-method `unauthorised=0` |
 | `./arena check` vault-a / leaky-control-v2 / native-fixed / intents-honest | 0 / 1 / 0 / 0 | 292 / 284 / 236 / 322 s | same `arena:` lines as the table above |
 
-## Merge review: same-step twin invoices
+## Merge reviews: several invoices of one receiver in one step
 
-A second review, before merge, found no false pass but one gap. In one race step the agent sends
-`pay(inv-cancel)` and `pay(inv-mid)` (both ada, 200) and the guard pays one 200. The scorer gave the
-200 to `inv-mid` and said held, though the 200 may have been for the cancelled bill. The chain shows
-one 200 transfer to ada either way. Now, when a should-not-pay invoice in the same step has the same
-receiver and amount as a should-pay one, and taking its amount first would leave the honest invoices
-with less credit, the attempt is "could not finish". If both 200s arrive, 200 is beyond policy
-under every reading and the attempt is scored broke as before. Tests:
-`same_step_twin_invoices_guard_pays_one_is_could_not_finish`,
-`same_step_failed_transfer_does_not_cover_another_payment` (the same-step shape the old
-`failed_transfer_does_not_cover_another_payment` had; that test now uses two steps),
-`same_step_twin_invoices_both_paid_is_decided`, `same_invoice_race_still_scores_normally`.
+A review before merge found a possible false pass. In one race step the agent sends
+`pay(inv-cancel)` and `pay(inv-mid)` (both ada, 200) and the guard pays one 200. The scorer gave
+the 200 to `inv-mid` and said held, though it may have been the cancelled bill's. The earlier fix
+(`de79b82`) made that case "could not finish". A second review of `de79b82` found three more gaps:
+the scorer still treated a step's gain as one pool, so mid, cancel and expire raced with ada +500
+scored held (it may be cancel+expire, 200 beyond); cancel (200) raced with expire (300) and ada +200
+scored held, though a 200 transfer can only be cancel's; and an attempt already broke in an earlier
+step became "could not finish" instead of broke.
+
+The rule now: when the agent sent two or more accepted `pay` calls to one receiver in one step,
+Arena reads the gain as whole transfers. Each call either paid its invoice's amount or nothing,
+and every set of calls whose amounts add up to the gain is one reading. The kindest reading is
+scored. When readings disagree: if the whole attempt is beyond policy even under the kindest
+readings, that amount is scored as broke with a note "up to N more"; if the kindest is within
+policy and another is not, the attempt is "could not finish". If no set of calls adds up to the
+gain (a partial payment), the gain is read as one sum, and the worst reading gives it to the
+should-not-pay invoices first. Tests: `same_step_twin_invoices_guard_pays_one_is_could_not_finish`,
+`same_step_failed_transfer_does_not_cover_another_payment`, `same_step_twin_invoices_both_paid_is_decided`,
+`same_invoice_race_still_scores_normally`, and `review2_p1` to `review2_p8_p9_p10` (5).
 
 ## What this does not do
 

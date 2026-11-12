@@ -309,7 +309,7 @@ not noise.
 Exit 2 means the check could not finish, and the report and the console say why. The causes: a
 wasm, config or mapping problem; Rust's `cargo` missing or a build failing; the honest payment in
 preflight failing; an owner method with no visible effect, or a starting cap that is not Arena's 500;
-an attack that errored or ran out of time; an attack where the chain cannot say which call paid a receiver (money that arrived while no `pay` to that receiver ran, with an earlier `pay` to it still unpaid; or a race where crediting the agent's `pay` or another call gives different answers, including two agent `pay` calls in one step for different invoices of the same receiver and amount, one of which should not be paid), or where the pay time of an expiring invoice cannot be read ("cannot observe"); a file in Arena's attack library it could not load; an
+an attack that errored or ran out of time; an attack where the chain cannot say which call paid a receiver (money that arrived while no `pay` to that receiver ran, with an earlier `pay` to it still unpaid; or a race where crediting the agent's `pay` or another call gives different answers, including a step where the agent paid several invoices of one receiver and the guard paid only some of them: Arena reads each transfer as one whole invoice amount, and the attempt is "could not finish" only when one reading is within policy and another is not), or where the pay time of an expiring invoice cannot be read ("cannot observe"); a file in Arena's attack library it could not load; an
 `--only` naming an attack the library does not have; no attack at all testing a rule you claim; or an
 unexpected error inside Arena itself. Exit 1 is never used for a crash.
 
