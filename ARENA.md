@@ -76,6 +76,7 @@ How it limits damage:
 What this doesn't protect:
 
 - The attestation shows which model answered. It doesn't show that an attack is good or that a result is right.
+- The attestation doesn't cover a bug in the software running inside the secure hardware. On Nov 8, someone used a flaw in SGLang, the engine that runs NEAR AI's models, to run code on one inference server. From there they could see requests in progress, including confidential ones. NEAR AI's report says confidential computing "does not protect against a vulnerability in the software running inside the environment": https://near.ai/blog/security-incident-report-sglang-vulnerability. Our NEAR AI hunt ran on Nov 11, after that access, and sends only public paper text. Either way, the model's answer is treated as untrusted: the validator decides what runs.
 - The rest of the loop (fetching papers, validating, running the sandbox) runs on GitHub's machine, outside any secure hardware.
 
 ### Who can access the workflow, its keys and its outputs?
