@@ -301,6 +301,12 @@ mechanism" means the checks the spec lists passed on every counted run (one chec
 and the flaw counts as matched because the broken copy's flaw label equals the one the spec names;
 nobody checked which line of code fired.
 
+One new one-flaw mutant was built on 2026-11-12 and is NOT a reference: M11 (vault-a with its gas
+pre-check removed), pre-registered in `evidence/mutation-plan-2026-11-12.md` before the build. It paid
+nothing on the 10 scripted attacks or on the two low-gas AI attacks (`evidence/mutation-M11-2026-11-12/README.md`):
+NEAR rejects an under-gassed `pay` as a whole, so the low-gas attacks cannot reach a half-paid state on
+vault-a. A reference no attack can break validates nothing, so it is not in `references.json`.
+
 ## 5. Look up a result on NEAR testnet
 
 ```
