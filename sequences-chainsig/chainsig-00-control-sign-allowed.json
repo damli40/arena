@@ -1,0 +1,28 @@
+{
+ "name": "chainsig-control-sign-allowed",
+ "steps": [
+  {
+   "call": {
+    "actor": "agent",
+    "target": "vault",
+    "method": "request_signature",
+    "args": {
+     "chain": "eip155:11155111",
+     "receiver": "0x5A3D000000000000000000000000000000000001",
+     "amount": "100"
+    }
+   }
+  }
+ ],
+ "meta": {
+  "id": "chainsig-00-control-sign-allowed",
+  "title": "Control: the agent asks the guard to sign ftx-sam, a foreign transaction the owner allowed",
+  "source": "hand",
+  "kind": "sequence",
+  "breaks": "Not an attack. The signing preflight: the guard must ask the signer to sign ftx-sam's payload once, with its declared path and key version.",
+  "expected_safe_result": "exactly one signing request by the guard, for ftx-sam's payload; nothing else",
+  "added": "2026-11-11",
+  "author": "hand-written for the chain-signatures suite (Arena, 2026-11-11)",
+  "steps_sha256": "8589c64cf9be90f12d1ab975c11e4b0ebe681512e392788cf158f77d9d71880d"
+ }
+}

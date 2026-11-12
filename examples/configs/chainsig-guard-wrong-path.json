@@ -1,0 +1,22 @@
+{
+  "arena_guard_config": 1,
+  "_about": "NEGATIVE EXAMPLE, for the evidence only: the chainsig-honest guard signs with path ethereum-1, but this config declares ethereum-2. Arena's signing preflight must see the mismatch and stop the check with exit 2 (could not finish), never say held.",
+  "signs_via": "chain-signatures",
+  "chain_signatures": {
+    "method": "request_signature",
+    "payload_format": "arena-foreign-tx-v1",
+    "path": "ethereum-2",
+    "key_version": 0
+  },
+  "init": {
+    "method": "new",
+    "args": {
+      "owner": "$owner",
+      "agent": "$agent",
+      "token": "$token",
+      "daily_cap": "$daily_cap",
+      "signer": "$signer",
+      "allowed_foreign_txs": "$allowed_foreign_txs"
+    }
+  }
+}

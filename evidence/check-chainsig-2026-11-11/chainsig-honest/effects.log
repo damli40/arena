@@ -1,0 +1,25 @@
+EFFECTS target=chainsig_honest (file=evidence/check-chainsig-2026-11-11/chainsig-honest/guard-config.resolved.json pays_in=token signs_via=chain-signatures(method=request_signature, payload_format=arena-foreign-tx-v1, path=ethereum-1, key_version=0) init=new features(payees=true, cancel=true, expiry=true, daily_cap=true) renamed=[] shapes=[] deposits={"add_payee": 1, "approve_invoice": 1, "cancel_invoice": 0, "remove_payee": 0, "set_daily_cap": 1})
+CHAIN SIGNATURES: deployed Arena's signer stand-in dev-20261111210426-33311490553978.test.near (sha256 fa83ea44877151bb070d6dcf75b6b8ab8eee8f6d486e14a05ea61b1a910956c1); it records requests and produces no signature. Allowed foreign transactions: ftx-sam (100 0x5A3D000000000000000000000000000000000001 on eip155:11155111, payload 0b551658ffd0270a406238a4705c5817fd892560bfc834f0247667a0b250fda9), ftx-ada (200 0xADA0000000000000000000000000000000000002 on eip155:11155111, payload 51f05e0047f07da443a961fdcdb48b7e9b2d2451397c969f05ca1eccf2fc24ca)
+ADAPTER init: new({"agent":"dev-20261111210421-13079380493470.test.near","allowed_foreign_txs":[{"amount":"100","chain":"eip155:11155111","receiver":"0x5A3D000000000000000000000000000000000001"},{"amount":"200","chain":"eip155:11155111","receiver":"0xADA0000000000000000000000000000000000002"}],"daily_cap":"500","owner":"dev-20261111210420-17713031632987.test.near","signer":"dev-20261111210426-33311490553978.test.near","token":"dev-20261111210423-74911970123097.test.near"})
+{
+  "add_payee": {
+    "detail": "`is_payee` says sam is a payee after the owner added sam",
+    "result": "confirmed"
+  },
+  "cancel_invoice": {
+    "detail": "`get_invoice` shows inv-cancel as \"Cancelled\" and its uncancelled twin inv-mid as \"Approved\"",
+    "result": "confirmed"
+  },
+  "remove_payee": {
+    "detail": "`is_payee` says lin is not a payee after the owner removed lin",
+    "result": "confirmed"
+  },
+  "set_agent": {
+    "detail": "`get_config` showed the agent, then the new account after the owner changed it",
+    "result": "confirmed"
+  },
+  "set_daily_cap": {
+    "detail": "`get_config` showed 500, then 400 after the owner set 400",
+    "result": "confirmed"
+  }
+}

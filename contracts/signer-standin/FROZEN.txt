@@ -1,0 +1,10 @@
+signer-standin re-frozen 2026-11-12 (first frozen 2026-11-11 as fa83ea44...56c1). Change: domain_id and key_version are one field under two names in both request forms, as in the real SignRequestArgs; a request with neither is refused.
+Arena's Chain Signatures stand-in. Not the MPC network; holds no key; produces no signature. (see README.md)
+sha256 signer_standin.wasm bd5b79282c34f6ff24bf4ae78a78eb6aa13d1a2f2a2fd6ae4bf1e143478aa9ef
+sha256 src/lib.rs 4ce5c7ea577a9bbb533deec47584f00dcfed7b06c8854c8d1e5cdd8818602588
+sha256 README.md ca00c66b6716cf15a85d27f745fc332efb71660022a30dde60842f21385646cb
+sha256 Cargo.toml cc38e35ec57bf7572a8a21d217b3c7b8637467a59b9c2bfbf6aa8a9c84cc48d8
+sha256 Cargo.lock f8fa8d28ace811deacfc7e53924c773981fcb6c38d401ba87d8a23c331cf95e5
+sha256 .cargo/config.toml 74891c6e23394c7f061b89e3ab1539f87a0568df2aeb44a26fc057c120b5f65b
+sha256 rust-toolchain.toml 1c84a94da84730f21b66904fdf195d93e85178d0a1fed6f7b2549880ad6b1eaa
+Built with rustc 1.86.0 (rust-toolchain.toml) and .cargo/config.toml (--cfg near, -s), cargo build --release --target wasm32-unknown-unknown.

@@ -1,0 +1,10 @@
+chainsig-honest frozen 2026-11-11, before any arena check run against this build.
+TEST FIXTURE. DO NOT DEPLOY. (see README.md)
+sha256 chainsig_honest.wasm 4aaec8786817521c69ba482aa28c36421b6c1797c7fc8455c0b6e6234e582cdd
+sha256 src/lib.rs 842ce1dbf4b41949f1a6574bcf3bc941a70c784d60953d2e0fac237c8b96e35a
+sha256 README.md 7099e9ca0241a42982cb3559ce3fe8b9de0fd7340cd32e3e684cde384a8f4a04
+sha256 Cargo.toml 40e6dd5dc6c07b14d456fa21c1d2501d4ae5669ca42fd89652897a7d5f3bcee8
+sha256 Cargo.lock 96dd1d66d26187e2c81839adb078ff3365984209b293281c87b2eed342b417d9
+sha256 .cargo/config.toml 74891c6e23394c7f061b89e3ab1539f87a0568df2aeb44a26fc057c120b5f65b
+sha256 rust-toolchain.toml 1c84a94da84730f21b66904fdf195d93e85178d0a1fed6f7b2549880ad6b1eaa
+Built with rustc 1.86.0 (rust-toolchain.toml) and .cargo/config.toml (--cfg near, -s), cargo build --release --target wasm32-unknown-unknown.

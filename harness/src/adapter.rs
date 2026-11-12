@@ -51,7 +51,8 @@ pub const CHOICES: [(&str, &[&str]); 9] = [
     ("paid_value", &["Paid", "paid", "PAID"]),
 ];
 
-pub const PLACEHOLDERS: [&str; 6] = ["$owner", "$agent", "$token", "$daily_cap", "$daily_cap_number", "$intents"];
+/// `$signer` and `$allowed_foreign_txs`: Chain Signatures mode only (chainsig.rs).
+pub const PLACEHOLDERS: [&str; 8] = ["$owner", "$agent", "$token", "$daily_cap", "$daily_cap_number", "$intents", "$signer", "$allowed_foreign_txs"];
 
 /// `"pays_in": "intents"` (2026-11-11): how the guard pays into NEAR Intents. Closed lists only.
 /// Mirrored in tools/check/guard_config.py (INTENTS_KEYS, BENEFICIARY_IN_MSG).
@@ -99,6 +100,9 @@ pub struct GuardConfig {
     /// contract (setup deploys the pinned release wasm) crediting the receiver there. Scored from
     /// token balances PLUS each account's credit inside Intents (`mt_balance_of`). None otherwise.
     pub intents: Option<IntentsCfg>,
+    /// `"signs_via": "chain-signatures"` (chainsig.rs): the guard also asks a Chain Signatures
+    /// signer to sign foreign-chain transactions; setup deploys Arena's signer stand-in. None otherwise.
+    pub chainsig: Option<crate::chainsig::ChainSigCfg>,
 }
 
 /// The values `pays_in` may take. Mirrored in tools/check/guard_config.py (PAYS_IN).
@@ -148,6 +152,7 @@ impl GuardConfig {
             deposits,
             native: false,
             intents: None,
+            chainsig: None,
         }
     }
 
@@ -164,7 +169,7 @@ impl GuardConfig {
     pub fn from_value(file: &str, v: &Value) -> Result<Self> {
         let mut c = Self::vault_a_default(file);
         let top = obj(v, "guard config")?;
-        no_unknown(top, &["arena_guard_config", "pays_in", "intents", "init", "features", "methods", "shapes", "deposits"], "guard config")?;
+        no_unknown(top, &["arena_guard_config", "pays_in", "intents", "signs_via", "chain_signatures", "init", "features", "methods", "shapes", "deposits"], "guard config")?;
         if top.get("arena_guard_config") != Some(&json!(1)) {
             bail!("guard config: \"arena_guard_config\": 1 is required");
         }
@@ -264,6 +269,19 @@ impl GuardConfig {
         if c.intents.is_some() && !uses_intents {
             bail!("init.args: a guard that pays into NEAR Intents must take the Intents contract's account through \"$intents\"");
         }
+        c.chainsig = crate::chainsig::parse_cfg(top)?;
+        for ph in ["$signer", "$allowed_foreign_txs"] {
+            let uses = c.init_args.values().any(|v| v.as_str() == Some(ph));
+            if uses && c.chainsig.is_none() {
+                bail!("init.args: \"{ph}\" is only filled in with \"signs_via\": \"chain-signatures\"");
+            }
+            if c.chainsig.is_some() && !uses {
+                bail!("init.args: a guard that signs via Chain Signatures must take \"{ph}\" at init (the signer's account and the owner's allowed foreign transactions)");
+            }
+        }
+        if c.chainsig.is_some() && (c.native || c.intents.is_some()) {
+            bail!("signs_via: \"chain-signatures\" is supported with \"pays_in\": \"token\" only");
+        }
         if let Some(m) = top.get("methods") {
             let m = obj(m, "methods")?;
             no_unknown(m, &ROLES, "methods")?;
@@ -284,6 +302,11 @@ impl GuardConfig {
         }
         if c.methods.values().any(|n| *n == c.init_method) {
             bail!("methods: the init method {:?} cannot also play a role", c.init_method);
+        }
+        if let Some(cs) = &c.chainsig {
+            if cs.method == c.init_method || c.methods.values().any(|n| *n == cs.method) {
+                bail!("chain_signatures.method {:?} is already the init method or a role method; it needs its own method", cs.method);
+            }
         }
         if let Some(s) = top.get("shapes") {
             let s = obj(s, "shapes")?;
@@ -369,6 +392,9 @@ impl GuardConfig {
     /// The guard's own name for an interface method. Methods that play no role (an attacker
     /// probing an odd name) pass through unchanged.
     pub fn method(&self, logical: &str) -> String {
+        if let Some(cs) = self.chainsig.as_ref().filter(|_| logical == crate::chainsig::LOGICAL_METHOD) {
+            return cs.method.clone();
+        }
         self.methods.get(logical).cloned().unwrap_or_else(|| logical.to_string())
     }
 
@@ -498,6 +524,10 @@ impl GuardConfig {
         let intents = match &self.intents {
             Some(i) => format!(" intents(beneficiary_in_msg={}, may_park_in_intents={})", i.beneficiary_in_msg, i.may_park_in_intents),
             None => String::new(),
+        };
+        let intents = match &self.chainsig {
+            Some(cs) => format!("{intents} signs_via=chain-signatures(method={}, payload_format={}, path={}, key_version={})", cs.method, cs.payload_format, cs.path, cs.key_version),
+            None => intents,
         };
         format!(
             "file={} pays_in={}{intents} init={} features(payees={}, cancel={}, expiry={}, daily_cap={}) renamed=[{}] shapes=[{}] deposits={:?}",

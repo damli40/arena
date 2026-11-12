@@ -38,7 +38,7 @@ CHOICES = {
     "status_field": ["status", "state"],
     "paid_value": ["Paid", "paid", "PAID"],
 }
-PLACEHOLDERS = ["$owner", "$agent", "$token", "$daily_cap", "$daily_cap_number", "$intents"]
+PLACEHOLDERS = ["$owner", "$agent", "$token", "$daily_cap", "$daily_cap_number", "$intents", "$signer", "$allowed_foreign_txs"]
 FEATURES = ["payees", "cancel", "expiry", "daily_cap"]
 # How the guard pays (2026-11-11). Mirrors harness/src/adapter.rs PAYS_IN. "token" = ft_transfer on
 # a NEP-141 token (scored from token balances); "native" = plain NEAR transfers (scored from
@@ -51,6 +51,13 @@ PAYS_IN_HELP = ('"token" (your guard pays with ft_transfer on a NEP-141 token), 
 INTENTS_KEYS = {"beneficiary_in_msg", "may_park_in_intents"}
 BENEFICIARY_IN_MSG = ["account_id", "json_receiver_id"]
 DEFAULT_INTENTS = {"beneficiary_in_msg": "account_id", "may_park_in_intents": False}
+# "signs_via": "chain-signatures" (2026-11-11). Mirrors harness/src/chainsig.rs (SIGNS_VIA,
+# CHAINSIG_KEYS, PAYLOAD_FORMATS, LOGICAL_METHOD, DEFAULT_PATH).
+SIGNS_VIA = ["chain-signatures"]
+CHAINSIG_KEYS = {"method", "payload_format", "path", "key_version"}
+PAYLOAD_FORMATS = ["arena-foreign-tx-v1"]
+CHAINSIG_PLACEHOLDERS = ["$signer", "$allowed_foreign_txs"]
+DEFAULT_CHAINSIG = {"method": "request_signature", "payload_format": "arena-foreign-tx-v1", "path": "ethereum-1", "key_version": 0}
 
 # What each role does, in plain words (shown in errors and given to Muse).
 ROLE_HELP = {
@@ -70,7 +77,7 @@ ROLE_HELP = {
 DEFAULT_DEPOSITS = {"approve_invoice": 1, "add_payee": 1, "remove_payee": 0, "cancel_invoice": 0, "set_daily_cap": 1}
 DEFAULT_INIT = {"method": "new", "args": {"owner": "$owner", "agent": "$agent", "token": "$token", "daily_cap": "$daily_cap"}}
 
-CONFIG_KEYS = {"arena_guard_config", "_about", "name", "policy", "pays_in", "intents", "init", "features", "methods", "shapes", "deposits"}
+CONFIG_KEYS = {"arena_guard_config", "_about", "name", "policy", "pays_in", "intents", "signs_via", "chain_signatures", "init", "features", "methods", "shapes", "deposits"}
 MAPPING_KEYS = {"arena_mapping", "_about", "methods", "shapes", "deposits"}
 
 
@@ -216,10 +223,42 @@ def check_config(d, where="config"):
     _need(not uses or intents, f"{where}: init.args uses \"$intents\", which Arena fills in only with \"pays_in\": \"intents\"")
     _need(uses or not intents, f"{where}: a guard that pays into NEAR Intents must be told the Intents contract's account at init. "
           "Add an init argument with the value \"$intents\" (for example \"intents\": \"$intents\").")
+    check_chainsig(d, args, where)
     _check_mapping_part(d, where)
     if d.get("pays_in") == "native":
         check_native(d.get("init", {}).get("args", DEFAULT_INIT["args"]), d.get("shapes", {}), where)
     return d
+
+
+def check_chainsig(d, args, where="config"):
+    """"signs_via": "chain-signatures": the guard also asks a Chain Signatures signer to sign
+    foreign-chain transactions. Closed lists only; token payments only."""
+    signs = "signs_via" in d
+    if signs:
+        _need(isinstance(d["signs_via"], str) and d["signs_via"] in SIGNS_VIA,
+              f"{where}: signs_via = {d['signs_via']!r} is not allowed. Use \"chain-signatures\" (your guard asks NEAR's Chain Signatures contract to sign).")
+        _need(d.get("pays_in", "token") == "token", f"{where}: \"signs_via\": \"chain-signatures\" works only with \"pays_in\": \"token\"")
+    if "chain_signatures" in d:
+        _need(signs, f"{where}: the \"chain_signatures\" block is only allowed with \"signs_via\": \"chain-signatures\"")
+        b = d["chain_signatures"]
+        _need(isinstance(b, dict) and not (set(b) - CHAINSIG_KEYS), f"{where}: chain_signatures must be an object with only {sorted(CHAINSIG_KEYS)}")
+        if "method" in b:
+            _need(name_ok(b["method"]), f"{where}: chain_signatures.method {b['method']!r} is not a NEAR method name")
+        if "payload_format" in b:
+            _need(isinstance(b["payload_format"], str) and b["payload_format"] in PAYLOAD_FORMATS,
+                  f"{where}: chain_signatures.payload_format = {b['payload_format']!r} is not supported; only {PAYLOAD_FORMATS}. "
+                  "Arena cannot count signing requests in a format it cannot rebuild.")
+        if "path" in b:
+            _need(isinstance(b["path"], str) and 1 <= len(b["path"]) <= 64 and all(33 <= ord(c) <= 126 for c in b["path"]),
+                  f"{where}: chain_signatures.path must be 1-64 printable ASCII characters")
+        if "key_version" in b:
+            _need(_is_int(b["key_version"]) and 0 <= b["key_version"] <= 2**32 - 1,
+                  f"{where}: chain_signatures.key_version must be a whole number 0..4294967295")
+    used = [v for v in args.values() if isinstance(v, str)]
+    for ph in CHAINSIG_PLACEHOLDERS:
+        _need(ph not in used or signs, f"{where}: init.args uses \"{ph}\", which Arena fills in only with \"signs_via\": \"chain-signatures\"")
+        _need(ph in used or not signs, f"{where}: a guard that signs via Chain Signatures must be told {'the signer account' if ph == '$signer' else 'the owner allowed foreign transactions'} "
+              f"at init. Add an init argument with the value \"{ph}\".")
 
 
 def check_native(init_args, shapes, where="config"):
@@ -293,6 +332,16 @@ def resolve(config, mapping, wasm_methods, pays_in=None):
               "config: a guard that pays into NEAR Intents must take the Intents contract's account at init through \"$intents\". "
               "--pays-in intents needs a config that says so.")
         resolved["intents"] = {**DEFAULT_INTENTS, **config.get("intents", {})}
+    if config.get("signs_via"):  # only then, so every other resolved file keeps exactly its keys
+        _need(pays == "token", "config: \"signs_via\": \"chain-signatures\" works only with \"pays_in\": \"token\"")
+        cs = {**DEFAULT_CHAINSIG, **config.get("chain_signatures", {})}
+        resolved["signs_via"] = config["signs_via"]
+        resolved["chain_signatures"] = cs
+        if cs["method"] not in exported:
+            problems.append(f"chain_signatures.method: the guard has no method `{cs['method']}`. Arena needs the method the agent calls to "
+                            "ask for a signature. Name it with \"chain_signatures\": {\"method\": \"<your method>\"}.")
+        if cs["method"] in seen or cs["method"] == init["method"]:
+            problems.append(f"chain_signatures.method: `{cs['method']}` is already the init method or a role method; it needs its own method.")
     return resolved, problems
 
 
