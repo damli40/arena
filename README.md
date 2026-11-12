@@ -140,6 +140,12 @@ Guard G is tested on a separate path, because it has no invoices: 12 attacks, 11
 
 Guards A to C all held for the same reason: each records the payment before it moves the money. Their source code, built files and test runners are not in this repo, to keep them anonymous. Per-test detail, including the two corrections we made during the runs: `evidence/coverage-table.md`.
 
+**10 more teams' guards, where the agent names who gets paid:** 10 checked, 0 broke, 5 held on
+every rule they claim, 5 held on some rules and could not finish a 24-hour window rule (too long to
+prove on the local test chain). One more team's guard moves no money, so Arena cannot test it. We
+publish counts only: no letters, names or code. How to read these and what you can re-run:
+`EVALUATE.md` section 6.
+
 ## Limits
 
 - **Local sandbox, except one result.** We ran only the planted-flaw guard and its fix on testnet, on the current build (`0382023b…`). The race never reaches the `reconcile` fix, so testnet did not test that fix. We tested the three other teams' guards on the local sandbox.

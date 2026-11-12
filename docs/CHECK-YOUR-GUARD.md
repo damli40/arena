@@ -428,6 +428,9 @@ What this does not do:
   owner choose the window length, choose a short one in the config.
 - **A guard that only answers allow or refuse, and moves no money, cannot be checked this way.**
   Arena scores money that moved.
+- **No callback in the config means the forged-callback attack is not run.** Arena cannot tell a
+  guard with no callback from a config that left it out, so that attack is "could not finish",
+  never "not applicable" and never held.
 
 Self-tests for every field above, each with a correct mapping and a wrong one that must be refused:
 `python3 tools/check/direct_ext_selftest.py --out DIR` (the fixture is

@@ -244,6 +244,25 @@ same guard scored `held 51/51` (with the 51-attack library of that day), because
 To check your own guard, see `docs/CHECK-YOUR-GUARD.md`. You pass your `.wasm`, and a small config
 if your guard starts differently or lacks a rule.
 
+### Check that the extended direct mode refuses wrong configs
+
+Guards where the agent names who gets paid come in many shapes: the agent's key on the guard's own
+account, a payee list filled one call at a time, owner calls that need 1 yoctoNEAR, rolling or
+anchored or lifetime windows, a signature on every payment. `docs/CHECK-YOUR-GUARD.md` ("direct
+mode, extended") lists how a config declares each one. Each shape has a self-test against one test
+contract (`fixtures/direct-ext-fixture/`): a right config, which must hold, and a wrong one, which
+Arena must refuse ("could not finish", nothing held or broke).
+
+```
+python3 -I tools/check/direct_ext_selftest.py --out runs/ext-selftest --jobs 6
+```
+
+It should end `ext self-tests: 18/18 passed`, exit code 0. It took us 1956 s (about 33 minutes);
+the six window tests are the slow part, because each moves the local chain's clock about 11
+minutes. Local sandbox only, no network. Each line says what it checked, for example
+`X11 PASS [window] REFUSED: rolling window labelled anchored`. The Rust side of the same code is in
+`cd harness && cargo test --release` (`78 passed; 0 failed; 1 ignored`).
+
 Things to know when you read a result:
 
 - **"Held" means these attacks found nothing. It does not mean the guard is safe.**
@@ -410,6 +429,21 @@ See `docs/CHECK-BEFORE-YOU-PAY.md` for more and `docs/ON-CHAIN.md` for what is s
 - **The capability counts for the 17 researched guards** (`docs/GUARD-CAPABILITIES.md` section 2.4)
   come from reading each team's public source and deployed code; the per-guard notes are private,
   to keep the teams anonymous, so the counts cannot be re-derived from this repo.
+- **The 10 other teams' guards checked with the extended direct mode** (README, "Other teams'
+  guards"). We publish counts only, so nothing here names them, and their configs and code are not
+  in this repo. To re-run one, you would need its deployed account (private), network access to read
+  its code from NEAR testnet (one read-only call), a config for it, and then the same command as for
+  your own guard: `python3 tools/check/direct_check.py --wasm guard.wasm --guard-config guard.json
+  --out report-dir`. Without the private files you can check two things: that the gate refuses wrong
+  configs (the self-tests above, `ext self-tests: 18/18 passed`), and that an attack on a rule the
+  gate did not validate, or one that hit a harness error, is never counted as held
+  (`python3 -I tools/check/tests/test_direct.py`, ends `OK`). The counts themselves you
+  have to take from us: 10 checked, 0 broke, 5 held on every rule they claim, 5 could not finish a
+  24-hour window rule (proving one needs about 26 hours of local chain clock; Arena moves at most 2
+  per proof), 1 more cannot be tested (it moves no money). In all 10 the forged-callback attack was
+  not run, because no config maps a callback. For the two that need a signed request on every
+  payment, Arena signed as the signing service: that tests the guard's on-chain checks, not the
+  team's real service.
 - **The real-model runs** need a model API key: `NEARAI_API_KEY` for NEAR AI Cloud (the default),
   or `MUSE_API_KEY` with `ARENA_MODEL_PROVIDER=muse`. Without one, read the saved trials in
   `evidence/`.
