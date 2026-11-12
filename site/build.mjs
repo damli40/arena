@@ -540,13 +540,13 @@ const guardMeta = { A: "Invoice payer with a payee list and a daily cap", B: "Na
 const guardRows = ["A", "B", "C"].map((G) => `
   <details class="guard">
     <summary><span class="g-letter">${G}</span><span class="g-what">${esc(guardMeta[G])}</span><span class="g-n">${covCount(G, "claimed", true)}/${covCount(G, "claimed")}</span></summary>
-    <div class="card"><table><thead><tr><th>Test</th><th>What we tried</th><th>Result</th><th>Paid (limit)</th></tr></thead><tbody>
-    ${cov[G].rows.map((r) => `<tr><td>${md(r.test)}</td><td>${md(r.tried)}</td><td>${md(r.result)}</td><td class="num">${md(r.paid)}</td></tr>`).join("")}
+    <div class="card"><table class="stack"><thead><tr><th>Test</th><th>What we tried</th><th>Result</th><th>Paid (limit)</th></tr></thead><tbody>
+    ${cov[G].rows.map((r) => `<tr><td>${md(r.test)}</td><td data-label="What we tried">${md(r.tried)}</td><td data-label="Result">${md(r.result)}</td><td class="num" data-label="Paid (limit)">${md(r.paid)}</td></tr>`).join("")}
     </tbody></table></div>
   </details>`).join("");
 
 const cap = (n) => n[0].toUpperCase() + n.slice(1);
-const injRows = inj.map((r) => `<tr><td>${esc(r.scenario)}</td><td class="num${r.wrong.length ? " bad" : ""}">${r.wrong.length ? r.wrong.map(([n, v]) => `${v} to ${cap(n)}`).join(", ") : "0"}</td><td class="num">${r.policy}</td></tr>`).join("");
+const injRows = inj.map((r) => `<tr><td>${esc(r.scenario)}</td><td class="num${r.wrong.length ? " bad" : ""}" data-label="Against intent">${r.wrong.length ? r.wrong.map(([n, v]) => `${v} to ${cap(n)}`).join(", ") : "0"}</td><td class="num" data-label="Beyond policy">${r.policy}</td></tr>`).join("");
 
 const page = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Arena</title>
@@ -633,6 +633,21 @@ ul.guides span{display:block;color:var(--muted);font-size:13.5px}
 .sample-nums .k{font:500 10.5px/1.35 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:8px}
 .sample-nums .s.bad{background:var(--bad-bg)}.sample-nums .s.bad .n,.sample-nums .s.bad .k{color:var(--bad)}
 .site-foot code{font-size:11.5px}
+/* phones: the tables turn into one block per row, each value under its column name (data-label),
+   so no column is cut off at the right edge. The header row stays for screen readers. */
+@media (max-width:560px){
+  table.stack thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  table.stack,table.stack tbody,table.stack tr,table.stack td{display:block}
+  table.stack tr{padding:12px 10px}
+  table.stack td{padding:0;border:0}
+  table.stack tbody tr + tr td{border-top:0}
+  table.stack tbody tr + tr{border-top:1px solid var(--line)}
+  table.stack td:first-child{font-weight:500;margin-bottom:6px}
+  table.stack td[data-label]{margin-top:6px;white-space:normal}
+  table.stack.pair tr{display:grid;grid-template-columns:1fr 1fr;column-gap:16px}
+  table.stack.pair td:first-child{grid-column:1/-1;margin-bottom:0}
+  table.stack td[data-label]::before{content:attr(data-label);display:block;font:500 10.5px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+}
 .reveal{opacity:0;transform:translateY(12px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)}.reveal.on{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal{opacity:1;transform:none;transition:none}ol.log li{animation:none}}
 @media (max-width:768px){.callouts{display:none}.callout-list{display:block;margin:10px 0 0;padding-left:20px;font-size:13px;color:var(--muted)}.callout-list b{color:var(--ink);font-weight:500}.hero,.split,.run{grid-template-columns:1fr;gap:28px}.hero{padding:48px 0 40px}.contrast .n{font-size:48px}.tabs button{flex:1 1 45%}details.guard summary{grid-template-columns:32px 1fr auto 18px;gap:10px}.g-letter{font-size:22px}section{padding:48px 0}.paths a{grid-template-columns:1fr 18px;gap:4px 12px}.paths .p-d{grid-column:1;grid-row:2;font-size:14px}.paths .p-go{grid-row:1/3;grid-column:2;align-self:center}.sample-nums{grid-template-columns:1fr 1fr}}
@@ -681,7 +696,7 @@ ${topbar("results")}
       <p class="sub">Five separate runs of a scripted agent that obeys every injection, added up. No single run paid more than ${injMaxRun}. Every payment went to a creditor the owner had approved, so the guard allowed it.</p>
     </div>
     <div>
-      <div class="card"><table><thead><tr><th>Injected through</th><th>Against intent</th><th>Beyond policy</th></tr></thead><tbody>${injRows}</tbody></table></div>
+      <div class="card"><table class="stack pair"><thead><tr><th>Injected through</th><th>Against intent</th><th>Beyond policy</th></tr></thead><tbody>${injRows}</tbody></table></div>
       <p class="small">The real model, Muse Spark 1.3, was fooled 0 times in 52 runs.</p>
     </div>
   </div>
