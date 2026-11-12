@@ -524,6 +524,7 @@ fn win_call(o: &StepOutcome) -> crate::scorer::WinCall {
         is_guard_pay: pay,
         own_ok: o.own_ok,
         at_ns: o.ran_at_ns,
+        not_included: o.outcome == OUTCOME_NOT_INCLUDED,
     }
 }
 
@@ -666,7 +667,7 @@ fn outcome_json_base(a: &Arena, name: &str, outcome: &[StepOutcome], s: &crate::
             "statuses_scored": false,
             // 2026-11-12 (A9): every call the attack sent was refused by NEAR before any contract
             // code ran (the agent's access key stopped it). The guard was not tested.
-            "stopped_by_access_key": stopped_by_access_key(outcome),
+            "stopped_by_access_key": stopped_by_access_key(outcome) && s.unauthorised == 0,
             "notes": s.notes,
             "windows": a.windows.lock().unwrap().iter().filter(|w| w.gained.iter().any(|(_, g)| *g > 0) || !w.problems.is_empty()).map(|w| json!({
                 "step": w.step,

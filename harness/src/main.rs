@@ -332,6 +332,16 @@ async fn run_files(
             }
             None => None,
         };
+        // Native mode: re-read the receivers' starting state AFTER any owner policy, so the
+        // per-step windows and the whole-attempt total start from the same moment (review
+        // finding 6, 2026-11-12). Without a policy nothing ran in between, so nothing changes.
+        if a.target.is_native() && policy.is_some() {
+            let mut snaps = Vec::new();
+            for (name, acct) in a.by_name.iter().filter(|(n, _)| setup::RECEIVERS.contains(n)) {
+                snaps.push(setup::snapshot_receiver(&a.worker, name, acct.id()).await?);
+            }
+            a.native_before = snaps;
+        }
         // Conservation check (conserve.rs): every balance it needs, right before the first step.
         a.before = Some(conserve::snapshot(&a, &steps).await?);
         let outcome = seq::execute(&a, &steps).await?;
@@ -341,7 +351,8 @@ async fn run_files(
         let ok_calls = outcome.iter().filter(|o| o.success).count();
         let tx_steps = outcome.iter().filter(|o| o.kind != "view").count();
         let rejected = outcome.iter().filter(|o| o.outcome == seq::OUTCOME_PROTOCOL_REJECTED).count();
-        let key_stopped = seq::stopped_by_access_key(&outcome);
+        // Only an attempt that moved nothing beyond policy is labelled (a break is never relabelled).
+        let key_stopped = seq::stopped_by_access_key(&outcome) && s.unauthorised == 0;
         println!("  calls_ok={ok_calls}/{} protocol_rejected={rejected}/{tx_steps} attempts_used=1 target={tl}", outcome.len());
         if key_stopped {
             println!("  STOPPED BY THE ACCESS KEY: NEAR refused every call before any contract code ran; the guard's own checks were not tested (A9)");

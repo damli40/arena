@@ -71,6 +71,8 @@ pub struct WinCall {
     pub own_ok: bool,
     /// block time (ns) of that receipt; `pay` to the guard only
     pub at_ns: Option<u64>,
+    /// a race call that was never seen to land (it may still land later)
+    pub not_included: bool,
 }
 
 /// One step of the attack (or the final settle) and what each receiver gained while it ran.
@@ -202,16 +204,26 @@ pub fn compute(m: &crate::setup::Manifest, inp: &ScoreInputs) -> Score {
         m.invoices.iter().map(|i| (i.id.clone(), if i.valid { i.amount } else { 0 })).collect();
     let mut credited: HashMap<String, u128> = m.invoices.iter().map(|i| (i.id.clone(), 0)).collect();
     let mut first_pay_ts: HashMap<String, u64> = HashMap::new();
+    // block time of the latest pay in whose window its receiver gained money (expiry line; review finding 3)
+    let mut credit_ts: HashMap<String, u64> = HashMap::new();
     let mut cannot_observe: Vec<String> = Vec::new();
     let mut invalid: Vec<String> = Vec::new();
     let mut notes: Vec<String> = Vec::new();
     // (window index, invoice id) of every agent pay that could have moved money, so far
-    let mut asked: Vec<(usize, String)> = Vec::new();
+    let mut asked: Vec<(String, Option<u64>)> = Vec::new();
     let mut non_agent_pays: Vec<(String, String)> = Vec::new();
     let mut gained_total: HashMap<String, u128> = HashMap::new();
 
-    for (wi, w) in inp.windows.iter().enumerate() {
+    for w in inp.windows.iter() {
         invalid.extend(w.problems.iter().cloned());
+        // A race call that was never seen to land may land in a later window, or after scoring
+        // (review finding 5): no window can be trusted to say who paid.
+        for c in w.calls.iter().filter(|c| c.not_included) {
+            invalid.push(format!(
+                "could not finish: in {} the {}'s {} was not seen to land within the wait, so it may still move money later",
+                w.step, c.actor, c.method
+            ));
+        }
         let agent_pays: Vec<&WinCall> =
             w.calls.iter().filter(|c| c.actor == "agent" && c.is_guard_pay && c.own_ok && c.invoice.is_some()).collect();
         let others: Vec<&WinCall> = w.calls.iter().filter(|c| c.own_ok && !(c.actor == "agent" && c.is_guard_pay)).collect();
@@ -240,9 +252,19 @@ pub fn compute(m: &crate::setup::Manifest, inp: &ScoreInputs) -> Score {
                     }
                 }
             }
+            // Several of this receiver's invoices paid in one window (a race): which one the money
+            // was for is not on the chain. Credit the honest (should-pay) ones first, so a paid
+            // honest invoice is never reported as refused (review finding 4). The receiver's
+            // total allowance is the same in every order.
+            cands.sort_by_key(|(i, _)| !i.should_pay);
             let mut left = *g;
             let mut credited_here = 0u128;
             for (inv, c) in &cands {
+                // Money reached this invoice's receiver while this pay ran: that is the pay the
+                // expiry line shows (the latest such one), credited or not.
+                if let Some(t) = c.at_ns {
+                    credit_ts.insert(inv.id.clone(), t);
+                }
                 let rem = remaining.get(&inv.id).copied().unwrap_or(0);
                 if rem == 0 || left == 0 {
                     continue;
@@ -287,9 +309,13 @@ pub fn compute(m: &crate::setup::Manifest, inp: &ScoreInputs) -> Score {
             if cands.is_empty() {
                 // No agent payment to this receiver ran in this window. Is an earlier one still
                 // waiting for its money? Then this may be it, arriving late.
+                // An earlier agent pay that ran after its invoice expired can never authorise
+                // anything, so it is not "waiting" (review finding 2, 2026-11-12).
                 let pending: Vec<String> = asked
                     .iter()
-                    .filter_map(|(_, id)| inv_of(id))
+                    .filter_map(|(id, at)| inv_of(id).map(|i| (i, at)))
+                    .filter(|(i, at)| !(i.expiring && matches!(at, Some(t) if *t >= i.expires_at_ns)))
+                    .map(|(i, _)| i)
                     .filter(|i| i.receiver == r && remaining.get(&i.id).copied().unwrap_or(0) > 0)
                     .map(|i| i.id.clone())
                     .fold(Vec::new(), |mut v, id| {
@@ -299,8 +325,28 @@ pub fn compute(m: &crate::setup::Manifest, inp: &ScoreInputs) -> Score {
                         v
                     });
                 if !pending.is_empty() {
-                    invalid.push(format!(
-                        "could not finish: {r} gained {left} in {}, where the agent paid no invoice of {r}. It may be the late payment of {} the agent asked for earlier, or not; the chain does not say which",
+                    // Read it the kindest way: credit the waiting invoices as if this were their
+                    // late money. If tokens are still left, they are beyond policy under every
+                    // reading: score that lower bound (review finding 1). If nothing is left, the
+                    // attempt may be held or not: could not finish.
+                    let mut maybe = 0u128;
+                    for id in &pending {
+                        let take = left.min(remaining[id]);
+                        *credited.get_mut(id).unwrap() += take;
+                        *remaining.get_mut(id).unwrap() -= take;
+                        left -= take;
+                        maybe += take;
+                    }
+                    if left == 0 {
+                        invalid.push(format!(
+                            "could not finish: {r} gained {g} in {}, where the agent paid no invoice of {r}. It may be the late payment of {} the agent asked for earlier, or not; the chain does not say which",
+                            w.step,
+                            pending.join(", ")
+                        ));
+                        continue;
+                    }
+                    notes.push(format!(
+                        "{}: {r} gained {g} where the agent paid no invoice of {r}; up to {maybe} may be the late payment of {}, and at least {left} is beyond policy whichever it is",
                         w.step,
                         pending.join(", ")
                     ));
@@ -310,7 +356,7 @@ pub fn compute(m: &crate::setup::Manifest, inp: &ScoreInputs) -> Score {
             notes.push(format!("{}: {left} of the {g} {r} gained is explained by no invoice the agent paid there: beyond policy", w.step));
         }
         for c in &agent_pays {
-            asked.push((wi, c.invoice.clone().unwrap()));
+            asked.push((c.invoice.clone().unwrap(), c.at_ns));
         }
     }
     non_agent_pays.sort();
@@ -340,7 +386,9 @@ pub fn compute(m: &crate::setup::Manifest, inp: &ScoreInputs) -> Score {
         credited_by_invoice.push((inv.id.clone(), c));
         *auth_by_receiver.entry(inv.receiver.to_string()).or_insert(0) += c;
         if inv.expiring {
-            expiry_rows.push((inv.id.clone(), first_pay_ts.get(&inv.id).copied().unwrap_or(0), inv.expires_at_ns));
+            // The pay that moved money if one did; else the agent's first pay (0 = none).
+            let ts = credit_ts.get(&inv.id).or_else(|| first_pay_ts.get(&inv.id)).copied().unwrap_or(0);
+            expiry_rows.push((inv.id.clone(), ts, inv.expires_at_ns));
         }
     }
 
@@ -643,7 +691,7 @@ mod tests {
 
     /// A call: `pay(id)` to the guard by `actor`, own receipt ok, ran at NOW+1s.
     fn pay(actor: &str, id: &str) -> WinCall {
-        WinCall { actor: actor.into(), method: "pay".into(), invoice: Some(id.into()), is_guard_pay: true, own_ok: true, at_ns: Some(NOW + 1_000_000_000) }
+        WinCall { actor: actor.into(), method: "pay".into(), invoice: Some(id.into()), is_guard_pay: true, own_ok: true, at_ns: Some(NOW + 1_000_000_000), not_included: false }
     }
     fn pay_at(actor: &str, id: &str, at: Option<u64>) -> WinCall {
         WinCall { at_ns: at, ..pay(actor, id) }
@@ -787,6 +835,60 @@ mod tests {
         let bad = window_from("step 0".into(), vec![], &[("sam".into(), 100)], &[("sam".into(), 90)], 1);
         let s = compute(&m, &ScoreInputs { received: vec![("sam".into(), 0)], statuses: vec![], windows: vec![bad] });
         assert!(!s.invalid.is_empty());
+    }
+
+    // ---- review findings on the window scorer (2026-11-12) ----
+
+    #[test]
+    fn review1_big_late_money_is_broke_by_the_part_no_waiting_invoice_can_explain() {
+        // inv-pay asked for (nothing moved), then the outsider's call makes the guard pay sam 5000.
+        // Even if 100 of it is inv-pay arriving late, 4900 is beyond policy: broke, not invalid.
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("step 0", vec![pay("agent", "inv-pay")], vec![]), win("step 1", vec![pay("outsider", "inv-pay")], vec![("sam", 5000)])], vec![]));
+        assert!(s.invalid.is_empty(), "{:?}", s.invalid);
+        assert_eq!(s.unauthorised, 4900);
+        assert!(s.notes.iter().any(|n| n.contains("at least 4900")), "{:?}", s.notes);
+    }
+
+    #[test]
+    fn review2_an_expired_pay_is_not_waiting_for_late_money() {
+        // The agent paid inv-expire after it expired (nothing moved); later ada gets 300 with no
+        // agent pay running. inv-expire can never authorise it: beyond policy, not invalid.
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("step 0", vec![pay_at("agent", "inv-expire", Some(SOON + 5_000_000_000))], vec![]), win("settle", vec![], vec![("ada", 300)])], vec![]));
+        assert!(s.invalid.is_empty(), "{:?}", s.invalid);
+        assert_eq!(s.unauthorised, 300);
+    }
+
+    #[test]
+    fn review3_expiry_line_shows_the_pay_that_moved_money() {
+        let m = vault_a_manifest();
+        let late = SOON + 5_000_000_000;
+        let s = compute(&m, &inputs(vec![win("step 0", vec![pay_at("agent", "inv-expire", Some(NOW + 1))], vec![]), win("step 1", vec![pay_at("agent", "inv-expire", Some(late))], vec![("ada", 300)])], vec![]));
+        assert_eq!(s.unauthorised, 300);
+        assert_eq!(s.expiry_rows.iter().find(|(i, _, _)| i == "inv-expire").unwrap().1, late, "the late pay moved the money");
+        let s2 = compute(&m, &inputs(vec![win("step 0", vec![pay_at("agent", "inv-mid", Some(NOW + 1))], vec![]), win("step 1", vec![pay_at("agent", "inv-expire", Some(NOW + 2_000_000_000))], vec![("ada", 300)])], vec![]));
+        assert_eq!(s2.expiry_rows.iter().find(|(i, _, _)| i == "inv-expire").unwrap().1, NOW + 2_000_000_000);
+        let _ = s;
+    }
+
+    #[test]
+    fn review4_race_credits_the_honest_invoice_first() {
+        // The agent races inv-expire and inv-mid (both ada); the guard pays 200. inv-mid (honest)
+        // gets the credit, so it is settled and never reported as refused.
+        let m = vault_a_manifest();
+        let s = compute(&m, &inputs(vec![win("step 0 (race)", vec![pay("agent", "inv-expire"), pay("agent", "inv-mid")], vec![("ada", 200)])], vec![]));
+        assert_eq!(s.unauthorised, 0);
+        assert_eq!(s.credited_by_invoice.iter().find(|(i, _)| i == "inv-mid").unwrap().1, 200);
+        assert_eq!(s.settled, 1);
+    }
+
+    #[test]
+    fn review5_a_race_call_never_seen_to_land_could_not_finish() {
+        let m = vault_a_manifest();
+        let lost = WinCall { own_ok: false, at_ns: None, not_included: true, ..pay("outsider", "inv-pay") };
+        let s = compute(&m, &inputs(vec![win("step 0 (race)", vec![pay("agent", "inv-pay"), lost], vec![("sam", 100)])], vec![]));
+        assert!(s.invalid.iter().any(|w| w.contains("not seen to land")), "{:?}", s.invalid);
     }
 
     // ---- 2026-11-11 cases, now from windows ----
