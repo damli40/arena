@@ -169,7 +169,7 @@ const GIF = "img/arena-check.gif";
 const gifSize = (b) => (b.toString("latin1", 0, 3) === "GIF" ? { w: b.readUInt16LE(6), h: b.readUInt16LE(8) } : null);
 const gifDims = existsSync(join(HERE, GIF)) ? gifSize(readFileSync(join(HERE, GIF))) : null;
 const gifHtml = existsSync(join(HERE, GIF))
-  ? `<figure class="check-gif"><img src="${GIF}"${gifDims ? ` width="${gifDims.w}" height="${gifDims.h}"` : ""} alt="A terminal running ./arena check on a guard. Attacks run one by one, then the report card shows how many held and how many broke." loading="lazy" decoding="async"></figure>`
+  ? `<figure class="check-gif"><img src="${GIF}"${gifDims ? ` width="${gifDims.w}" height="${gifDims.h}" style="aspect-ratio:${gifDims.w}/${gifDims.h}"` : ""} alt="A terminal running ./arena check on a guard. Attacks run one by one, then the report card shows how many held and how many broke." loading="lazy" decoding="async"></figure>`
   : "";
 
 // Sample report: a real report.json from an `arena check` run. Shown only if the file exists.
