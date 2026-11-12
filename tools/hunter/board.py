@@ -146,6 +146,7 @@ p.lede b{color:var(--ink);font-weight:600}
 .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius-card);overflow:hidden;margin:0 0 18px}
 .summary > div{background:var(--card);padding:16px 18px 14px}
 .summary .n{font:500 30px/1 var(--sans);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.summary .n{white-space:nowrap}
 .summary .k{font:500 10.5px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:8px}
 .summary .note{font-size:12.5px;line-height:1.4;color:var(--muted);margin-top:6px}
 .summary .bad{background:var(--bad-bg)}.summary .bad .n,.summary .bad .k,.summary .bad .note{color:var(--bad)}
@@ -181,6 +182,7 @@ th small.tip,td small.tip{white-space:normal;min-width:150px;color:var(--ink);fo
 /* short screens (a phone on its side): the table box may fill the screen, not 72% of it, so more than two rows show */
 @media (max-height:520px){.scroll{max-height:calc(100vh - 16px)}.scroll:has(> table:empty){height:calc(100vh - 16px)}}
 @media (max-width:640px){.board{padding-top:32px}.summary{grid-template-columns:1fr 1fr}.summary .n{font-size:24px}.summary > div{padding:14px 14px 12px}tr > :first-child{min-width:150px;max-width:170px}td:first-child{font-size:12.5px}th,td{padding:8px 9px}.c{min-width:92px}}
+@media (max-width:400px){.summary .n{font-size:20px}}
 </style></head><body>
 __TOPBAR__
 <main class="wrap">
