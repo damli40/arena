@@ -581,7 +581,7 @@
    "C1",
    "C6"
   ],
-  "created_at": "2026-11-12T00:38:23Z",
+  "created_at": "2026-11-12T07:15:28Z",
   "disjoint_from_public_library": true,
   "families_covered": [
    "cancelled",
@@ -593,7 +593,7 @@
    "over-cap",
    "removed-payee"
   ],
-  "set_sha256": "e35a4c1f90e10414e3f3babdaa8752fd475f37863de0b20d6790e0f657df3c01"
+  "set_sha256": "d314e04fc574c1f75b8a9319204ffe7a6b04a6c0538773e2a86335c1bfb349b9"
  },
  "hunts": {
   "attacks_deduped": 10,
@@ -616,7 +616,7 @@
   "evidence/hunts/2026-11-11-news-d340fd.json": "d6a0fe2beb8dbb5ad7d93c0df432aaaf139412c3b22cc62608cc563a6e6bc634",
   "evidence/hunts/2026-11-11-papers-e3db55.json": "ac6e7e3ed3ab167fff3b240989ea2071e17c7b881b5b90f74ba1c5dbd7807e6c",
   "evidence/mutation-2026-11-11/summary.tsv": "8d13af78efe4079e919a05ca8fa12dcf3ab99da9f05b62ab3055ac2b47339ab1",
-  "hidden-set/COMMITMENT.json": "e9740fa92a2f7f0f6b297868da2463c241762ea5e2ff8ed90899c85ae354395e",
+  "hidden-set/COMMITMENT.json": "aba7c4052bc9d2dbdcc09e89cb99c1e2a6442c8dd079018ea10a04c29565335f",
   "sequences-ai/01-double-pay-race-retry.json": "ee20a23e6ed48191a795367a3fb4b258209308ef3a73f942e14679b19ac63099",
   "sequences-ai/02-triple-race-cap-breach.json": "47b1db5d21e2be6f3117159f41ee1471bdcfc9a2426741b62288e7cb21dc07b1",
   "sequences-ai/03-mixed-invoice-race-cap.json": "1107d42881128f8ce6ec6ccf2c3a535079c5562ac671bde2fe97279742aa3959",
