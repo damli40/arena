@@ -30,8 +30,7 @@
         "method": "cancel_invoice",
         "args": {
           "id": "inv-pay"
-        },
-        "deposit_yocto": 1
+        }
       }
     },
     {
@@ -79,6 +78,6 @@
     "expected_safe_result": "each owner call refused by the guard (owner only); the agent's later pays follow the original rules",
     "added": "2026-11-12",
     "author": "written by hand for A9: bypass-02 sent by an account whose key reaches the guard",
-    "steps_sha256": "3c92c58e65b6698c3824f6b5ce795857b4e9f26d12d6aeb5d9360487851efe33"
+    "steps_sha256": "8c259dfc4fa41232f2bdb7cd85b73730b68a0e843fd8d32dec75bed56e3bc1bf"
   }
 }
