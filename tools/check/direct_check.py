@@ -387,12 +387,14 @@ def check(wasm, cfg, out, jobs=4, attack_dirs=("sequences-direct", "sequences-in
         rep["verdict"] = "could not finish at G2/G3: " + status["_mapping"]["why"]
     if attacks:
         files = [p for d in attack_dirs for p in sorted((ROOT / d).glob("*.json"))]
-        # An attack that forges the guard's callback does not apply to a guard with no callback.
+        # An attack that forges the guard's callback needs a mapped callback. With none mapped, Arena
+        # cannot tell "the guard has no callback" from "the config left it out", so the attack is
+        # not run and is "could not finish", never "not applicable" and never held.
         no_cb = [p for p in files if not (c.get("direct") or {}).get("callback") and '"callback"' in p.read_text()]
         for p in no_cb:
             s = json.loads(p.read_text())
-            rep["attacks"].append({"attack": s["name"], "dir": p.parent.name, "rule": X.attack_rule(s["meta"]["rule"], claims), "result": NA,
-                                   "why": "the guard has no payment callback to forge"})
+            rep["attacks"].append({"attack": s["name"], "dir": p.parent.name, "rule": X.attack_rule(s["meta"]["rule"], claims), "result": CNF,
+                                   "why": "not run: the config maps no callback, and Arena does not check whether the guard has one"})
         files = [p for p in files if p not in no_cb]
         run_them = status["_mapping"]["proven"]
         res = run_many(jobs, [(str(p), (lambda p=p: run_one(p, wasm, cfg, out / "attacks", False))) for p in files]) if run_them else {}

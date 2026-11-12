@@ -85,7 +85,9 @@ def all_held(rep):
 
 
 def held_only(rep):
-    bad = [a["attack"] + "=" + a["result"] for a in rows(rep) if a["result"] not in (D.HELD, D.KEY, D.NA)]
+    # The fixture maps no callback, so the callback-forging attack is "could not finish" (not run).
+    no_cb = lambda a: a["result"] == D.CNF and a.get("why", "").startswith("not run: the config maps no callback")
+    bad = [a["attack"] + "=" + a["result"] for a in rows(rep) if a["result"] not in (D.HELD, D.KEY, D.NA) and not no_cb(a)]
     unval = [r for r, s in rep.get("rules_status", {}).items() if not r.startswith("_") and s.get("claimed") and not s.get("validated")]
     held = sum(1 for a in rows(rep) if a["result"] == D.HELD)
     ok = not bad and not unval and held > 0
