@@ -164,8 +164,12 @@ const repoPath = (p) => REPO ? `<a href="${esc(`${REPO.base}/blob/${REPO.ref}/${
 
 // Demo GIF: shown only if the file exists at build time. Nothing is rendered otherwise.
 const GIF = "img/arena-check.gif";
+// Its width and height are read from the GIF header (bytes 6-9), so the page keeps the right space for it
+// before it arrives and nothing below jumps when it does.
+const gifSize = (b) => (b.toString("latin1", 0, 3) === "GIF" ? { w: b.readUInt16LE(6), h: b.readUInt16LE(8) } : null);
+const gifDims = existsSync(join(HERE, GIF)) ? gifSize(readFileSync(join(HERE, GIF))) : null;
 const gifHtml = existsSync(join(HERE, GIF))
-  ? `<figure class="check-gif"><img src="${GIF}" alt="A terminal running ./arena check on a guard. Attacks run one by one, then the report card shows how many held and how many broke." loading="lazy"></figure>`
+  ? `<figure class="check-gif"><img src="${GIF}"${gifDims ? ` width="${gifDims.w}" height="${gifDims.h}"` : ""} alt="A terminal running ./arena check on a guard. Attacks run one by one, then the report card shows how many held and how many broke." loading="lazy" decoding="async"></figure>`
   : "";
 
 // Sample report: a real report.json from an `arena check` run. Shown only if the file exists.
