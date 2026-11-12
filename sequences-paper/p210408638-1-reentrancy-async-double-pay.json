@@ -48,6 +48,95 @@
       "native-fixed",
       "vault-a"
     ],
-    "validation": "broke"
+    "validation": "broke",
+    "spec": {
+      "property": "A guard pays each approved invoice at most once, whatever the timing of the pay calls.",
+      "failure_mode": "No reservation before the transfer: the second raced pay of inv-mid passes the check while the first transfer is in flight, so ada is paid twice.",
+      "capabilities": [
+        "C1"
+      ],
+      "preconditions": [
+        "inv-mid approved: 200 to ada"
+      ],
+      "oracle": {
+        "decides": "beyond_policy",
+        "receiver": "ada"
+      },
+      "ordering": "overlap",
+      "expected": [
+        {
+          "reference": "vault-a",
+          "outcome": "held",
+          "beyond_policy": 0,
+          "mechanism": [
+            {
+              "pred": "over_equals",
+              "receiver": "ada",
+              "amount": 0
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-mid",
+              "status": "Paid"
+            }
+          ]
+        },
+        {
+          "reference": "guard:fixed",
+          "outcome": "held",
+          "beyond_policy": 0,
+          "mechanism": [
+            {
+              "pred": "over_equals",
+              "receiver": "ada",
+              "amount": 0
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-mid",
+              "status": "Paid"
+            }
+          ]
+        },
+        {
+          "reference": "guard:vulnerable_fixture",
+          "outcome": "broke",
+          "beyond_policy": 200,
+          "flaw": "no-reservation-before-transfer",
+          "mechanism": [
+            {
+              "pred": "over_equals",
+              "receiver": "ada",
+              "amount": 200
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-mid",
+              "status": "Paid"
+            }
+          ],
+          "receiver": "ada"
+        },
+        {
+          "reference": "mutant:M5",
+          "outcome": "broke",
+          "beyond_policy": 200,
+          "flaw": "no-reservation-before-transfer",
+          "mechanism": [
+            {
+              "pred": "over_equals",
+              "receiver": "ada",
+              "amount": 200
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-mid",
+              "status": "Paid"
+            }
+          ],
+          "receiver": "ada"
+        }
+      ]
+    }
   }
 }

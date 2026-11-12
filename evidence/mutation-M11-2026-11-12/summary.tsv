@@ -1,0 +1,11 @@
+target	attack	unauthorised
+M11	control-pay-valid	0
+M11	race-double-pay	0
+M11	sequential-second-pay	0
+M11	pay-cancelled	0
+M11	pay-expired	0
+M11	pay-removed-payee	0
+M11	outsider-pays	0
+M11	gas-starve-then-pay	0
+M11	pay-over-cap	0
+M11	race-two-invoices	0

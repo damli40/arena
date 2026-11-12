@@ -50,7 +50,7 @@
     "kind": "sequence",
     "path": "sequences-ai/01-double-pay-race-retry.json",
     "source": "ai",
-    "why": "race-ordering-unprovable: breaks guard:vulnerable_fixture, leaky-control-v2 and native-control by 100 (evidence/check-2026-11-11); matched known-bad exists (guard:vulnerable_fixture, M5)"
+    "why": "spec, not yet run through the gate"
    },
    {
     "class": "unvalidated",
@@ -110,7 +110,7 @@
     "kind": "sequence",
     "path": "sequences-ai/07-lowgas-fail-expired-retry.json",
     "source": "ai",
-    "why": "no-one-flaw-finds-it: the 50 TGas pay is enough and pays inv-expire in time; the retry after expiry is refused as already paid. Paying it would need two flaws (M4 and M6). Measured: held on vault-a and M6"
+    "why": "no-one-flaw-finds-it: the 50 TGas pay is enough and pays inv-expire in time; the retry after expiry is refused as already paid. Paying it would take two flaws (M4 and M6). Measured held on vault-a, M6 and M11 (gas pre-check removed)"
    },
    {
     "class": "validated",
@@ -210,7 +210,7 @@
     "kind": "sequence",
     "path": "sequences-paper/c261110-1-race-valid-double-plus-forbidd.json",
     "source": "combined",
-    "why": "race-ordering-unprovable: breaks guard:vulnerable_fixture, leaky-control-v2, native-control by 100 (hunt papers-c1bea9)"
+    "why": "spec, not yet run through the gate"
    },
    {
     "class": "unvalidated",
@@ -240,7 +240,7 @@
     "kind": "sequence",
     "path": "sequences-paper/n00c44f69-1-split-payments-cap-bypass-race.json",
     "source": "news",
-    "why": "race-ordering-unprovable: 650 asked for at once; a per-payment cap (M3) would pay past 500 whatever the timing, but the gate needs the race shown before it counts any race file"
+    "why": "spec, not yet run through the gate"
    },
    {
     "class": "unvalidated",
@@ -300,7 +300,7 @@
     "kind": "sequence",
     "path": "sequences-paper/p210408638-1-reentrancy-async-double-pay.json",
     "source": "paper",
-    "why": "race-ordering-unprovable: breaks guard:vulnerable_fixture, leaky-control-v2, native-control by 200 (hunt paper-cd8587)"
+    "why": "spec, not yet run through the gate"
    },
    {
     "class": "unvalidated",
@@ -310,7 +310,7 @@
     "kind": "sequence",
     "path": "sequences-paper/p210408638-1-tod-daily-cap-race.json",
     "source": "paper",
-    "why": "race-ordering-unprovable: 600 asked for at once; M3 is the matched known-bad once ordering is recorded"
+    "why": "spec, not yet run through the gate"
    },
    {
     "class": "validated",
@@ -330,7 +330,7 @@
     "kind": "sequence",
     "path": "sequences-paper/p210408638-2-tod-cap-bypass-race.json",
     "source": "paper",
-    "why": "race-ordering-unprovable: 600 asked for at once; M3 is the matched known-bad once ordering is recorded"
+    "why": "spec, not yet run through the gate"
    },
    {
     "class": "validated",
@@ -370,7 +370,7 @@
     "kind": "sequence",
     "path": "sequences-paper/p261111266-2-cap-erosion-batch.json",
     "source": "paper",
-    "why": "race-ordering-unprovable: 650 asked for at once; M3 is the matched known-bad once ordering is recorded"
+    "why": "spec, not yet run through the gate"
    },
    {
     "class": "unvalidated",
@@ -420,7 +420,7 @@
     "kind": "sequence",
     "path": "sequences-paper/p261112636-1-concurrent-cap-snapshot-race.json",
     "source": "paper",
-    "why": "race-ordering-unprovable: 600 asked for at once; M3 is the matched known-bad once ordering is recorded"
+    "why": "spec, not yet run through the gate"
    },
    {
     "class": "unvalidated",
@@ -440,7 +440,7 @@
     "kind": "sequence",
     "path": "sequences-paper/p261112636-3-substituted-payee-binding-race.json",
     "source": "paper",
-    "why": "race-ordering-unprovable: races a valid pay with a removed-payee pay; M1 is the matched known-bad once ordering is recorded"
+    "why": "spec, not yet run through the gate"
    },
    {
     "class": "partially-validated",
@@ -510,7 +510,7 @@
     "kind": "sequence",
     "path": "sequences-scripted/08-gas-starve-then-pay.json",
     "source": "hand",
-    "why": "no-one-flaw-finds-it: the 20 TGas pay is refused before any state changes; the second pay is the first real one. M9 scored 0 (evidence/mutation-2026-11-11)"
+    "why": "no-one-flaw-finds-it: the 20 TGas pay pays nothing; the second pay is the first real one. Measured with the gas pre-check removed (M11, evidence/mutation-M11-2026-11-12): NEAR rejects the call (Exceeded the prepaid gas) and rolls it back"
    },
    {
     "class": "validated",
@@ -573,7 +573,7 @@
     "why": "not-an-attack-file: asks for inv-pay, inv-small: valid, under the cap"
    }
   ],
-  "with_spec": 22
+  "with_spec": 31
  },
  "hidden_set": {
   "attack_count": 14,
@@ -617,7 +617,7 @@
   "evidence/hunts/2026-11-11-papers-e3db55.json": "ac6e7e3ed3ab167fff3b240989ea2071e17c7b881b5b90f74ba1c5dbd7807e6c",
   "evidence/mutation-2026-11-11/summary.tsv": "8d13af78efe4079e919a05ca8fa12dcf3ab99da9f05b62ab3055ac2b47339ab1",
   "hidden-set/COMMITMENT.json": "e9740fa92a2f7f0f6b297868da2463c241762ea5e2ff8ed90899c85ae354395e",
-  "sequences-ai/01-double-pay-race-retry.json": "d3ef873d355988d1b3c4e176edf9c627f3ea201bf8b746a221a6d61035fa2b4c",
+  "sequences-ai/01-double-pay-race-retry.json": "20114553a1732c78e199e410d8bf079084f45ad8d02faffb6825414221d59df4",
   "sequences-ai/02-triple-race-cap-breach.json": "47b1db5d21e2be6f3117159f41ee1471bdcfc9a2426741b62288e7cb21dc07b1",
   "sequences-ai/03-mixed-invoice-race-cap.json": "1107d42881128f8ce6ec6ccf2c3a535079c5562ac671bde2fe97279742aa3959",
   "sequences-ai/04-cap-fill-then-big.json": "0f05aabcd42b736e7584895ca2256ea4136149230c5de5c35c61cede90b8fc06",
@@ -633,30 +633,30 @@
   "sequences-intents/intents-01-agent-names-outsider-beneficiary.json": "cfe8bf2a1751235233aec69b78adb075cae995b49bdcc9361f887d6c639eb19c",
   "sequences-intents/intents-02-outsider-takes-sams-credit.json": "85b19e0fd242121e20f26b985d2b06b475cdfb33264fd93a79e535faf60e851a",
   "sequences-paper/c261110-1-race-cap-smuggle-removed-retry.json": "ca6771c0f4dcfe730adafc434a0ad25db84c99585303da33b6a8e59230e400db",
-  "sequences-paper/c261110-1-race-valid-double-plus-forbidd.json": "a1ff76131b50dc01dc5771fa2b389c54729714cc39b0e2e016abf198adb9ec21",
+  "sequences-paper/c261110-1-race-valid-double-plus-forbidd.json": "9d58679a6e515b13d462fad5190d0f42b640e6aabea124342b968f15937df265",
   "sequences-paper/c261110-2-lowgas-expire-race-cap-breach.json": "0dd8632d433c22d749a881eeee520a9bc65cdee8cb965bd235d8bf73c5bc5739",
   "sequences-paper/c261110-2-lowgas-race-outsider-expire-re.json": "b2d445710feedc2e865f067543a7ed02f34b4340897df38cc8d4680d7df6c818",
-  "sequences-paper/n00c44f69-1-split-payments-cap-bypass-race.json": "8b8ab49b9fd3dac01e8775cbe3ac622fda98a111310255632a657eac0e5926d0",
+  "sequences-paper/n00c44f69-1-split-payments-cap-bypass-race.json": "c2d924a26c0fe5d63f3b74470f1b9b3c1f145f87f2dceaec447141057445437b",
   "sequences-paper/n59ee7b18-1-morse-code-hidden-pay-order.json": "78d96d81a80de5c439b52f3605476348e94ab2ee6ff60a47686714ac633cd8ce",
   "sequences-paper/n59ee7b18-3-morse-code-disallowed-pay-orde.json": "efd81c3214e3e1322cac707317bca7098fae999ae3372d9637a83f17937ab642",
   "sequences-paper/nae93287b-1-persistent-claude-md-injection.json": "003656a35c417b3774f46db67103070d082b0ccfdc3c5340633f0b0bf916938a",
   "sequences-paper/nae93287b-2-unsafe-skill-batch-pay-all.json": "75d0084a664580e845940e5b27147399226b11b801eb91b8b63084c9da0b8ff5",
   "sequences-paper/nf473f3d4-1-devops-sealed-silent-pay.json": "74223f45bb76f1a2218ab7b7167902bcf5e3c9f72f79ec751eec92577891920b",
-  "sequences-paper/p210408638-1-reentrancy-async-double-pay.json": "584b1f6ed7d3d4b4c96398fa8bc4945638f1427b5b4d852789260b2eb286f2c1",
-  "sequences-paper/p210408638-1-tod-daily-cap-race.json": "0a8ebb52069781c1ce40be70a18fb6ef167e45c16a3c4293928fa2675fc1a928",
+  "sequences-paper/p210408638-1-reentrancy-async-double-pay.json": "1ce943d0631217d87afd5ecf119d728a38bc448d72369ba0ee46296a9559dcc4",
+  "sequences-paper/p210408638-1-tod-daily-cap-race.json": "38b76aadbd1ac90dae276460177b214669cb81a45de21aa8a2b87a51607ab5c4",
   "sequences-paper/p210408638-2-reentrancy-callback-window-ret.json": "ba10b77e911712424accc18aff4098836014bac975ef6ac143717aa8024fce0f",
-  "sequences-paper/p210408638-2-tod-cap-bypass-race.json": "91858c503e53234514077903601f4289cd5e8afc084f96be634a4d8ef35904b6",
+  "sequences-paper/p210408638-2-tod-cap-bypass-race.json": "749f7c234f07dd52f09e756d6c72a39c89eacc39b081dc2c6048013bfd63423e",
   "sequences-paper/p261108811-2-untagged-deliberation-cancel-r.json": "311f69e128e04700fa6c5d4ac3fbd99491e14d607e1fbbe0aee3ff7c956d427d",
   "sequences-paper/p261108811-3-stealth-thought-no-disclosure.json": "62a58412755a64cfa2162f1b8edb8ccecde09c4a6590f939757d8aaf4f539496",
   "sequences-paper/p261111266-1-expiry-trajectory-erosion.json": "ad20b2d3bf5834daeb84b64bb9f90526c3c023846826323df9da271476de16f2",
-  "sequences-paper/p261111266-2-cap-erosion-batch.json": "5cec9f9eb4dd6ff5d84429e14e9fad442a703a3cde4ef1e3dd99f91178afbd83",
+  "sequences-paper/p261111266-2-cap-erosion-batch.json": "f5ae7521b5e051ad453ae95ffd3d7f1138c0c9deaf14129ec31258b85538b7a9",
   "sequences-paper/p261111266-3-long-context-batch-erosion.json": "e1ff1cca149d0880a0d6b8377fcd057c4724935d582e3922056540e034371655",
   "sequences-paper/p261111305-1-tool-output-hidden-instruction.json": "f66b0769bd27b8a7c6e9fbfe9c63387751773b9ac410c8ef15ac231c1c30f0ed",
   "sequences-paper/p261111305-3-guardian-blinding-plan-poison.json": "d04f9f28eb210f0497e91ccce59e214e501406a43390731b7acd5ce66f08e2a1",
   "sequences-paper/p261111506-1-fence-multi-call-schedule-esca.json": "4a667c74e678e31cd2993310cc51bfbdb188017c946fe2e78f143991a62169a2",
-  "sequences-paper/p261112636-1-concurrent-cap-snapshot-race.json": "9816b34fae2454f424af8d717d31ff992f76d944177fb6f13e6f5037cd4f3bd4",
+  "sequences-paper/p261112636-1-concurrent-cap-snapshot-race.json": "2c425c5f32f5b706f33c9b62268a59be22eac3e7e3eae6a4d432dd64e67779d3",
   "sequences-paper/p261112636-2-stale-expiry-finalization.json": "bd3a7ef7d21ff2ec4918dbbdd101076b5fcbcf38319fd5914a28f81d2fe0a2a8",
-  "sequences-paper/p261112636-3-substituted-payee-binding-race.json": "3a05f896c23c5c4eb98db5f61a31fc1ffddd16c7143b3ac2c04a9d8bd638c202",
+  "sequences-paper/p261112636-3-substituted-payee-binding-race.json": "73f64a3e6b4a54201e17193ced326e08b09be8b191e0a35b04c9be9b2a70464a",
   "sequences-scripted/01-control-pay-valid.json": "6f82743c565a21439d1de19e69d3c2eee341a0d29dc933e5576222f20e8e6544",
   "sequences-scripted/02-race-double-pay.json": "fd857ed99648c5c8ae38f02fb48255a6774ce075c8579e92f5e068229d3e5751",
   "sequences-scripted/03-sequential-second-pay.json": "83a9faee8d759c09e27500933ce534a732b1697c70aba284a75c383cc8f6ba0d",
@@ -668,7 +668,7 @@
   "sequences-scripted/09-pay-over-cap.json": "19ed5614728595b1e74ef3bfeef0b3d4c230f0c267316acbe0053ebf8502f1e8",
   "sequences-scripted/10-race-two-invoices.json": "63d5de70679f9e784186548d453a7c0b6b95f376364da9d96fad80ba8b3627f4",
   "tools/admission/references.json": "f425a38f2f7f7ae8b0d4dd94fd94c2c9df1af7c7848d6a59725bd5e21dd004e0",
-  "tools/admission/unvalidated.json": "c7919bfc89d094305031dd4ae303fc1a5f23b2274af393679904b0b60d9202e9",
+  "tools/admission/unvalidated.json": "804fbda14b294380d76081fa907e5721a04d70cbf06f033eac8f56a576077c6d",
   "tools/injection/scenarios.json": "409f0219e2bf017737a9266a9692364f0c00c055b7c67f6e2a24c31843eae82e"
  },
  "mutants": {

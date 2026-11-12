@@ -76,6 +76,95 @@
     "expected_safe_result": "one payment of 100; later calls refused; unauthorised payout 0",
     "added": "2026-11-09",
     "author": "AI tester, one-shot, from INTERFACE.md + policy + manifest (model not recorded)",
-    "steps_sha256": "38df90353a63b1fb3cac34c5cfb4043471197af9a335551b42a23c4d43274106"
+    "steps_sha256": "38df90353a63b1fb3cac34c5cfb4043471197af9a335551b42a23c4d43274106",
+    "spec": {
+      "property": "A guard pays each approved invoice at most once, whatever the timing of the pay calls.",
+      "failure_mode": "No reservation before the transfer: two raced pays both pass the already-paid check and both transfer; the later retry is refused as already paid.",
+      "capabilities": [
+        "C1"
+      ],
+      "preconditions": [
+        "inv-pay approved: 100 to sam"
+      ],
+      "oracle": {
+        "decides": "beyond_policy",
+        "receiver": "sam"
+      },
+      "ordering": "overlap",
+      "expected": [
+        {
+          "reference": "vault-a",
+          "outcome": "held",
+          "beyond_policy": 0,
+          "mechanism": [
+            {
+              "pred": "over_equals",
+              "receiver": "sam",
+              "amount": 0
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-pay",
+              "status": "Paid"
+            }
+          ]
+        },
+        {
+          "reference": "guard:fixed",
+          "outcome": "held",
+          "beyond_policy": 0,
+          "mechanism": [
+            {
+              "pred": "over_equals",
+              "receiver": "sam",
+              "amount": 0
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-pay",
+              "status": "Paid"
+            }
+          ]
+        },
+        {
+          "reference": "guard:vulnerable_fixture",
+          "outcome": "broke",
+          "beyond_policy": 100,
+          "flaw": "no-reservation-before-transfer",
+          "mechanism": [
+            {
+              "pred": "over_equals",
+              "receiver": "sam",
+              "amount": 100
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-pay",
+              "status": "Paid"
+            }
+          ],
+          "receiver": "sam"
+        },
+        {
+          "reference": "mutant:M5",
+          "outcome": "broke",
+          "beyond_policy": 100,
+          "flaw": "no-reservation-before-transfer",
+          "mechanism": [
+            {
+              "pred": "over_equals",
+              "receiver": "sam",
+              "amount": 100
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-pay",
+              "status": "Paid"
+            }
+          ],
+          "receiver": "sam"
+        }
+      ]
+    }
   }
 }

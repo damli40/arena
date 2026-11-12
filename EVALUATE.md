@@ -260,20 +260,30 @@ no private files), the line it prints, the exit code, and the time we measured o
 | 21 of 53 attacks validated, 1 partially, 31 unvalidated, and the committed count files are what the code computes | `python3 -I tools/admission/manifest.py --check` | `manifest: up to date` (the counts are in `evidence/MANIFEST.md`, line "Admission: 21 of 53 validated, ...") | 0 | 1 s |
 | A stamp belongs to this file (validator passes; evidence folder, attack id, steps and spec hashes match; each stored run recorded these calls) and follows from the stored raw runs (re-judged, no sandbox) | `python3 -I tools/admission/admit.py --recheck sequences-scripted/03-sequential-second-pay.json` | `recheck scripted-03-sequential-second-pay: stored runs give validated (every reference matched in 3 counted runs; matched known-bad: mutant:M4); stamp agrees` | 0 | under 1 s |
 | The double-pay race is only partially validated: no block heights recorded | `python3 -I tools/admission/admit.py --recheck sequences-scripted/02-race-double-pay.json` | `recheck scripted-02-race-double-pay: stored runs give partially-validated (outcomes matched, race ordering not shown: ...steps[].receipts absent...); stamp agrees` | 0 | under 1 s |
-| A hand-written, edited or copied "validated" stamp is refused, by the validator and by `--recheck` (stamp and spec copied onto another attack, steps edited with the hash recomputed, evidence folder of another attack, run files of another attack, validated claimed on partial runs); a race counts only if each later check ran in a block strictly before the earlier callback (the callback is the earliest guard receipt after the token transfer, not a later one) (same block = tie, never counted); earlier evidence files are byte-identical | `python3 -I -m unittest discover -s tools/admission/tests` | `Ran 63 tests`, `OK` | 0 | 3 s |
+| A newly admitted hunter attack (2026-11-12) is the first in the library to catch mutant M3, a daily cap checked per payment instead of as a running total | `python3 -I tools/admission/admit.py --recheck sequences-paper/p261108811-3-stealth-thought-no-disclosure.json` | `recheck p261108811-3-stealth-thought-no-disclosure: stored runs give validated (every reference matched in 3 counted runs; matched known-bad: mutant:M2, mutant:M3); stamp agrees` | 0 | under 1 s |
+| Every attack outside the validated count says why, and a person's reason can never sit on an attack the gate has judged | `python3 -I tools/admission/manifest.py --check`, then read the `why` column of `evidence/MANIFEST.md` (reasons from `tools/admission/unvalidated.json`) | `manifest: up to date`; 16 rows `race-ordering-unprovable`, 4 `no-one-flaw-finds-it`, 3 `stopped-by-access-key`, 3 `intent-only`, 1 `tests-another-contract`, 4 `not-an-attack-file` | 0 | 1 s |
+| A hand-written, edited or copied "validated" stamp is refused, by the validator and by `--recheck` (stamp and spec copied onto another attack, steps edited with the hash recomputed, evidence folder of another attack, run files of another attack, validated claimed on partial runs); a race counts only if each later check ran in a block strictly before the earlier callback (the callback is the earliest guard receipt after the token transfer, not a later one) (same block = tie, never counted); earlier evidence files are byte-identical; a recorded reason on a specced attack is refused | `python3 -I -m unittest discover -s tools/admission/tests` | `Ran 63 tests`, `OK` | 0 | 3 s |
 | The gate itself reproduces a validation (local sandbox; needs the build from `./verify.sh fast`) | `python3 -I tools/admission/admit.py sequences-scripted/03-sequential-second-pay.json --runs 3` | `ADMISSION scripted-03-sequential-second-pay: validated (every reference matched in 3 counted runs; matched known-bad: mutant:M4)`; raw runs in `runs/evidence/admission/...` (gitignored) | 0 | 37 s |
-| The hidden set was fixed before its runs, and every public run file is consistent with it | `python3 -I tools/hidden/hidden.py check-public` | `hidden-set public files: 6 of 6 consistent with set 835729d9f34fa123... (9 attacks)` | 0 | under 1 s |
+| The hidden set was fixed before its runs, and every public run file is consistent with the set it names | `python3 -I tools/hidden/hidden.py check-public` | `hidden-set public files: 12 of 12 consistent with the set each names (6 on current set e35a4c1f90e10414... (14 attacks); 6 on earlier set 835729d9f34fa123... (9 attacks))` | 0 | under 1 s |
+| The hunter drops a proposal with the same steps as a hidden attack and records only that it matched (never which one) | `python3 -I -m unittest discover -s tools/hunter/tests -p test_hidden_dupes.py` | `Ran 4 tests`, `OK` | 0 | under 1 s |
 
 How an outsider checks the hidden set without seeing it: `hidden-set/COMMITMENT.json` holds the
-set's sha256 (`835729d9...`), its size (9) and its families. In a git clone (not an export),
+set's sha256 (`e35a4c1f...`), its size (14) and its families. Set 2 (2026-11-12) is set 1's 9 attacks,
+unchanged, plus 5 variants of attacks validated in the open that day; set 1's commitment is kept,
+byte for byte, in `hidden-set/previous/835729d9....json`, and the Nov 11 run files still check
+against it. In a git clone (not an export),
 `git log --format='%H %cI' -- hidden-set/COMMITMENT.json` shows the commitment was committed before
 the run files in `evidence/hidden-set/` (`git log -- evidence/hidden-set/`). `check-public` above
 checks every run file names that hash and that its rows and totals agree. If a result is published
 on testnet, its `suite_version` must equal the same hash. What you cannot check: the attacks
 themselves, or that we ran them honestly. Those wait for the reveal (rule in `COMMITMENT.json`:
-after 5 guard code hashes or 30 days). Limit of these first runs: the set has no race variant, so
-the double-pay guards (`guard:vulnerable_fixture`, `leaky-control-v2`) held all 8 attacks that
-apply to them; only `intents-planted` broke (100 beyond policy, 1 attack). On the two Intents
+after 5 guard code hashes or 30 days). Limit of the runs on both sets: the set has no race variant (a race
+can be admitted only once the harness on main records per-receipt block heights, and it does not
+yet), so the double-pay guards (`guard:vulnerable_fixture`, `leaky-control-v2`) held every attack
+that applies to them (13 of 14 on set 2); only `intents-planted` broke (100 beyond policy, 1 attack).
+Every one-flaw mutant a hidden attack is admitted against (M1, M2, M3, M4, M6, M7, M8) is a copy of
+vault-a and is not among the six guards run, so these runs show the set holds on good guards, not
+that it catches bad ones; the private admission runs show that. On the two Intents
 guards, a "held" on a family whose rule the guard does not claim (cancel, expiry, payee list) is
 not meaningful: `hidden.py run` does not apply `arena check`'s applicability rules.
 

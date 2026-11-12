@@ -63,3 +63,47 @@ What it does not cover: race attacks (the gate cannot count them yet, no receipt
 | p261111506-1-fence-multi-call-schedule-esca | mutant-M2 | 200 | ok; ok; contract-failure (invoice already paid) | `5598b29d9246` |
 | p261111506-1-fence-multi-call-schedule-esca | mutant-M4 | 100 | ok; contract-failure (daily cap exceeded); ok | `dfce202d5a41` |
 | p261111506-1-fence-multi-call-schedule-esca | vault-a | 0 | ok; contract-failure (daily cap exceeded); contract-failure (invoice already paid) | `e692eb2d2170` |
+
+## Round 2 (same day, same harness binary as round 1; harness/ is unchanged on this branch): races and M11
+
+Nine race attacks once each on vault-a and the one-flaw references they could reach, and the three low-gas attacks on M11
+(gas pre-check removed, `mutants/M11`, plan `evidence/mutation-plan-2026-11-12.md`). M11 is not in references.json, so the
+survey passed it as `--wasm mutants/M11/vault_a.wasm --wasm-label M11`. Raw results: `round-2/`.
+
+What this decides: the nine race files got specs (commit after this file) and go through the gate, where they can reach
+partially-validated at most (no receipt trace). M11 paid nothing on any of the three low-gas attacks, so they stay unvalidated.
+
+| attack | reference | beyond policy | call outcomes (guard's panic message) | result sha256 |
+|---|---|---|---|---|
+| 01-double-pay-race-retry | guard-fixed | 0 | race ok; race contract-failure (payment already in flight); contract-failure (invoice already paid) | `6879661d76fb` |
+| 01-double-pay-race-retry | guard-vulnerable_fixture | 100 | race ok; race ok; contract-failure (invoice already paid) | `89c739342a62` |
+| 01-double-pay-race-retry | mutant-M5 | 100 | race ok; race ok; contract-failure (invoice already paid) | `30953985faf8` |
+| 01-double-pay-race-retry | vault-a | 0 | race ok; race contract-failure (payment already in flight); contract-failure (invoice already paid) | `88cec1e0ba8b` |
+| 07-lowgas-fail-expired-retry | M11 | 0 | ok; contract-failure (invoice already paid) | `0dc706084a3e` |
+| 08-gas-starve-then-pay | M11 | 0 | contract-failure (Exceeded the prepaid gas); ok | `8decaa159bdc` |
+| 08-lowgas-retry-double | M11 | 0 | ok; contract-failure (invoice already paid) | `e805c2eefdf8` |
+| c261110-1-race-valid-double-plus-forbidd | guard-fixed | 0 | race ok; race contract-failure (payment already in flight); race contract-failure (panicked at guard/src/lib.rs:180:46:); race contract-failure (panicked at guard/src/lib.rs:180:46:); contract-failure (agent only); contract-failure (invoice already paid); contract-failure (panicked at guard/src/lib.rs:180:46:); contract-failure (panicked at guard/src/lib.rs:180:46:) | `8c2f9e919ee6` |
+| c261110-1-race-valid-double-plus-forbidd | guard-vulnerable_fixture | 100 | race ok; race ok; race contract-failure (panicked at guard/src/lib.rs:180:46:); race contract-failure (panicked at guard/src/lib.rs:180:46:); contract-failure (agent only); contract-failure (invoice already paid); contract-failure (panicked at guard/src/lib.rs:180:46:); contract-failure (panicked at guard/src/lib.rs:180:46:) | `2a932b1ccf66` |
+| c261110-1-race-valid-double-plus-forbidd | mutant-M5 | 100 | race ok; race ok; race contract-failure (invoice cancelled); race contract-failure (receiver is no longer a payee); contract-failure (only the agent can pay); contract-failure (invoice already paid); contract-failure (invoice cancelled); contract-failure (receiver is no longer a payee) | `52ceb29f4a3b` |
+| c261110-1-race-valid-double-plus-forbidd | vault-a | 0 | race ok; race contract-failure (payment already in flight); race contract-failure (invoice cancelled); race contract-failure (receiver is no longer a payee); contract-failure (only the agent can pay); contract-failure (invoice already paid); contract-failure (invoice cancelled); contract-failure (receiver is no longer a payee) | `a54c57003a16` |
+| n00c44f69-1-split-payments-cap-bypass-race | mutant-M2 | 150 | race ok; race ok; race ok; race ok | `491dc5f1dbf9` |
+| n00c44f69-1-split-payments-cap-bypass-race | mutant-M3 | 150 | race ok; race ok; race ok; race ok | `ad749989ae95` |
+| n00c44f69-1-split-payments-cap-bypass-race | vault-a | 0 | race ok; race ok; race ok; race contract-failure (daily cap exceeded) | `67602e69391d` |
+| p210408638-1-reentrancy-async-double-pay | guard-fixed | 0 | race ok; race contract-failure (payment already in flight) | `740fe236b629` |
+| p210408638-1-reentrancy-async-double-pay | guard-vulnerable_fixture | 200 | race ok; race ok | `a752128c7999` |
+| p210408638-1-reentrancy-async-double-pay | mutant-M5 | 200 | race ok; race ok | `bbb82fe3bf30` |
+| p210408638-1-reentrancy-async-double-pay | vault-a | 0 | race ok; race contract-failure (payment already in flight) | `57f6a5ad22df` |
+| p210408638-1-tod-daily-cap-race | mutant-M2 | 100 | race ok; race ok; race ok | `9f833908992f` |
+| p210408638-1-tod-daily-cap-race | mutant-M3 | 100 | race ok; race ok; race ok | `6c61dbbc2dba` |
+| p210408638-1-tod-daily-cap-race | vault-a | 0 | race ok; race ok; race contract-failure (daily cap exceeded) | `4a6e5184cd74` |
+| p210408638-2-tod-cap-bypass-race | mutant-M2 | 100 | race ok; race ok; race ok | `b5eec358ca32` |
+| p210408638-2-tod-cap-bypass-race | mutant-M3 | 100 | race ok; race ok; race ok | `290edf894596` |
+| p210408638-2-tod-cap-bypass-race | vault-a | 0 | race ok; race ok; race contract-failure (daily cap exceeded) | `cdebaeae98d1` |
+| p261111266-2-cap-erosion-batch | mutant-M2 | 150 | race ok; race ok; race ok; race ok | `49ee9b1c13c5` |
+| p261111266-2-cap-erosion-batch | mutant-M3 | 150 | race ok; race ok; race ok; race ok | `0e370e5456c6` |
+| p261111266-2-cap-erosion-batch | vault-a | 0 | race ok; race ok; race ok; race contract-failure (daily cap exceeded) | `596f5efac1a7` |
+| p261112636-1-concurrent-cap-snapshot-race | mutant-M2 | 100 | race ok; race ok; race ok | `9fd208bd13d9` |
+| p261112636-1-concurrent-cap-snapshot-race | mutant-M3 | 100 | race ok; race ok; race ok | `0a7f16c472c8` |
+| p261112636-1-concurrent-cap-snapshot-race | vault-a | 0 | race ok; race ok; race contract-failure (daily cap exceeded) | `e58e6df4a5ce` |
+| p261112636-3-substituted-payee-binding-race | mutant-M1 | 400 | race ok; race ok | `95d9d035a5bb` |
+| p261112636-3-substituted-payee-binding-race | vault-a | 0 | race ok; race contract-failure (receiver is no longer a payee) | `15ae9d0a6b5d` |

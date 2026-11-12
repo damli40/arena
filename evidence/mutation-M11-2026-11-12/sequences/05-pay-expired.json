@@ -1,0 +1,5 @@
+{"name":"pay-expired","steps":[
+        {"wait_seconds":30},
+        {"call":{"actor":"agent","method":"pay","args":{"id":"inv-expire"}}},
+        {"call":{"actor":"agent","method":"pay","args":{"id":"inv-expire"}}}
+    ]}

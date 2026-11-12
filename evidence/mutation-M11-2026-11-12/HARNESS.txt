@@ -1,0 +1,3 @@
+harness pinned from git HEAD a88c99131d379e415718286b23536eabd5e25440 via git archive
+sha256 arena-harness  50a81bdb3c9dad3d664ad37a8ee2ab4494e880ac8024c9f36d58a663fe1a321d
+sha256 test_token.wasm c8071a2265b6dbd595f319972dc3271d928a73b5a98456538ae5246abf8d3e61
