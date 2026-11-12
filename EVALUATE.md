@@ -258,9 +258,9 @@ no private files), the line it prints, the exit code, and the time we measured o
 | Claim | Command | Line it prints | Exit | Time |
 |---|---|---|---|---|
 | 7 of 53 attacks validated, 1 partially, 45 unvalidated, and the committed count files are what the code computes | `python3 -I tools/admission/manifest.py --check` | `manifest: up to date` (the counts are in `evidence/MANIFEST.md`, line "Admission: 7 of 53 validated, ...") | 0 | 1 s |
-| A stamp follows from the stored raw runs (re-judged, no sandbox) | `python3 -I tools/admission/admit.py --recheck sequences-scripted/03-sequential-second-pay.json` | `recheck scripted-03-sequential-second-pay: stored runs give validated (every reference matched in 3 counted runs; matched known-bad: mutant:M4); stamp agrees` | 0 | under 1 s |
+| A stamp belongs to this file (validator passes; evidence folder, attack id, steps and spec hashes match; each stored run recorded these calls) and follows from the stored raw runs (re-judged, no sandbox) | `python3 -I tools/admission/admit.py --recheck sequences-scripted/03-sequential-second-pay.json` | `recheck scripted-03-sequential-second-pay: stored runs give validated (every reference matched in 3 counted runs; matched known-bad: mutant:M4); stamp agrees` | 0 | under 1 s |
 | The double-pay race is only partially validated: no block heights recorded | `python3 -I tools/admission/admit.py --recheck sequences-scripted/02-race-double-pay.json` | `recheck scripted-02-race-double-pay: stored runs give partially-validated (outcomes matched, race ordering not shown: ...steps[].receipts absent...); stamp agrees` | 0 | under 1 s |
-| A hand-written or edited "validated" stamp is refused; a race counts only if each later check ran in a block strictly before the earlier callback (same block = tie, never counted); earlier evidence files are byte-identical | `python3 -I -m unittest discover -s tools/admission/tests` | `Ran 54 tests`, `OK` | 0 | 2 s |
+| A hand-written, edited or copied "validated" stamp is refused, by the validator and by `--recheck` (stamp and spec copied onto another attack, steps edited with the hash recomputed, evidence folder of another attack, run files of another attack, validated claimed on partial runs); a race counts only if each later check ran in a block strictly before the earlier callback (same block = tie, never counted); earlier evidence files are byte-identical | `python3 -I -m unittest discover -s tools/admission/tests` | `Ran 61 tests`, `OK` | 0 | 5 s |
 | The gate itself reproduces a validation (local sandbox; needs the build from `./verify.sh fast`) | `python3 -I tools/admission/admit.py sequences-scripted/03-sequential-second-pay.json --runs 3` | `ADMISSION scripted-03-sequential-second-pay: validated (every reference matched in 3 counted runs; matched known-bad: mutant:M4)`; raw runs in `runs/evidence/admission/...` (gitignored) | 0 | 37 s |
 | The hidden set was fixed before its runs, and every public run file is consistent with it | `python3 -I tools/hidden/hidden.py check-public` | `hidden-set public files: 6 of 6 consistent with set 835729d9f34fa123... (9 attacks)` | 0 | under 1 s |
 
@@ -277,9 +277,19 @@ apply to them; only `intents-planted` broke (100 beyond policy, 1 attack). On th
 guards, a "held" on a family whose rule the guard does not claim (cancel, expiry, payee list) is
 not meaningful: `hidden.py run` does not apply `arena check`'s applicability rules.
 
+What a recheck checks: the whole file passes the validator (steps, spec, and a stamp that names
+this attack's own evidence folder, whose `admission.json` has the same attack id, steps sha256 and
+spec sha256), every stored run recorded this attack's calls (method and invoice id at each step),
+and the stored runs re-judge to the stamped class. Any failure prints one `REFUSED` line, exit 1.
+
 What a recheck does not prove: the stored runs are bound only by the sha256s in each
 `admission.json`, a file in the repo. Someone who writes plausible result files and recomputes the
 hashes passes it. What binds the evidence is git history and re-running the gate (row 5).
+
+Limit of "validated": it is only as strong as the attack's written checks. "Through the named
+mechanism" means the checks the spec lists passed on every counted run (one check is the minimum),
+and the flaw counts as matched because the broken copy's flaw label equals the one the spec names;
+nobody checked which line of code fired.
 
 ## 5. Look up a result on NEAR testnet
 

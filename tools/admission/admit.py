@@ -11,8 +11,11 @@
       Write meta.admission from a gate folder written earlier (so several gate runs can all run on a
       clean tree first). Refused unless the stored runs re-judge to the class the folder records.
   python3 -I tools/admission/admit.py --recheck <attack.json>
-      Re-judge the stored runs named by the file's meta.admission (no sandbox). Exit 1 if the
-      stamp does not follow from the stored runs. tools/hunter/validate.py calls the same code.
+      First run the whole validator on the file (steps, spec, and the stamp bound to its own
+      evidence folder by attack id, steps sha256 and spec sha256), then re-judge the stored runs
+      named by meta.admission (no sandbox). Each stored run must have recorded this attack's calls
+      (method and invoice id at each step). Exit 1 with one REFUSED line if anything fails;
+      "stamp agrees" and exit 0 only if all of it passes. tools/hunter/validate.py runs the same checks.
 
 Plain words. A reference is a guard whose behaviour is known in advance: known-good must hold,
 known-bad must break by an exact amount through one named flaw (tools/admission/references.json,
@@ -83,6 +86,24 @@ def recorded_layout(steps):
         elif any(k in st for k in ("call", "view", "add_key")):
             n += 1
     return n, races
+
+
+def recorded_calls(steps):
+    """Attack steps -> (method, invoice id) the harness records at each result step; None = not compared
+    (add_key). Only the invoice id is compared among the args: account names are resolved to sandbox
+    accounts in the result, invoice ids are not."""
+    def one(c):
+        c = c.get("call", c)
+        return (c.get("method"), (c.get("args") or {}).get("id"))
+    out = []
+    for st in steps:
+        if "race" in st:
+            out += [one(leg) for leg in st["race"]]
+        elif "call" in st or "view" in st:
+            out.append(one(st.get("call") or st.get("view")))
+        elif "add_key" in st:
+            out.append(None)
+    return out
 
 
 def _int(x):
@@ -313,6 +334,14 @@ def rederive(doc, root=ROOT, refs=None):
     except (OSError, json.JSONDecodeError):
         return None, None, [f"{a['evidence']}/admission.json missing or not JSON"]
     spec = meta["spec"]
+    # the stored record must be the gate's record for THIS file: same id, own folder, same steps, same spec
+    if ev.get("attack_id") != meta.get("id") or a["evidence"].split("/")[2:3] != [meta.get("id")]:
+        problems.append(f"{a['evidence']} is the gate's record for {ev.get('attack_id')!r}, not for {meta.get('id')!r}")
+    if not (ev.get("steps_sha256") == meta.get("steps_sha256") == V.steps_hash(doc["steps"])):
+        problems.append("the gate admitted different steps than this file has (or meta.steps_sha256 does not match the steps)")
+    if ev.get("spec_sha256") != V.spec_sha256(spec):
+        problems.append("the gate admitted a different spec than this file has (spec edited after admission?)")
+    want_calls = recorded_calls(doc["steps"])
     judged = {}
     required = ev.get("runs_required")
     if not isinstance(required, int) or required < DEFAULT_RUNS:
@@ -343,6 +372,10 @@ def rederive(doc, root=ROOT, refs=None):
                 problems.append(f"stored run file {run['file']} changed after the gate wrote it")
                 continue
             result = json.loads(p.read_text())
+            got = [(st.get("method"), (st.get("args") or {}).get("id")) for st in result.get("steps", [])]
+            if len(got) != len(want_calls) or any(w is not None and w != g for w, g in zip(want_calls, got)):
+                problems.append(f"stored run file {run['file']} records calls {got}, this attack's steps make {want_calls}: a run of other steps")
+                continue
         entry = next((e for e in spec.get("expected", []) if e["reference"] == ref), None)
         if entry is None:
             problems.append(f"stored run on {ref}, which the spec does not name")
@@ -362,6 +395,33 @@ def rederive(doc, root=ROOT, refs=None):
     if (ev.get("runs_counted"), ev.get("runs_tried")) != (counted, tried):
         problems.append(f"admission.json run counts {ev.get('runs_counted')}/{ev.get('runs_tried')} differ from the stored runs {counted}/{tried}")
     return cls, why, problems
+
+
+def is_intents(path, doc):
+    return "sequences-intents" in pathlib.Path(path).resolve().parts or any(
+        (c.get("call") or c.get("view") or {}).get("target") == "intents" for c in doc.get("steps", []) if isinstance(c, dict))
+
+
+def recheck(path, root=ROOT):
+    """--recheck: (exit code, printed lines). 'stamp agrees' only when the WHOLE file passes the validator
+    (steps, spec, and the stamp bound to its own evidence by id, folder, steps and spec hashes) AND the
+    stamp follows from the stored runs. Anything else is refused with a one-line reason and exit 1."""
+    try:
+        doc = json.loads(pathlib.Path(path).read_text())
+    except (OSError, json.JSONDecodeError) as e:
+        return 1, [f"recheck {path}: REFUSED (not readable JSON: {type(e).__name__})"]
+    meta = doc.get("meta") if isinstance(doc, dict) else None
+    if not isinstance(meta, dict) or "admission" not in meta:
+        return 1, [f"{path}: no meta.admission: unvalidated by definition"]
+    try:
+        V.check_attack({**doc, "meta": {k: v for k, v in meta.items() if k != "admission"}}, intents_suite=is_intents(path, doc))
+        V.check_admission(meta, doc["steps"], root=root)
+    except V.Invalid as e:
+        return 1, [f"recheck {meta.get('id')}: REFUSED ({str(e)[:600]})"]
+    cls, why, problems = rederive(doc, root=root)
+    if problems:
+        return 1, [f"recheck {meta['id']}: REFUSED ({'; '.join(problems)[:600]})"]
+    return 0, [f"recheck {meta['id']}: stored runs give {cls} ({why}); stamp agrees"]
 
 
 # ---------------------------------------------------------------- running (sandbox)
@@ -397,7 +457,7 @@ def run_gate(attack_path, runs=DEFAULT_RUNS, jobs=4, stamp=False, out_root=None,
     raw = attack_path.read_bytes()
     doc = json.loads(raw)
     meta = doc.get("meta", {})
-    intents = "sequences-intents" in attack_path.parts or any((c.get("call") or c.get("view") or {}).get("target") == "intents" for c in doc.get("steps", []))
+    intents = is_intents(attack_path, doc)
     V.check_attack({**doc, "meta": {k: v for k, v in meta.items() if k != "admission"}}, intents_suite=intents)  # A0
     spec = meta.get("spec")
     if not spec or not spec.get("expected"):
@@ -545,15 +605,9 @@ def main(argv):
     if a.stamp_from:
         return stamp_from(a.attack, a.stamp_from)
     if a.recheck:
-        doc = json.loads(pathlib.Path(a.attack).read_text())
-        if "admission" not in doc.get("meta", {}):
-            print(f"{a.attack}: no meta.admission: unvalidated by definition")
-            return 1
-        cls, why, problems = rederive(doc)
-        for p in problems:
-            print("PROBLEM", p)
-        print(f"recheck {doc['meta']['id']}: stored runs give {cls} ({why}); stamp {'agrees' if not problems else 'REFUSED'}")
-        return 1 if problems else 0
+        code, lines = recheck(a.attack)
+        print("\n".join(lines))
+        return code
     if not 1 <= a.runs <= 5:
         raise SystemExit("--runs must be 1-5")
     cls, why, folder = run_gate(a.attack, a.runs, a.jobs, a.stamp, a.out_root)

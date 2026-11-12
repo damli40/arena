@@ -450,5 +450,115 @@ class Classify(unittest.TestCase):
         self.assertEqual(A.classify({"property": "p", "failure_mode": "f", "capabilities": ["C1"]}, {}, REFS, 3)[0], "unvalidated")
 
 
+class RecheckCommand(unittest.TestCase):
+    """B1: `admit.py --recheck <file>` (the outsider's no-sandbox check) must refuse a stamp that is not
+    bound to the file it sits on, not only re-judge the stored runs. Every case runs the --recheck path."""
+
+    LINE03 = ("recheck scripted-03-sequential-second-pay: stored runs give validated (every reference matched in 3 "
+              "counted runs; matched known-bad: mutant:M4); stamp agrees")
+    LINE02 = ("recheck scripted-02-race-double-pay: stored runs give partially-validated (outcomes matched, race ordering "
+              "not shown: " + "; ".join(f"{r}: ordering unproven (no per-receipt trace in the result (steps[].receipts absent): "
+                                           "ordering cannot be shown)" for r in ("vault-a", "guard:vulnerable_fixture", "mutant:M5"))
+              + "); stamp agrees")
+
+    def setUp(self):
+        self.tmp = pathlib.Path(tempfile.mkdtemp())
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp)
+
+    def cli(self, path):
+        import subprocess
+        p = subprocess.run([sys.executable, "-I", str(ROOT / "tools" / "admission" / "admit.py"), "--recheck", str(path)],
+                           capture_output=True, text=True, cwd=ROOT)
+        return p.returncode, p.stdout.strip().splitlines()
+
+    def write(self, doc, name="forged.json"):
+        f = self.tmp / name
+        f.write_text(json.dumps(doc, indent=1))
+        return f
+
+    def refused(self, path, root=ROOT, cli=False, contains=None):
+        code, lines = self.cli(path) if cli else A.recheck(path, root=root)
+        self.assertEqual(code, 1, lines)
+        self.assertEqual(len(lines), 1, lines)
+        self.assertIn("REFUSED", lines[0])
+        self.assertNotIn("stamp agrees", lines[0])
+        if contains:
+            self.assertIn(contains, lines[0])
+        return lines[0]
+
+    def test_genuine_03_and_02_agree(self):
+        self.assertEqual(self.cli(ROOT / "sequences-scripted" / "03-sequential-second-pay.json"), (0, [self.LINE03]))
+        self.assertEqual(self.cli(ROOT / "sequences-scripted" / "02-race-double-pay.json"), (0, [self.LINE02]))
+
+    def test_repro1_stamp_and_spec_copied_onto_another_attack(self):
+        src = attack("03-sequential-second-pay")
+        doc = load(ROOT / "sequences-ai" / "01-double-pay-race-retry.json")
+        doc["meta"]["spec"], doc["meta"]["admission"] = src["meta"]["spec"], src["meta"]["admission"]
+        self.refused(self.write(doc), cli=True, contains="ordering")
+
+    def test_repro2_steps_changed_hash_recomputed_spec_edited(self):
+        doc = attack("03-sequential-second-pay")
+        doc["steps"][1]["call"]["args"]["id"] = "inv-other"
+        doc["meta"]["steps_sha256"] = V.steps_hash(doc["steps"])
+        doc["meta"]["spec"]["property"] += " (edited)"
+        self.refused(self.write(doc), cli=True, contains="different steps")
+
+    def test_evidence_folder_swapped_to_another_attack(self):
+        doc = attack("03-sequential-second-pay")
+        other = attack("04-pay-cancelled")["meta"]["admission"]["evidence"]
+        doc["meta"]["admission"]["evidence"] = other
+        self.refused(self.write(doc), cli=True, contains="own folder")
+
+    def _own_folder(self, doc, files, cls):
+        meta = doc["meta"]
+        rel = f"evidence/admission/{meta['id']}/20261112T000000Z"
+        folder = self.tmp / rel
+        folder.mkdir(parents=True)
+        runs = []
+        for ref, n, src in files:
+            name = f"run-{A.ref_slug(ref)}-{n}.result.json"
+            shutil.copyfile(src, folder / name)
+            runs.append({"reference": ref, "n": n, "file": name, "file_sha256": A.sha256_file(folder / name)})
+        ev = {"attack_id": meta["id"], "gate": A.GATE, "class": cls, "runs": runs, "runs_required": 3,
+              "runs_counted": len(runs), "runs_tried": len(runs),
+              "steps_sha256": meta["steps_sha256"], "spec_sha256": V.spec_sha256(meta["spec"])}
+        (folder / "admission.json").write_text(json.dumps(ev))
+        meta["admission"] = {"class": cls, "evidence": rel, "date": "2026-11-12", "gate": A.GATE,
+                             "runs_counted": len(runs), "runs_tried": len(runs)}
+        return self.write(doc)
+
+    def test_runs_taken_from_another_attacks_folder(self):
+        # a forged admission.json in 03's own folder, every hash right for 03, but the run files are
+        # attack 04's (pay-cancelled: same two pays, other invoice), relabelled as 03's references
+        g04 = sorted((ROOT / "evidence" / "admission" / "scripted-04-pay-cancelled").glob("*/"))[0]
+        files = [("vault-a", n, g04 / f"run-vault-a-{n}.result.json") for n in (1, 2, 3)] + \
+                [("mutant:M4", n, g04 / f"run-mutant-m7-{n}.result.json") for n in (1, 2, 3)]
+        f = self._own_folder(attack("03-sequential-second-pay"), files, "validated")
+        self.refused(f, root=self.tmp, contains="a run of other steps")
+
+    def test_validated_claimed_on_partly_matching_runs(self):
+        # 03's genuine runs, but only two of the three known-bad runs: the honest class is partial
+        files = [("vault-a", n, GATE03 / f"run-vault-a-{n}.result.json") for n in (1, 2, 3)] + \
+                [("mutant:M4", n, GATE03 / f"run-mutant-m4-{n}.result.json") for n in (1, 2)]
+        f = self._own_folder(attack("03-sequential-second-pay"), files, "validated")
+        self.refused(f, root=self.tmp, contains="partially-validated")
+        # and the honest stamp on the same runs agrees
+        doc = load(f)
+        shutil.rmtree(self.tmp / "evidence")
+        f2 = self._own_folder(doc, files, "partially-validated")
+        code, lines = A.recheck(f2, root=self.tmp)
+        self.assertEqual(code, 0, lines)
+        self.assertIn("stamp agrees", lines[0])
+
+    def test_genuine_folder_copied_agrees_with_tmp_root(self):
+        # control for the two cases above: the same construction with 03's own runs passes
+        files = [("vault-a", n, GATE03 / f"run-vault-a-{n}.result.json") for n in (1, 2, 3)] + \
+                [("mutant:M4", n, GATE03 / f"run-mutant-m4-{n}.result.json") for n in (1, 2, 3)]
+        f = self._own_folder(attack("03-sequential-second-pay"), files, "validated")
+        self.assertEqual(A.recheck(f, root=self.tmp)[0], 0)
+
+
 if __name__ == "__main__":
     unittest.main()

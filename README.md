@@ -146,6 +146,7 @@ All three held for the same reason: each records the payment before it moves the
 - **"Beyond policy" reads one input from the guard itself.** Balances come from the chain, but whether an invoice counts toward what its receiver may get depends on the guard's own `get_invoice` status (`Paid`, for an invoice the agent tried to pay). A guard that reports a wrong status can move that number (`harness/src/scorer.rs`).
 - **When no pay start time was recorded, expiry is not scored.** If an expiring invoice ends `Paid` but the bench recorded no start time for its payment, it cannot tell whether the payment came before or after expiry. It counts the invoice as allowed and prints `expiry not scored`.
 - **On chain, a result is not tied to the guard's mode or to an opt-in.** The contract's answer does not read the guard's mode, so a contract asking about a wasm that has results under more than one mode must name the suite (`docs/ON-CHAIN.md`). `publish_result` does not check the opt-in table, so a result on chain does not show that the guard's owner agreed to be tested.
+- **"Validated" is only as strong as the attack's written checks.** "Broke through the named mechanism" means the checks the attack's spec lists passed on every counted run (one check is the minimum), and the flaw counts as matched because the broken copy's flaw label equals the one the spec names; nobody checked which line of code fired.
 - **The double-pay guard (`contracts/guard`, mode `vulnerable_fixture`) is a labelled test case.** Never deploy it.
 
 ## Where to look next
