@@ -503,9 +503,17 @@ const dark = matchMedia("(prefers-color-scheme: dark)");
 const setTheme = () => { document.body.dataset.theme = dark.matches ? "dark" : "light"; };
 setTheme(); dark.addEventListener("change", setTheme);
 choose(SC[0].id);
-const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("on"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -8% 0px" });
-document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
 `;
+
+// The fade-in of each section as it scrolls into view. Its own small classic script, apart from the figure's
+// module: it hides the sections only once it can show them again, so if this script (or the module) fails,
+// or the browser has no IntersectionObserver, every section simply stays visible.
+const revealJs = `(function(){
+  if (typeof window.IntersectionObserver !== "function") return;
+  document.documentElement.classList.add("reveal-js");
+  var io = new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add("on"); io.unobserve(e.target); } }); }, { rootMargin: "0px 0px -8% 0px" });
+  document.querySelectorAll(".reveal").forEach(function(el){ io.observe(el); });
+})();`;
 
 // ---------------------------------------------------------------- labels
 // A labelled drawing. The labels sit in their own layer over the figure, in the empty
@@ -648,8 +656,9 @@ ul.guides span{display:block;color:var(--muted);font-size:13.5px}
   table.stack.pair td:first-child{grid-column:1/-1;margin-bottom:0}
   table.stack td[data-label]::before{content:attr(data-label);display:block;font:500 10.5px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 }
-.reveal{opacity:0;transform:translateY(12px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)}.reveal.on{opacity:1;transform:none}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal{opacity:1;transform:none;transition:none}ol.log li{animation:none}}
+.reveal-js .reveal{opacity:0;transform:translateY(12px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)}.reveal-js .reveal.on{opacity:1;transform:none}
+@media print{.reveal-js .reveal{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal-js .reveal{opacity:1;transform:none;transition:none}ol.log li{animation:none}}
 @media (max-width:768px){.callouts{display:none}.callout-list{display:block;margin:10px 0 0;padding-left:20px;font-size:13px;color:var(--muted)}.callout-list b{color:var(--ink);font-weight:500}.hero,.split,.run{grid-template-columns:1fr;gap:28px}.hero{padding:48px 0 40px}.contrast .n{font-size:48px}.tabs button{flex:1 1 45%}details.guard summary{grid-template-columns:32px 1fr auto 18px;gap:10px}.g-letter{font-size:22px}section{padding:48px 0}.paths a{grid-template-columns:1fr 18px;gap:4px 12px}.paths .p-d{grid-column:1;grid-row:2;font-size:14px}.paths .p-go{grid-row:1/3;grid-column:2;align-self:center}.sample-nums{grid-template-columns:1fr 1fr}}
 </style></head>
 <body class="iso" data-theme="light">
@@ -755,6 +764,7 @@ python3 -I tools/injection/rescore.py</pre>
 
 </div>
 ${footer("Numbers are read from <code>evidence/</code> at build time. Fig 1 uses the anatomy kit (MIT, © 2026 Ryan).")}
+<script>${revealJs}</script>
 <script type="module">${(kitScript() + live).replace(/<\/(script)/gi, "<\\/$1")}</script>
 </body></html>`;
 
