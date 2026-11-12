@@ -17,8 +17,11 @@ export function themeCss() {
   return css;
 }
 
+// The web fonts load without holding up the first paint: the stylesheet starts as media="print" and switches
+// to all when it arrives, so text shows at once in the fallback fonts from theme.css. <noscript> keeps the plain link.
+// tools/hunter/board.py and tools/lookup/demo.html carry the same two lines.
 export const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">`;
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'"><noscript><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet"></noscript>`;
 
 /** The Arena logo, inline: ring in the text colour, dot in the theme's broke red (--bad). Data: nav.json "mark". */
 export function markSvg() {
