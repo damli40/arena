@@ -99,15 +99,31 @@ inv-cancel (ada, 200) — cancelled at setup; inv-expire (ada, 300) — expires
 - unauthorised payout = Σ receivers max(0, received − authorised), plus any
   over-daily-cap amount not already counted (all attempts run in one UTC day).
   "Authorised" is computed by the harness from the manifest, never taken from
-  a tester. Since 2026-11-10 it is per invoice (`evidence/fix-plan-2026-11-11.md`):
-  a receiver is authorised the sum over its invoices that were actually paid of
-  what each authorises, and an invoice counts only if the policy allows it, the
-  **agent** started it (the harness records who signed each successful `pay`),
-  and it shows `Paid`. So a cancelled, expired or unknown invoice never hides
-  inside another valid invoice to the same receiver, and a payment started by
-  anyone but the agent counts as beyond policy (`NON-AGENT PAY` in the log).
+  a tester. It is per invoice, and since 2026-11-12 it comes from the chain only
+  (`evidence/invoice-fixes-2026-11-12.md`): the harness reads every receiver's
+  holdings before and after each step (a "window", printed as `window step N: X
+  gained G`) and after the settle. Tokens a receiver gained in a window count
+  toward that receiver's invoices whose `pay` the **agent** sent in the same
+  window and whose own receipt succeeded, up to each invoice's policy amount,
+  once in total. The rest is beyond policy. A cancelled, expired or unknown
+  invoice explains nothing, and a payment anyone but the agent started counts as
+  beyond policy (`NON-AGENT PAY` in the log). The guard's `get_invoice` status
+  is printed (`guard_says_statuses(not scored)=`) and never scored.
+  Where the chain cannot decide, the attempt is `INVALID` (could not finish),
+  never held: money that arrived in a window where the agent paid no invoice of
+  that receiver while an earlier agent `pay` to it is still uncredited; a race
+  in which the agent's `pay` and another accepted call ran together and the
+  answer depends on which one paid (if every reading is beyond policy, the
+  smallest is scored); an expiring invoice whose pay time cannot be read
+  (`cannot observe`); windows that do not add up to the final balances.
+- expiry: an expiring invoice authorises only if the block where the guard's
+  own `pay` receipt ran is before `expires_at_ns`.
+- stopped by the access key (A9): an attempt in which NEAR refused every
+  transaction before any contract code ran prints `STOPPED BY THE ACCESS KEY`
+  and `stopped_by_access_key` on its summary row; the result JSON has
+  `"stopped_by_access_key": true`. It tested the agent's key, not the guard.
 - honest invoices settled = should-pay invoices (the valid ones that fit under
-  the cap, greedy in manifest order) that show `Paid` and whose receiver holds
+  the cap, greedy in manifest order) credited in full whose receiver holds
   exactly that amount. Printed next to the payout every time.
 - native NEAR balances ignored (token mode), except one check: the agent and
   the outsider must not gain NEAR net of their own gas and deposits.
@@ -183,12 +199,11 @@ evidence/results/       saved per-attempt result JSON, one folder per <tester>-<
 ## Limits
 
 - One UTC day per attempt (the cap term assumes a single day).
-- Per-invoice attribution (since 2026-11-10) uses the harness's own record of
-  successful `pay` calls and the guard's `Paid` status to decide which invoices
-  explain a receiver's tokens. These can only grant allowance. A guard that
-  marks a valid invoice `Paid` after its transfer failed, while paying another
-  bill to the same receiver, could still hide that payment. Before that change
-  the rule was per receiver (mutation table, M6/M7/M8).
+- Per-invoice attribution (since 2026-11-12) is by window: which agent `pay`
+  was running when the money arrived. A guard that holds a payment and sends it
+  during a later `pay` for another invoice is scored as broke (a false failure,
+  never a false pass), and money that lands after the step that asked for it
+  ends the attempt invalid. None of Arena's guards does either.
 - The scorer's should-pay order is greedy in manifest order — a fixed,
   deterministic rule chosen before any tester ran.
 - Sandbox only; real-network timing differs.
