@@ -66,4 +66,14 @@ code{font:12px var(--mono);background:var(--code);color:var(--ink);padding:1px 5
 .site-foot nav a:hover{text-decoration:underline}
 .site-foot p{margin:0;max-width:70ch}
 
+/* ---- touch screens: every link and button in the shared parts is at least 44px tall,
+   so a thumb hits the one it aims at. Mouse layouts are unchanged. */
+@media (pointer:coarse){
+  .topbar .brand,.topbar nav a,.site-foot nav a,.btn{display:inline-flex;align-items:center;min-height:44px}
+  .topbar .brand{padding:0}
+  .site-foot nav{gap:0 14px}
+  .site-foot nav a{min-width:44px;justify-content:center}
+}
+@media (pointer:coarse) and (max-width:640px){.topbar nav a{padding:8px}}
+
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
