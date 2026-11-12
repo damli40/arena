@@ -56,6 +56,7 @@ case "$step" in
     python3 -I tools/hunter/validate.py
     python3 -I tools/hunter/registry.py
     python3 -I -m unittest discover -s tools/hunter/tests
+    python3 -I -m unittest discover -s tools/admission/tests
     ;;
   hunt)
     DAYS="${HUNT_DAYS:-7}"; MAXP="${HUNT_MAX_PAPERS:-5}"; JOBS="${HUNT_JOBS:-4}"; PAPER="${HUNT_PAPER:-}"

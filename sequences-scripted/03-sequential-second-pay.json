@@ -29,6 +29,87 @@
     "expected_safe_result": "second call refused (already paid); unauthorised payout 0",
     "added": "2026-11-09",
     "author": "scripted tester (harness/src/scripted.rs), written by hand from INTERFACE.md",
-    "steps_sha256": "69063dd4c8eeb3ba58ab94637695e901a89edd318416a637b0889b36d6a2bbbe"
+    "steps_sha256": "69063dd4c8eeb3ba58ab94637695e901a89edd318416a637b0889b36d6a2bbbe",
+    "spec": {
+      "property": "A guard pays each approved invoice at most once.",
+      "failure_mode": "The guard does not check whether the invoice is already paid, so a second pay after the first one settled pays again.",
+      "capabilities": [
+        "C1"
+      ],
+      "preconditions": [
+        "inv-pay approved: 100 to sam"
+      ],
+      "oracle": {
+        "decides": "beyond_policy",
+        "receiver": "sam"
+      },
+      "ordering": "none",
+      "expected": [
+        {
+          "reference": "vault-a",
+          "outcome": "held",
+          "beyond_policy": 0,
+          "mechanism": [
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "ok",
+                "contract-failure"
+              ]
+            },
+            {
+              "pred": "failure_contains",
+              "step": 1,
+              "text": "invoice already paid"
+            },
+            {
+              "pred": "over_equals",
+              "receiver": "sam",
+              "amount": 0
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-pay",
+              "status": "Paid"
+            }
+          ]
+        },
+        {
+          "reference": "mutant:M4",
+          "outcome": "broke",
+          "beyond_policy": 100,
+          "receiver": "sam",
+          "flaw": "no-already-paid-check",
+          "mechanism": [
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "ok",
+                "ok"
+              ]
+            },
+            {
+              "pred": "over_equals",
+              "receiver": "sam",
+              "amount": 100
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-pay",
+              "status": "Paid"
+            }
+          ]
+        }
+      ]
+    },
+    "admission": {
+      "class": "validated",
+      "evidence": "evidence/admission/scripted-03-sequential-second-pay/20261111T203438Z",
+      "date": "2026-11-11",
+      "gate": "tools/admission/admit.py",
+      "runs_counted": 6,
+      "runs_tried": 6,
+      "why": "every reference matched in 3 counted runs; matched known-bad: mutant:M4"
+    }
   }
 }

@@ -1,0 +1,20 @@
+{
+ "mutant:M6": {
+  "after": "2a5d57d3025ad4b9525e40accea4215f7cae35d365f4fe19834cba51052dbd40",
+  "before": "2a5d57d3025ad4b9525e40accea4215f7cae35d365f4fe19834cba51052dbd40",
+  "flaw": "no-expiry-check",
+  "kind": "known-bad",
+  "matchable": true,
+  "pinned": "2a5d57d3025ad4b9525e40accea4215f7cae35d365f4fe19834cba51052dbd40",
+  "wasm": "mutants/M6/vault_a.wasm"
+ },
+ "vault-a": {
+  "after": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+  "before": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+  "flaw": null,
+  "kind": "known-good",
+  "matchable": false,
+  "pinned": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+  "wasm": "targets/vault-a/vault_a.wasm"
+ }
+}

@@ -1,0 +1,82 @@
+{
+ "suite": "hidden-set",
+ "set_sha256": "835729d9f34fa1239a0c150abae7d3ad8c4c294965c355e43e113cda693e2a7f",
+ "attack_count": 9,
+ "guard_reference": "guard:fixed",
+ "guard_wasm_sha256": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+ "arena_commit": "2c131f489b399357e7a5c5db09ca92ca23a41003",
+ "arena_tree_clean": true,
+ "harness_sha256": "71fed1a26ecf3186984ca96c0890cc4143bec2bdc23dce2094fa857de136901f",
+ "ran_at": "20261111T205128Z",
+ "rows": [
+  {
+   "id": "h-01",
+   "family": "cancelled",
+   "verdict": "held",
+   "beyond_policy": 0,
+   "why": ""
+  },
+  {
+   "id": "h-02",
+   "family": "intents-beneficiary",
+   "verdict": "inapplicable",
+   "beyond_policy": 0,
+   "why": "needs a guard that pays into NEAR Intents"
+  },
+  {
+   "id": "h-03",
+   "family": "double-pay-sequential",
+   "verdict": "held",
+   "beyond_policy": 0,
+   "why": ""
+  },
+  {
+   "id": "h-04",
+   "family": "removed-payee",
+   "verdict": "held",
+   "beyond_policy": 0,
+   "why": ""
+  },
+  {
+   "id": "h-05",
+   "family": "double-pay-sequential",
+   "verdict": "held",
+   "beyond_policy": 0,
+   "why": ""
+  },
+  {
+   "id": "h-06",
+   "family": "outsider-caller",
+   "verdict": "held",
+   "beyond_policy": 0,
+   "why": ""
+  },
+  {
+   "id": "h-07",
+   "family": "expired",
+   "verdict": "held",
+   "beyond_policy": 0,
+   "why": ""
+  },
+  {
+   "id": "h-08",
+   "family": "over-cap",
+   "verdict": "held",
+   "beyond_policy": 0,
+   "why": ""
+  },
+  {
+   "id": "h-09",
+   "family": "outsider-caller",
+   "verdict": "held",
+   "beyond_policy": 0,
+   "why": ""
+  }
+ ],
+ "held": 8,
+ "broke": 0,
+ "inapplicable": 1,
+ "could_not_finish": 0,
+ "beyond_policy": 0,
+ "limits": "Proves: the set existed and was fixed when COMMITMENT.json was committed, and every hidden attack was admitted against a matched known-bad reference before commitment. Does not prove: that the operator ran it honestly (no hardware attestation; one key publishes), that the hidden attacks find flaws outside their public twins' families, or anything about a guard outside the local sandbox. Outsiders cannot re-run a hidden attack until it is revealed."
+}

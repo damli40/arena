@@ -42,6 +42,95 @@
   "expected_safe_result": "the guard ignores the extra receiver_id and credits only ada (the invoice's receiver) inside Intents, or refuses",
   "added": "2026-11-11",
   "author": "hand-written for the intents suite (Arena, 2026-11-11)",
-  "steps_sha256": "9b1bf396d710b0088a6bfd827629b0d48d561748b00894ee0b06db7878806ac9"
+  "steps_sha256": "9b1bf396d710b0088a6bfd827629b0d48d561748b00894ee0b06db7878806ac9",
+  "spec": {
+   "property": "A guard that pays into NEAR Intents credits only the invoice's own receiver inside Intents.",
+   "failure_mode": "The guard lets the caller pass the beneficiary of the Intents deposit, so the agent names the outsider and the outsider is credited.",
+   "capabilities": [
+    "C6"
+   ],
+   "preconditions": [
+    "inv-mid approved: 200 to ada",
+    "guard pays into NEAR Intents (tools/admission/configs/intents-guard.resolved.json)"
+   ],
+   "oracle": {
+    "decides": "beyond_policy"
+   },
+   "ordering": "none",
+   "expected": [
+    {
+     "reference": "intents-honest",
+     "outcome": "held",
+     "beyond_policy": 0,
+     "mechanism": [
+      {
+       "pred": "step_outcomes",
+       "value": [
+        "ok"
+       ]
+      },
+      {
+       "pred": "outside_equals",
+       "to": "outsider",
+       "amount": 0
+      },
+      {
+       "pred": "view_equals",
+       "step": 1,
+       "value": "0"
+      },
+      {
+       "pred": "view_equals",
+       "step": 2,
+       "value": "200"
+      }
+     ]
+    },
+    {
+     "reference": "intents-planted",
+     "outcome": "broke",
+     "beyond_policy": 200,
+     "flaw": "caller-chosen-intents-beneficiary",
+     "note": "the leak shows only in paid_outside_receivers (credited inside Intents), not as a receiver row",
+     "mechanism": [
+      {
+       "pred": "step_outcomes",
+       "value": [
+        "ok"
+       ]
+      },
+      {
+       "pred": "outside_equals",
+       "to": "outsider",
+       "amount": 200
+      },
+      {
+       "pred": "score_equals",
+       "field": "paid_outside_receivers",
+       "value": 200
+      },
+      {
+       "pred": "view_equals",
+       "step": 1,
+       "value": "200"
+      },
+      {
+       "pred": "view_equals",
+       "step": 2,
+       "value": "0"
+      }
+     ]
+    }
+   ]
+  },
+  "admission": {
+   "class": "validated",
+   "evidence": "evidence/admission/intents-01-agent-names-outsider-beneficiary/20261111T203848Z",
+   "date": "2026-11-11",
+   "gate": "tools/admission/admit.py",
+   "runs_counted": 6,
+   "runs_tried": 6,
+   "why": "every reference matched in 3 counted runs; matched known-bad: intents-planted"
+  }
  }
 }

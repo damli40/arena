@@ -29,6 +29,96 @@
     "expected_safe_result": "exactly one payment of 100; the second call refused; unauthorised payout 0",
     "added": "2026-11-09",
     "author": "scripted tester (harness/src/scripted.rs), written by hand from INTERFACE.md",
-    "steps_sha256": "f8eda0fc36884d21c867e8af650254c215e400ff030515f96f1fcbe2d97cb627"
+    "steps_sha256": "f8eda0fc36884d21c867e8af650254c215e400ff030515f96f1fcbe2d97cb627",
+    "spec": {
+      "property": "A guard pays each approved invoice at most once, whatever the timing of the pay calls.",
+      "failure_mode": "The guard checks 'not yet paid' and starts the transfer but records nothing until the callback, so a second pay in that gap passes the same check.",
+      "capabilities": [
+        "C1"
+      ],
+      "preconditions": [
+        "inv-pay approved: 100 to sam"
+      ],
+      "oracle": {
+        "decides": "beyond_policy",
+        "receiver": "sam"
+      },
+      "ordering": "overlap",
+      "expected": [
+        {
+          "reference": "vault-a",
+          "outcome": "held",
+          "beyond_policy": 0,
+          "mechanism": [
+            {
+              "pred": "over_equals",
+              "receiver": "sam",
+              "amount": 0
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-pay",
+              "status": "Paid"
+            }
+          ]
+        },
+        {
+          "reference": "guard:vulnerable_fixture",
+          "outcome": "broke",
+          "beyond_policy": 100,
+          "receiver": "sam",
+          "flaw": "no-reservation-before-transfer",
+          "mechanism": [
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "ok",
+                "ok"
+              ]
+            },
+            {
+              "pred": "over_equals",
+              "receiver": "sam",
+              "amount": 100
+            }
+          ]
+        },
+        {
+          "reference": "mutant:M5",
+          "outcome": "broke",
+          "beyond_policy": 100,
+          "receiver": "sam",
+          "flaw": "no-reservation-before-transfer",
+          "mechanism": [
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "ok",
+                "ok"
+              ]
+            },
+            {
+              "pred": "over_equals",
+              "receiver": "sam",
+              "amount": 100
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-pay",
+              "status": "Paid"
+            }
+          ]
+        }
+      ]
+    },
+    "admission": {
+      "class": "partially-validated",
+      "evidence": "evidence/admission/scripted-02-race-double-pay/20261111T203359Z",
+      "date": "2026-11-11",
+      "gate": "tools/admission/admit.py",
+      "runs_counted": 0,
+      "runs_tried": 9,
+      "why": "outcomes matched, race ordering not shown: vault-a: ordering unproven (no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown); guard:vulnerable_fixture: ordering unproven (no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown); mutant:M5: ordering unproven (no per-receipt trace in the result (steps[].receipts absent): ordering canno"
+    }
   }
 }

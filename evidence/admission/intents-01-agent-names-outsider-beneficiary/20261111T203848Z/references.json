@@ -1,0 +1,20 @@
+{
+ "intents-honest": {
+  "after": "1dbd023f08ddf8ac0299842f26e7e4140e4a53bdb77ed46637d38b7ef1cf7a35",
+  "before": "1dbd023f08ddf8ac0299842f26e7e4140e4a53bdb77ed46637d38b7ef1cf7a35",
+  "flaw": null,
+  "kind": "known-good",
+  "matchable": false,
+  "pinned": "1dbd023f08ddf8ac0299842f26e7e4140e4a53bdb77ed46637d38b7ef1cf7a35",
+  "wasm": "targets/intents-honest/intents_honest.wasm"
+ },
+ "intents-planted": {
+  "after": "954d02cebb25eefe270bcb3376f1735cb7f5ddee8ff654984122fa9f2e3f169c",
+  "before": "954d02cebb25eefe270bcb3376f1735cb7f5ddee8ff654984122fa9f2e3f169c",
+  "flaw": "caller-chosen-intents-beneficiary",
+  "kind": "known-bad",
+  "matchable": true,
+  "pinned": "954d02cebb25eefe270bcb3376f1735cb7f5ddee8ff654984122fa9f2e3f169c",
+  "wasm": "targets/intents-planted/intents_planted.wasm"
+ }
+}

@@ -85,7 +85,9 @@ cp "$PIN/harness/target/release/arena-harness" "$BIN"
 SEQ="$OUT/sequences"
 mkdir -p "$SEQ"
 "$BIN" gen-scripted "$SEQ"
-if diff -r "$SEQ" sequences-scripted > /dev/null; then echo "gen-scripted output == sequences-scripted/"; else echo "NOTE: gen-scripted output differs from sequences-scripted/" | tee -a "$OUT/HARNESS.txt"; fi
+# Compared on what the harness runs (name + steps), not bytes: gen-scripted writes no meta block,
+# the library files carry one (and meta.spec / meta.admission since 2026-11-12). See same_scripted.py.
+if python3 -I tools/mutation/same_scripted.py "$SEQ" sequences-scripted; then echo "gen-scripted output == sequences-scripted/ (name and steps)"; else echo "NOTE: gen-scripted output differs from sequences-scripted/" | tee -a "$OUT/HARNESS.txt"; fi
 
 run_suite() { # $1 = id, then target flags
   local id="$1"; shift

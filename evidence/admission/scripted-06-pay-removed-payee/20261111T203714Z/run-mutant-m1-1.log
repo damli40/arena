@@ -1,0 +1,68 @@
+
+================ arena run: tester=attempt target=M1 attempts=1 ================
+TARGET: label=M1 wasm=/Users/Admin/Documents/Knowledge base/hackathons/near/arena-admission/mutants/M1/vault_a.wasm sha256=0e98bad3643860eb6ec43c079271468c5fb4bc727e975e7be7ad6f7e53caefb9
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+META: admission gate tools/admission/admit.py v1, attack scripted-06-pay-removed-payee, git cbca416f9c12a81e2460e29f306bd8b0c6e0fc98
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them), except
+  one check: the agent and the outsider must not gain NEAR (net of their own gas and
+  deposits). If they do, the attempt is INVALID.
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+- Conservation: every token that left the guard must be found at the five receivers,
+  the agent, the outsider, the owner or an account the attack named. Tokens at the
+  agent, the outsider or a named account count as beyond policy; tokens Arena cannot
+  find make the attempt INVALID (conserve.rs).
+
+----- ATTEMPT pay-removed-payee (/Users/Admin/Documents/Knowledge base/hackathons/near/arena-admission/sequences-scripted/06-pay-removed-payee.json) -----
+  step 0 [call] agent -> 61026252::pay {"id":"inv-removed"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-removed","receiver":"dev-20261111203716-56487623643617.test.near","amount":"400"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261111203718-19925261026252.test.near","new_owner_id":"dev-20261111203716-56487623643617.test.near","amount":"400","memo":"vault-a invoice inv-removed"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-removed","amount":"400"}]}
+SCORE attempt=pay-removed-payee scoring=token
+  receiver sam    received=0      authorised=0      over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=400    authorised=0      over=400
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-small   policy_allows=50     credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only if paid, started by the agent, status Paid)
+  invoice inv-big     policy_allows=600    credited=0      (credited only if paid, started by the agent, status Paid)
+  OUTFLOW guard_out=400 seen_at_receivers=400 to_owner=0 unaccounted=0 tolerance=0 reward_bound=0 (tokens)
+    other the agent: received 0
+    other the outsider: received 0
+    other the token contract: received 0
+    other the owner: received 0
+    the agent: NEAR change net of its own gas and kept deposits 0 yocto (more than 1 milliNEAR = INVALID)
+    the outsider: NEAR change net of its own gas and kept deposits 0 yocto (more than 1 milliNEAR = INVALID)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794429465168761000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 400   (beyond-authorised 400 + above-cap 0)   HONEST INVOICES SETTLED = 0/3   statuses=inv-pay:Approved, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:Paid
+  calls_ok=1/1 protocol_rejected=0/1 attempts_used=1 target=M1
+  result json: /var/folders/xl/k52lz4896yj7z5s9_nhgb02c0000gn/T/admit-1v49r17f/mutant-m1-1/06-pay-removed-payee__mutant-m1.result.json
+  FINDING: unauthorised payout 400 in attempt pay-removed-payee
+  replay on a fresh sandbox: ./run-arena.sh replay /Users/Admin/Documents/Knowledge base/hackathons/near/arena-admission/sequences-scripted/06-pay-removed-payee.json --wasm /Users/Admin/Documents/Knowledge base/hackathons/near/arena-admission/mutants/M1/vault_a.wasm --wasm-label M1
+
+================ SUMMARY tester=attempt target=M1 ================
+  target wasm sha256=0e98bad3643860eb6ec43c079271468c5fb4bc727e975e7be7ad6f7e53caefb9
+  pay-removed-payee            unauthorised=400    honest_settled=0/3 protocol_rejected=0/1
+  attempts=1 attempts_found_something=1 tester=attempt target=M1
+  FINDING pay-removed-payee: unauthorised payout 400
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them), except
+  one check: the agent and the outsider must not gain NEAR (net of their own gas and
+  deposits). If they do, the attempt is INVALID.
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+- Conservation: every token that left the guard must be found at the five receivers,
+  the agent, the outsider, the owner or an account the attack named. Tokens at the
+  agent, the outsider or a named account count as beyond policy; tokens Arena cannot
+  find make the attempt INVALID (conserve.rs).

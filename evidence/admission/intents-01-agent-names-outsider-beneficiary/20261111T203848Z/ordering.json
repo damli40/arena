@@ -1,0 +1,50 @@
+[
+ {
+  "reference": "intents-honest",
+  "n": 1,
+  "ordering": {
+   "status": "not-required",
+   "why": "no race in this attack"
+  }
+ },
+ {
+  "reference": "intents-honest",
+  "n": 2,
+  "ordering": {
+   "status": "not-required",
+   "why": "no race in this attack"
+  }
+ },
+ {
+  "reference": "intents-honest",
+  "n": 3,
+  "ordering": {
+   "status": "not-required",
+   "why": "no race in this attack"
+  }
+ },
+ {
+  "reference": "intents-planted",
+  "n": 1,
+  "ordering": {
+   "status": "not-required",
+   "why": "no race in this attack"
+  }
+ },
+ {
+  "reference": "intents-planted",
+  "n": 2,
+  "ordering": {
+   "status": "not-required",
+   "why": "no race in this attack"
+  }
+ },
+ {
+  "reference": "intents-planted",
+  "n": 3,
+  "ordering": {
+   "status": "not-required",
+   "why": "no race in this attack"
+  }
+ }
+]
