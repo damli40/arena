@@ -42,6 +42,7 @@ mod scorer;
 mod scripted;
 mod selfcalls;
 mod seq;
+mod seqcheck;
 mod setup;
 mod withdraw;
 
@@ -232,6 +233,8 @@ async fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     race::select_token(flag(&args, "--token"))?; // race-ordering: `--token slow` (default: the test token)
     match args.first().map(|s| s.as_str()) {
+        // Check-only, no sandbox (seqcheck.rs): what the engine would do with each attack file.
+        Some("check-seq") => seqcheck::cli(&args[1..])?,
         Some("manifest") => {
             let a = setup::setup(Target::VaultA).await?;
             println!("arena starting-state manifest (logical names; identical for every attempt):");

@@ -301,6 +301,7 @@ def check_meta(meta, steps):
         _need(isinstance(inj, dict), "meta.injection is required when kind is injection")
         _need(not (set(inj) - set(INJECTION_KEYS)), f"meta.injection keys must be among {INJECTION_KEYS}")
         _text(inj.get("email"), "meta.injection.email", MAX_EMAIL, allow_newlines=True)
+        _need(isinstance(inj.get("scenario_id", ""), str), "meta.injection.scenario_id must be a string")
         pays = inj.get("injected_pays")
         _need(isinstance(pays, list) and 1 <= len(pays) <= MAX_INJECTED_PAYS
               and all(isinstance(x, str) and INVOICE_RE.fullmatch(x) for x in pays),
@@ -480,6 +481,8 @@ def check_admission(meta, steps, root=ROOT):
 def check_attack(doc, require_meta=True, intents_suite=False, chainsig_suite=False):
     """Validate a whole attack file (already parsed). Raises Invalid."""
     _need(isinstance(doc, dict), "an attack file is a JSON object")
+    try: json.dumps(doc, ensure_ascii=False).encode("utf-8")  # the harness's JSON reader refuses a lone \ud800-\udfff
+    except UnicodeEncodeError: raise Invalid("text holds a lone surrogate escape (\\ud800 to \\udfff), which the harness cannot read")
     extra = set(doc) - {"name", "steps", "meta"}
     _need(not extra, f"unknown top-level keys {sorted(extra)}")
     _need(isinstance(doc.get("name"), str) and NAME_RE.fullmatch(doc["name"]), f"name must match {NAME_RE.pattern}")
@@ -489,10 +492,18 @@ def check_attack(doc, require_meta=True, intents_suite=False, chainsig_suite=Fal
         check_meta(doc["meta"], doc["steps"])
 
 
+def _int(s):
+    """-0 is 0 to Python but -0.0, a decimal, to the harness's JSON reader (tools/agreement)."""
+    _need(s != "-0", "the number -0 is read as a decimal by the harness; write 0")
+    return int(s)
+
+
 def validate_path(p, require_meta=True, intents_suite=False, chainsig_suite=False):
     try:
-        doc = json.loads(pathlib.Path(p).read_text())
-    except (OSError, json.JSONDecodeError) as e:
+        doc = json.loads(pathlib.Path(p).read_text(encoding="utf-8"), parse_int=_int)
+    except Invalid as e:
+        return f"{p}: {e}"
+    except (OSError, ValueError, RecursionError) as e:  # ValueError: bad JSON, bad UTF-8, a number over 4300 digits
         return f"{p}: not readable JSON ({type(e).__name__})"
     try:
         check_attack(doc, require_meta, intents_suite, chainsig_suite)
