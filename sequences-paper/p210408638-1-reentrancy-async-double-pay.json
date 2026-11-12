@@ -137,6 +137,15 @@
           "receiver": "ada"
         }
       ]
+    },
+    "admission": {
+      "class": "partially-validated",
+      "evidence": "evidence/admission/p210408638-1-reentrancy-async-double-pay/20261112T011822Z",
+      "date": "2026-11-12",
+      "gate": "tools/admission/admit.py",
+      "runs_counted": 0,
+      "runs_tried": 12,
+      "why": "outcomes matched, race ordering not shown: vault-a: ordering unproven (no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown); guard:fixed: ordering unproven (no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown); guard:vulnerable_fixture: ordering unproven (no per-receipt trace in the result (steps[].receipts absent): ordering can"
     }
   }
 }

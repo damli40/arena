@@ -103,6 +103,15 @@
           "receiver": "lin"
         }
       ]
+    },
+    "admission": {
+      "class": "partially-validated",
+      "evidence": "evidence/admission/p261112636-3-substituted-payee-binding-race/20261112T012025Z",
+      "date": "2026-11-12",
+      "gate": "tools/admission/admit.py",
+      "runs_counted": 0,
+      "runs_tried": 6,
+      "why": "outcomes matched, race ordering not shown: vault-a: ordering unproven (no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown); mutant:M1: ordering unproven (no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown)"
     }
   }
 }

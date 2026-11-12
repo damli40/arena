@@ -1,0 +1,92 @@
+[
+ {
+  "reference": "mutant:M3",
+  "n": 1,
+  "ordering": {
+   "status": "unproven",
+   "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown",
+   "races": [
+    {
+     "status": "unproven",
+     "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown",
+     "legs": []
+    }
+   ]
+  }
+ },
+ {
+  "reference": "mutant:M3",
+  "n": 2,
+  "ordering": {
+   "status": "unproven",
+   "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown",
+   "races": [
+    {
+     "status": "unproven",
+     "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown",
+     "legs": []
+    }
+   ]
+  }
+ },
+ {
+  "reference": "mutant:M3",
+  "n": 3,
+  "ordering": {
+   "status": "unproven",
+   "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown",
+   "races": [
+    {
+     "status": "unproven",
+     "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown",
+     "legs": []
+    }
+   ]
+  }
+ },
+ {
+  "reference": "vault-a",
+  "n": 1,
+  "ordering": {
+   "status": "unproven",
+   "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown",
+   "races": [
+    {
+     "status": "unproven",
+     "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown",
+     "legs": []
+    }
+   ]
+  }
+ },
+ {
+  "reference": "vault-a",
+  "n": 2,
+  "ordering": {
+   "status": "unproven",
+   "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown",
+   "races": [
+    {
+     "status": "unproven",
+     "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown",
+     "legs": []
+    }
+   ]
+  }
+ },
+ {
+  "reference": "vault-a",
+  "n": 3,
+  "ordering": {
+   "status": "unproven",
+   "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown",
+   "races": [
+    {
+     "status": "unproven",
+     "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown",
+     "legs": []
+    }
+   ]
+  }
+ }
+]

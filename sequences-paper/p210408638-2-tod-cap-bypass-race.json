@@ -97,6 +97,15 @@
           "note": "every pay is under 500 on its own, so a per-payment cap pays all 600; this does not depend on the timing, but the gate counts no race run without ordering evidence"
         }
       ]
+    },
+    "admission": {
+      "class": "partially-validated",
+      "evidence": "evidence/admission/p210408638-2-tod-cap-bypass-race/20261112T011947Z",
+      "date": "2026-11-12",
+      "gate": "tools/admission/admit.py",
+      "runs_counted": 0,
+      "runs_tried": 6,
+      "why": "outcomes matched, race ordering not shown: vault-a: ordering unproven (no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown); mutant:M3: ordering unproven (no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown)"
     }
   }
 }

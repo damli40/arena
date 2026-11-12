@@ -1,0 +1,42 @@
+{
+ "capabilities": [
+  "C1"
+ ],
+ "expected": [
+  {
+   "beyond_policy": 0,
+   "mechanism": [
+    {
+     "field": "above_cap",
+     "pred": "score_equals",
+     "value": 0
+    }
+   ],
+   "outcome": "held",
+   "reference": "vault-a"
+  },
+  {
+   "beyond_policy": 150,
+   "flaw": "cap-per-payment-not-running-total",
+   "mechanism": [
+    {
+     "field": "above_cap",
+     "pred": "score_equals",
+     "value": 150
+    }
+   ],
+   "note": "every pay is under 500 on its own, so a per-payment cap pays all 650; this does not depend on the timing, but the gate counts no race run without ordering evidence",
+   "outcome": "broke",
+   "reference": "mutant:M3"
+  }
+ ],
+ "failure_mode": "Cap checked per payment: four raced pays of 100, 50, 200 and 300 are each under 500, so all are paid (650 in a day).",
+ "oracle": {
+  "decides": "beyond_policy"
+ },
+ "ordering": "overlap",
+ "preconditions": [
+  "inv-pay 100, inv-small 50, inv-mid 200, inv-expire 300 (expires +20 s) approved; cap 500"
+ ],
+ "property": "A guard never spends more than the daily cap (500) in one day, even when the pays arrive together."
+}
