@@ -27,9 +27,9 @@ LIMITS = {"per_payment": "$per_payment", "window_limit": "$window_limit", "appro
 
 
 def cfg(signer="account", installs_key=False, payees="in_policy", window=("utc_day", 86400), one_yocto=False,
-        signed=False, defect="none", ext=None, claims=None):
+        signed=False, defect="none", ext=None, claims=None, versioned=False):
     opts = {"signer": signer, "installs_key": installs_key, "payees": payees,
-            "window": {"kind": window[0], "secs": window[1]}, "one_yocto": one_yocto, "defect": defect}
+            "window": {"kind": window[0], "secs": window[1]}, "one_yocto": one_yocto, "defect": defect, "versioned": versioned}
     if signed:
         opts["sig_pk"] = "$signer_public_key"
     limits = dict(LIMITS, allowlist="$allowlist" if payees == "in_policy" else None)
@@ -62,6 +62,14 @@ def signed_cfg(message=SIGN["message"]):
     return c
 
 
+def versioned_cfg():
+    c = cfg(versioned=True, ext={"notes": "each policy change is a fresh version"})
+    for k in ("policy", "set_policy"):
+        c["direct"][k]["args"]["version"] = "$policy_version"
+    c["direct"]["pay"]["extra_args"]["version"] = "$policy_version"
+    return c
+
+
 def window_cfg(kind, claim):
     return cfg(window=(kind, WIN), claims=["allowlist", "per_payment", claim, "approval"],
                ext={"window": {"claim": claim, "secs": WIN}})
@@ -73,11 +81,23 @@ def rows(rep):
 
 
 def all_held(rep):
+    return all_held_and_owner_changes_work(rep)
+
+
+def held_only(rep):
     bad = [a["attack"] + "=" + a["result"] for a in rows(rep) if a["result"] not in (D.HELD, D.KEY, D.NA)]
     unval = [r for r, s in rep.get("rules_status", {}).items() if not r.startswith("_") and s.get("claimed") and not s.get("validated")]
     held = sum(1 for a in rows(rep) if a["result"] == D.HELD)
     ok = not bad and not unval and held > 0
     return ok, f"held {held}; not held: {bad or 'none'}; unvalidated rules: {unval or 'none'}"
+
+
+def all_held_and_owner_changes_work(rep):
+    """all_held, AND the owner's set-policy changed every rule (G5): a mapping that fills the wrong
+    policy version would still validate the rules but could never call anything broke."""
+    ok, why = held_only(rep)
+    no = [r for r, s in rep.get("rules_status", {}).items() if not r.startswith("_") and s.get("claimed") and r != "approval" and not s.get("g5_effect")]
+    return ok and not no, f"{why}; owner change without effect on: {no or 'none'}"
 
 
 def refused_whole(rep):
@@ -124,6 +144,7 @@ TESTS = [
     ("X14", "window", "lifetime budget, labelled lifetime", window_cfg("lifetime", "window_lifetime"), all_held),
     ("X15", "window", "REFUSED: rolling window labelled lifetime", window_cfg("rolling", "window_lifetime"), refused_rule("window_lifetime")),
     ("X16", "signing", "guard checks a signature per payment; Arena holds the signer key and signs", signed_cfg(), all_held),
+    ("X18", "setup calls", "a policy cannot be edited, each change needs a fresh version ($policy_version)", versioned_cfg(), all_held_and_owner_changes_work),
     ("X17", "signing", "REFUSED: mapping signs a different message than the guard checks",
      signed_cfg("arena-fixture:v1|{guard}|{amount}|{receiver}|{nonce}"), refused_whole),
 ]

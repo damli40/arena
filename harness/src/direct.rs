@@ -440,17 +440,19 @@ fn plan_set_policy(cx: &Ctx, p: &Value) -> Result<Vec<Planned>> {
     let entry = json!({"kind": "set_policy", "actor": actor, "rules": {
             "allowlist": r.allowlist, "per_payment": r.per_payment.to_string(),
             "window_limit": r.window_limit.to_string(), "approval_above": r.approval_above.to_string()}});
+    // A policy change is filled with the NEXT policy version (a guard whose policies cannot be
+    // edited needs a fresh id); the version moves on only when the change succeeds (finish()).
+    let mut vars = cx.policy_vars(&r)?;
+    let next = cx.xs.lock().unwrap().policy_version + 1;
+    vars.retain(|(k, _)| *k != "$policy_version");
+    vars.push(("$policy_version", json!(next)));
     if cx.cfg.ext.set_policy_calls.is_empty() {
-        let args = cx.tfill(&cx.cfg.set_policy_args, &cx.policy_vars(&r)?)?;
+        let args = cx.tfill(&cx.cfg.set_policy_args, &vars)?;
         return Ok(vec![Planned { actor, method: cx.cfg.set_policy_method.clone(), args, entry, deposit: cx.cfg.ext.dep_set_policy, bump: true }]);
     }
     // Several owner calls; `each` repeats one per account (on the new list, added, or removed).
     let ids = |names: &[String]| -> Result<Vec<String>> { names.iter().map(|n| cx.id_of(n)).collect() };
     let (new, setup) = (ids(&r.allowlist)?, ids(&Rules::default().allowlist)?);
-    let mut vars = cx.policy_vars(&r)?;
-    let next = cx.xs.lock().unwrap().policy_version + 1;
-    vars.retain(|(k, _)| *k != "$policy_version");
-    vars.push(("$policy_version", json!(next)));
     let mut out = Vec::new();
     for c in &cx.cfg.ext.set_policy_calls {
         let each: Vec<Option<String>> = match &c.each {

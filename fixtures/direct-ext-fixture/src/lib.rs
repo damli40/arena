@@ -19,6 +19,8 @@
 //! one_yocto owner methods require exactly 1 yoctoNEAR attached
 //! sig_pk   if set, every `pay` must carry `nonce` (used once) and `signature` (base64 ed25519 by
 //!          this key over "arena-fixture:v1|<this account>|<receiver>|<amount>|<nonce>")
+//! versioned every `set_limits` must carry a `version` greater than the last one (a policy cannot be
+//!          edited, only replaced under a fresh id), and every `pay` must name the current version
 //! defect   one deliberate defect for negative self-tests, or "none":
 //!          "skip_signature"  accepts any signature
 //!          "any_key"         (guard_key) accepts any key on this account, registered or not
@@ -50,6 +52,8 @@ pub struct Opts {
     pub one_yocto: bool,
     #[serde(default)]
     pub sig_pk: Option<PublicKey>,
+    #[serde(default)]
+    pub versioned: bool,
     #[serde(default = "none")]
     pub defect: String,
 }
@@ -85,6 +89,7 @@ pub struct Fixture {
     pending: BTreeMap<u64, Req>,
     used_nonces: BTreeSet<u64>,
     next_id: u64,
+    version: Option<u64>,
 }
 
 #[near]
@@ -100,7 +105,7 @@ impl Fixture {
         Self {
             owner, agent, opts, agent_key: None, per_payment: 0, window_limit: 0, approval_above: 0,
             allowlist: BTreeSet::new(), charges: Vec::new(), period: 0, period_total: 0, anchor: now,
-            pending: BTreeMap::new(), used_nonces: BTreeSet::new(), next_id: 1,
+            pending: BTreeMap::new(), used_nonces: BTreeSet::new(), next_id: 1, version: None,
         }
     }
 
@@ -120,8 +125,13 @@ impl Fixture {
     }
 
     #[payable]
-    pub fn set_limits(&mut self, per_payment: U128, window_limit: U128, approval_above: U128, allowlist: Option<Vec<AccountId>>) {
+    pub fn set_limits(&mut self, per_payment: U128, window_limit: U128, approval_above: U128, allowlist: Option<Vec<AccountId>>, version: Option<u64>) {
         self.owner_only();
+        if self.opts.versioned {
+            let v = version.expect("E_VERSION_REQUIRED");
+            assert!(self.version.map_or(true, |old| v > old), "E_VERSION_EXISTS");
+            self.version = Some(v);
+        }
         self.per_payment = per_payment.0;
         self.window_limit = window_limit.0;
         self.approval_above = approval_above.0;
@@ -144,9 +154,12 @@ impl Fixture {
         self.allowlist.remove(&account);
     }
 
-    pub fn pay(&mut self, receiver: AccountId, amount: U128, memo: Option<String>, nonce: Option<U64>, signature: Option<Base64VecU8>) -> serde_json::Value {
+    pub fn pay(&mut self, receiver: AccountId, amount: U128, memo: Option<String>, nonce: Option<U64>, signature: Option<Base64VecU8>, version: Option<u64>) -> serde_json::Value {
         let _ = memo;
         self.agent_only();
+        if self.opts.versioned {
+            assert_eq!(version, self.version, "E_STALE_VERSION");
+        }
         if let Some(pk) = self.opts.sig_pk.clone() {
             let n = nonce.expect("E_NONCE_REQUIRED").0;
             assert!(!self.used_nonces.contains(&n), "E_NONCE_USED");
