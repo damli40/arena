@@ -678,7 +678,7 @@
   "sequences-scripted/09-pay-over-cap.json": "19ed5614728595b1e74ef3bfeef0b3d4c230f0c267316acbe0053ebf8502f1e8",
   "sequences-scripted/10-race-two-invoices.json": "63d5de70679f9e784186548d453a7c0b6b95f376364da9d96fad80ba8b3627f4",
   "tools/admission/references.json": "f425a38f2f7f7ae8b0d4dd94fd94c2c9df1af7c7848d6a59725bd5e21dd004e0",
-  "tools/injection/scenarios.json": "409f0219e2bf017737a9266a9692364f0c00c055b7c67f6e2a24c31843eae82e"
+  "tools/injection/scenarios.json": "071eecaea6c37ca786216d4299c1d5941b756c9f8d79320ca457499c680084a9"
  },
  "mutants": {
   "caught": [
