@@ -386,6 +386,53 @@ share a method. It is saved as `arena-report/mapping.json`; read it, then pass i
 next time. The call is made only when a key is set (`MUSE_API_KEY`, or `~/.config/arena/model.env`);
 with no key there is no call, and the check asks for a hand-written mapping.
 
+### When the agent names the receiver (direct mode, extended)
+
+Some guards have no invoices: the agent asks "pay 0.05 NEAR to sam" and the guard decides from its
+own rules. Arena checks these with `tools/check/direct_check.py` (the direct mode). Guards like
+this are built in many shapes, so the config can declare the shape in a `direct.ext` block. Each
+field is checked against a closed list, and before any attack counts, the gate (Arena's own
+legitimate and forbidden test payments, run on fresh sandboxes) must show that the field does what
+it says. A wrong field does not produce a wrong verdict: the gate refuses it and the result is
+"could not finish".
+
+```
+python3 tools/check/direct_check.py --wasm your_guard.wasm --guard-config guard.json --out report-dir
+```
+
+| You have this | Declare | What Arena does, and how the gate proves it |
+|---|---|---|
+| The agent is a key on the guard's own account (the guard checks "the caller is me" and looks up the signing key) | `"pay_key": {"on": "guard", "installed_by": "arena"}` or `"installed_by": "guard"` | Arena makes a new key and signs the agent's payments with it, as the guard account. `$agent_public_key` puts the key in your setup call (for example `add_agent(public_key)`). With `"arena"`, Arena adds the key itself, allowed to call only your pay method. With `"guard"`, your setup call adds it; Arena then reads the key back from the chain and stops if it is missing, has full access, or cannot call your pay method. The gas the agent spends is paid by your guard's account, so Arena subtracts it before checking that every yoctoNEAR that left the guard is found. |
+| The payee list is filled one account per call | `"setup": [{"method": "add_payee", "args": {"account": "$each"}, "each": "allowlist"}]` | Runs the call once per allowed account, after `policy`. A setup call can also keep what it returned (`"returns_as": "$vault_id"`) for later calls. |
+| Changing the policy takes several calls | `"set_policy_calls": [...]` with `"each"` set to `"allowlist"`, `"added"` or `"removed"` | Replaces `set_policy`. `"removed"` runs once per account Arena's change takes off the list (for example `remove_payee`). |
+| Owner methods need 1 yoctoNEAR attached | `"deposits": {"policy": "1", "set_policy": "1", "approve": "1", "reject": "1"}` | Attaches exactly that. Owner calls made during the gate may attach at most 1 yoctoNEAR; setup calls may attach more (storage, or funding a vault inside the guard). |
+| The limit is not per calendar UTC day | `"window": {"claim": "window_rolling", "hours": 24}` (or `window_anchored`, a period counted from setup; or `window_lifetime`, a total that never restarts, with `"secs"` = how long Arena should wait to show it) and the same name in `claims` | Runs an extra gate sequence that moves the sandbox clock forward and pays only what that kind of window allows. A rolling window labelled "anchored" pays a different amount, fails it, and its attacks become "could not finish". |
+| Every payment carries a signature from an off-chain service or oracle | `"sign": {"message": "..."}` and `"nonce": "counter"`; `$signer_public_key` in your init | Arena makes the signing key, gives its public half to your guard at init, and signs each payment over the message template you declare (`{guard}`, `{agent}`, `{receiver}`, `{amount}`, `{nonce}`, `{expires_at_ms}`, `{expires_at_ns}`, plus fixed `consts`). **This tests your guard's on-chain checks only. It does not test your real service or oracle: Arena signs every payment it asks for.** A wrong template fails the gate's first honest payment. |
+| Pay arguments are nested, or a held payment returns a bare id | `"pay_args": {...}` with `$receiver`, `$amount`; `{"$concat": ["near:", "$receiver"]}`; `{"$prefix_each": "$allowlist", "prefix": "near:"}`; `"pending_bare_id": true`; `"approve_args"` | Fills the template per payment. `"nonce": {"view": {"method": "get_nonce", "args": {...}}}` reads your guard's current nonce before each payment. |
+
+Other placeholders: `$guard` (the guard's account), `$approval_above_next` (the approval line plus 1
+yoctoNEAR, for a guard that holds payments "at or above" a value, so it behaves as "above"), and
+`$policy_version` (0 at setup, then 1, 2, ... after each policy change, for a guard whose policies
+cannot be edited and need a fresh id).
+
+What this does not do:
+
+- **A UTC-day label is not proven by moving the clock.** It is checked as before: the in-window
+  payment pairs, and the attempt must stay inside one UTC day. A guard with another kind of window
+  that is labelled "UTC day" passes those checks. Label your window with its real kind.
+- **Long windows are not proven.** Fast-forward (the sandbox's way to move its clock) gains only
+  about 0.3 to 0.5 s of clock per skipped block, and the skipped blocks do not exist: no code runs
+  in them. Proving a 24 h window means moving about 26 h of clock, which takes hours here. Arena
+  moves at most `ARENA_MAX_ADVANCE_SECS` (default 7200 s) per proof. A longer window is reported as
+  not validated, with the reason, and its attacks as "could not finish". If your guard lets the
+  owner choose the window length, choose a short one in the config.
+- **A guard that only answers allow or refuse, and moves no money, cannot be checked this way.**
+  Arena scores money that moved.
+
+Self-tests for every field above, each with a correct mapping and a wrong one that must be refused:
+`python3 tools/check/direct_ext_selftest.py --out DIR` (the fixture is
+`fixtures/direct-ext-fixture/`).
+
 ## What the report says
 
 | On the report | What it means |

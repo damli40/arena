@@ -1,0 +1,69 @@
+{
+  "name": "g8-window-rolling",
+  "purpose": "G8 window kind, rolling: payments older than one window stop counting, one by one. sam 100 at the start; half a window later ada 100 and mo 100 (limit 300 reached, kai 50 refused); at 1.1 windows only sam's 100 has expired, so kai 100 pays and kai 1 more is refused. A period that restarts whole (anchored) would pay the 1; a lifetime budget would pay nothing.",
+  "gate_rule": "window kind",
+  "steps": [
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "sam",
+        "amount": 100
+      }
+    },
+    {
+      "advance": {
+        "windows": 0.5
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "ada",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "mo",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "kai",
+        "amount": 50
+      }
+    },
+    {
+      "advance": {
+        "windows": 0.6
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "kai",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "kai",
+        "amount": 1
+      }
+    }
+  ],
+  "expect": {
+    "received": {
+      "sam": 100,
+      "ada": 100,
+      "mo": 100,
+      "kai": 100,
+      "lin": 0
+    },
+    "outside": 0
+  }
+}

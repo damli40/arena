@@ -115,6 +115,8 @@ pub struct DirectConfig {
     pub callback: Option<(String, String)>,
     /// If set, the harness refuses to run any wasm whose sha256 differs (a guard Arena does not redistribute).
     pub wasm_sha256: Option<String>,
+    /// Extended direct mode (direct_ext.rs); empty when the config has no `direct.ext` block.
+    pub ext: crate::direct_ext::Ext,
 }
 
 pub const CLAIMS: [&str; 4] = ["allowlist", "per_payment", "window_utc_day", "approval"];
@@ -152,13 +154,25 @@ impl DirectConfig {
             .iter()
             .map(|c| c.as_str().map(|s| s.to_string()).context("claims are strings"))
             .collect::<Result<_>>()?;
+        let ext = crate::direct_ext::Ext::from_direct(d)?;
         for c in &claims {
-            if !CLAIMS.contains(&c.as_str()) {
-                bail!("unknown claim {c:?} (allowed: {CLAIMS:?})");
+            if !CLAIMS.contains(&c.as_str()) && Some(c.as_str()) != ext.window_claim() {
+                bail!("unknown claim {c:?} (allowed: {CLAIMS:?}, or the window claim declared in direct.ext.window)");
             }
         }
+        if ext.window.is_some() && claims.iter().any(|c| c == "window_utc_day") {
+            bail!("a guard has one window: claim window_utc_day or declare direct.ext.window, not both");
+        }
         let pol = d.get("policy").context("direct.policy {method, args} is required")?;
-        let setp = d.get("set_policy").context("direct.set_policy {method, args} is required")?;
+        let no_setp = json!({"method": "", "args": {}});
+        let setp = match d.get("set_policy") {
+            Some(x) => x,
+            None if !ext.set_policy_calls.is_empty() => &no_setp,
+            None => bail!("direct.set_policy {{method, args}} is required (or direct.ext.set_policy_calls)"),
+        };
+        if d.get("set_policy").is_some() && !ext.set_policy_calls.is_empty() {
+            bail!("give direct.set_policy or direct.ext.set_policy_calls, not both");
+        }
         let pair = |k: &str, field: &str| -> Result<Option<(String, String)>> {
             match d.get(k) {
                 None | Some(Value::Null) => Ok(None),
@@ -174,8 +188,8 @@ impl DirectConfig {
             init_args: init.get("args").cloned().unwrap_or(json!({})),
             claims,
             pay_method: s(pay, "method", "pay")?,
-            receiver_field: s(pay, "receiver_field", "pay")?,
-            amount_field: s(pay, "amount_field", "pay")?,
+            receiver_field: if ext.pay_args.is_some() { String::new() } else { s(pay, "receiver_field", "pay")? },
+            amount_field: if ext.pay_args.is_some() { String::new() } else { s(pay, "amount_field", "pay")? },
             extra_args: pay.get("extra_args").and_then(|e| e.as_object()).cloned().unwrap_or_default(),
             policy_method: s(pol, "method", "policy")?,
             policy_args: pol.get("args").cloned().context("policy.args")?,
@@ -186,13 +200,14 @@ impl DirectConfig {
             pending,
             callback: pair("callback", "id_field")?,
             wasm_sha256: v.get("wasm_sha256").and_then(|x| x.as_str()).map(|x| x.to_ascii_lowercase()),
+            ext,
         };
         for m in c.methods() {
             if !name_ok(&m) {
                 bail!("method name {m:?} is not a NEAR method name");
             }
         }
-        if c.claims.iter().any(|x| x == "approval") && (c.approve.is_none() || c.reject.is_none() || c.pending.is_none()) {
+        if c.claims.iter().any(|x| x == "approval") && (c.approve.is_none() || c.reject.is_none() || (c.pending.is_none() && !c.ext.pending_bare_id)) {
             bail!("the approval claim needs direct.approve, direct.reject and direct.pending");
         }
         Ok(c)
@@ -209,6 +224,8 @@ impl DirectConfig {
         for (x, _) in [&self.approve, &self.reject, &self.callback].into_iter().flatten() {
             m.push(x.clone());
         }
+        m.extend(self.ext.methods());
+        m.retain(|x| !x.is_empty());
         m
     }
 }
@@ -288,6 +305,12 @@ struct Ctx {
     /// (transfer id the payment returned, the arguments the guard passed when it called its own
     /// mapped callback for that payment). A forged callback for "last_transfer" sends exactly these.
     self_args: std::sync::Mutex<Vec<(Value, Value)>>,
+    /// Extended direct mode (direct_ext.rs): nonce counter, captured setup values, clock moves.
+    xs: std::sync::Mutex<crate::direct_ext::State>,
+    /// The key Arena signs payments with, for a guard that checks a signature (ext.sign).
+    signer_sk: Option<SecretKey>,
+    /// The agent's key when it sits on the guard's own account (ext.pay_key).
+    agent_pk: Option<String>,
 }
 
 impl Ctx {
@@ -327,13 +350,35 @@ impl Ctx {
             ("$per_payment", json!((r.per_payment * NATIVE_UNIT).to_string())),
             ("$window_limit", json!((r.window_limit * NATIVE_UNIT).to_string())),
             ("$approval_above", json!((r.approval_above * NATIVE_UNIT).to_string())),
-        ])
+        ]
+        .into_iter()
+        .chain(crate::direct_ext::vars(self.guard.id().as_str(), r.approval_above * NATIVE_UNIT, self.agent_pk.as_deref(), self.signer_sk.as_ref(), &self.xs.lock().unwrap()))
+        .collect())
+    }
+
+    /// Fill a template: the extended operators ($concat, $prefix_each) only for an ext config, so
+    /// a config without `direct.ext` is filled exactly as before.
+    fn tfill(&self, t: &Value, vars: &[(&str, Value)]) -> Result<Value> {
+        if self.cfg.ext.present {
+            crate::direct_ext::expand(t, vars)
+        } else {
+            fill(t, vars)
+        }
+    }
+
+    /// Who paid a transaction's gas: the agent's key on the guard account is paid by the guard.
+    fn gas_payer(&self, actor: &str) -> String {
+        if actor == "agent" && self.agent_pk.is_some() {
+            "guard-key".into()
+        } else {
+            actor.into()
+        }
     }
 
     fn record(&self, actor: &str, r: &ExecutionFinalResult) {
         let burnt: u128 = r.outcomes().iter().map(|o| o.tokens_burnt.as_yoctonear()).sum();
         let on_guard: u128 = r.outcomes().iter().filter(|o| &o.executor_id == self.guard.id()).map(|o| o.tokens_burnt.as_yoctonear()).sum();
-        self.burnt.lock().unwrap().push((actor.to_string(), burnt));
+        self.burnt.lock().unwrap().push((self.gas_payer(actor), burnt));
         *self.burnt_on_guard.lock().unwrap() += on_guard;
     }
 }
@@ -361,35 +406,71 @@ struct Planned {
     method: String,
     args: Value,
     entry: Value,
+    /// yoctoNEAR attached (ext.deposits / a call's deposit); 0 for every non-ext config
+    deposit: u128,
+    /// the last call of a multi-call set-policy: on success the policy version moves on
+    bump: bool,
 }
 
 fn plan_pay(cx: &Ctx, p: &Value) -> Result<Planned> {
     let actor = p.get("actor").and_then(|x| x.as_str()).unwrap_or("agent").to_string();
     let recv = p.get("receiver").and_then(|x| x.as_str()).context("pay needs a receiver (logical name)")?;
     let amount = p.get("amount").and_then(|x| x.as_u64()).context("pay needs an amount in units")? as u128;
-    let mut args = cx.cfg.extra_args.clone();
-    args.insert(cx.cfg.receiver_field.clone(), json!(cx.id_of(recv)?));
-    args.insert(cx.cfg.amount_field.clone(), json!((amount * NATIVE_UNIT).to_string()));
+    let args = if cx.cfg.ext.present {
+        crate::direct_ext::pay_args(&cx.cfg, &cx.policy_vars(&Rules::default())?, &cx.id_of(recv)?, amount * NATIVE_UNIT, cx.signer_sk.as_ref(), &mut cx.xs.lock().unwrap())?
+    } else {
+        let mut args = cx.cfg.extra_args.clone();
+        args.insert(cx.cfg.receiver_field.clone(), json!(cx.id_of(recv)?));
+        args.insert(cx.cfg.amount_field.clone(), json!((amount * NATIVE_UNIT).to_string()));
+        Value::Object(args)
+    };
     Ok(Planned {
         actor: actor.clone(),
         method: cx.cfg.pay_method.clone(),
-        args: Value::Object(args),
+        args,
         entry: json!({"kind": "pay", "actor": actor, "receiver": recv, "amount": amount.to_string()}),
+        deposit: 0,
+        bump: false,
     })
 }
 
-fn plan_set_policy(cx: &Ctx, p: &Value) -> Result<Planned> {
+fn plan_set_policy(cx: &Ctx, p: &Value) -> Result<Vec<Planned>> {
     let actor = p.get("actor").and_then(|x| x.as_str()).unwrap_or("owner").to_string();
     let r = Rules::default().with(p)?;
-    let args = fill(&cx.cfg.set_policy_args, &cx.policy_vars(&r)?)?;
-    Ok(Planned {
-        actor: actor.clone(),
-        method: cx.cfg.set_policy_method.clone(),
-        args,
-        entry: json!({"kind": "set_policy", "actor": actor, "rules": {
+    let entry = json!({"kind": "set_policy", "actor": actor, "rules": {
             "allowlist": r.allowlist, "per_payment": r.per_payment.to_string(),
-            "window_limit": r.window_limit.to_string(), "approval_above": r.approval_above.to_string()}}),
-    })
+            "window_limit": r.window_limit.to_string(), "approval_above": r.approval_above.to_string()}});
+    if cx.cfg.ext.set_policy_calls.is_empty() {
+        let args = cx.tfill(&cx.cfg.set_policy_args, &cx.policy_vars(&r)?)?;
+        return Ok(vec![Planned { actor, method: cx.cfg.set_policy_method.clone(), args, entry, deposit: cx.cfg.ext.dep_set_policy, bump: true }]);
+    }
+    // Several owner calls; `each` repeats one per account (on the new list, added, or removed).
+    let ids = |names: &[String]| -> Result<Vec<String>> { names.iter().map(|n| cx.id_of(n)).collect() };
+    let (new, setup) = (ids(&r.allowlist)?, ids(&Rules::default().allowlist)?);
+    let mut vars = cx.policy_vars(&r)?;
+    let next = cx.xs.lock().unwrap().policy_version + 1;
+    vars.retain(|(k, _)| *k != "$policy_version");
+    vars.push(("$policy_version", json!(next)));
+    let mut out = Vec::new();
+    for c in &cx.cfg.ext.set_policy_calls {
+        let each: Vec<Option<String>> = match &c.each {
+            Some(e) => crate::direct_ext::each_list(e, &new, &setup).into_iter().map(Some).collect(),
+            None => vec![None],
+        };
+        for a in each {
+            let mut v = vars.clone();
+            if let Some(a) = &a {
+                v.push(("$each", json!(a)));
+            }
+            let mut e = entry.clone();
+            e["part"] = json!(out.len());
+            out.push(Planned { actor: actor.clone(), method: c.method.clone(), args: cx.tfill(&c.args, &v)?, entry: e, deposit: c.deposit, bump: false });
+        }
+    }
+    if let Some(l) = out.last_mut() {
+        l.bump = true;
+    }
+    Ok(out)
 }
 
 fn plan_decide(cx: &Ctx, kind: &str, p: &Value) -> Result<Planned> {
@@ -397,7 +478,13 @@ fn plan_decide(cx: &Ctx, kind: &str, p: &Value) -> Result<Planned> {
     let (m, field) = if kind == "approve" { cx.cfg.approve.clone() } else { cx.cfg.reject.clone() }
         .with_context(|| format!("{kind}: the config maps no {kind} method"))?;
     let id = cx.pending_ids.lock().unwrap().last().cloned().with_context(|| format!("{kind}: no pending request id was returned earlier in this sequence"))?;
-    Ok(Planned { actor: actor.clone(), method: m, args: json!({ field: id.clone() }), entry: json!({"kind": kind, "actor": actor, "request_id": id}) })
+    let (extra, deposit) = if kind == "approve" { (&cx.cfg.ext.approve_args, cx.cfg.ext.dep_approve) } else { (&cx.cfg.ext.reject_args, cx.cfg.ext.dep_reject) };
+    let mut args = match cx.tfill(&Value::Object(extra.clone()), &cx.policy_vars(&Rules::default())?)? {
+        Value::Object(m) => m,
+        _ => Map::new(),
+    };
+    args.insert(field, id.clone());
+    Ok(Planned { actor: actor.clone(), method: m, args: Value::Object(args), entry: json!({"kind": kind, "actor": actor, "request_id": id}), deposit, bump: false })
 }
 
 fn plan_callback(cx: &Ctx, p: &Value) -> Result<Planned> {
@@ -420,30 +507,33 @@ fn plan_callback(cx: &Ctx, p: &Value) -> Result<Planned> {
         .find(|(i, _)| i == &id)
         .map(|(_, a)| a.clone())
         .with_context(|| format!("callback: the guard never called {m} on itself with {field}={id} after that payment, so Arena cannot build the forged call"))?;
-    Ok(Planned { actor: actor.clone(), method: m, args, entry: json!({"kind": "callback", "actor": actor, "id": id}) })
+    Ok(Planned { actor: actor.clone(), method: m, args, entry: json!({"kind": "callback", "actor": actor, "id": id}), deposit: 0, bump: false })
 }
 
-fn plan(cx: &Ctx, st: &Value) -> Result<Planned> {
+fn plan(cx: &Ctx, st: &Value) -> Result<Vec<Planned>> {
     if let Some(p) = st.get("pay") {
-        plan_pay(cx, p)
+        Ok(vec![plan_pay(cx, p)?])
     } else if let Some(p) = st.get("set_policy") {
         plan_set_policy(cx, p)
     } else if let Some(p) = st.get("approve") {
-        plan_decide(cx, "approve", p)
+        Ok(vec![plan_decide(cx, "approve", p)?])
     } else if let Some(p) = st.get("reject") {
-        plan_decide(cx, "reject", p)
+        Ok(vec![plan_decide(cx, "reject", p)?])
     } else if let Some(p) = st.get("callback") {
-        plan_callback(cx, p)
+        Ok(vec![plan_callback(cx, p)?])
     } else {
-        bail!("unknown direct step {st} (pay, set_policy, approve, reject, callback, race, wait_blocks)")
+        bail!("unknown direct step {st} (pay, set_policy, approve, reject, callback, race, wait_blocks, advance)")
     }
 }
 
 async fn finish(cx: &Ctx, i: usize, pl: Planned, res: std::result::Result<ExecutionFinalResult, near_workspaces::error::Error>) -> Result<Value> {
-    let mut e = pl.entry;
+    let mut e = pl.entry.clone();
     e["step"] = json!(i);
     e["method"] = json!(pl.method);
-    e["args"] = pl.args;
+    e["args"] = pl.args.clone();
+    if pl.deposit > 0 {
+        e["deposit_yocto"] = json!(pl.deposit.to_string());
+    }
     match res {
         Ok(r) => {
             cx.record(&pl.actor, &r);
@@ -457,10 +547,18 @@ async fn finish(cx: &Ctx, i: usize, pl: Planned, res: std::result::Result<Execut
             e["logs"] = json!(r.logs().iter().map(|l| l.chars().take(300).collect::<String>()).collect::<Vec<_>>());
             if ok {
                 let ret: Value = r.json().unwrap_or(Value::Null);
+                if pl.bump && pl.entry.get("kind").and_then(|k| k.as_str()) == Some("set_policy") {
+                    cx.xs.lock().unwrap().policy_version += 1;
+                }
+                if cx.cfg.ext.pending_bare_id && (ret.is_string() || ret.is_u64()) {
+                    cx.pending_ids.lock().unwrap().push(ret.clone());
+                    e["held"] = json!(true);
+                }
                 if let Some((sf, pv, idf)) = &cx.cfg.pending {
                     if ret.get(sf).and_then(|x| x.as_str()) == Some(pv.as_str()) {
                         if let Some(id) = ret.get(idf) {
                             cx.pending_ids.lock().unwrap().push(id.clone());
+                            e["held"] = json!(true);
                         }
                     }
                 }
@@ -490,12 +588,19 @@ async fn finish(cx: &Ctx, i: usize, pl: Planned, res: std::result::Result<Execut
 
 fn tx<'a>(cx: &'a Ctx, pl: &Planned) -> Result<near_workspaces::operations::CallTransaction> {
     let who = cx.signer(&pl.actor)?;
-    Ok(who.call(cx.guard.id(), &pl.method).args_json(pl.args.clone()).gas(Gas::from_tgas(STEP_TGAS)))
+    Ok(who.call(cx.guard.id(), &pl.method).args_json(pl.args.clone()).gas(Gas::from_tgas(STEP_TGAS)).deposit(NearToken::from_yoctonear(pl.deposit)))
 }
 
 async fn execute(cx: &Ctx, steps: &[Value]) -> Result<Vec<Value>> {
     let mut out = Vec::new();
     for (i, st) in steps.iter().enumerate() {
+        if cx.cfg.ext.present {
+            crate::direct_ext::before_step(&cx.worker, cx.guard.id(), &cx.cfg, &mut *cx.xs.lock().unwrap()).await?;
+        }
+        if let Some(a) = st.get("advance") {
+            out.push(crate::direct_ext::advance_step(&cx.worker, &cx.cfg, a, i, &mut *cx.xs.lock().unwrap()).await?);
+            continue;
+        }
         if let Some(n) = st.get("wait_blocks").and_then(|v| v.as_u64()) {
             cx.worker.fast_forward(n).await?;
             out.push(json!({"step": i, "kind": "wait_blocks", "n": n}));
@@ -504,18 +609,19 @@ async fn execute(cx: &Ctx, steps: &[Value]) -> Result<Vec<Value>> {
         if let Some(calls) = st.get("race").and_then(|r| r.as_array()) {
             let mut sent = Vec::new();
             for c in calls {
-                let pl = plan(cx, c)?;
-                match tx(cx, &pl)?.transact_async().await {
-                    Ok(status) => sent.push((pl, status)),
-                    Err(err) if is_protocol_rejection(&err) => out.push(finish(cx, i, pl, Err(err)).await?),
-                    Err(err) => bail!("step {i}: async broadcast failed: {err:?}"),
+                for pl in plan(cx, c)? {
+                    match tx(cx, &pl)?.transact_async().await {
+                        Ok(status) => sent.push((pl, status)),
+                        Err(err) if is_protocol_rejection(&err) => out.push(finish(cx, i, pl, Err(err)).await?),
+                        Err(err) => bail!("step {i}: async broadcast failed: {err:?}"),
+                    }
                 }
             }
             for (pl, fut) in sent {
                 match tokio::time::timeout(std::time::Duration::from_secs(RACE_TIMEOUT_S), fut.into_future()).await {
                     Ok(res) => out.push(finish(cx, i, pl, res).await?),
                     Err(_) => {
-                        let mut e = pl.entry;
+                        let mut e = pl.entry.clone();
                         e["step"] = json!(i);
                         e["outcome"] = json!("not-included");
                         out.push(e);
@@ -524,9 +630,10 @@ async fn execute(cx: &Ctx, steps: &[Value]) -> Result<Vec<Value>> {
             }
             continue;
         }
-        let pl = plan(cx, st)?;
-        let res = tx(cx, &pl)?.transact().await;
-        out.push(finish(cx, i, pl, res).await?);
+        for pl in plan(cx, st)? {
+            let res = tx(cx, &pl)?.transact().await;
+            out.push(finish(cx, i, pl, res).await?);
+        }
     }
     Ok(out)
 }
@@ -569,15 +676,33 @@ pub async fn run(seq_path: &std::path::Path, wasm: &std::path::Path, cfg_path: &
     let guard = worker.dev_deploy(&wasm_bytes).await?;
     let fc = SecretKey::from_random(KeyType::ED25519);
     let pay_m = [cfg.pay_method.as_str()];
-    let r = agent_full
-        .batch(agent_full.id())
-        .add_key(fc.public_key(), AccessKey::function_call_access(guard.id(), &pay_m, Some(NearToken::from_near(AGENT_KEY_ALLOWANCE_NEAR))))
-        .transact()
-        .await?;
-    if !r.is_success() {
-        bail!("SETUP: adding the agent's function-call key failed");
-    }
-    let agent = Account::from_secret_key(agent_full.id().clone(), fc, &worker);
+    let key_on_guard = cfg.ext.pay_key.clone();
+    let agent = if let Some(how) = &key_on_guard {
+        // ext.pay_key: the agent is a key on the guard's own account (see direct_ext.rs).
+        if *how == crate::direct_ext::KeyInstall::Arena {
+            let r = guard
+                .as_account()
+                .batch(guard.id())
+                .add_key(fc.public_key(), AccessKey::function_call_access(guard.id(), &pay_m, Some(NearToken::from_near(AGENT_KEY_ALLOWANCE_NEAR))))
+                .transact()
+                .await?;
+            if !r.is_success() {
+                bail!("SETUP: adding the agent's function-call key to the guard account failed");
+            }
+        }
+        Account::from_secret_key(guard.id().clone(), fc.clone(), &worker)
+    } else {
+        let r = agent_full
+            .batch(agent_full.id())
+            .add_key(fc.public_key(), AccessKey::function_call_access(guard.id(), &pay_m, Some(NearToken::from_near(AGENT_KEY_ALLOWANCE_NEAR))))
+            .transact()
+            .await?;
+        if !r.is_success() {
+            bail!("SETUP: adding the agent's function-call key failed");
+        }
+        Account::from_secret_key(agent_full.id().clone(), fc.clone(), &worker)
+    };
+    let signer_sk = cfg.ext.sign.as_ref().map(|_| SecretKey::from_random(KeyType::ED25519));
     let cx = Ctx {
         worker: worker.clone(),
         owner,
@@ -594,23 +719,53 @@ pub async fn run(seq_path: &std::path::Path, wasm: &std::path::Path, cfg_path: &
         transfer_ids: Default::default(),
         want_self_calls: gate || steps.iter().any(|st| st.get("callback").is_some() || st.get("race").and_then(|r| r.as_array()).map_or(false, |r| r.iter().any(|c| c.get("callback").is_some()))),
         self_args: Default::default(),
+        xs: Default::default(),
+        signer_sk,
+        agent_pk: key_on_guard.as_ref().map(|_| fc.public_key().to_string()),
     };
-    result["agent_key"] = json!({"receiver": "the guard", "methods": [cfg.pay_method], "allowance_near": AGENT_KEY_ALLOWANCE_NEAR.to_string()});
+    result["agent_key"] = match &key_on_guard {
+        None => json!({"on": "the agent's own account", "receiver": "the guard", "methods": [cfg.pay_method], "allowance_near": AGENT_KEY_ALLOWANCE_NEAR.to_string()}),
+        Some(how) => json!({"on": "the guard's own account", "installed_by": format!("{how:?}").to_lowercase(), "public_key": fc.public_key().to_string()}),
+    };
+    if cx.signer_sk.is_some() {
+        result["signer"] = json!("Arena generated the signing key the guard was initialised with and signed every payment itself: this tests the guard's on-chain checks of a signature, not the real off-chain service");
+    }
 
     // Setup: init (signed by the guard account itself), then the owner sets Arena's policy.
     let rules = Rules::default();
     let vars = cx.policy_vars(&rules)?;
-    let init_args = fill(&cfg.init_args, &vars)?;
+    let init_args = cx.tfill(&cfg.init_args, &vars)?;
     let r = cx.guard.call(&cfg.init_method).args_json(init_args.clone()).transact().await?;
     if !r.is_success() {
         result["setup_error"] = json!(format!("init `{}` failed: {}", cfg.init_method, failure_text(&r)));
         return Ok(result);
     }
-    let pol_args = fill(&cfg.policy_args, &vars)?;
-    let r = cx.owner.call(cx.guard.id(), &cfg.policy_method).args_json(pol_args.clone()).gas(Gas::from_tgas(STEP_TGAS)).transact().await?;
+    let pol_args = cx.tfill(&cfg.policy_args, &vars)?;
+    let r = cx.owner.call(cx.guard.id(), &cfg.policy_method).args_json(pol_args.clone()).gas(Gas::from_tgas(STEP_TGAS))
+        .deposit(NearToken::from_yoctonear(cfg.ext.dep_policy)).transact().await?;
     if !r.is_success() {
         result["setup_error"] = json!(format!("policy `{}` failed: {}", cfg.policy_method, failure_text(&r)));
         return Ok(result);
+    }
+    if cfg.ext.present {
+        cx.xs.lock().unwrap().captures_from(&cfg.ext, cfg.ext.policy_returns_as.as_deref(), &r);
+        match crate::direct_ext::setup_calls(&cx.owner, cx.guard.id(), &cfg.ext, &rules.allowlist.iter().map(|n| cx.id_of(n)).collect::<Result<Vec<_>>>()?,
+            |extra| { let mut v = cx.policy_vars(&rules)?; v.extend(extra); Ok(v) }, |t, v| cx.tfill(t, v), &cx.xs).await? {
+            Ok(done) => result["setup_ext"] = done,
+            Err(why) => {
+                result["setup_error"] = json!(why);
+                return Ok(result);
+            }
+        }
+        if key_on_guard.is_some() {
+            match crate::direct_ext::check_pay_key(&worker, cx.guard.id(), &fc.public_key(), &cfg.pay_method).await? {
+                Ok(seen) => result["agent_key"]["seen_on_chain"] = seen,
+                Err(why) => {
+                    result["setup_error"] = json!(why);
+                    return Ok(result);
+                }
+            }
+        }
     }
     println!("DIRECT setup: init {}({init_args}); owner {}({pol_args})", cfg.init_method, cfg.policy_method);
     result["setup"] = json!({"init": {"method": cfg.init_method, "args": init_args}, "policy": {"method": cfg.policy_method, "args": pol_args},
@@ -668,7 +823,15 @@ pub async fn run(seq_path: &std::path::Path, wasm: &std::path::Path, cfg_path: &
     if !stable {
         invalid.push("the guard's NEAR balance was still moving after 8 settle rounds; money was in flight when Arena read it".into());
     }
-    if utc_day(ts0) != utc_day(ts1) {
+    let advanced = cx.xs.lock().unwrap().advanced_secs;
+    if cfg.ext.present {
+        // A sequence that moves the clock is judged on its own expectations (the gate's window
+        // sequences); otherwise the attempt must sit inside one window of the declared kind.
+        if let Some(why) = crate::direct_ext::window_validity(&cfg, ts0, ts1, advanced) {
+            invalid.push(why);
+        }
+        result["clock"] = json!({"advanced_secs": advanced, "note": "fast-forward skips blocks: no code runs in them, so only guards that compute their window from the block time on the next call are tested this way"});
+    } else if utc_day(ts0) != utc_day(ts1) {
         invalid.push(format!("the UTC day changed during the attempt (block time {ts0} -> {ts1}); a per-day limit restarts at 00:00 UTC, so Arena cannot judge it"));
     }
 
@@ -704,7 +867,9 @@ pub async fn run(seq_path: &std::path::Path, wasm: &std::path::Path, cfg_path: &
     }
     let guard_after = yocto(&worker, &gid).await?.unwrap_or(0);
     let reward_bound = (*cx.burnt_on_guard.lock().unwrap() * 3 / 10) as i128;
-    let flow = Flow { guard_out: guard_before as i128 - guard_after as i128, receivers_in, others: others.clone(), reward_bound };
+    // ext.pay_key: the agent's key sits on the guard account, so the guard paid that gas itself.
+    let guard_key_gas = spent("guard-key");
+    let flow = Flow { guard_out: guard_before as i128 - guard_after as i128 - guard_key_gas, receivers_in, others: others.clone(), reward_bound };
     let (unaccounted, bad) = conserve(&flow);
     invalid.extend(bad);
 
@@ -715,7 +880,7 @@ pub async fn run(seq_path: &std::path::Path, wasm: &std::path::Path, cfg_path: &
         "guard_out_yocto": flow.guard_out.to_string(), "receivers_in_yocto": receivers_in.to_string(),
         "others_net_yocto": others.iter().map(|(l, g)| json!({"who": l, "yocto": g.to_string()})).collect::<Vec<_>>(),
         "unaccounted_yocto": unaccounted.to_string(), "reward_bound_yocto": reward_bound.to_string(),
-        "tolerance_yocto": TOLERANCE_YOCTO.to_string(),
+        "tolerance_yocto": TOLERANCE_YOCTO.to_string(), "guard_paid_agent_gas_yocto": guard_key_gas.to_string(),
     });
     result["utc_day"] = json!({"start_block_ns": ts0.to_string(), "end_block_ns": ts1.to_string(), "same_day": utc_day(ts0) == utc_day(ts1)});
     result["settled"] = json!(stable);

@@ -48,6 +48,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 HARNESS = ROOT / "harness" / "target" / "release" / "arena-harness"
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import wasm_exports  # noqa: E402
+import direct_ext as X  # noqa: E402  (extended direct mode: pay key on the guard, setup calls, window kinds, signing)
 
 GATE_DIR = ROOT / "sequences-direct-gate"
 RULES = {"allowlist": ["sam", "ada", "mo", "kai", "ghost"], "per_payment": 200, "window_limit": 300, "approval_above": 100}
@@ -56,6 +57,9 @@ RULE_CLAIM = {"allowlist": "allowlist", "per_payment": "per_payment", "window_ut
 G4 = {"allowlist": "g4-allowlist", "per_payment": "g4-per-payment", "window_utc_day": "g4-window"}
 G5 = {"allowlist": "g5-allowlist", "per_payment": "g5-per-payment", "window_utc_day": "g5-window"}
 G6 = ["g6-hold", "g6-approve", "g6-reject"]
+for _w in X.WINDOW_CLAIMS:  # every window kind uses the same in-window pairs; its KIND is proven by g8 (direct_ext.py)
+    G4.setdefault(_w, "g4-window")
+    G5.setdefault(_w, "g5-window")
 TIMEOUT_S = 300
 
 HELD, BROKE, CNF, NA, KEY = "held", "broke", "could not finish", "not applicable", "stopped by the access key"
@@ -66,7 +70,7 @@ def sha256(p):
 
 
 # ---------------------------------------------------------------- running
-def run_one(seq, wasm, cfg, out_dir, gate, tag=""):
+def run_one(seq, wasm, cfg, out_dir, gate, tag="", timeout=TIMEOUT_S):
     """One sequence on a fresh sandbox. Returns the result dict, or {"error": ...} (never a verdict)."""
     out_dir = pathlib.Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -78,7 +82,7 @@ def run_one(seq, wasm, cfg, out_dir, gate, tag=""):
     with open(lg, "w") as f:
         p = subprocess.Popen(cmd, cwd=ROOT, stdout=f, stderr=subprocess.STDOUT, start_new_session=True)
         try:
-            rc = p.wait(timeout=TIMEOUT_S)
+            rc = p.wait(timeout=timeout)
         except subprocess.TimeoutExpired:
             rc = None
         finally:
@@ -114,7 +118,8 @@ def outside_units(r):
 
 
 def pending_returned(r):
-    return sum(1 for s in r.get("steps", []) if isinstance(s.get("returned"), dict) and s["returned"].get("status") == "pending")
+    # "held" is set by the harness when the config's pending rule found a held request id (any shape).
+    return sum(1 for s in r.get("steps", []) if s.get("held") or (isinstance(s.get("returned"), dict) and s["returned"].get("status") == "pending"))
 
 
 def gate_check(r, expect):
@@ -175,7 +180,8 @@ def rule_status(claims, gate):
     g7 = all(gate.get(n + "#2", (False,))[0] for n in ["g2-honest-sam"]) if mapping else False
     st = {"_mapping": {"proven": mapping and g7, "why": "G2, G3 and the G7 repeat of G2 passed" if mapping and g7 else
                        "; ".join(f"{n}: {gate.get(n, (False, 'not run'))[1]}" for n in ("g2-honest-sam", "g3-honest-ada", "g2-honest-sam#2") if not gate.get(n, (False,))[0])}}
-    for rule in ("allowlist", "per_payment", "window_utc_day"):
+    st["_mapping"]["window"] = X.window_claim(claims)
+    for rule in rules_of(claims):
         if rule not in claims:
             st[rule] = {"claimed": False}
             continue
@@ -184,6 +190,13 @@ def rule_status(claims, gate):
         # Dami's rule (2026-11-12): refusing every forbidden payment of the pairs, twice, validates
         # the rule. G5 (the owner's method really changes it) is needed only to call it broke.
         s["validated"] = st["_mapping"]["proven"] and s["g4"]
+        kind = X.KIND_SEQ.get(rule)
+        if kind in gate:  # an ext config: the window's kind must be proven by behaviour too
+            s["g8_kind"] = gate[kind][0]
+            s["g8_why"] = gate[kind][1]
+            s["validated"] = s["validated"] and s["g8_kind"]
+            if not s["g8_kind"]:
+                s["g4_why"] = f"the window did not behave as {rule} ({kind}: {gate[kind][1]})"
         s["broke_at_gate"] = False
         if not s["g4"] and st["_mapping"]["proven"] and s["g5_effect"]:
             extra = max(gate_overpaid(g4[2], g4[3]) if len(g4) > 3 else 0, gate_overpaid(g4b[2], g4b[3]) if len(g4b) > 3 else 0)
@@ -263,9 +276,15 @@ def uses_callback(seq):
     return any("callback" in st or any("callback" in c for c in st.get("race", []) or []) for st in steps)
 
 
+def rules_of(claims):
+    return ("allowlist", "per_payment", X.window_claim(claims) or "window_utc_day")
+
+
 def judge(meta, r, status):
     """One attack -> (label, why). Fixed rules; see the module docstring."""
     rule = meta["rule"]
+    if rule == "window_utc_day" and status.get("_mapping", {}).get("window"):
+        rule = status["_mapping"]["window"]
     rs = status.get(rule, {"claimed": False})
     if not rs.get("claimed"):
         return NA, f"the guard does not claim the {rule} rule"
@@ -306,14 +325,19 @@ def g0(wasm, cfg):
     d = c.get("direct", {})
     need = [c.get("init", {}).get("method"), d.get("pay", {}).get("method"), d.get("policy", {}).get("method"), d.get("set_policy", {}).get("method")]
     need += [d[k]["method"] for k in ("approve", "reject", "callback") if isinstance(d.get(k), dict)]
+    need += X.methods(c)
+    need = [m for m in need if m]
     missing = [m for m in need if m not in exp]
     return missing, sorted(exp), c
 
 
 def run_gate(wasm, cfg, out, jobs, claims):
     seqs = {p.stem: p for p in sorted(GATE_DIR.glob("*.json"))}
+    seqs.update(X.gate_seqs())
     want = ["g2-honest-sam", "g3-honest-ada"] + [G4[r] for r in G4 if r in claims] + [G5[r] for r in G5 if r in claims] + (G6 if "approval" in claims else [])
-    items = [(n, (lambda n=n: run_one(seqs[n], wasm, cfg, out / "gate", True))) for n in want]
+    extra, skipped = X.gate_extra(X.load(cfg), claims)
+    want += extra
+    items = [(n, (lambda n=n: run_one(seqs[n], wasm, cfg, out / "gate", True, timeout=X.timeout_for(X.load(cfg), n, TIMEOUT_S)))) for n in want]
     repeats = ["g2-honest-sam"] + [G4[r] for r in G4 if r in claims]
     items += [(n + "#2", (lambda n=n: run_one(seqs[n], wasm, cfg, out / "gate", True, tag="repeat"))) for n in repeats]
     res = run_many(jobs, items)
@@ -322,6 +346,8 @@ def run_gate(wasm, cfg, out, jobs, claims):
         exp = json.loads(seqs[k.split("#")[0]].read_text())["expect"]
         ok, why = gate_check(r, exp)
         gate[k] = (ok, why, r, exp)
+    for k, why in skipped.items():  # a window-kind proof Arena did not run: the rule is not validated
+        gate[k] = (False, why, {"error": why}, {"received": {}})
     return gate
 
 
@@ -360,25 +386,33 @@ def check(wasm, cfg, out, jobs=4, attack_dirs=("sequences-direct", "sequences-in
         rep["verdict"] = "could not finish at G2/G3: " + status["_mapping"]["why"]
     if attacks:
         files = [p for d in attack_dirs for p in sorted((ROOT / d).glob("*.json"))]
+        # An attack that forges the guard's callback does not apply to a guard with no callback.
+        no_cb = [p for p in files if not (c.get("direct") or {}).get("callback") and '"callback"' in p.read_text()]
+        for p in no_cb:
+            s = json.loads(p.read_text())
+            rep["attacks"].append({"attack": s["name"], "dir": p.parent.name, "rule": X.attack_rule(s["meta"]["rule"], claims), "result": NA,
+                                   "why": "the guard has no payment callback to forge"})
+        files = [p for p in files if p not in no_cb]
         run_them = status["_mapping"]["proven"]
         res = run_many(jobs, [(str(p), (lambda p=p: run_one(p, wasm, cfg, out / "attacks", False))) for p in files]) if run_them else {}
         for p in files:
             s = json.loads(p.read_text())
             meta = dict(s["meta"], uses_callback=uses_callback(s))
+            arule = X.attack_rule(meta["rule"], claims)
             if not run_them:
-                lab, why = (NA, f"the guard does not claim the {meta['rule']} rule") if not status.get(meta["rule"], {}).get("claimed") else (CNF, "not run: the mapping was not proven (G2/G3)")
-                rep["attacks"].append({"attack": s["name"], "dir": p.parent.name, "rule": meta["rule"], "result": lab, "why": why})
+                lab, why = (NA, f"the guard does not claim the {arule} rule") if not status.get(arule, {}).get("claimed") else (CNF, "not run: the mapping was not proven (G2/G3)")
+                rep["attacks"].append({"attack": s["name"], "dir": p.parent.name, "rule": arule, "result": lab, "why": why})
                 continue
             r = res[str(p)]
             lab, why = judge(meta, r, status)
-            row = {"attack": s["name"], "dir": p.parent.name, "rule": meta["rule"], "result": lab, "why": why,
+            row = {"attack": s["name"], "dir": p.parent.name, "rule": arule, "result": lab, "why": why,
                    "received": r.get("received"), "outside": r.get("outside"), "log": r.get("log")}
             short = honest_shortfall(r, meta.get("honest_should_pay")) if lab in (HELD, BROKE) else 0
             if short:
                 row["honest_refusal_units"] = short
                 row["why"] += f"; HONEST REFUSAL: {short} unit(s) the day limit allowed were refused (the guard kept budget for a payment that failed)"
             rep["attacks"].append(row)
-    for rule in ("allowlist", "per_payment", "window_utc_day"):
+    for rule in rules_of(claims):
         if status.get(rule, {}).get("broke_at_gate"):
             rep["attacks"].append({"attack": f"gate:{G4[rule]}", "dir": "sequences-direct-gate", "rule": rule, "result": BROKE,
                                    "why": f"a G4 pair moved {status[rule]['gate_overpaid_units']} unit(s) the rule forbids; mapping proven and the owner's method for this rule has a real effect (G5)"})

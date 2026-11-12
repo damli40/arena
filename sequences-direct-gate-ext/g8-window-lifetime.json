@@ -1,0 +1,62 @@
+{
+  "name": "g8-window-lifetime",
+  "purpose": "G8 window kind, lifetime budget: the total never restarts. Fill the limit (300), move the clock forward by the declared test horizon twice, then ask for 50 and 1: both must be refused. This proves only that nothing restarted within the horizon.",
+  "gate_rule": "window kind",
+  "steps": [
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "sam",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "ada",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "mo",
+        "amount": 100
+      }
+    },
+    {
+      "advance": {
+        "windows": 1.0
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "kai",
+        "amount": 50
+      }
+    },
+    {
+      "advance": {
+        "windows": 1.0
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "kai",
+        "amount": 1
+      }
+    }
+  ],
+  "expect": {
+    "received": {
+      "sam": 100,
+      "ada": 100,
+      "mo": 100,
+      "kai": 0,
+      "lin": 0
+    },
+    "outside": 0
+  }
+}

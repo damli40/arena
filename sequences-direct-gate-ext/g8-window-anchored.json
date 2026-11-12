@@ -1,0 +1,83 @@
+{
+  "name": "g8-window-anchored",
+  "purpose": "G8 window kind, anchored period: the whole total restarts one window after the period began (setup). sam 100 at the start; half a window later ada 100 and mo 100 (kai 50 refused); at 1.1 windows the period has restarted, so kai 100, kai 100 and sam 100 pay and sam 1 more is refused. A rolling window would refuse the second kai 100 (ada's and mo's still count); a lifetime budget would pay nothing.",
+  "gate_rule": "window kind",
+  "steps": [
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "sam",
+        "amount": 100
+      }
+    },
+    {
+      "advance": {
+        "windows": 0.5
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "ada",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "mo",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "kai",
+        "amount": 50
+      }
+    },
+    {
+      "advance": {
+        "windows": 0.6
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "kai",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "kai",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "sam",
+        "amount": 100
+      }
+    },
+    {
+      "pay": {
+        "actor": "agent",
+        "receiver": "sam",
+        "amount": 1
+      }
+    }
+  ],
+  "expect": {
+    "received": {
+      "sam": 200,
+      "ada": 100,
+      "mo": 100,
+      "kai": 200,
+      "lin": 0
+    },
+    "outside": 0
+  }
+}

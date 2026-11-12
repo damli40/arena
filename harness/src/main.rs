@@ -34,6 +34,7 @@ mod adapter;
 mod chainsig;
 mod conserve;
 mod direct;
+mod direct_ext;
 mod receipts;
 mod effects;
 mod scorer;

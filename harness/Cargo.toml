@@ -11,6 +11,9 @@ serde_json = "1"
 anyhow = "1"
 futures = "0.3"
 sha2 = "0.10"
+# Extended direct mode: Arena signs payments for guards that check an off-chain signature (direct_ext.rs).
+near-crypto = "0.38"
+base64 = "0.22"
 
 [profile.release]
 debug = false
