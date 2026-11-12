@@ -169,8 +169,15 @@ td.not-applicable{font-size:12px}
 tbody tr:last-child td{border-bottom:0}
 .foot{font-size:13px;color:var(--muted);margin:14px 0 0;max-width:80ch}
 .foot + .foot{margin-top:6px}
+/* The summary, legend and table are drawn by the script at the end of the page. On a slow connection the
+   page paints before that script runs, so keep roughly their final space while they are empty and the
+   footer does not jump down when they fill. Heights measured at 320-1440px wide. */
+#board-summary:empty{min-height:126px}#board-legend:empty{min-height:50px}
+.scroll:has(> table:empty){height:min(72vh,760px)}
+@media (max-width:768px){#board-summary:empty{min-height:143px}#board-legend:empty{min-height:79px}}
+@media (max-width:640px){#board-summary:empty{min-height:230px}#board-legend:empty{min-height:150px}}
 /* short screens (a phone on its side): the table box may fill the screen, not 72% of it, so more than two rows show */
-@media (max-height:520px){.scroll{max-height:calc(100vh - 16px)}}
+@media (max-height:520px){.scroll{max-height:calc(100vh - 16px)}.scroll:has(> table:empty){height:calc(100vh - 16px)}}
 @media (max-width:640px){.board{padding-top:32px}.summary{grid-template-columns:1fr 1fr}.summary .n{font-size:24px}.summary > div{padding:14px 14px 12px}tr > :first-child{min-width:150px;max-width:170px}td:first-child{font-size:12.5px}th,td{padding:8px 9px}.c{min-width:92px}}
 </style></head><body>
 __TOPBAR__
