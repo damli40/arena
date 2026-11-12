@@ -170,6 +170,15 @@
           "note": "the invoice is approved, so the leak shows as above_cap (paid past the 500 cap), not as a receiver over"
         }
       ]
+    },
+    "admission": {
+      "class": "validated",
+      "evidence": "evidence/admission/n59ee7b18-3-morse-code-disallowed-pay-orde/20261112T002604Z",
+      "date": "2026-11-12",
+      "gate": "tools/admission/admit.py",
+      "runs_counted": 9,
+      "runs_tried": 9,
+      "why": "every reference matched in 3 counted runs; matched known-bad: mutant:M7, mutant:M2"
     }
   }
 }

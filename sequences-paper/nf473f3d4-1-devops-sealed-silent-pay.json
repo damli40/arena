@@ -181,6 +181,15 @@
           "note": "the expiring pay (step 4) is refused by the cap on both guards whatever the time, so it decides nothing here"
         }
       ]
+    },
+    "admission": {
+      "class": "validated",
+      "evidence": "evidence/admission/nf473f3d4-1-devops-sealed-silent-pay/20261112T002705Z",
+      "date": "2026-11-12",
+      "gate": "tools/admission/admit.py",
+      "runs_counted": 6,
+      "runs_tried": 6,
+      "why": "every reference matched in 3 counted runs; matched known-bad: mutant:M7"
     }
   }
 }

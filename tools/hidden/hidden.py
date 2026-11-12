@@ -17,7 +17,12 @@ before any run, so a result that names the hash shows the set was fixed before t
 
   python3 -I tools/hidden/hidden.py check-public
       For outsiders (no private files, no network): every public run file in evidence/hidden-set/ names
-      the committed set hash, has one row per committed attack, and its totals add up.
+      the committed set hash (or a set committed earlier and kept in hidden-set/previous/), has one row
+      per attack of that set, and its totals add up.
+
+A new set replaces the old one by a new `commit --write`: the old COMMITMENT.json is moved, unchanged,
+to hidden-set/previous/<its set sha256>.json, so run files made on the old set still check against
+the commitment they name. Only the current set can be run or published.
 
 What it proves, and what it does not: see the `limits` field written into every public file.
 Local sandbox only. Nothing here touches a network.
@@ -31,6 +36,7 @@ import validate as V  # noqa: E402
 import admit  # noqa: E402
 
 COMMITMENT = ROOT / "hidden-set" / "COMMITMENT.json"
+PREVIOUS = ROOT / "hidden-set" / "previous"
 LIMITS = ("Proves: the set existed and was fixed when COMMITMENT.json was committed, and every hidden attack was admitted "
           "against a matched known-bad reference before commitment. Does not prove: that the operator ran it honestly "
           "(no hardware attestation; one key publishes), that the hidden attacks find flaws outside their public twins' "
@@ -127,6 +133,16 @@ def cmd_commit(a):
     print(json.dumps(c, indent=1))
     if a.write:
         COMMITMENT.parent.mkdir(exist_ok=True)
+        if COMMITMENT.exists():
+            old = json.loads(COMMITMENT.read_text())
+            if old["set_sha256"] == c["set_sha256"]:
+                sys.exit("refused: this set is already the committed one (a re-commit would only move created_at)")
+            PREVIOUS.mkdir(exist_ok=True)
+            keep = PREVIOUS / f"{old['set_sha256']}.json"
+            if keep.exists():
+                sys.exit(f"refused: {keep.relative_to(ROOT)} already exists")
+            keep.write_bytes(COMMITMENT.read_bytes())
+            print(f"kept the previous commitment unchanged as {keep.relative_to(ROOT)}")
         COMMITMENT.write_text(json.dumps(c, indent=1) + "\n")
         print(f"wrote {COMMITMENT.relative_to(ROOT)}")
 
@@ -198,16 +214,32 @@ def cmd_run(a):
     print(f"public: {base.with_suffix('.json').relative_to(ROOT)} (+ .md); private: {run_dir}")
 
 
+def commitments():
+    """{set sha256: commitment} for the current set and every earlier one kept in hidden-set/previous/."""
+    cur = json.loads(COMMITMENT.read_text())
+    out = {cur["set_sha256"]: cur}
+    for f in sorted(PREVIOUS.glob("*.json")) if PREVIOUS.is_dir() else []:
+        old = json.loads(f.read_text())
+        if f.stem != old.get("set_sha256") or old["set_sha256"] == cur["set_sha256"]:
+            raise SystemExit(f"{f.relative_to(ROOT)}: file name is not its set_sha256, or it repeats the current set")
+        out[old["set_sha256"]] = old
+    return cur, out
+
+
 def cmd_check_public(a):
-    c = json.loads(COMMITMENT.read_text())
+    cur, known = commitments()
     files = sorted((ROOT / "evidence" / "hidden-set").glob("*.json"))
     bad = 0
+    per_set = {}
     for f in files:
         p = json.loads(f.read_text())
         rows = p["rows"]
         probs = []
-        if p.get("set_sha256") != c["set_sha256"]:
-            probs.append("names another set")
+        c = known.get(p.get("set_sha256"))
+        if c is None:
+            probs.append("names a set that was never committed")
+            c = cur
+        per_set[c["set_sha256"]] = per_set.get(c["set_sha256"], 0) + 1
         if len(rows) != c["attack_count"] or [r["id"] for r in rows] != [f"h-{i:02d}" for i in range(1, c["attack_count"] + 1)]:
             probs.append("rows do not match the committed count")
         for k in ("held", "broke", "inapplicable"):
@@ -219,7 +251,8 @@ def cmd_check_public(a):
             probs.append("families differ from the commitment")
         bad += bool(probs)
         print(f"{'ok ' if not probs else 'BAD'} {f.relative_to(ROOT)}: {p['guard_reference']} held {p['held']} broke {p['broke']} inapplicable {p['inapplicable']}" + (f" ({'; '.join(probs)})" if probs else ""))
-    print(f"hidden-set public files: {len(files) - bad} of {len(files)} consistent with set {c['set_sha256'][:16]}... ({c['attack_count']} attacks)")
+    sets = "; ".join(f"{n} on {'current' if h == cur['set_sha256'] else 'earlier'} set {h[:16]}... ({known[h]['attack_count']} attacks)" for h, n in sorted(per_set.items(), key=lambda x: x[0] != cur["set_sha256"]))
+    print(f"hidden-set public files: {len(files) - bad} of {len(files)} consistent with the set each names ({sets})")
     return 1 if bad or not files else 0
 
 

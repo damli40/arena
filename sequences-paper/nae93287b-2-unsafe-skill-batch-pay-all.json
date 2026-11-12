@@ -164,6 +164,15 @@
           "note": "the expiring pay (step 3) is refused by the cap on both guards, whether or not 20 s have passed, so it decides nothing here"
         }
       ]
+    },
+    "admission": {
+      "class": "validated",
+      "evidence": "evidence/admission/nae93287b-2-unsafe-skill-batch-pay-all/20261112T002644Z",
+      "date": "2026-11-12",
+      "gate": "tools/admission/admit.py",
+      "runs_counted": 6,
+      "runs_tried": 6,
+      "why": "every reference matched in 3 counted runs; matched known-bad: mutant:M7"
     }
   }
 }

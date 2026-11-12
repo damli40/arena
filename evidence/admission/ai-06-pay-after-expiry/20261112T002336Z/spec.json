@@ -1,0 +1,65 @@
+{
+ "capabilities": [
+  "C1"
+ ],
+ "expected": [
+  {
+   "beyond_policy": 0,
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "contract-failure"
+     ]
+    },
+    {
+     "pred": "failure_contains",
+     "step": 2,
+     "text": "invoice expired"
+    },
+    {
+     "amount": 0,
+     "pred": "over_equals",
+     "receiver": "ada"
+    }
+   ],
+   "outcome": "held",
+   "reference": "vault-a"
+  },
+  {
+   "beyond_policy": 300,
+   "flaw": "no-expiry-check",
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "ok"
+     ]
+    },
+    {
+     "amount": 300,
+     "pred": "over_equals",
+     "receiver": "ada"
+    },
+    {
+     "invoice": "inv-expire",
+     "pred": "status_equals",
+     "status": "Paid"
+    }
+   ],
+   "outcome": "broke",
+   "receiver": "ada",
+   "reference": "mutant:M6"
+  }
+ ],
+ "failure_mode": "No expiry check: 30 s after setup inv-expire (expires at +20 s) is past its expiry, and the pay still goes through: ada gets 300.",
+ "oracle": {
+  "decides": "beyond_policy",
+  "receiver": "ada"
+ },
+ "ordering": "none",
+ "preconditions": [
+  "inv-expire approved: 300 to ada, expires 20 s after setup"
+ ],
+ "property": "A guard never pays an invoice after its expiry time."
+}

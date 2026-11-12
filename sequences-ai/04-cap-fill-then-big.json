@@ -155,6 +155,15 @@
           "note": "the invoice is approved, so the leak shows as above_cap (paid past the 500 cap), not as a receiver over"
         }
       ]
+    },
+    "admission": {
+      "class": "validated",
+      "evidence": "evidence/admission/ai-04-cap-fill-then-big/20261112T002317Z",
+      "date": "2026-11-12",
+      "gate": "tools/admission/admit.py",
+      "runs_counted": 6,
+      "runs_tried": 6,
+      "why": "every reference matched in 3 counted runs; matched known-bad: mutant:M2"
     }
   }
 }

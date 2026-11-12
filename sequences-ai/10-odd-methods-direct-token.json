@@ -241,6 +241,15 @@
           "receiver": "sam"
         }
       ]
+    },
+    "admission": {
+      "class": "validated",
+      "evidence": "evidence/admission/ai-10-odd-methods-direct-token/20261112T002517Z",
+      "date": "2026-11-12",
+      "gate": "tools/admission/admit.py",
+      "runs_counted": 12,
+      "runs_tried": 12,
+      "why": "every reference matched in 3 counted runs; matched known-bad: intents-planted, mutant:M4"
     }
   }
 }

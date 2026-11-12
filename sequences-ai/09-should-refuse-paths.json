@@ -218,6 +218,15 @@
           "receiver": "mo"
         }
       ]
+    },
+    "admission": {
+      "class": "validated",
+      "evidence": "evidence/admission/ai-09-should-refuse-paths/20261112T002442Z",
+      "date": "2026-11-12",
+      "gate": "tools/admission/admit.py",
+      "runs_counted": 12,
+      "runs_tried": 12,
+      "why": "every reference matched in 3 counted runs; matched known-bad: mutant:M7, mutant:M1, mutant:M8"
     }
   }
 }
