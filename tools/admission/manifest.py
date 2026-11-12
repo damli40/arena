@@ -20,6 +20,10 @@ Definitions (each a key in MANIFEST.json):
 - mutants.*: from the latest evidence/mutation-*/summary.tsv (a mutant is caught if any attack
   paid > 0 on it).
 - hidden_set: from hidden-set/COMMITMENT.json, if committed.
+- attacks.rows[].why for an attack with no admission stamp: "no spec", or the reason recorded in
+  tools/admission/unvalidated.json (a person's note on why no matched known-bad exists; closed list
+  of reasons in that file). A recorded reason never changes a class: it is refused for any attack
+  that carries a spec or a stamp (the gate decides those).
 Deterministic: no clock, no git hash inside, so --check can compare byte for byte. Provenance is
 the sha256 of every input file (inputs_sha256).
 """
@@ -36,6 +40,21 @@ OUT_JSON = ROOT / "evidence" / "MANIFEST.json"
 OUT_MD = ROOT / "evidence" / "MANIFEST.md"
 COMMITMENT = ROOT / "hidden-set" / "COMMITMENT.json"
 CLASSES = ("validated", "partially-validated", "unvalidated")
+REASONS_FILE = ROOT / "tools" / "admission" / "unvalidated.json"
+
+
+def load_reasons():
+    """{attack id: (reason, detail)} from tools/admission/unvalidated.json. Raises on a bad file."""
+    if not REASONS_FILE.exists():
+        return {}
+    d = json.loads(REASONS_FILE.read_text())
+    allowed = d["reasons"]
+    out = {}
+    for aid, e in d["attacks"].items():
+        if set(e) != {"reason", "detail"} or e["reason"] not in allowed or not isinstance(e["detail"], str) or not 0 < len(e["detail"]) <= 300:
+            raise SystemExit(f"{REASONS_FILE.name}: {aid}: needs reason (one of {sorted(allowed)}) and detail (1-300 chars)")
+        out[aid] = (e["reason"], e["detail"])
+    return out
 
 
 def _sha(p):
@@ -48,9 +67,14 @@ def library(pays_in):
     return [a for a in uniq if a["meta"]["id"] != check.CONTROL_ID], problems, dups, check.CONTROL_ID
 
 
-def attack_class(a):
+def attack_class(a, reasons=None):
     m = a["meta"]
+    rid = (reasons or {}).get(m["id"])
+    if rid and ("spec" in m or "admission" in m):
+        raise SystemExit(f"{REASONS_FILE.name}: {m['id']} has a spec or a stamp; the gate decides its class, a recorded reason may not")
     if "admission" not in m:
+        if rid:
+            return "unvalidated", f"{rid[0]}: {rid[1]}", None
         return "unvalidated", "no spec" if "spec" not in m else "spec, not yet run through the gate", None
     cls, why, problems = admit.rederive({"meta": m, "steps": a["steps"]})
     if problems:
@@ -68,8 +92,14 @@ def build():
     by_folder = collections.Counter(p.parent.name for p in files)
     docs = [json.loads(p.read_text()) for p in files]
     rows = []
+    reasons = load_reasons()
+    if REASONS_FILE.exists():
+        inputs.append(REASONS_FILE)
+    unknown = sorted(set(reasons) - {a["meta"]["id"] for a in ints})
+    if unknown:
+        raise SystemExit(f"{REASONS_FILE.name} names attacks not in the library: {unknown}")
     for a in ints:
-        cls, why, ev = attack_class(a)
+        cls, why, ev = attack_class(a, reasons)
         rows.append({"id": a["meta"]["id"], "path": a["path"], "kind": a["meta"]["kind"], "source": a["meta"]["source"],
                      "class": cls, "why": why, "evidence": ev, "in_token_suite": any(t["meta"]["id"] == a["meta"]["id"] for t in tok)})
     count = collections.Counter(r["class"] for r in rows)
@@ -144,9 +174,11 @@ def render_md(m):
          "| attack | class | why | evidence |", "|---|---|---|---|"]
     for r in sorted(a["rows"], key=lambda r: (CLASSES.index(r["class"]), r["id"])):
         if r["class"] != "unvalidated" or r["evidence"] or r["why"] != "no spec":
-            L.append(f"| {r['id']} | {r['class']} | {r['why'].replace('|', '/')[:200]} | {r['evidence'] or '-'} |")
+            L.append(f"| {r['id']} | {r['class']} | {r['why'].replace('|', '/')[:300]} | {r['evidence'] or '-'} |")
     n_nospec = sum(1 for r in a["rows"] if r["class"] == "unvalidated" and not r["evidence"] and r["why"] == "no spec")
-    L += [f"| the other {n_nospec} | unvalidated | no spec yet | - |", ""]
+    if n_nospec:
+        L += [f"| the other {n_nospec} | unvalidated | no spec yet | - |"]
+    L += [""]
     h = m["hunts"]
     L += ["## Hunts", "", f"- {h['runs']} hunt records (`evidence/hunts/20*.json`); {h['runs_with_runnable_attacks']} ran at least one attack.",
           f"- Summed: {h['attacks_proposed']} attacks proposed, {h['attacks_rejected']} rejected, {h['attacks_deduped']} duplicates, {h['attacks_run']} run, {h['attacks_saved']} saved ({h['saved_broke']} broke a guard, {h['saved_valid_nothing_broke']} broke nothing). Saved is not validated.", ""]

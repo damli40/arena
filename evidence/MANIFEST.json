@@ -80,7 +80,7 @@
     "kind": "sequence",
     "path": "sequences-ai/04-cap-fill-then-big.json",
     "source": "ai",
-    "why": "no spec"
+    "why": "spec, not yet run through the gate"
    },
    {
     "class": "unvalidated",
@@ -100,7 +100,7 @@
     "kind": "sequence",
     "path": "sequences-ai/06-pay-after-expiry.json",
     "source": "ai",
-    "why": "no spec"
+    "why": "spec, not yet run through the gate"
    },
    {
     "class": "unvalidated",
@@ -120,7 +120,7 @@
     "kind": "sequence",
     "path": "sequences-ai/08-lowgas-retry-double.json",
     "source": "ai",
-    "why": "no spec"
+    "why": "spec, not yet run through the gate"
    },
    {
     "class": "unvalidated",
@@ -130,7 +130,7 @@
     "kind": "sequence",
     "path": "sequences-ai/09-should-refuse-paths.json",
     "source": "ai",
-    "why": "no spec"
+    "why": "spec, not yet run through the gate"
    },
    {
     "class": "unvalidated",
@@ -140,7 +140,7 @@
     "kind": "sequence",
     "path": "sequences-ai/10-odd-methods-direct-token.json",
     "source": "ai",
-    "why": "no spec"
+    "why": "spec, not yet run through the gate"
    },
    {
     "class": "unvalidated",
@@ -260,7 +260,7 @@
     "kind": "injection",
     "path": "sequences-paper/n59ee7b18-3-morse-code-disallowed-pay-orde.json",
     "source": "news",
-    "why": "no spec"
+    "why": "spec, not yet run through the gate"
    },
    {
     "class": "unvalidated",
@@ -270,7 +270,7 @@
     "kind": "injection",
     "path": "sequences-paper/nae93287b-1-persistent-claude-md-injection.json",
     "source": "news",
-    "why": "no spec"
+    "why": "spec, not yet run through the gate"
    },
    {
     "class": "unvalidated",
@@ -280,7 +280,7 @@
     "kind": "injection",
     "path": "sequences-paper/nae93287b-2-unsafe-skill-batch-pay-all.json",
     "source": "news",
-    "why": "no spec"
+    "why": "spec, not yet run through the gate"
    },
    {
     "class": "unvalidated",
@@ -290,7 +290,7 @@
     "kind": "injection",
     "path": "sequences-paper/nf473f3d4-1-devops-sealed-silent-pay.json",
     "source": "news",
-    "why": "no spec"
+    "why": "spec, not yet run through the gate"
    },
    {
     "class": "unvalidated",
@@ -320,7 +320,7 @@
     "kind": "sequence",
     "path": "sequences-paper/p210408638-2-reentrancy-callback-window-ret.json",
     "source": "paper",
-    "why": "no spec"
+    "why": "spec, not yet run through the gate"
    },
    {
     "class": "unvalidated",
@@ -340,7 +340,7 @@
     "kind": "injection",
     "path": "sequences-paper/p261108811-2-untagged-deliberation-cancel-r.json",
     "source": "paper",
-    "why": "no spec"
+    "why": "spec, not yet run through the gate"
    },
    {
     "class": "unvalidated",
@@ -350,7 +350,7 @@
     "kind": "injection",
     "path": "sequences-paper/p261108811-3-stealth-thought-no-disclosure.json",
     "source": "paper",
-    "why": "no spec"
+    "why": "spec, not yet run through the gate"
    },
    {
     "class": "unvalidated",
@@ -400,7 +400,7 @@
     "kind": "injection",
     "path": "sequences-paper/p261111305-3-guardian-blinding-plan-poison.json",
     "source": "paper",
-    "why": "no spec"
+    "why": "spec, not yet run through the gate"
    },
    {
     "class": "unvalidated",
@@ -410,7 +410,7 @@
     "kind": "injection",
     "path": "sequences-paper/p261111506-1-fence-multi-call-schedule-esca.json",
     "source": "paper",
-    "why": "no spec"
+    "why": "spec, not yet run through the gate"
    },
    {
     "class": "unvalidated",
@@ -573,7 +573,7 @@
     "why": "no spec"
    }
   ],
-  "with_spec": 8
+  "with_spec": 22
  },
  "hidden_set": {
   "attack_count": 9,
@@ -619,13 +619,13 @@
   "sequences-ai/01-double-pay-race-retry.json": "d3ef873d355988d1b3c4e176edf9c627f3ea201bf8b746a221a6d61035fa2b4c",
   "sequences-ai/02-triple-race-cap-breach.json": "47b1db5d21e2be6f3117159f41ee1471bdcfc9a2426741b62288e7cb21dc07b1",
   "sequences-ai/03-mixed-invoice-race-cap.json": "1107d42881128f8ce6ec6ccf2c3a535079c5562ac671bde2fe97279742aa3959",
-  "sequences-ai/04-cap-fill-then-big.json": "f3a1db64f2dde15aad9678ce777bbdc847e662d5b98b926ea053a5666a497efd",
+  "sequences-ai/04-cap-fill-then-big.json": "337a524707605b9166ecbe045d9f0c981ce3e14e800a913d0b4543f1f30711aa",
   "sequences-ai/05-expire-double-race.json": "6c57089d1ae8806198694d9886e5f1dc2c9233d983b654aabc716535d998cea7",
-  "sequences-ai/06-pay-after-expiry.json": "b492ee3a919f6df012c0730ac9f59bf92c117f2a9dc22f304171df917a5de5e7",
+  "sequences-ai/06-pay-after-expiry.json": "0f13a627ca54152ae3818a48a260b71aaf8f08ad51677b1899bdd0a1a293785f",
   "sequences-ai/07-lowgas-fail-expired-retry.json": "7302e8c2e3207a6f0ca74e4b746b9cd2cb602e0a7cf039af058dd6a98c177eb6",
-  "sequences-ai/08-lowgas-retry-double.json": "dc728f3bcb07cda260198ae955b42a14441a2255d5b37e110269614b85672e9d",
-  "sequences-ai/09-should-refuse-paths.json": "c4b7b7bb910d1596da03afb2c3009035a8546487583701c80d41470db2e6894e",
-  "sequences-ai/10-odd-methods-direct-token.json": "624d09a3ae2957821b9a60431cd369a04e5995e00388a2fa59f7ee4896055e2c",
+  "sequences-ai/08-lowgas-retry-double.json": "e2e4cba3ce83b97b40b3b61b94563c8976506b6330db6a575d0ee2f675d5e8ab",
+  "sequences-ai/09-should-refuse-paths.json": "98800d5b2f88a11ff2d6d7f9ff318510dd851d609bc95a18b6d54c89ca081320",
+  "sequences-ai/10-odd-methods-direct-token.json": "270e15ed3e009fb2ee4344ef0a47a59bb81dbc238806e0cadeb214db7c2b3877",
   "sequences-bypass/01-bypass-direct-ft-transfer.json": "3507ba435919512300e82931247844c69d022033bd7f4a69ef2abcad48db08fd",
   "sequences-bypass/02-bypass-owner-method.json": "3de4a822a065359ce70a7dc337a50e09321ad1f93500cb59ad175a759715091c",
   "sequences-bypass/03-bypass-add-key.json": "56808298b7fca5f95c7aff5aea2966fb1291dd06da15ae376e73ab303f400c61",
@@ -637,22 +637,22 @@
   "sequences-paper/c261110-2-lowgas-race-outsider-expire-re.json": "b2d445710feedc2e865f067543a7ed02f34b4340897df38cc8d4680d7df6c818",
   "sequences-paper/n00c44f69-1-split-payments-cap-bypass-race.json": "8b8ab49b9fd3dac01e8775cbe3ac622fda98a111310255632a657eac0e5926d0",
   "sequences-paper/n59ee7b18-1-morse-code-hidden-pay-order.json": "78d96d81a80de5c439b52f3605476348e94ab2ee6ff60a47686714ac633cd8ce",
-  "sequences-paper/n59ee7b18-3-morse-code-disallowed-pay-orde.json": "d0c752ad4a48e3031c8199cb875ab111c7b0ee066976305cd14f906166716849",
-  "sequences-paper/nae93287b-1-persistent-claude-md-injection.json": "c3ce2c46a101f20cc3d2b5d46c51ed8323cb54e61b4559753cf9e76b5c6e25f8",
-  "sequences-paper/nae93287b-2-unsafe-skill-batch-pay-all.json": "9f4b3c2043f898901cff1764ab28710b259c735153611f3857cb74ab6815948e",
-  "sequences-paper/nf473f3d4-1-devops-sealed-silent-pay.json": "1f05b179bbe8eb58e55e0f801ee401474e179946d3fd35557edc02bd2bf42934",
+  "sequences-paper/n59ee7b18-3-morse-code-disallowed-pay-orde.json": "b934e975d4637a2132e0c89351f7a7ef0320926b0406f759e2391d249c6d9533",
+  "sequences-paper/nae93287b-1-persistent-claude-md-injection.json": "ff87298eb6f7bfebdfa81bacf1bb62393e3a2e9ca9a6b69d53a0159ffd244a89",
+  "sequences-paper/nae93287b-2-unsafe-skill-batch-pay-all.json": "7899f6727b5979a21547ded4890c9c5361d5ca49a1f1a017356bd1ae9187f437",
+  "sequences-paper/nf473f3d4-1-devops-sealed-silent-pay.json": "daab8f5d7310e667367cc33ffe6d698229ed55f8f1a58ff796100a737f30bc1e",
   "sequences-paper/p210408638-1-reentrancy-async-double-pay.json": "584b1f6ed7d3d4b4c96398fa8bc4945638f1427b5b4d852789260b2eb286f2c1",
   "sequences-paper/p210408638-1-tod-daily-cap-race.json": "0a8ebb52069781c1ce40be70a18fb6ef167e45c16a3c4293928fa2675fc1a928",
-  "sequences-paper/p210408638-2-reentrancy-callback-window-ret.json": "ffe0f2ad8c2a4b63ddd23481afed4e143e2d4febe335b7d2e15e651d7c9f8704",
+  "sequences-paper/p210408638-2-reentrancy-callback-window-ret.json": "f0a9e763a61185a3ac2d3fa6086a26eeeaa21542dfbc339581c49b974bbd2b97",
   "sequences-paper/p210408638-2-tod-cap-bypass-race.json": "91858c503e53234514077903601f4289cd5e8afc084f96be634a4d8ef35904b6",
-  "sequences-paper/p261108811-2-untagged-deliberation-cancel-r.json": "8e896c2db78e04444b19d29c3afb508709cd58b431264427b5bf0a8e8dda72f1",
-  "sequences-paper/p261108811-3-stealth-thought-no-disclosure.json": "2697b41245e3d9e5702e52d1998a0f4b4dcb2792d49c69cf161bbd708cc59ebd",
+  "sequences-paper/p261108811-2-untagged-deliberation-cancel-r.json": "471a294849f72ca763e697b748efb8c7561c6f88e9aa96a872329d686591b82e",
+  "sequences-paper/p261108811-3-stealth-thought-no-disclosure.json": "725209fc28eaa874b25bd298bbb793a3dd97efcea76f3b598165db1ab82f7cb8",
   "sequences-paper/p261111266-1-expiry-trajectory-erosion.json": "ad20b2d3bf5834daeb84b64bb9f90526c3c023846826323df9da271476de16f2",
   "sequences-paper/p261111266-2-cap-erosion-batch.json": "5cec9f9eb4dd6ff5d84429e14e9fad442a703a3cde4ef1e3dd99f91178afbd83",
   "sequences-paper/p261111266-3-long-context-batch-erosion.json": "e1ff1cca149d0880a0d6b8377fcd057c4724935d582e3922056540e034371655",
   "sequences-paper/p261111305-1-tool-output-hidden-instruction.json": "f66b0769bd27b8a7c6e9fbfe9c63387751773b9ac410c8ef15ac231c1c30f0ed",
-  "sequences-paper/p261111305-3-guardian-blinding-plan-poison.json": "28ac971de21f38717ddf89a7b23e257333ea0e28af2444ebb3f4ce17b9ae349e",
-  "sequences-paper/p261111506-1-fence-multi-call-schedule-esca.json": "a77387fd313270aa4b340230f15f00dc0a52c479836b5a12769342776b6d114f",
+  "sequences-paper/p261111305-3-guardian-blinding-plan-poison.json": "6f64db9260bff07f0bcb8c93625dbc3b4e936fcdaec4c6f51126603477426cfa",
+  "sequences-paper/p261111506-1-fence-multi-call-schedule-esca.json": "7a6ef04f28f9e9decd9b4bfc848b98e39b8f10c059f62b28c4e3a7a639ee5dca",
   "sequences-paper/p261112636-1-concurrent-cap-snapshot-race.json": "9816b34fae2454f424af8d717d31ff992f76d944177fb6f13e6f5037cd4f3bd4",
   "sequences-paper/p261112636-2-stale-expiry-finalization.json": "bd3a7ef7d21ff2ec4918dbbdd101076b5fcbcf38319fd5914a28f81d2fe0a2a8",
   "sequences-paper/p261112636-3-substituted-payee-binding-race.json": "3a05f896c23c5c4eb98db5f61a31fc1ffddd16c7143b3ac2c04a9d8bd638c202",

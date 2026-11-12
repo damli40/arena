@@ -38,6 +38,19 @@ export const SUITES = {
     what: "each claim the guard makes, tested on a local sandbox",
     setting: { kind: "unreadable", what: "the setup arguments the guard was started with" },
   },
+  // Added 2026-11-12 (tools/receipts/publish.py --hidden-set / --library-admission; dry-run only so far).
+  // suite_version of a hidden-set result is the committed set sha256 (hidden-set/COMMITMENT.json).
+  "hidden-set": {
+    test: "hidden test set",
+    what: "attacks kept out of the public repo, committed by hash before the run, run on a local sandbox by Arena's operator",
+    setting: { kind: "unreadable", what: "the reference guard's setup on the operator's local sandbox (and the operator's honesty: no hardware attestation)" },
+  },
+  // Not a guard result: guard_code_hash is the sha256 of evidence/MANIFEST.json, the library's own count.
+  "library-admission": {
+    test: "attack-library count",
+    what: "how many of Arena's attacks are validated against a known-good and a one-flaw known-bad guard (not a result about any guard)",
+    setting: { kind: "unreadable", what: "nothing about a guard: this entry describes the attack library" },
+  },
 };
 
 // Receipts on chain do not store the transaction that published them. This table maps each published

@@ -70,6 +70,78 @@
     "expected_safe_result": "at most one payment of 100; unauthorised payout 0",
     "added": "2026-11-09",
     "author": "AI tester, one-shot, from INTERFACE.md + policy + manifest (model not recorded)",
-    "steps_sha256": "840f5fcd03c23e2d43e0d1fb031478121e3f6b72035fd43818dcea37f1a5ce76"
+    "steps_sha256": "840f5fcd03c23e2d43e0d1fb031478121e3f6b72035fd43818dcea37f1a5ce76",
+    "spec": {
+      "property": "A guard pays each approved invoice at most once, whatever gas the first pay attached.",
+      "failure_mode": "No already-paid check: the 50 TGas pay is enough on vault-a (its gas pre-check passes) and pays inv-pay, so the full-gas retry pays it again. No half-paid state is reached.",
+      "capabilities": [
+        "C1"
+      ],
+      "preconditions": [
+        "inv-pay approved: 100 to sam"
+      ],
+      "oracle": {
+        "decides": "beyond_policy",
+        "receiver": "sam"
+      },
+      "ordering": "none",
+      "expected": [
+        {
+          "reference": "vault-a",
+          "outcome": "held",
+          "beyond_policy": 0,
+          "mechanism": [
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "ok",
+                "contract-failure"
+              ]
+            },
+            {
+              "pred": "failure_contains",
+              "step": 2,
+              "text": "invoice already paid"
+            },
+            {
+              "pred": "over_equals",
+              "receiver": "sam",
+              "amount": 0
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-pay",
+              "status": "Paid"
+            }
+          ]
+        },
+        {
+          "reference": "mutant:M4",
+          "outcome": "broke",
+          "beyond_policy": 100,
+          "flaw": "no-already-paid-check",
+          "mechanism": [
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "ok",
+                "ok"
+              ]
+            },
+            {
+              "pred": "over_equals",
+              "receiver": "sam",
+              "amount": 100
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-pay",
+              "status": "Paid"
+            }
+          ],
+          "receiver": "sam"
+        }
+      ]
+    }
   }
 }

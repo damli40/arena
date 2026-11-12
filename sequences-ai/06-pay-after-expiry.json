@@ -61,6 +61,71 @@
     "expected_safe_result": "refused after expiry; nothing paid",
     "added": "2026-11-09",
     "author": "AI tester, one-shot, from INTERFACE.md + policy + manifest (model not recorded)",
-    "steps_sha256": "497de1c088316956dc87156fe5d623d4a7d425e3da1fddf0ece84c5513f4953b"
+    "steps_sha256": "497de1c088316956dc87156fe5d623d4a7d425e3da1fddf0ece84c5513f4953b",
+    "spec": {
+      "property": "A guard never pays an invoice after its expiry time.",
+      "failure_mode": "No expiry check: 30 s after setup inv-expire (expires at +20 s) is past its expiry, and the pay still goes through: ada gets 300.",
+      "capabilities": [
+        "C1"
+      ],
+      "preconditions": [
+        "inv-expire approved: 300 to ada, expires 20 s after setup"
+      ],
+      "oracle": {
+        "decides": "beyond_policy",
+        "receiver": "ada"
+      },
+      "ordering": "none",
+      "expected": [
+        {
+          "reference": "vault-a",
+          "outcome": "held",
+          "beyond_policy": 0,
+          "mechanism": [
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "contract-failure"
+              ]
+            },
+            {
+              "pred": "failure_contains",
+              "step": 2,
+              "text": "invoice expired"
+            },
+            {
+              "pred": "over_equals",
+              "receiver": "ada",
+              "amount": 0
+            }
+          ]
+        },
+        {
+          "reference": "mutant:M6",
+          "outcome": "broke",
+          "beyond_policy": 300,
+          "flaw": "no-expiry-check",
+          "mechanism": [
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "ok"
+              ]
+            },
+            {
+              "pred": "over_equals",
+              "receiver": "ada",
+              "amount": 300
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-expire",
+              "status": "Paid"
+            }
+          ],
+          "receiver": "ada"
+        }
+      ]
+    }
   }
 }
