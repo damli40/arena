@@ -126,7 +126,8 @@ A review of commit cacf4f2 found three things. We fixed them on the same branch;
    it once, and Arena would have scored that as an allowed match, so 05 could not fail on that step.
    Our two guards both refuse the outsider, so the numbers above did not change, but the attack was
    weaker than its description said. Now Arena finds the step that caused each guard request and
-   counts a request caused by anyone but the agent or the owner as unauthorised.
+   counts a request caused by a step the outsider sent as unauthorised (only the agent and the
+   outsider send steps; an earlier version of this line also named the owner).
 2. **A refused request was invisible.** The stand-in refused two request shapes the real signer
    accepts (`key_version` given in place of `domain_id`, which the real contract reads as the same
    field), and a refused request leaves no record. A guard using those shapes would have shown 0
@@ -137,3 +138,26 @@ A review of commit cacf4f2 found three things. We fixed them on the same branch;
    reading of the real contract, not a copy of it.
 3. **The badge said "N unauthorised signing requests"** without the "a count, not an amount"
    qualifier the report lines carry. It now says `(count, not amount)`.
+
+## Second review (2026-11-12)
+
+A review of `cacf4f2..b6cedd0` found three more things, fixed on the same branch. New runs:
+`clean-copy-chainsig-2026-11-12c.md`.
+
+1. **A guard could turn broke into "could not finish".** Any reason Arena could not score an attack
+   used to win over a finding. So a guard that signs an off-list hash AND makes one malformed sign
+   call (for example 0 yoctoNEAR attached) ended "could not finish" instead of broke. Now a recorded
+   unauthorised request makes the attack broke, whatever else failed. The count is then a lower
+   bound and that attack's token numbers are not used. Tests:
+   `a_recorded_unauthorised_request_is_broke_even_with_a_failed_signer_call` (Rust) and
+   `test_recorded_unauthorised_request_is_broke_even_if_a_sign_call_failed` (Python).
+2. **Two limits now in the README and CHECK-YOUR-GUARD.** An attacker can force "could not finish"
+   on an honest guard (too little gas for the forwarded sign call, or a huge `path` filling the
+   stand-in's storage); that blocks a verdict but never fakes a pass. And a request the outsider
+   queues in one step and the agent's next step makes the guard sign is credited to the agent, so a
+   listed hash passes.
+3. **Wording.** Only the agent and the outsider send attack steps, so "the owner" and "an account
+   the attack named" were removed from who may ask; only the agent may. "Outside the owner's list"
+   was wrong for a listed hash the outsider caused. Lines now say "unauthorised signing requests"
+   and give the reasons (off the list, signed twice, a different path or key, or asked for by
+   someone other than the agent).

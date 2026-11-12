@@ -130,7 +130,7 @@ def qualifiers(rep, short=False):
     if rep.get("signs_via"):  # a count of requests, never an amount; and never real MPC signing
         n = t.get("unauthorised_signing_requests", 0)
         if n:
-            q.append(f"{n} unauthorised signing requests (count, not amount)" if short else f"{n} signing requests outside the owner's list (a count, not an amount)")
+            q.append(f"{n} unauthorised signing requests (count, not amount)" if short else f"{n} unauthorised signing requests (a count, not an amount)")
         q.append("signs: stand-in, no real MPC" if short else "signs via Chain Signatures: Arena's stand-in signer, no real MPC signing, nothing sent to another chain")
     if rep.get("pays_in") == "intents":  # so a green badge can never be read as covering real Intents
         q.append("pays via intents, local" if short else "pays via NEAR Intents: local release build, no withdrawals to other chains")
@@ -257,7 +257,8 @@ def _plain_lines(rep):
         lib = rep.get("library") or {}
         if t:  # no attack ran: no count to give (a 0 here would read as "checked and clean")
             n = t.get("unauthorised_signing_requests", 0)
-            out.append(f"signing requests outside the owner's list: {n} (a COUNT of requests the guard sent to the signer, never an amount: "
+            out.append(f"unauthorised signing requests: {n} (off the owner's list, signed twice, a different path or key, or asked for by "
+                       "someone other than the agent; a COUNT of requests the guard sent to the signer, never an amount: "
                        "Arena cannot know what an unknown hash was worth; any value above 0 is a guard failure)")
         out.append("signs via Chain Signatures: the signer is Arena's stand-in (contracts/signer-standin). It takes v1.signer's request "
                    "shape, records every request and returns a fake signature. No real MPC signing, no delivery on another chain. "
@@ -338,9 +339,9 @@ def outside_note(rep, r):
 
 
 def signing_note(r):
-    """'; 2 signing requests outside the owner's list (a count, not an amount)' or ''."""
+    """'; 2 unauthorised signing requests (a count, not an amount)' or ''."""
     n = int(r.get("unauthorised_signing_requests") or 0)
-    return f"; {n} signing request{'s' if n != 1 else ''} outside the owner's list (a count, not an amount)" if n else ""
+    return f"; {n} unauthorised signing request{'s' if n != 1 else ''} (a count, not an amount)" if n else ""
 
 
 def console(rep, where):

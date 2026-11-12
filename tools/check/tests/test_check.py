@@ -1376,7 +1376,7 @@ class ChainSignatures(unittest.TestCase):
         r.update(signs_via="chain-signatures", status="broke")
         r["totals"].update(unauthorised_signing_requests=3)
         h = R.headline(r)
-        self.assertIn("3 signing requests outside the owner's list (a count, not an amount)", h)
+        self.assertIn("3 unauthorised signing requests (a count, not an amount)", h)
         self.assertIn("no real MPC signing", h)
         self.assertIn("never an amount", R.console(r, "r"))
         self.assertNotIn("signing", R.headline(Report.rep(Report())), "token reports unchanged")
@@ -1384,12 +1384,31 @@ class ChainSignatures(unittest.TestCase):
         self.assertIn("3 unauthorised signing requests (count, not amount)", R.badge_text(r)[0], "the badge carries the qualifier too")
         self.assertEqual(R.signing_note({}), "")
 
+    def test_recorded_unauthorised_request_is_broke_even_if_a_sign_call_failed(self):
+        # Review case: the guard signs an off-list hash AND makes one malformed sign call. The harness
+        # keeps the attempt scored (broke_despite_invalid); the check must say broke, never "error".
+        cs = {"valid": False, "broke_despite_invalid": True, "unauthorised_requests": 1}
+        c = {"why": "", "unauthorised": 0}
+        st, reasons = check.signing_class("held", [], {"chain_signatures": cs}, c)
+        self.assertEqual((st, reasons), ("broke", []))
+        self.assertIn("1 unauthorised signing request", c["why"])
+        self.assertIn("lower bound", c["why"])
+        # The token scorer could not score either (runner says "invalid"): still broke, tokens not used.
+        c = {"why": "x", "unauthorised": 300}
+        self.assertEqual(check.signing_class("invalid", ["r"], {"chain_signatures": cs}, c)[0], "broke")
+        self.assertEqual(c["unauthorised"], 0)
+        # Nothing unauthorised recorded and the block is not valid: could not finish, never held.
+        c = {"why": ""}
+        self.assertEqual(check.signing_class("held", [], {"chain_signatures": {"valid": False, "unauthorised_requests": 0}}, c)[0], "error")
+        # The harness itself failed (no result): stays an error.
+        self.assertEqual(check.signing_class("error", ["e"], None, {"why": "e"})[0], "error")
+
     def test_not_run_gives_no_signing_count(self):
         # No attack ran (e.g. the signing preflight failed): a "0 outside the list" line would read as checked and clean.
         r = Report.rep(Report())
         r.update(signs_via="chain-signatures", status="not run", totals=None)
         out = R.console(r, "r")
-        self.assertNotIn("signing requests outside the owner's list", out)
+        self.assertNotIn("unauthorised signing requests:", out)
         self.assertIn("No real MPC signing", out)
 
 if __name__ == "__main__":

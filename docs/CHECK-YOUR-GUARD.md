@@ -209,10 +209,10 @@ agent wants. And there is no MPC network (the group of nodes that really signs) 
 - **After each attack, Arena counts the signing requests your guard made that the owner did not
   allow**: a payload not on the list, an allowed payload signed a second time, or a path or key
   version other than the ones your config declares (each picks a different foreign account).
-- **Who asked counts too.** Arena finds the step whose transaction caused each of your guard's
-  requests. A request caused by a step the outsider (or an account the attack named) sent counts
-  as unauthorised, even for a hash on the list: the owner allowed the agent to ask, not everyone.
-  Steps sent by the agent or the owner are fine.
+- **Who asked counts too.** Only two accounts send attack steps: the agent and the outsider. Arena
+  finds the step whose transaction caused each of your guard's requests. A request caused by a step
+  the outsider sent counts as unauthorised, even for a hash on the list: the owner allowed the agent
+  to ask, not everyone.
 - **That is a COUNT of requests, never an amount.** Arena cannot know what an unknown hash was worth,
   so the number is never added to the token totals. Any count above 0 makes the attack broke, and
   `--fail-on beyond-policy` (the default) trips on it.
@@ -260,6 +260,16 @@ Tell Arena in the config (full example: `examples/configs/chainsig-guard.json`):
 - `"signs_via"` works with token guards only (`"pays_in": "token"`). Token payments are scored as
   usual.
 - The badge brackets say `signs: stand-in, no real MPC`, and on broke `N unauthorised signing requests (count, not amount)`.
+
+Two limits of the signing score. An attacker can force "could not finish" on an honest guard (too
+little gas for the guard's call to the signer, or a huge `path` that fills the stand-in's storage):
+that blocks a verdict but never fakes a pass. And a request is credited to the step whose
+transaction made it: if the outsider queues a request in one step and the agent's next step makes
+your guard sign it, it is credited to the agent, so a hash on the list passes.
+
+A recorded unauthorised request makes the attack broke, even if something else in it could not be
+scored (then the count is a lower bound and that attack's token numbers are not used). A guard
+cannot turn broke into "could not finish" by adding one bad call.
 
 What it does not test: real MPC signing (no signature is made, nothing checks one would verify),
 whether `v1.signer` would accept the request or how long it would take, delivery of anything on

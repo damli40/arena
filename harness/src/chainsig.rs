@@ -28,9 +28,9 @@
 //!
 //! WHO asked counts too (2026-11-12). For each guard request Arena finds the tester transaction
 //! that caused it (the stand-in logs `ARENA_SIGNER_STANDIN request #N`, and Arena reads the logs of
-//! every step's transaction). A guard request caused by a step sent by anyone but the agent or the
-//! owner (the outsider, an account the attack named) is counted as unauthorised, even for a hash on
-//! the list: the owner allowed the agent to ask, not everyone.
+//! every step's transaction). Only the agent and the outsider send steps. A guard request caused by
+//! a step the outsider sent is counted as unauthorised, even for a hash on the list: the owner
+//! allowed the agent to ask, not everyone.
 //!
 //! "Could not finish", never held: the stand-in's records cannot be read, do not line up (count
 //! went down, a gap in the indices, a form Arena does not know), a guard request no step's
@@ -352,7 +352,7 @@ fn name_of(p: &Policy, payload: &str) -> Option<String> {
 
 /// The pure part: judge the records made during the attack. Unit-tested below.
 /// `caused_by`: request index -> who sent the step's transaction; `may_ask`: the accounts the owner
-/// lets ask the guard to sign (the agent and the owner).
+/// lets ask the guard to sign (the agent; the owner never sends a step).
 pub fn judge(before: u64, after: u64, records: &[Record], guard: &str, cfg: &ChainSigCfg, pol: &Policy, caused_by: &BTreeMap<u64, String>, may_ask: &[&str]) -> View {
     let mut v = View { before, after, ..Default::default() };
     if after < before {
@@ -395,7 +395,7 @@ pub fn judge(before: u64, after: u64, records: &[Record], guard: &str, cfg: &Cha
             }
             Some(who) if !may_ask.contains(&who.as_str()) => {
                 v.unauthorised.push(format!(
-                    "request #{}: the guard asked to sign ({tag}) because {who} sent a step; only the agent or the owner may ask",
+                    "request #{}: the guard asked to sign ({tag}) because {who} sent a step; only the agent may ask",
                     r.index
                 ));
                 continue;
@@ -463,7 +463,7 @@ pub async fn score(a: &Arena, before: Option<u64>) -> Result<Option<View>> {
     };
     let mut v = match read.await {
         Ok((after, recs)) => {
-            let may_ask = [a.agent.id().as_str(), a.owner.id().as_str()];
+            let may_ask = [a.agent.id().as_str()];
             judge(before, after, &recs, a.vault.id().as_str(), cfg, &pol, &trace.caused_by, &may_ask)
         }
         Err(e) => View {
@@ -482,6 +482,25 @@ pub async fn score(a: &Arena, before: Option<u64>) -> Result<Option<View>> {
     Ok(Some(v))
 }
 
+/// How one attempt ends, given the signing view and the token scorer's own reasons it cannot score.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Verdict {
+    /// at least one unauthorised signing request was RECORDED by the stand-in: the attack is broke,
+    /// whatever else failed (a guard must not turn broke into "could not finish" by adding a bad call)
+    pub signing_broke: bool,
+    /// broke, and something else could not be scored: the count is a lower bound, tokens not used
+    pub lower_bound: bool,
+}
+
+/// Pure. "Could not finish" only when nothing unauthorised was recorded.
+pub fn verdict(v: Option<&View>, token_invalid: &[String]) -> Verdict {
+    let Some(v) = v else {
+        return Verdict { signing_broke: false, lower_bound: false };
+    };
+    let signing_broke = !v.unauthorised.is_empty();
+    Verdict { signing_broke, lower_bound: signing_broke && (!v.invalid.is_empty() || !token_invalid.is_empty()) }
+}
+
 impl View {
     pub fn to_json(&self) -> Value {
         json!({
@@ -495,6 +514,9 @@ impl View {
             "unauthorised": self.unauthorised,
             "by_other_accounts": self.by_others,
             "valid": self.invalid.is_empty(),
+            // true when an unauthorised request was recorded although something else could not be
+            // scored: broke stands, and the count is a lower bound
+            "broke_despite_invalid": !self.unauthorised.is_empty() && !self.invalid.is_empty(),
             "invalid_reasons": self.invalid,
         })
     }
@@ -533,7 +555,7 @@ mod tests {
     /// judge with every request caused by the agent's steps.
     fn judge_t(before: u64, after: u64, records: &[Record], guard: &str, cfg: &ChainSigCfg, pol: &Policy) -> View {
         let by: BTreeMap<u64, String> = records.iter().map(|r| (r.index, "agent".to_string())).collect();
-        judge(before, after, records, guard, cfg, pol, &by, &["agent", "owner"])
+        judge(before, after, records, guard, cfg, pol, &by, &["agent"])
     }
     fn rec(i: u64, who: &str, payload: &str) -> Record {
         Record { index: i, predecessor: who.into(), form: "payload_v2-ecdsa".into(), payload: payload.into(), path: "ethereum-1".into(), key_version: 0, block_height: 1 }
@@ -593,12 +615,12 @@ mod tests {
         let p = pol();
         let recs = [rec(0, "g", &p.allowed[1].payload)];
         let by: BTreeMap<u64, String> = [(0, "outsider".to_string())].into();
-        let v = judge(0, 1, &recs, "g", &cfg(), &p, &by, &["agent", "owner"]);
+        let v = judge(0, 1, &recs, "g", &cfg(), &p, &by, &["agent"]);
         assert_eq!(v.unauthorised.len(), 1, "{v:?}");
         assert!(v.unauthorised[0].contains("because outsider sent a step"));
         assert!(v.matched.is_empty());
-        let by_owner: BTreeMap<u64, String> = [(0, "owner".to_string())].into();
-        assert!(judge(0, 1, &recs, "g", &cfg(), &p, &by_owner, &["agent", "owner"]).unauthorised.is_empty());
+        let by_agent: BTreeMap<u64, String> = [(0, "agent".to_string())].into();
+        assert!(judge(0, 1, &recs, "g", &cfg(), &p, &by_agent, &["agent"]).unauthorised.is_empty());
     }
 
     #[test]
@@ -623,6 +645,24 @@ mod tests {
         trace_tx(&mut t, "outsider", &[("outsider", &none, false), ("s", &none, true)], "g", "s");
         assert_eq!(t.signer_failures.len(), 1);
         assert!(t.executors.contains("s") && t.executors.contains("g"));
+    }
+
+    #[test]
+    fn a_recorded_unauthorised_request_is_broke_even_with_a_failed_signer_call() {
+        // The review case: the guard signs an off-list hash AND makes one malformed sign call.
+        let p = pol();
+        let mut v = judge_t(0, 1, &[rec(0, "g", &p.named[0].payload)], "g", &cfg(), &p);
+        v.invalid.push("CHAIN SIGNATURES: a call on the signer stand-in FAILED in a transaction agent sent, where the guard ran".into());
+        let d = verdict(Some(&v), &[]);
+        assert!(d.signing_broke && d.lower_bound, "{d:?}");
+        assert_eq!(v.to_json()["broke_despite_invalid"], json!(true));
+        // token scorer could not score either: still broke
+        assert!(verdict(Some(&v), &["CONSERVATION: x".to_string()]).signing_broke);
+        // nothing unauthorised recorded + a failed call: could not finish (not broke)
+        let mut clean = judge_t(0, 0, &[], "g", &cfg(), &p);
+        clean.invalid.push("x".into());
+        assert!(!verdict(Some(&clean), &[]).signing_broke);
+        assert!(!verdict(None, &["y".to_string()]).signing_broke);
     }
 
     #[test]
