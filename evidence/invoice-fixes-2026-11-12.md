@@ -99,7 +99,10 @@ the wrong fact. All six are fixed in `9e47d13`, each with a test:
 
 Also: a summary row could say `stopped_by_access_key` on an attempt that broke; the label now
 needs 0 unauthorised. None of Arena's guards or attacks hits cases 1 to 6, so the seven checks
-were expected to stay the same; the re-run is in the table above.
+were expected to stay the same. Re-run after the fixes (`9e47d13`): all seven `arena:` lines and
+exit codes are identical to the table above (`invoice-fixes-2026-11-12/checks/RESULTS-after-review-9e47d13.txt`;
+vault-a 309 s, leaky 308 s, native-fixed 259 s, native-control 260 s, intents-honest 458 s,
+intents-planted 506 s, planted-outflow 319 s).
 
 ## What this does not do
 
