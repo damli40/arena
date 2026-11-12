@@ -198,7 +198,7 @@ What is in the repo:
 - **25 saved attacks** in `sequences-paper/`, one JSON file each. 14 are call sequences and 11 are
   prompt-injection scenarios.
 - **7 hunt records** in `evidence/hunts/`, one `.md` and one `.json` per run.
-- **Saved is not validated.** Attack admission: **21 of 53** attacks validated, 10 partially validated, 22 unvalidated
+- **Saved is not validated.** Attack admission: **21 of 53** attacks validated, 4 partially validated, 28 unvalidated
   (`evidence/MANIFEST.md`). Saving admits nothing: of the 25 saved hunter attacks, only those the manifest lists as validated count. Validated means
   `tools/admission/admit.py` ran the attack three times on a known-good guard (held) and three times on
   a copy with the one flaw the attack names (broke by the exact amount, through the named mechanism),
@@ -257,7 +257,7 @@ no private files), the line it prints, the exit code, and the time we measured o
 
 | Claim | Command | Line it prints | Exit | Time |
 |---|---|---|---|---|
-| 21 of 53 attacks validated, 10 partially, 22 unvalidated, and the committed count files are what the code computes | `python3 -I tools/admission/manifest.py --check` | `manifest: up to date` (the counts are in `evidence/MANIFEST.md`, line "Admission: 21 of 53 validated, ...") | 0 | 1 s |
+| 21 of 53 attacks validated, 4 partially, 28 unvalidated, and the committed count files are what the code computes | `python3 -I tools/admission/manifest.py --check` | `manifest: up to date` (the counts are in `evidence/MANIFEST.md`, line "Admission: 21 of 53 validated, ...") | 0 | 1 s |
 | A stamp belongs to this file (validator passes; evidence folder, attack id, steps and spec hashes match; each stored run recorded these calls) and follows from the stored raw runs (re-judged, no sandbox) | `python3 -I tools/admission/admit.py --recheck sequences-scripted/03-sequential-second-pay.json` | `recheck scripted-03-sequential-second-pay: stored runs give validated (every reference matched in 3 counted runs; matched known-bad: mutant:M4); stamp agrees` | 0 | under 1 s |
 | The double-pay race is only partially validated: no block heights recorded (the same holds for the 9 race attacks given specs on 2026-11-12) | `python3 -I tools/admission/admit.py --recheck sequences-scripted/02-race-double-pay.json` | `recheck scripted-02-race-double-pay: stored runs give partially-validated (outcomes matched, race ordering not shown: ...steps[].receipts absent...); stamp agrees` | 0 | under 1 s |
 | A newly admitted hunter attack (2026-11-12) is the first in the library to catch mutant M3, a daily cap checked per payment instead of as a running total | `python3 -I tools/admission/admit.py --recheck sequences-paper/p261108811-3-stealth-thought-no-disclosure.json` | `recheck p261108811-3-stealth-thought-no-disclosure: stored runs give validated (every reference matched in 3 counted runs; matched known-bad: mutant:M2, mutant:M3); stamp agrees` | 0 | under 1 s |

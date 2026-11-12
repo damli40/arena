@@ -41,6 +41,21 @@ OUT_MD = ROOT / "evidence" / "MANIFEST.md"
 COMMITMENT = ROOT / "hidden-set" / "COMMITMENT.json"
 CLASSES = ("validated", "partially-validated", "unvalidated")
 REASONS_FILE = ROOT / "tools" / "admission" / "unvalidated.json"
+LIMITS_FILE = ROOT / "tools" / "admission" / "limits.json"
+
+
+def load_limits():
+    """{attack id: limit} from tools/admission/limits.json: what a class does NOT show for that attack
+    (a person's note, appended to the 'why' column; it never changes a class). Raises on a bad file."""
+    if not LIMITS_FILE.exists():
+        return {}
+    d = json.loads(LIMITS_FILE.read_text())
+    out = {}
+    for aid, t in d["limits"].items():
+        if not isinstance(t, str) or not 0 < len(t) <= 400:
+            raise SystemExit(f"{LIMITS_FILE.name}: {aid}: a limit is 1-400 chars of text")
+        out[aid] = t
+    return out
 
 
 def load_reasons():
@@ -98,8 +113,16 @@ def build():
     unknown = sorted(set(reasons) - {a["meta"]["id"] for a in ints})
     if unknown:
         raise SystemExit(f"{REASONS_FILE.name} names attacks not in the library: {unknown}")
+    limits = load_limits()
+    if LIMITS_FILE.exists():
+        inputs.append(LIMITS_FILE)
+    unknown = sorted(set(limits) - {a["meta"]["id"] for a in ints})
+    if unknown:
+        raise SystemExit(f"{LIMITS_FILE.name} names attacks not in the library: {unknown}")
     for a in ints:
         cls, why, ev = attack_class(a, reasons)
+        if a["meta"]["id"] in limits:
+            why = f"{why}. LIMIT: {limits[a['meta']['id']]}"
         rows.append({"id": a["meta"]["id"], "path": a["path"], "kind": a["meta"]["kind"], "source": a["meta"]["source"],
                      "class": cls, "why": why, "evidence": ev, "in_token_suite": any(t["meta"]["id"] == a["meta"]["id"] for t in tok)})
     count = collections.Counter(r["class"] for r in rows)
@@ -174,7 +197,7 @@ def render_md(m):
          "| attack | class | why | evidence |", "|---|---|---|---|"]
     for r in sorted(a["rows"], key=lambda r: (CLASSES.index(r["class"]), r["id"])):
         if r["class"] != "unvalidated" or r["evidence"] or r["why"] != "no spec":
-            L.append(f"| {r['id']} | {r['class']} | {r['why'].replace('|', '/')[:300]} | {r['evidence'] or '-'} |")
+            L.append(f"| {r['id']} | {r['class']} | {r['why'].replace('|', '/')[:800]} | {r['evidence'] or '-'} |")
     n_nospec = sum(1 for r in a["rows"] if r["class"] == "unvalidated" and not r["evidence"] and r["why"] == "no spec")
     if n_nospec:
         L += [f"| the other {n_nospec} | unvalidated | no spec yet | - |"]
@@ -189,7 +212,7 @@ def render_md(m):
     if m["hidden_set"]:
         hs = m["hidden_set"]
         L += [f"- {hs['attack_count']} attacks, set sha256 `{hs['set_sha256']}`, committed {hs['created_at']}; capabilities {', '.join(hs['capabilities_covered'] or [])}; families {', '.join(hs['families_covered'] or [])}.",
-              f"- Disjoint from the public library by steps hash: {hs['disjoint_from_public_library']}. The attacks themselves are not in the repo (`hidden-set/COMMITMENT.json`).", ""]
+              f"- Disjoint by steps hash from every attack-shaped file the repo tracked when it was committed (library, intents suite, hunt proposals under `evidence/hunts/`): {hs['disjoint_from_public_library']}. The attacks themselves are not in the repo (`hidden-set/COMMITMENT.json`).", ""]
     else:
         L += ["- none committed.", ""]
     L += ["## References", "", "| reference | kind | flaw | matchable | wasm sha256 |", "|---|---|---|---|---|"]
