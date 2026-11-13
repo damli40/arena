@@ -128,7 +128,7 @@ code{font:12px var(--mono);background:var(--code);color:var(--ink);padding:1px 5
 </style>
 </head>
 <body>
-<header class="topbar"><div class="topbar-in"><a class="brand" href="index.html"><svg class="brand-mark" viewBox="0 0 100 100" aria-hidden="true"><path d="M78.72 45.96A29 29 0 1 1 54.04 21.28" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round"/><circle cx="70.51" cy="29.49" r="8.5" style="fill:var(--bad)"/></svg>Arena</a><nav aria-label="Arena pages"><a href="index.html#replay">Results</a><a href="board.html">Board</a><a href="index.html#check">Check your guard</a><a href="lookup.html" aria-current="page">Look up a guard</a></nav></div></header>
+<header class="topbar"><div class="topbar-in"><a class="brand" href="index.html"><svg class="brand-mark" viewBox="0 0 100 100" aria-hidden="true"><path d="M78.72 45.96A29 29 0 1 1 54.04 21.28" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round"/><circle cx="70.51" cy="29.49" r="8.5" style="fill:var(--bad)"/></svg>Arena</a><nav aria-label="Arena pages"><a href="index.html#methods">How it works</a><a href="index.html#results">Results</a><a href="board.html">Board</a><a href="lookup.html" aria-current="page">Look up a guard</a><a href="index.html#try">Try it</a></nav></div></header>
 <main class="lookup">
   <div class="eyebrow">Look up a guard</div>
   <h1>Check before you pay</h1>
@@ -147,7 +147,7 @@ code{font:12px var(--mono);background:var(--code);color:var(--ink);padding:1px 5
 
   <section id="out" aria-live="polite"></section>
 </main>
-<footer class="site-foot"><div class="foot-in"><nav aria-label="Arena pages, again"><a href="index.html">Arena</a><a href="index.html#replay">Results</a><a href="board.html">Board</a><a href="index.html#check">Check your guard</a><a href="lookup.html">Look up a guard</a></nav><p>Local sandbox results. Held means these attacks found nothing. Another attack could still break the guard.</p><p>The live lookup reads public NEAR testnet state only. If it cannot load, the page shows a saved example and says so.</p></div></footer>
+<footer class="site-foot"><div class="foot-in"><nav aria-label="Arena pages, again"><a href="index.html">Arena</a><a href="index.html#methods">How it works</a><a href="index.html#results">Results</a><a href="board.html">Board</a><a href="lookup.html">Look up a guard</a><a href="index.html#try">Try it</a></nav><p>Local sandbox results. Held means these attacks found nothing. Another attack could still break the guard.</p><p>The live lookup reads public NEAR testnet state only. If it cannot load, the page shows a saved example and says so.</p></div></footer>
 
 <!-- Bundled example answers, copied from live lookups, shown when the network or the lookup module is not available. -->
 <script type="application/json" id="bundled-example">
@@ -445,7 +445,7 @@ function renderOnchain(a, card) {
     const r = a.onchain_result;
     const p = el("p", {}, el("strong", {}, "Result stored on chain. "), r.sentence);
     if (r.arena_commit) {
-      p.append(el("br"), el("span", { class: "meta" }, `Arena commit ${r.arena_commit.slice(0, 12)}… · ${r.attacks_ran} attacks ran · evidence `),
+      p.append(el("br"), el("span", { class: "meta" }, `Arena commit ${r.arena_commit.slice(0, 12)}… · ${r.attacks_ran} tests in this result · evidence `),
         el("code", {}, r.evidence_path), el("span", { class: "meta" }, ` sha256 ${r.evidence_sha256.slice(0, 12)}…`));
     }
     oc.append(p);
