@@ -179,6 +179,15 @@
           ]
         }
       ]
+    },
+    "admission": {
+      "class": "validated",
+      "evidence": "evidence/admission/ai-03-mixed-invoice-race-cap/20261113T103900Z",
+      "date": "2026-11-13",
+      "gate": "tools/admission/admit.py",
+      "runs_counted": 9,
+      "runs_tried": 9,
+      "why": "every reference matched in 3 counted runs; matched known-bad: guard:vulnerable_fixture"
     }
   }
 }

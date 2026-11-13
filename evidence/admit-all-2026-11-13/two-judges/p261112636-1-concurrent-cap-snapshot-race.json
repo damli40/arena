@@ -1,0 +1,76 @@
+{
+ "attack_id": "p261112636-1-concurrent-cap-snapshot-race",
+ "gate_folder": "evidence/admission/p261112636-1-concurrent-cap-snapshot-race/20261113T103640Z",
+ "class": "validated",
+ "races_per_run": 1,
+ "runs": 6,
+ "all_agree": true,
+ "rows": [
+  {
+   "reference": "mutant:race-m3",
+   "n": 1,
+   "race": 0,
+   "counted_by_gate": true,
+   "admit": "proven",
+   "ordering_py": "overlap-proven",
+   "agree": true,
+   "admit_why": "every later call's guard check ran in a block strictly before every earlier call's callback",
+   "ordering_py_why": "last check in block 112, strictly before the first callback in block 114"
+  },
+  {
+   "reference": "mutant:race-m3",
+   "n": 2,
+   "race": 0,
+   "counted_by_gate": true,
+   "admit": "proven",
+   "ordering_py": "overlap-proven",
+   "agree": true,
+   "admit_why": "every later call's guard check ran in a block strictly before every earlier call's callback",
+   "ordering_py_why": "last check in block 112, strictly before the first callback in block 114"
+  },
+  {
+   "reference": "mutant:race-m3",
+   "n": 3,
+   "race": 0,
+   "counted_by_gate": true,
+   "admit": "proven",
+   "ordering_py": "overlap-proven",
+   "agree": true,
+   "admit_why": "every later call's guard check ran in a block strictly before every earlier call's callback",
+   "ordering_py_why": "last check in block 112, strictly before the first callback in block 114"
+  },
+  {
+   "reference": "vault-a",
+   "n": 1,
+   "race": 0,
+   "counted_by_gate": true,
+   "admit": "proven",
+   "ordering_py": "overlap-proven",
+   "agree": true,
+   "admit_why": "every later call's guard check ran in a block strictly before every earlier call's callback",
+   "ordering_py_why": "last check in block 112, strictly before the first callback in block 114"
+  },
+  {
+   "reference": "vault-a",
+   "n": 2,
+   "race": 0,
+   "counted_by_gate": true,
+   "admit": "proven",
+   "ordering_py": "overlap-proven",
+   "agree": true,
+   "admit_why": "every later call's guard check ran in a block strictly before every earlier call's callback",
+   "ordering_py_why": "last check in block 112, strictly before the first callback in block 114"
+  },
+  {
+   "reference": "vault-a",
+   "n": 3,
+   "race": 0,
+   "counted_by_gate": true,
+   "admit": "proven",
+   "ordering_py": "overlap-proven",
+   "agree": true,
+   "admit_why": "every later call's guard check ran in a block strictly before every earlier call's callback",
+   "ordering_py_why": "last check in block 112, strictly before the first callback in block 114"
+  }
+ ]
+}

@@ -1,0 +1,20 @@
+{
+ "mutant:race-m3": {
+  "after": "a16b7573df5cfc33af388fc5e4694880efd79f0d7872d8b2b0f062a4d4a11b9a",
+  "before": "a16b7573df5cfc33af388fc5e4694880efd79f0d7872d8b2b0f062a4d4a11b9a",
+  "flaw": "cap-spend-not-reserved-at-check",
+  "kind": "known-bad",
+  "matchable": true,
+  "pinned": "a16b7573df5cfc33af388fc5e4694880efd79f0d7872d8b2b0f062a4d4a11b9a",
+  "wasm": "mutants/race-m3/vault_a.wasm"
+ },
+ "vault-a": {
+  "after": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+  "before": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+  "flaw": null,
+  "kind": "known-good",
+  "matchable": false,
+  "pinned": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+  "wasm": "targets/vault-a/vault_a.wasm"
+ }
+}

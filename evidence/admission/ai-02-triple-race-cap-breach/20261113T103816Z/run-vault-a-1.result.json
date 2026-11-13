@@ -1,0 +1,406 @@
+{
+  "attempt": "triple-race-cap-breach",
+  "final": {
+    "credited_by_invoice": [
+      {
+        "credited": "0",
+        "id": "inv-pay"
+      },
+      {
+        "credited": "0",
+        "id": "inv-small"
+      },
+      {
+        "credited": "200",
+        "id": "inv-mid"
+      },
+      {
+        "credited": "0",
+        "id": "inv-big"
+      },
+      {
+        "credited": "0",
+        "id": "inv-cancel"
+      },
+      {
+        "credited": "0",
+        "id": "inv-expire"
+      },
+      {
+        "credited": "0",
+        "id": "inv-removed"
+      }
+    ],
+    "invoice_statuses": [
+      {
+        "id": "inv-pay",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-small",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-mid",
+        "status": "Paid"
+      },
+      {
+        "id": "inv-big",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-cancel",
+        "status": "Cancelled"
+      },
+      {
+        "id": "inv-expire",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-removed",
+        "status": "PayeeRemoved"
+      }
+    ],
+    "non_agent_pays": [],
+    "paid_outside_receivers": [],
+    "received": [
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "sam"
+      },
+      {
+        "authorised": "200",
+        "over": "0",
+        "received": "200",
+        "receiver": "ada"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "lin"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "kai"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "mo"
+      }
+    ]
+  },
+  "score": {
+    "above_cap": "0",
+    "beyond_authorised": "0",
+    "conservation": {
+      "guard_outflow": "200",
+      "measured_in": "tokens",
+      "near_net_gain_yocto": [
+        {
+          "account": "the agent",
+          "gain": "0"
+        },
+        {
+          "account": "the outsider",
+          "gain": "0"
+        }
+      ],
+      "ok": true,
+      "others": [
+        {
+          "account": "the agent",
+          "received": "0"
+        },
+        {
+          "account": "the outsider",
+          "received": "0"
+        },
+        {
+          "account": "the token contract",
+          "received": "0"
+        },
+        {
+          "account": "the owner",
+          "received": "0"
+        }
+      ],
+      "paid_outside_receivers": [],
+      "paid_outside_units": "0",
+      "problems": [],
+      "reward_bound": "0",
+      "seen_at_receivers": "200",
+      "supply_drop": "0",
+      "to_owner": "0",
+      "tolerance": "0",
+      "unaccounted": "0",
+      "unit_yocto": "1"
+    },
+    "expiry": [
+      {
+        "expires_at_ns": 1794566327104933000,
+        "id": "inv-expire",
+        "pay_block_ts": 0,
+        "verdict": "no pay recorded"
+      }
+    ],
+    "expiry_cannot_observe": [],
+    "honest_settled": 1,
+    "invalid_reasons": [],
+    "native_yocto": [],
+    "notes": [],
+    "paid_outside_receivers": "0",
+    "scoring": "token",
+    "should_pay": 3,
+    "statuses_scored": false,
+    "stopped_by_access_key": false,
+    "unauthorised_payout": "0",
+    "valid": true,
+    "windows": [
+      {
+        "calls": [
+          {
+            "actor": "agent",
+            "invoice": "inv-mid",
+            "method": "pay",
+            "own_receipt_ok": true,
+            "ran_at_ns": 1794566310796320000
+          },
+          {
+            "actor": "agent",
+            "invoice": "inv-mid",
+            "method": "pay",
+            "own_receipt_ok": false,
+            "ran_at_ns": null
+          },
+          {
+            "actor": "agent",
+            "invoice": "inv-mid",
+            "method": "pay",
+            "own_receipt_ok": false,
+            "ran_at_ns": null
+          }
+        ],
+        "gained": [
+          {
+            "receiver": "ada",
+            "units": "200"
+          }
+        ],
+        "problems": [],
+        "step": "step 0 (race)"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-mid"
+      },
+      "failure": "",
+      "kind": "race-call",
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"vault-a\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":[{\"id\":\"inv-mid\",\"receiver\":\"dev-20261113103818-29836038669564.test.near\",\"amount\":\"200\"}]}",
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261113103820-79987242530901.test.near\",\"new_owner_id\":\"dev-20261113103818-29836038669564.test.near\",\"amount\":\"200\",\"memo\":\"vault-a invoice inv-mid\"}]}",
+        "EVENT_JSON:{\"standard\":\"vault-a\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":[{\"id\":\"inv-mid\",\"amount\":\"200\"}]}"
+      ],
+      "method": "pay",
+      "outcome": "ok",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 112,
+            "children": 3,
+            "executor": "dev-20261113103820-79987242530901.test.near",
+            "gas_burnt": "2677018595980",
+            "index": 0,
+            "logs": 1,
+            "ok": true
+          },
+          {
+            "block_height": 113,
+            "children": 1,
+            "executor": "dev-20261113103820-29730932691583.test.near",
+            "gas_burnt": "1789838548116",
+            "index": 1,
+            "logs": 1,
+            "ok": true
+          },
+          {
+            "block_height": 114,
+            "children": 0,
+            "executor": "dev-20261113103817-72128614059057.test.near",
+            "gas_burnt": "223182562500",
+            "index": 2,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 114,
+            "children": 1,
+            "executor": "dev-20261113103820-79987242530901.test.near",
+            "gas_burnt": "1791896641879",
+            "index": 3,
+            "logs": 1,
+            "ok": true
+          },
+          {
+            "block_height": 113,
+            "children": 0,
+            "executor": "dev-20261113103817-72128614059057.test.near",
+            "gas_burnt": "223182562500",
+            "index": 4,
+            "logs": 0,
+            "ok": true
+          }
+        ],
+        "tx_block_height": 111,
+        "tx_hash": "Evpk4ppUZN6Ft1UeFQLe289TTFQvsPT2friC61Xpnxvj"
+      },
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-mid"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: payment already in flight\")) }) } })",
+      "kind": "race-call",
+      "logs": [],
+      "method": "pay",
+      "outcome": "contract-failure",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 112,
+            "children": 1,
+            "executor": "dev-20261113103820-79987242530901.test.near",
+            "gas_burnt": "1441194750434",
+            "index": 0,
+            "logs": 0,
+            "ok": false
+          },
+          {
+            "block_height": 113,
+            "children": 0,
+            "executor": "dev-20261113103817-72128614059057.test.near",
+            "gas_burnt": "223182562500",
+            "index": 1,
+            "logs": 0,
+            "ok": true
+          }
+        ],
+        "tx_block_height": 111,
+        "tx_hash": "7Te8eiaWwVfrxgVNdjD176LGwBmCN4Cc98GUex6ULroS"
+      },
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-mid"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: payment already in flight\")) }) } })",
+      "kind": "race-call",
+      "logs": [],
+      "method": "pay",
+      "outcome": "contract-failure",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 112,
+            "children": 1,
+            "executor": "dev-20261113103820-79987242530901.test.near",
+            "gas_burnt": "1441194750434",
+            "index": 0,
+            "logs": 0,
+            "ok": false
+          },
+          {
+            "block_height": 113,
+            "children": 0,
+            "executor": "dev-20261113103817-72128614059057.test.near",
+            "gas_burnt": "223182562500",
+            "index": 1,
+            "logs": 0,
+            "ok": true
+          }
+        ],
+        "tx_block_height": 111,
+        "tx_hash": "6WoWc9p8uouZFN8qHwPyitgdfV1ozu6ZptANVC4T6WMu"
+      },
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "-",
+      "args": {},
+      "failure": "",
+      "kind": "view",
+      "logs": [],
+      "method": "paid_today",
+      "outcome": "ok",
+      "receipts": null,
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": "200"
+    },
+    {
+      "actor": "-",
+      "args": {
+        "id": "inv-mid"
+      },
+      "failure": "",
+      "kind": "view",
+      "logs": [],
+      "method": "get_invoice",
+      "outcome": "ok",
+      "receipts": null,
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": {
+        "amount": "200",
+        "expires_at_ns": 1797158307104933000,
+        "id": "inv-mid",
+        "payable_now": false,
+        "receiver": "dev-20261113103818-29836038669564.test.near",
+        "status": "Paid"
+      }
+    },
+    {
+      "actor": "-",
+      "args": {
+        "account_id": "dev-20261113103818-29836038669564.test.near"
+      },
+      "failure": "",
+      "kind": "view",
+      "logs": [],
+      "method": "ft_balance_of",
+      "outcome": "ok",
+      "receipts": null,
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "token",
+      "view": "200"
+    }
+  ],
+  "target": "vault-a",
+  "target_wasm_sha256": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1"
+}

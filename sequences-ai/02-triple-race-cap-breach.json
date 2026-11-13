@@ -178,6 +178,15 @@
           ]
         }
       ]
+    },
+    "admission": {
+      "class": "validated",
+      "evidence": "evidence/admission/ai-02-triple-race-cap-breach/20261113T103816Z",
+      "date": "2026-11-13",
+      "gate": "tools/admission/admit.py",
+      "runs_counted": 12,
+      "runs_tried": 12,
+      "why": "every reference matched in 3 counted runs; matched known-bad: guard:vulnerable_fixture, mutant:M5"
     }
   }
 }

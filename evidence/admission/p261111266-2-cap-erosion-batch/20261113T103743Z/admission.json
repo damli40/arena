@@ -1,0 +1,380 @@
+{
+ "attack_file_sha256": "5ba4a3238310d01e6885df5a69961c5e99c2b745a5219610d5971208b8c909e3",
+ "attack_id": "p261111266-2-cap-erosion-batch",
+ "class": "validated",
+ "date": "2026-11-13",
+ "gate": "tools/admission/admit.py",
+ "gate_sha256": "e03b5754225de3ab3ce8764b0da9b4ce2ae2aca022d367606dd0ab0debd0e57e",
+ "gate_version": 1,
+ "git_head": "86805682518300630e344652a38216b3e81a8e04",
+ "git_tree_clean": true,
+ "harness_sha256": "76825035c0924905f5f86ab41b35b95915dd3db713d09c59dc152bf1ca4abfa8",
+ "matched": [
+  "mutant:race-m3"
+ ],
+ "references": {
+  "mutant:race-m3": {
+   "after": "a16b7573df5cfc33af388fc5e4694880efd79f0d7872d8b2b0f062a4d4a11b9a",
+   "before": "a16b7573df5cfc33af388fc5e4694880efd79f0d7872d8b2b0f062a4d4a11b9a",
+   "flaw": "cap-spend-not-reserved-at-check",
+   "kind": "known-bad",
+   "matchable": true,
+   "pinned": "a16b7573df5cfc33af388fc5e4694880efd79f0d7872d8b2b0f062a4d4a11b9a",
+   "wasm": "mutants/race-m3/vault_a.wasm"
+  },
+  "vault-a": {
+   "after": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+   "before": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+   "flaw": null,
+   "kind": "known-good",
+   "matchable": false,
+   "pinned": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+   "wasm": "targets/vault-a/vault_a.wasm"
+  }
+ },
+ "runs": [
+  {
+   "counted": true,
+   "file": "run-mutant-race-m3-1.result.json",
+   "file_sha256": "62dfa84212bb744fa1b0be51d21d3c0190e80b2cc3d3dbd3b20656d50abf90f3",
+   "harness_status": "broke",
+   "harness_why": "paid 150 beyond the policy",
+   "n": 1,
+   "ordering": {
+    "races": [
+     {
+      "legs": [
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113103747-22260026917028.test.near",
+        "step": 0
+       },
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113103747-22260026917028.test.near",
+        "step": 1
+       },
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113103747-22260026917028.test.near",
+        "step": 2
+       },
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113103747-22260026917028.test.near",
+        "step": 3
+       }
+      ],
+      "status": "proven",
+      "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+     }
+    ],
+    "status": "proven",
+    "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "mutant:race-m3",
+   "seconds": 16.2
+  },
+  {
+   "counted": true,
+   "file": "run-mutant-race-m3-2.result.json",
+   "file_sha256": "1bec54c622e31f337ced0efa4e2173a1a4566a369f6e7b3cdd2d444652621155",
+   "harness_status": "broke",
+   "harness_why": "paid 150 beyond the policy",
+   "n": 2,
+   "ordering": {
+    "races": [
+     {
+      "legs": [
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113103804-26622176159008.test.near",
+        "step": 0
+       },
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113103804-26622176159008.test.near",
+        "step": 1
+       },
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113103804-26622176159008.test.near",
+        "step": 2
+       },
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113103804-26622176159008.test.near",
+        "step": 3
+       }
+      ],
+      "status": "proven",
+      "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+     }
+    ],
+    "status": "proven",
+    "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "mutant:race-m3",
+   "seconds": 16.3
+  },
+  {
+   "counted": true,
+   "file": "run-mutant-race-m3-3.result.json",
+   "file_sha256": "74e485521b0b18a34d324462478f00f8af0d5c8784ec87132d7474c31881a8c6",
+   "harness_status": "broke",
+   "harness_why": "paid 150 beyond the policy",
+   "n": 3,
+   "ordering": {
+    "races": [
+     {
+      "legs": [
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113103804-89530032651508.test.near",
+        "step": 0
+       },
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113103804-89530032651508.test.near",
+        "step": 1
+       },
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113103804-89530032651508.test.near",
+        "step": 2
+       },
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113103804-89530032651508.test.near",
+        "step": 3
+       }
+      ],
+      "status": "proven",
+      "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+     }
+    ],
+    "status": "proven",
+    "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "mutant:race-m3",
+   "seconds": 16.3
+  },
+  {
+   "counted": true,
+   "file": "run-vault-a-1.result.json",
+   "file_sha256": "e68d684a95d40c00953d7e454f32d1af47794002be57c85b5943379bef4e520f",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 1,
+   "ordering": {
+    "races": [
+     {
+      "legs": [
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113103747-51330595966932.test.near",
+        "step": 0
+       },
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113103747-51330595966932.test.near",
+        "step": 1
+       },
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113103747-51330595966932.test.near",
+        "step": 2
+       },
+       {
+        "callback_height": null,
+        "callback_ok": null,
+        "check_height": 112,
+        "check_ok": false,
+        "guard": "dev-20261113103747-51330595966932.test.near",
+        "step": 3
+       }
+      ],
+      "status": "proven",
+      "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+     }
+    ],
+    "status": "proven",
+    "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "vault-a",
+   "seconds": 16.3
+  },
+  {
+   "counted": true,
+   "file": "run-vault-a-2.result.json",
+   "file_sha256": "0707aff83b5a845b36718bb685f0d6ab8eec9086375e407f00005794d0244152",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 2,
+   "ordering": {
+    "races": [
+     {
+      "legs": [
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113103747-47582338823731.test.near",
+        "step": 0
+       },
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113103747-47582338823731.test.near",
+        "step": 1
+       },
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113103747-47582338823731.test.near",
+        "step": 2
+       },
+       {
+        "callback_height": null,
+        "callback_ok": null,
+        "check_height": 112,
+        "check_ok": false,
+        "guard": "dev-20261113103747-47582338823731.test.near",
+        "step": 3
+       }
+      ],
+      "status": "proven",
+      "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+     }
+    ],
+    "status": "proven",
+    "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "vault-a",
+   "seconds": 16.2
+  },
+  {
+   "counted": true,
+   "file": "run-vault-a-3.result.json",
+   "file_sha256": "a77cb0f10df56b922f2762af8a19ec1b6d52729d2fae90da5eb5c9f14bb22057",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 3,
+   "ordering": {
+    "races": [
+     {
+      "legs": [
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113103747-26040927416553.test.near",
+        "step": 0
+       },
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113103747-26040927416553.test.near",
+        "step": 1
+       },
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113103747-26040927416553.test.near",
+        "step": 2
+       },
+       {
+        "callback_height": null,
+        "callback_ok": null,
+        "check_height": 112,
+        "check_ok": false,
+        "guard": "dev-20261113103747-26040927416553.test.near",
+        "step": 3
+       }
+      ],
+      "status": "proven",
+      "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+     }
+    ],
+    "status": "proven",
+    "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "vault-a",
+   "seconds": 16.2
+  }
+ ],
+ "runs_counted": 6,
+ "runs_required": 3,
+ "runs_tried": 6,
+ "spec_sha256": "ca641bb19146e0535fa291cf4bb27b98f06863d0ec1d9dec0c93d98ec884375e",
+ "stamp": "20261113T103743Z",
+ "steps_sha256": "364d8caf7ef9186316b8deaa78c357118a8532d789647ff0f13cd0ed0745d6e5",
+ "why": "every reference matched in 3 counted runs; matched known-bad: mutant:race-m3"
+}

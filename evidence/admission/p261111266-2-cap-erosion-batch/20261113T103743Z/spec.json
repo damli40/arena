@@ -1,0 +1,65 @@
+{
+ "capabilities": [
+  "C1"
+ ],
+ "expected": [
+  {
+   "beyond_policy": 0,
+   "mechanism": [
+    {
+     "field": "above_cap",
+     "pred": "score_equals",
+     "value": 0
+    },
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "ok",
+      "ok",
+      "ok",
+      "contract-failure"
+     ]
+    },
+    {
+     "pred": "failure_contains",
+     "step": 3,
+     "text": "daily cap exceeded"
+    }
+   ],
+   "outcome": "held",
+   "reference": "vault-a"
+  },
+  {
+   "beyond_policy": 150,
+   "flaw": "cap-spend-not-reserved-at-check",
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "ok",
+      "ok",
+      "ok",
+      "ok"
+     ]
+    },
+    {
+     "field": "above_cap",
+     "pred": "score_equals",
+     "value": 150
+    }
+   ],
+   "note": "race-m3 counts the spend in the callback; the same pays sent one after the other are held (evidence/admit-all-2026-11-13/sequential-twins)",
+   "outcome": "broke",
+   "reference": "mutant:race-m3"
+  }
+ ],
+ "failure_mode": "The day's spend is counted only when a transfer's result comes back, not at the check: 4 raced pays (inv-pay 100, inv-small 50, inv-mid 200, inv-expire 300) each see nothing spent yet, so all 650 is paid against a cap of 500.",
+ "oracle": {
+  "decides": "beyond_policy"
+ },
+ "ordering": "overlap",
+ "preconditions": [
+  "inv-pay 100, inv-small 50, inv-mid 200, inv-expire 300 approved (inv-expire expires 20 s after setup); daily cap 500"
+ ],
+ "property": "A guard never spends more than the daily cap (500) in one day, even when pays arrive together and their checks all run before the first transfer result."
+}

@@ -118,6 +118,15 @@
           ]
         }
       ]
+    },
+    "admission": {
+      "class": "validated",
+      "evidence": "evidence/admission/p210408638-2-tod-cap-bypass-race/20261113T103609Z",
+      "date": "2026-11-13",
+      "gate": "tools/admission/admit.py",
+      "runs_counted": 6,
+      "runs_tried": 6,
+      "why": "every reference matched in 3 counted runs; matched known-bad: mutant:race-m3"
     }
   }
 }

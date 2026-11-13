@@ -1,0 +1,74 @@
+{
+ "capabilities": [
+  "C1"
+ ],
+ "expected": [
+  {
+   "beyond_policy": 0,
+   "mechanism": [
+    {
+     "amount": 0,
+     "pred": "over_equals",
+     "receiver": "ada"
+    },
+    {
+     "invoice": "inv-mid",
+     "pred": "status_equals",
+     "status": "Paid"
+    }
+   ],
+   "outcome": "held",
+   "reference": "vault-a"
+  },
+  {
+   "beyond_policy": 0,
+   "mechanism": [
+    {
+     "amount": 0,
+     "pred": "over_equals",
+     "receiver": "ada"
+    },
+    {
+     "invoice": "inv-mid",
+     "pred": "status_equals",
+     "status": "Paid"
+    }
+   ],
+   "outcome": "held",
+   "reference": "guard:fixed"
+  },
+  {
+   "beyond_policy": 200,
+   "flaw": "no-reservation-before-transfer",
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "ok",
+      "ok",
+      "ok",
+      "ok"
+     ]
+    },
+    {
+     "amount": 200,
+     "pred": "over_equals",
+     "receiver": "ada"
+    }
+   ],
+   "outcome": "broke",
+   "receiver": "ada",
+   "reference": "guard:vulnerable_fixture"
+  }
+ ],
+ "failure_mode": "The guard checks 'not yet paid' and starts the transfer but records nothing until the callback, so the second pay for inv-mid, sent together with the first, passes the same check.",
+ "oracle": {
+  "decides": "beyond_policy",
+  "receiver": "ada"
+ },
+ "ordering": "overlap",
+ "preconditions": [
+  "inv-pay 100 to sam, inv-small 50 to mo, inv-mid 200 to ada approved; daily cap 500 (none on the guard references)"
+ ],
+ "property": "A guard pays each approved invoice at most once, whatever the timing of the pay calls."
+}
