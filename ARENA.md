@@ -122,3 +122,13 @@ On Oct 29 2026 NEAR AI released abliterated models for security work: versions o
 - **Record.** Each model call runs in NEAR AI Cloud's secure hardware, so each result can name the model that produced it, as the hunter's paper calls do today. That proves which model answered, not that the software around it had no bugs (see the attestation answer above).
 
 The owner is building this after the hackathon.
+
+### A learning attacker that reads the guard before it writes
+
+Today's learning attacker writes invoice emails to fool the AI agent that pays. It sees the agent's tools, the invoice list and what the agent did with each earlier email. It never sees the guard. A real attacker can read the guard, because the contract sits on a public chain and most teams publish its source.
+
+- **Read.** The attacker gets the guard's source or its rules: the approved payees, the caps, when the daily window resets. It still never sees the owner's private instructions to the agent, because a real attacker doesn't have them.
+- **Aim.** The attacker picks the payment most likely to get through: one the guard allows but the owner never wanted, such as an approved payee, an amount just under the cap, or a payment right after the window resets. Today Arena sets that target by hand.
+- **Same limits.** The attacker still controls only the email text. Arena still scores each round from final chain balances.
+
+This is the "break" half of the item above, aimed better. The owner is building it after the hackathon.
