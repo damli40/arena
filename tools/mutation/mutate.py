@@ -78,6 +78,12 @@ MUTANTS = {
         "        require!(remaining >= needed, \"not enough gas attached to pay safely\");\n",
         "        let _ = (remaining, needed); // MUTANT M11: gas pre-check removed\n",
     )],
+    # owner check removed: any account may call every owner method (added 2026-11-13, plan:
+    # evidence/mutation-plan-2026-11-13.md; the reference bypass-04-outsider-owner-method needs)
+    "M12": [(
+        "        require!(env::predecessor_account_id() == self.owner, \"only the owner can do this\");\n",
+        "        // MUTANT M12: owner check removed\n",
+    )],
 }
 
 
