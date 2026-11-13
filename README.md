@@ -1,3 +1,10 @@
+<p>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/img/arena-mark-on-dark.svg">
+    <img src="docs/img/arena-mark-on-light.svg" alt="Arena logo" width="80" height="80">
+  </picture>
+</p>
+
 # Arena
 
 **Can your guard survive the arena?**
@@ -17,6 +24,12 @@ Arena attacks payment guards (NEAR contracts that limit what an AI agent may pay
 3. **See the board.** [The results board](https://arena-guard-bench.netlify.app/board.html) shows recorded runs on a local NEAR sandbox, 2026-11-10 to 2026-11-11: every attack a hunt ran against each guard. It is not live.
 
 To run Arena on your own guard: `./arena check your_guard.wasm` (needs Rust and Python 3; see "Check it yourself" below and the [how-to page](https://arena-guard-bench.netlify.app/docs.html)).
+
+## How it works
+
+![How Arena works: the hunter and the admission gate grow the attack library; ./arena check runs the library against your guard on a throwaway local NEAR sandbox; the scorer reads final balances and writes a report card; results are published to a contract on NEAR testnet that a lookup or another contract can read before paying](docs/architecture/arena.png)
+
+*The attack library grows on its own track (hunter proposals, plus attacks written by hand, all through the admission gate); `./arena check` runs it against your guard and scores it from the final balances. Source: `docs/architecture/arena.excalidraw`.*
 
 ## What this does not show
 
@@ -52,6 +65,24 @@ lose money:
 ![The results board](docs/img/board.png)
 
 *The board: every attack a hunt has run, against every guard in the table.*
+
+**From the demo film**
+
+![Film frame: the planted-flaw guard paid 200 on a 100-token bill in 5 of 5 testnet trials](docs/img/film-double-pay-testnet.jpg)
+
+*The double pay on NEAR testnet, Nov 9: the planted-flaw guard paid 200 on a 100-token bill in 5 of 5 trials (`evidence/testnet-2026-11-09.md`).*
+
+![Film frame: the attack library, 54 attacks with 33 validated, and the hunter's sources](docs/img/film-attack-library.jpg)
+
+*The attack library: 54 attacks, 33 validated by the admission gate, 14 more kept hidden; the hunter writes each attack as a list of steps, never code.*
+
+![Film frame: an AI attacker rewrites the invoice email over 10 rounds; the paying agent was fooled 0 times](docs/img/film-learning-attacker.jpg)
+
+*The learning attacker: it rewrote the invoice email over 10 rounds; the paying agent was fooled 0 times in 30 runs, and it read the email in 28 of them (`evidence/injection-2026-11-09-adaptive.md`).*
+
+![Film frame: the lookup page answering held for the fixed guard](docs/img/film-lookup.jpg)
+
+*The lookup page answering `held` for the fixed guard. This is a saved example read at testnet block 277155273, not a live answer.*
 
 Testing alone is not enough. We planted 10 mistakes in our own guard and
 our attacks found 7. A review of our proofs then found a bug in our own fix,
