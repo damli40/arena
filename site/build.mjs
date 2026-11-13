@@ -447,13 +447,18 @@ function draw(t) {
   return landed(t);
 }
 const escHtml = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+// The log always holds the run's whole record, so the box is never empty (before the replay starts, between
+// loops, in a screenshot). Lines the replay has not reached yet are dimmed; each lights up when its step plays.
+function fillLog() {
+  logBox.innerHTML = sc.log.map((l) => "<li>" + escHtml(l.text) + "</li>").join("") +
+    '<li class="result">receiver got ' + sc.paid + " on a " + sc.limit + " limit: " + sc.beyond + " tokens paid beyond policy</li>";
+}
 function writeLog(t) {
-  const due = sc.log.filter((l) => t >= l.at).length + (t >= 5.0 ? 1 : 0);
+  const n = sc.log.filter((l) => t >= l.at).length, done = t >= 5.0 && n === sc.log.length;
+  const due = n + (done ? 1 : 0);
   if (due === shown) return;
   shown = due;
-  const lines = sc.log.slice(0, Math.min(due, sc.log.length)).map((l) => "<li>" + escHtml(l.text) + "</li>");
-  if (due > sc.log.length) lines.push('<li class="result">receiver got ' + sc.paid + " on a " + sc.limit + " limit: " + sc.beyond + " tokens paid beyond policy</li>");
-  logBox.innerHTML = lines.join("");
+  [...logBox.children].forEach((li, k) => li.classList.toggle("todo", k < sc.log.length ? k >= n : !done));
 }
 function setReadout(t) {
   const paid = landed(t) * sc.coin;
@@ -485,7 +490,7 @@ function choose(id) {
   tabs.forEach((b) => { const on = b.dataset.scenario === sc.id; b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; });
   const link = sc.links.map(([l, u]) => '<a href="' + u + '" rel="noopener">' + l + " on nearblocks</a>").join(" · ");
   meta.innerHTML = "<span>" + sc.where + "</span>" + (sc.trials ? "<span>all " + sc.trials.length + " trials paid: " + sc.trials.join(", ") + "</span>" : "") + (link ? "<span>" + link + "</span>" : "") + "<span>source: " + sc.source + "</span>";
-  clock = 0; shown = -1; tip = { at: C.PAN_TOP, v: 0 }; needle = -1;
+  fillLog(); clock = 0; shown = -1; tip = { at: C.PAN_TOP, v: 0 }; needle = -1;
   if (still.matches) finalFrame(); else start();
 }
 tabs.forEach((b) => b.addEventListener("click", () => choose(b.dataset.scenario)));
@@ -659,10 +664,9 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}td.bad{color:var(--b
 .meta{display:flex;flex-wrap:wrap;gap:4px 16px;font:12px/1.5 var(--mono);color:var(--muted);margin:12px 0 8px;overflow-wrap:anywhere}
 .meta a{color:var(--ink)}
 ol.log{list-style:none;margin:0;padding:14px 18px;min-height:168px;background:var(--card);border:1px solid var(--line);border-radius:8px;font:12.5px/1.75 var(--mono);counter-reset:s}
-ol.log li{counter-increment:s;animation:in .5s cubic-bezier(.16,1,.3,1) both}
+ol.log li{counter-increment:s;transition:opacity .45s cubic-bezier(.16,1,.3,1)}ol.log li.todo{opacity:.3}
 ol.log li::before{content:counter(s,decimal-leading-zero) "  ";color:var(--muted)}
 ol.log li.result{font-weight:500;margin-top:6px}ol.log li.result::before{content:"=   "}
-@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .teams{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .teams > div{background:var(--card);padding:18px 20px}
 .teams .n{font:500 36px/1 var(--sans);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
@@ -702,7 +706,7 @@ figure.term figcaption{font-size:13px;color:var(--muted);margin-top:10px}
 }
 .reveal-js .reveal{opacity:0;transform:translateY(12px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)}.reveal-js .reveal.on{opacity:1;transform:none}
 @media print{.reveal-js .reveal{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal-js .reveal{opacity:1;transform:none;transition:none}ol.log li{animation:none}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal-js .reveal{opacity:1;transform:none;transition:none}ol.log li{transition:none}}
 @media (max-width:768px){.callouts{display:none}.callout-list{display:block;margin:10px 0 0;padding-left:20px;font-size:13px;color:var(--muted)}.callout-list b{color:var(--ink);font-weight:500}
   .hero,.run,.problem{grid-template-columns:1fr;gap:28px}.hero{padding:48px 0 48px}.lede{font-size:18px}.today .n{font-size:34px}
   section{padding:52px 0}.tabs button{flex:1 1 45%}li.method{grid-template-columns:36px 1fr;gap:10px;padding:22px 0}
@@ -774,7 +778,7 @@ ${topbar(null)}
     </div>
     ${plate}
     <div class="meta" data-meta></div>
-    <ol class="log" data-log aria-live="polite"></ol>
+    <ol class="log" data-log aria-live="polite">${scenarios[0].log.map((l) => `<li>${esc(l.text)}</li>`).join("")}<li class="result">receiver got ${scenarios[0].paid} on a ${scenarios[0].limit} limit: ${scenarios[0].beyond} tokens paid beyond policy</li></ol>
   </div>
 
   <div class="r-block">
