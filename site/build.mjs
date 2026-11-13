@@ -795,7 +795,7 @@ ${topbar(null)}
     <li>
       <h3>See the board</h3>
       <p class="tag">Recorded local sandbox runs, ${esc(boardRange)}</p>
-      <p>Every attack a hunt ran against each guard, on a local NEAR sandbox: ${boardAttacks} attacks, ${boardGuards.length} guards. Not live.</p>
+      <p>Every attack a hunt ran against each guard, on a local NEAR sandbox: ${boardAttacks} attacks, ${boardData.guards.length} guards (${boardGuards.length} of them can still be run). Not live.</p>
       <div class="go"><a class="btn primary" href="board.html">See the board</a><a class="btn ghost" href="docs.html">How to use Arena</a></div>
     </li>
   </ol>
