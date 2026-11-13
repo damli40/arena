@@ -44,7 +44,7 @@
   "rows": [
    {
     "class": "validated",
-    "evidence": "evidence/admission/ai-01-double-pay-race-retry/20261113T094454Z",
+    "evidence": "evidence/admission/ai-01-double-pay-race-retry/20261113T110442Z",
     "id": "ai-01-double-pay-race-retry",
     "in_token_suite": true,
     "kind": "sequence",
@@ -214,7 +214,7 @@
    },
    {
     "class": "validated",
-    "evidence": "evidence/admission/c261110-1-race-valid-double-plus-forbidd/20261113T094539Z",
+    "evidence": "evidence/admission/c261110-1-race-valid-double-plus-forbidd/20261113T110545Z",
     "id": "c261110-1-race-valid-double-plus-forbidd",
     "in_token_suite": true,
     "kind": "sequence",
@@ -304,7 +304,7 @@
    },
    {
     "class": "validated",
-    "evidence": "evidence/admission/p210408638-1-reentrancy-async-double-pay/20261113T094627Z",
+    "evidence": "evidence/admission/p210408638-1-reentrancy-async-double-pay/20261113T110633Z",
     "id": "p210408638-1-reentrancy-async-double-pay",
     "in_token_suite": true,
     "kind": "sequence",
@@ -627,7 +627,7 @@
   "evidence/hunts/2026-11-11-papers-e3db55.json": "ac6e7e3ed3ab167fff3b240989ea2071e17c7b881b5b90f74ba1c5dbd7807e6c",
   "evidence/mutation-2026-11-12/summary.tsv": "8d13af78efe4079e919a05ca8fa12dcf3ab99da9f05b62ab3055ac2b47339ab1",
   "hidden-set/COMMITMENT.json": "5eca7108d192e5c5cab17b91a70881130631fdcdc4e09edce12c83b24d0fd74a",
-  "sequences-ai/01-double-pay-race-retry.json": "0cb5990620f25d69fb8d7af469c552e3bc5cc227509dc9d430fd34ec260df6ac",
+  "sequences-ai/01-double-pay-race-retry.json": "a297f33129ff103b3786bab910657e801f0070353cb42ef763e35806fa1ce8c8",
   "sequences-ai/02-triple-race-cap-breach.json": "0b211c25a668d7cba55f035e68c2600aa02ef59aea37088864c5e84e8c103f33",
   "sequences-ai/03-mixed-invoice-race-cap.json": "5e6c2e79f4d5a760fc99678e3d3b3d48151c922ab7beb912a4a9677f8945c1a6",
   "sequences-ai/04-cap-fill-then-big.json": "0f05aabcd42b736e7584895ca2256ea4136149230c5de5c35c61cede90b8fc06",
@@ -644,7 +644,7 @@
   "sequences-intents/intents-01-agent-names-outsider-beneficiary.json": "cfe8bf2a1751235233aec69b78adb075cae995b49bdcc9361f887d6c639eb19c",
   "sequences-intents/intents-02-outsider-takes-sams-credit.json": "85b19e0fd242121e20f26b985d2b06b475cdfb33264fd93a79e535faf60e851a",
   "sequences-paper/c261110-1-race-cap-smuggle-removed-retry.json": "ca6771c0f4dcfe730adafc434a0ad25db84c99585303da33b6a8e59230e400db",
-  "sequences-paper/c261110-1-race-valid-double-plus-forbidd.json": "ff9278f01f34836cc01c555839edb373864dbe205613d7467327ef47097694b7",
+  "sequences-paper/c261110-1-race-valid-double-plus-forbidd.json": "6e71be075597eea236cc45084ff19186328078f55ea2c69525bbf5a8a5c150ba",
   "sequences-paper/c261110-2-lowgas-expire-race-cap-breach.json": "0dd8632d433c22d749a881eeee520a9bc65cdee8cb965bd235d8bf73c5bc5739",
   "sequences-paper/c261110-2-lowgas-race-outsider-expire-re.json": "b2d445710feedc2e865f067543a7ed02f34b4340897df38cc8d4680d7df6c818",
   "sequences-paper/n00c44f69-1-split-payments-cap-bypass-race.json": "b4dc09832a764929d8c7a1f55dd310884af2f13501a5ae4efa8dc8c244629385",
@@ -653,7 +653,7 @@
   "sequences-paper/nae93287b-1-persistent-claude-md-injection.json": "003656a35c417b3774f46db67103070d082b0ccfdc3c5340633f0b0bf916938a",
   "sequences-paper/nae93287b-2-unsafe-skill-batch-pay-all.json": "75d0084a664580e845940e5b27147399226b11b801eb91b8b63084c9da0b8ff5",
   "sequences-paper/nf473f3d4-1-devops-sealed-silent-pay.json": "74223f45bb76f1a2218ab7b7167902bcf5e3c9f72f79ec751eec92577891920b",
-  "sequences-paper/p210408638-1-reentrancy-async-double-pay.json": "f49c79a82f097126954c512ff4f7ed747c02463a5af818ec6fb55f2e6961d9b6",
+  "sequences-paper/p210408638-1-reentrancy-async-double-pay.json": "a5c61caf125dca474bf5ef60d72274d04314ae598b5dcaa7c0f1950f22e7b8ec",
   "sequences-paper/p210408638-1-tod-daily-cap-race.json": "229e864ab8e5d808f1c8e397b93d8a649096a7a489263b55912bc2d911066ed7",
   "sequences-paper/p210408638-2-reentrancy-callback-window-ret.json": "ba10b77e911712424accc18aff4098836014bac975ef6ac143717aa8024fce0f",
   "sequences-paper/p210408638-2-tod-cap-bypass-race.json": "f36ab5d2b05d76ce1419d69c6b9e22be998f8c72f351be8a0cacb405c11b88d8",
