@@ -14,6 +14,18 @@ lose money:
    a local test chain, 500 tokens went out in one run that the owner never
    wanted sent.
 
+![Arena home page: the headline and "The arena today" panel](docs/img/home-hero.png)
+
+*The home page: 54 attacks in the library, 33 of them validated.*
+
+![Two real ./arena check results in a terminal](docs/img/arena-check-terminal.png)
+
+*Two real runs: Arena's reference guard held 49 of 49 attacks; the leaky-on-purpose guard broke on 5.*
+
+![The results board](docs/img/board.png)
+
+*The board: every attack a hunt has run, against every guard in the table.*
+
 Testing alone is not enough. We planted 10 mistakes in our own guard and
 our attacks found 7. A review of our proofs then found a bug in our own fix,
 and we fixed it.
