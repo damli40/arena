@@ -801,7 +801,7 @@ ${topbar(null)}
   <ul class="limits">
     <li>Held means these attacks found nothing. Another attack could still break the guard.</li>
     <li>Almost everything runs on a local NEAR sandbox. Only the planted flaw and its fix ran on NEAR testnet.</li>
-    <li>${lib.unvalidated} of ${lib.all} attacks are unvalidated: they run on every guard, but nobody has shown yet that they catch the flaw they name. Most are races, which the gate cannot count until they run again with block heights recorded.</li>
+    <li>${lib.unvalidated} of ${lib.all} attacks are unvalidated: they run on every guard, but nobody has shown yet that they catch the flaw they name. Each has a measured reason in ${repoPath("evidence/MANIFEST.md")}: most need two planted flaws at once, ask only for valid payments, or are stopped by the agent's access key before the guard sees them.</li>
     <li>The proofs stop at their bounds. For the other teams' guards: ${esc(teams.bounds)}. The proof for any number of calls covers a model of Arena's guard, matched to the real code up to 4 pay calls.</li>
     <li>The prompt-injection attacks run scripted steps. No model reads the email in those runs.</li>
     <li>The hidden set rests on the operator's honesty. Nothing in hardware proves which attacks ran.</li>

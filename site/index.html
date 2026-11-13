@@ -325,7 +325,7 @@ figure.term figcaption{font-size:13px;color:var(--muted);margin-top:10px}
     <span class="eyebrow">The arena today</span>
     <div class="today-grid">
       <div><div class="n">54</div><div class="k">attacks in the library</div><div class="note">52 fit a guard that pays in tokens or NEAR</div></div>
-      <div><div class="n">21</div><div class="k">validated</div><div class="note">shown to catch the one flaw they name</div></div>
+      <div><div class="n">33</div><div class="k">validated</div><div class="note">shown to catch the one flaw they name</div></div>
       <div><div class="n">14</div><div class="k">hidden attacks</div><div class="note">kept off GitHub, published as a hash</div></div>
       <div><div class="n">7</div><div class="k">hunts so far</div><div class="note">41 attacks proposed from papers and news</div></div>
     </div>
@@ -350,9 +350,9 @@ figure.term figcaption{font-size:13px;color:var(--muted);margin-top:10px}
   <div><h3>Attacks from papers, incidents and people</h3><p class="m-d">The hunter is a language model that reads new security papers and hack news and writes attacks as data: a list of steps from a small fixed vocabulary, never code. Real incidents and hand-written attacks fill in the rest. Each hunt can add attacks, which is how the arena keeps growing: 7 hunts so far proposed 41 attacks from 11 paper reads and the news, and Arena kept 25.</p><p class="m-ev">Evidence: <a href="https://github.com/damli40/arena/tree/main/evidence/hunts" rel="noopener"><code>evidence/hunts/</code></a>, <a href="https://github.com/damli40/arena/blob/main/docs/ADD-AN-ATTACK.md" rel="noopener"><code>docs/ADD-AN-ATTACK.md</code></a></p></div>
 </li><li class="method">
   <span class="m-n">02</span>
-  <div><h3>An admission gate</h3><p class="m-d">An attack counts as validated only when it holds on a guard known to be good and breaks a copy with exactly one planted flaw, by the exact amount, in 3 runs each. Partly validated means every run matched but a piece is missing, such as proof that two race calls overlapped. Unvalidated attacks still run on every guard. They stay out of the validated count.</p><div class="gate" role="img" aria-label="21 validated, 4 partly validated, 29 unvalidated, of 54 attacks">
-      <div class="bar"><span class="v" style="width:38.89%"></span><span class="p" style="width:7.41%"></span><span class="u" style="width:53.70%"></span></div>
-      <ul class="gate-k"><li><i class="v"></i><b>21</b> validated</li><li><i class="p"></i><b>4</b> partly validated</li><li><i class="u"></i><b>29</b> unvalidated</li><li class="of">of 54 attacks in the library</li></ul>
+  <div><h3>An admission gate</h3><p class="m-d">An attack counts as validated only when it holds on a guard known to be good and breaks a copy with exactly one planted flaw, by the exact amount, in 3 runs each. Partly validated means every run matched but a piece is missing, such as proof that two race calls overlapped. Unvalidated attacks still run on every guard. They stay out of the validated count.</p><div class="gate" role="img" aria-label="33 validated, 0 partly validated, 21 unvalidated, of 54 attacks">
+      <div class="bar"><span class="v" style="width:61.11%"></span><span class="p" style="width:0.00%"></span><span class="u" style="width:38.89%"></span></div>
+      <ul class="gate-k"><li><i class="v"></i><b>33</b> validated</li><li><i class="p"></i><b>0</b> partly validated</li><li><i class="u"></i><b>21</b> unvalidated</li><li class="of">of 54 attacks in the library</li></ul>
     </div>
     <p class="m-d">We also planted 10 single mistakes in Arena's own guard, one at a time. The library caught 7 of them.</p><p class="m-ev">Evidence: <a href="https://github.com/damli40/arena/blob/main/evidence/MANIFEST.md" rel="noopener"><code>evidence/MANIFEST.md</code></a>, <a href="https://github.com/damli40/arena/blob/main/tools/admission/admit.py" rel="noopener"><code>tools/admission/admit.py</code></a></p></div>
 </li><li class="method">
@@ -434,7 +434,7 @@ figure.term figcaption{font-size:13px;color:var(--muted);margin-top:10px}
   <ul class="limits">
     <li>Held means these attacks found nothing. Another attack could still break the guard.</li>
     <li>Almost everything runs on a local NEAR sandbox. Only the planted flaw and its fix ran on NEAR testnet.</li>
-    <li>29 of 54 attacks are unvalidated: they run on every guard, but nobody has shown yet that they catch the flaw they name. Most are races, which the gate cannot count until they run again with block heights recorded.</li>
+    <li>21 of 54 attacks are unvalidated: they run on every guard, but nobody has shown yet that they catch the flaw they name. Each has a measured reason in <a href="https://github.com/damli40/arena/blob/main/evidence/MANIFEST.md" rel="noopener"><code>evidence/MANIFEST.md</code></a>: most need two planted flaws at once, ask only for valid payments, or are stopped by the agent's access key before the guard sees them.</li>
     <li>The proofs stop at their bounds. For the other teams' guards: 2 to 5 payment requests, one UTC midnight, and up to 2 owner actions. The proof for any number of calls covers a model of Arena's guard, matched to the real code up to 4 pay calls.</li>
     <li>The prompt-injection attacks run scripted steps. No model reads the email in those runs.</li>
     <li>The hidden set rests on the operator's honesty. Nothing in hardware proves which attacks ran.</li>
