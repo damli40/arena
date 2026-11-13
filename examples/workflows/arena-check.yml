@@ -2,10 +2,10 @@
 # It builds your guard, runs Arena's attack library against it on a local NEAR sandbox inside
 # GitHub's runner, and puts the result in the job summary and a downloadable report.
 #
-# STATUS: this workflow has never run on GitHub. Arena has no public GitHub home yet, so
-# ARENA_OWNER/arena@ARENA_COMMIT below are placeholders: replace ARENA_OWNER with where Arena
-# lives and ARENA_COMMIT with a full 40-character commit SHA of Arena (a SHA, not a branch or tag,
-# so the code you run cannot change under you).
+# STATUS: this workflow ran on GitHub on 2026-11-13 (evidence/github-action-2026-11-13.md).
+# ARENA_OWNER/arena@ARENA_COMMIT below are placeholders: replace them with damli40/arena and a full
+# 40-character commit SHA of Arena (a SHA, not a branch or tag, so the code you run cannot change
+# under you).
 #
 # Also replace the lines marked "<- your ...": your build command and your wasm path.
 #

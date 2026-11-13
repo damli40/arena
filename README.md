@@ -111,7 +111,7 @@ You need:
 - **Node 18 or newer**, for the lookup and its tests (`tools/lookup/`).
 - For the proofs only: **Kani** (`cargo install --locked kani-verifier && cargo kani setup`), **z3** (`python3 -m venv proofs/.venv && proofs/.venv/bin/pip install z3-solver`), and **Java 17 or newer** for `tla/run.sh` (`brew install openjdk@21`; the other near-tla setup steps are in `tla/README.md`).
 
-Tested on macOS (Apple silicon).
+Tested on macOS (Apple silicon). `./arena check` has also run once on GitHub's Linux runner, through the pull-request check (`evidence/github-action-2026-11-13.md`).
 
 ```
 ./verify.sh fast     # the headline: the double pay, and the bench catching it. 5 checks
@@ -141,7 +141,7 @@ These tools are for guard builders. Each one runs on the local sandbox unless it
 | The same check on our planted-flaw guard that pays the agent: `./arena check targets/planted-outflow/planted_outflow.wasm` | `broke 11 of 49 (...; 3 stopped by the agent's access key ...; 1800 tokens paid outside the five receivers ...)`. Money that goes to any account the attack was not meant to reach counts as broke; money the check cannot find ends it incomplete, never held | `evidence/check-outflow-2026-11-11.md`, `evidence/invoice-fixes-2026-11-12.md` |
 | A guard that asks NEAR Chain Signatures to sign a transaction for another chain: add `"signs_via": "chain-signatures"` to its config (`examples/configs/chainsig-guard.json`) | `held 55/55` for our honest test guard; `broke 3 of 55 (... 3 unauthorised signing requests (a count, not an amount) ...)` for our planted one. The signer is Arena's stand-in: it records each request and signs nothing, so no real MPC signing and nothing sent to another chain | `evidence/check-chainsig-2026-11-11.md` |
 | The same check on a guard that withdraws from NEAR Intents toward another chain: `./arena check targets/withdraw-planted/withdraw_planted.wasm --config examples/configs/intents-withdraw-guard.json --no-muse` | `broke 3 of 57 (...; 3 stopped by the agent's access key ...; 500 tokens paid outside the five receivers ...)`, each BROKE line naming the foreign address, for example `200 tokens toward eth:0xbad..., not on the owner's list`. Our honest copy, `targets/withdraw-honest`, holds 57/57. Arena checks where a withdrawal is sent and what destination it names, read from its own bridge stand-in; nothing reaches another chain | `evidence/check-withdraw-2026-11-12.md` |
-| Copy `examples/workflows/arena-check.yml` into your repo's `.github/workflows/` | the check on every pull request, with read-only access. Not yet run on GitHub | `docs/CHECK-YOUR-GUARD.md` |
+| Copy `examples/workflows/arena-check.yml` into your repo's `.github/workflows/` | the check on every pull request, with read-only access. Ran on GitHub's Linux runner on 2026-11-13: held 49/49 on vault-a, the same as on macOS (`evidence/github-action-2026-11-13.md`) | `docs/CHECK-YOUR-GUARD.md` |
 | Replay a saved attack: `./run-arena.sh replay sequences-paper/<file>.json --wasm your_guard.wasm` | the attack's result against your guard, with no model call | `docs/ADD-AN-ATTACK.md` |
 | Look up a guard on NEAR testnet before paying it: `node tools/lookup/cli.mjs <account>` | `status: held`, `broke`, `not_tested` or another answer; only `held` is a pass | `docs/CHECK-BEFORE-YOU-PAY.md` |
 | Opt your guard in on NEAR testnet, or ask for a result from another contract before paying | the contract stores who signed and which code; it never says "safe" | `docs/ON-CHAIN.md`, `docs/REGISTER-A-GUARD.md` |

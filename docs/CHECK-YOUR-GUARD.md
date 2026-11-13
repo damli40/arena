@@ -563,7 +563,7 @@ marked `<- your ...` (your build command and your wasm path), and every pull req
 The report is uploaded as an artifact, and the badge and numbers go to the job summary. Commenting
 on the pull request is an optional extra job, described at the bottom of that file.
 
-**Status: this has never run on GitHub or on Linux.** The example says
+**Status: this ran once on GitHub's Linux runner, 2026-11-13,** in a public test repo, with the same result as on macOS (`evidence/github-action-2026-11-13.md`). The example says
 `ARENA_OWNER/arena@ARENA_COMMIT`; replace them with `damli40/arena` and a full 40-character commit
 SHA from https://github.com/damli40/arena. Only the script step was run, locally on macOS, with
 `tools/check/action-local.sh`

@@ -17,7 +17,7 @@ every exit code and key line matched (`evidence/clean-copy-2026-11-11.md`).
 | Kani and z3 | `proofs/run.sh` only |
 | Java 17 or newer | `tla/run.sh` only |
 
-- Tested on macOS, Apple silicon. Nothing here has been run on Linux or on GitHub's runners.
+- Tested on macOS, Apple silicon. On Linux, only `./arena check` has run: once, through the pull-request check on GitHub's runner, 2026-11-13, with the same result as on macOS (`evidence/github-action-2026-11-13.md`).
 - The contract folders pin Rust 1.86.0 in `rust-toolchain.toml`, and the first build downloads the
   NEAR sandbox, so the first run needs the internet.
 - No command in sections 1 to 4 needs an API key, a wallet or testnet. They run on a **local NEAR
