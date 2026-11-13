@@ -33,9 +33,11 @@ every exit code and key line matched (`evidence/clean-copy-2026-11-11.md`).
 Last line: `verify: 5 passed, 0 failed (mode=fast)`. Exit code 0.
 
 It builds the contracts and the harness, then shows the main result: the planted-flaw guard pays
-200 on a 100 invoice when two `pay` calls arrive together, the fixed guard pays 100, and the bench
-scores both from final balances. Measured: 481 s on a fresh copy with no build folders, 196 s
-when the builds are already there.
+200 on a 100 invoice when two `pay` calls arrive together (guard test t1, 5 of 5 trials), and the
+bench catches the leaky-on-purpose guard, scored from final balances. It does not run the fixed
+guard. To see the fixed guard pay 100, run `./run.sh t2_`, which should print
+`RESULT fixed race payouts per trial: [100, 100, 100, 100, 100]`; the full `./verify.sh` runs it
+too. Measured: 481 s on a fresh copy with no build folders, 196 s when the builds are already there.
 
 Its logs go to a new folder, `runs/<UTC time>-verify-fast/`, which git ignores, and every check
 reads that run's own logs. `run-arena.sh` and the prompt-injection scripts do the same

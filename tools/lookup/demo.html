@@ -440,7 +440,13 @@ document.getElementById("f").addEventListener("submit", (e) => { e.preventDefaul
 for (const a of document.querySelectorAll("[data-acct]")) {
   a.addEventListener("click", () => { input.value = a.dataset.acct; check(a.dataset.acct); });
 }
-if (!lib) showBundled(bundled[0].account, "The live lookup could not load here (opened as a file, or the module is missing).");
+// A link like lookup.html?account=<guard account> fills in the box and looks that account up at once,
+// so one click shows a result. Any other page address shows the empty box, as before.
+let fromLink = null;
+try { fromLink = new URLSearchParams(location.search).get("account"); } catch { fromLink = null; }
+fromLink = fromLink ? fromLink.trim().slice(0, 64) : "";
+if (fromLink) { input.value = fromLink; check(fromLink); }
+else if (!lib) showBundled(bundled[0].account, "The live lookup could not load here (opened as a file, or the module is missing).");
 </script>
 </body>
 </html>

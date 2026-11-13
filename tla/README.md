@@ -18,18 +18,19 @@ Plan (written before running): `../evidence/tla-plan.md`. Results: `../evidence/
 python3 -I trace.py build/vuln_race/tlc.out   # a counterexample as one line per step
 ```
 
-| check | what it does | expect | time on this Mac (10 cores, 4 TLC workers) |
+| check | what it does | expect | time on this Mac (10 cores, 4 TLC workers); Nov 11 times from `../evidence/tla-2026-11-11/console.log` |
 |---|---|---|---|
 | `./run.sh vuln_race` | `vulnerable_fixture`, 1 invoice, 2 pays | violation of NoOverpay | ~1 s |
 | `./run.sh vuln_testnet_order` | same, with both pay checks forced before any transfer (the testnet order) | violation of NoOverpay | ~1 s |
-| `./run.sh fixed_1inv` | `fixed`, 1 invoice, 3 pays, 1 reconcile, 1 forced failure | pass | ~2 s |
-| `./run.sh fixed_2inv` | `fixed`, 2 invoices, 3 pays, 1 reconcile, 1 forced failure | pass | ~10 s |
-| `./run.sh fixed_1inv_2faults` | `fixed`, 1 invoice, 3 pays, 1 reconcile, 2 forced failures | pass | ~2 s |
-| `./run.sh wit_<id>` (9 checks) | anti-vacuity witnesses: situations that must be reachable (`wit_repaid_after_reconcile` added Nov 10) | reached | ~1 s each |
-| `./run.sh mut_<id>` (3 checks) | mutants: deliberate breaks that must be caught | violation | ~1-2 s each |
-| `./run.sh h1_outside_transfer_reconcile` | **added Nov 10 as must-fail (review H1); PASS since the reconcile fix the same day**: `fixed`, waiting rule ON, 1 invoice, 2 pays, 1 reconcile, 1 forced callback failure, plus one outside account sending 100 tokens to the guard (`Donate = TRUE`) | was a violation of NoOverpay (200 on 100) on the old guard; `pass` now. The old arm is kept as the must-fail `mut_reopen_on_balance` | ~1 s |
+| `./run.sh fixed_1inv` | `fixed`, 1 invoice, 3 pays, 1 reconcile, 1 forced failure | pass | ~12 s (Nov 11) |
+| `./run.sh fixed_2inv` | `fixed`, 2 invoices, 3 pays, 1 reconcile, 1 forced failure | pass | ~13 min (789 s, Nov 11 run, 12,073,602 states; it took 9 s on Nov 10, on the model before the reconcile fix, 239,994 states) |
+| `./run.sh fixed_1inv_2faults` | `fixed`, 1 invoice, 3 pays, 1 reconcile, 2 forced failures | pass | ~36 s (Nov 11) |
+| `./run.sh wit_<id>` (13 checks) | anti-vacuity witnesses: situations that must be reachable (one, `wit_reconcile_says_approved_1fault`, expects pass) | reached | 1 to 13 s each (Nov 11) |
+| `./run.sh mut_<id>` (5 checks) | mutants: deliberate breaks that must be caught (`mut_no_wait_rule` expects pass since the reconcile fix, see below) | violation | 1 to 72 s each (Nov 11) |
+| `./run.sh h1_outside_transfer_reconcile` | **added Nov 10 as must-fail (review H1); PASS since the reconcile fix the same day**: `fixed`, waiting rule ON, 1 invoice, 2 pays, 1 reconcile, 1 forced callback failure, plus one outside account sending 100 tokens to the guard (`Donate = TRUE`) | was a violation of NoOverpay (200 on 100) on the old guard; `pass` now. The old arm is kept as the must-fail `mut_reopen_on_balance` | ~6 s (Nov 11) |
+| `./run.sh h1_open_world_2faults` | `fixed`, 1 invoice, 3 pays, 1 reconcile, up to 2 forced failures of both kinds, plus an outside transfer | pass | ~27 min (1,594 s, Nov 11, 27,781,379 states) |
 | `./run.sh vuln_race fixed_1inv h1_outside_transfer_reconcile` | quick check: the planted flaw pays twice, the fix holds, the reconcile bug stays fixed | exit 0 | ~15 s wall (Nov 10) |
-| `./run.sh` | everything (25 checks) | exit 0 | ~46 min wall (Nov 10; two big checks take 39 min) |
+| `./run.sh` | everything (25 checks) | exit 0 | ~46 min wall. On Nov 11 the 25 checks' TLC times add up to 2,561 s (about 43 min), 2,383 s (about 40 min) of it in `fixed_2inv` and `h1_open_world_2faults` |
 
 TLC output for each check lands in `build/<check>/tlc.out`, and a one-line-per-check table in
 `build/summary.tsv`. `build/` is not committed.
@@ -61,13 +62,18 @@ witnesses and mutants that runner automates are written out in `run.sh` instead.
 
 ## What a pass means here
 
-Every order of receipts TLC could build, within the bounds above, kept both invariants, **under
-the assumption WaitRule (a `reconcile` reads the balance only after the pay it is resolving has
-settled) and with no token transfers into the guard from anyone else**. The code enforces 100
-blocks, not settlement. Drop the first assumption and `fixed` pays 200 on 100
-(`mut_no_wait_rule`); drop the second and it does too (`h1_outside_transfer_reconcile`). It is
-a statement about this model of the Rust code, under near-tla's rules for nearcore 2.14.0
-(protocol 88), and nothing beyond those bounds. The limits are in the evidence file.
+Every order of receipts TLC could build, within the bounds above, kept both invariants. Before
+the Nov 10 reconcile fix, that held only under two assumptions: WaitRule (a `reconcile` reads the
+balance only after the pay it is resolving has settled; the code enforces 100 blocks, not
+settlement) and no token transfers into the guard from anyone else. On the old guard, dropping
+either made `fixed` pay 200 on 100. Since the fix, both checks pass on the current guard:
+`mut_no_wait_rule` (waiting rule off) and `h1_outside_transfer_reconcile` (an outside account
+sends tokens to the guard), and `h1_open_world_2faults` passes with outside transfers and up to 2
+forced failures. The old behaviour is kept as must-fail checks (`mut_no_wait_rule_old_reconcile`,
+`mut_reopen_on_balance`); see "Nov 10, after the reconcile fix" below and
+`../evidence/tla-2026-11-11/console.log`. It is a statement about this model of the Rust code,
+under near-tla's rules for nearcore 2.14.0 (protocol 88), and nothing beyond those bounds. The
+limits are in the evidence file.
 
 ## Corrections after adversarial review (2026-11-10)
 

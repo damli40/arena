@@ -59,6 +59,32 @@ function testnetScenario(mode, label) {
   };
 }
 
+// The "Try it in 2 minutes" block links the double pay on testnet.nearblocks.io. The two transaction hashes come
+// from evidence/testnet-2026-11-11.md: the planted-flaw trial whose accounts were kept alive (so the guard can also
+// be looked up). They are cross-checked with that trial's raw file; the build stops if anything disagrees.
+function keptDoublePay() {
+  const mdText = readFileSync(ev("testnet-2026-11-11.md"), "utf8");
+  const lines = mdText.split("\n").filter((l) => /vulnerable_fixture trial \d+:/.test(l) && l.includes("**kept alive**"));
+  if (lines.length !== 1) throw new Error(`evidence/testnet-2026-11-11.md: expected one kept-alive vulnerable_fixture trial, found ${lines.length}`);
+  const m = lines[0].match(/guard `([^`]+)`, receiver `([^`]+)`;.*full hashes A `([1-9A-HJ-NP-Za-km-z]{43,44})` B `([1-9A-HJ-NP-Za-km-z]{43,44})`/);
+  if (!m) throw new Error("evidence/testnet-2026-11-11.md: could not read the kept-alive trial's guard and hashes");
+  const [, guard, receiver, a, b] = m;
+  const row = mdText.split("\n").find((l) => l.startsWith("|") && l.includes(`txns/${a})`) && l.includes(`txns/${b})`));
+  if (!row) throw new Error("evidence/testnet-2026-11-11.md: no results row with both kept-alive hashes");
+  const cells = row.split("|").map((c) => c.trim());
+  const trialNo = Number(cells[1]), block = Number(cells[6].split(" ")[0]), got = Number(cells[11]);
+  const raw = TESTNET.flatMap((f) => json(f).trials).filter((t) => t.pay_a?.tx === a && t.pay_b?.tx === b);
+  if (raw.length !== 1) throw new Error("the kept-alive trial's hashes are not in exactly one raw testnet trial");
+  const r = raw[0];
+  if (!r.kept_alive || r.mode !== "vulnerable_fixture" || Number(r.receiver_received) !== got || got !== 200 || Number(r.invoice_amount) !== 100 || !Number.isInteger(block))
+    throw new Error("the kept-alive trial's raw file disagrees with evidence/testnet-2026-11-11.md");
+  const date = new Date(Number(r.pay_a.sent_unix_ms)).toISOString().slice(0, 10);
+  const trials = mdText.split("\n").filter((l) => /^\| \d+ \| run\d \| vulnerable_fixture \|/.test(l)).length;
+  return { guard, receiver, a, b, block, got, limit: Number(r.invoice_amount), invoice: r.invoice_id, date, trialNo, trials };
+}
+const dp = keptDoublePay();
+const tx = (h) => `https://testnet.nearblocks.io/txns/${h}`;
+
 function coverage() {
   const text = readFileSync(ev("coverage-table.md"), "utf8");
   const out = {};
@@ -154,6 +180,9 @@ const boardData = JSON.parse(readFileSync(join(HERE, "board-data.json"), "utf8")
 const boardGuards = boardData.guards.filter((g) => g.runnable);
 const boardAttacks = boardData.attacks.length;
 const boardInLib = boardData.attacks.filter((a) => a.in_library).length;
+const boardDates = [...new Set(boardData.cells.map((c) => c.date).filter(Boolean))].sort();
+if (!boardDates.length) throw new Error("site/board-data.json has no dated cells");
+const boardRange = boardDates.length === 1 ? boardDates[0] : `${boardDates[0]} to ${boardDates[boardDates.length - 1]}`;
 
 // ---------------------------------------------------------------- links into the repo
 // Doc and file names link into the public repo (site/nav.json "repo", at its ref). ARENA_REPO_URL and
@@ -634,6 +663,15 @@ li.method{display:grid;grid-template-columns:64px 1fr;gap:16px;padding:26px 4px;
 .gate-k{list-style:none;display:flex;flex-wrap:wrap;gap:6px 20px;margin:10px 0 0;padding:0;font-size:13.5px}
 .gate-k li{display:flex;align-items:center;gap:7px}.gate-k b{font-weight:600;font-variant-numeric:tabular-nums}
 .gate-k i{display:inline-block;width:10px;height:10px;border-radius:2px}.gate-k .of{color:var(--muted)}
+.quick{padding:40px 0 56px;border-top:1px solid var(--line)}
+.quick h2{margin-bottom:6px}
+ol.qsteps{list-style:none;margin:20px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius-card);overflow:hidden;counter-reset:q}
+ol.qsteps li{background:var(--card);padding:20px 22px;counter-increment:q;min-width:0}
+ol.qsteps li::before{content:counter(q);display:block;font:500 12px/1 var(--mono);color:var(--muted);margin-bottom:10px}
+ol.qsteps h3{font-size:16.5px;margin:0 0 8px}
+ol.qsteps p{margin:0 0 12px;font-size:14px;max-width:46ch}
+ol.qsteps .go{display:flex;flex-wrap:wrap;gap:8px}
+ol.qsteps .tag{font:500 10.5px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
 .r-block{margin:40px 0 0}
 .r-block > h3{margin-bottom:4px}
 .r-block > .sub{margin-bottom:16px}
@@ -710,6 +748,7 @@ figure.term figcaption{font-size:13px;color:var(--muted);margin-top:10px}
 @media (max-width:768px){.callouts{display:none}.callout-list{display:block;margin:10px 0 0;padding-left:20px;font-size:13px;color:var(--muted)}.callout-list b{color:var(--ink);font-weight:500}
   .hero,.run,.problem{grid-template-columns:1fr;gap:28px}.hero{padding:48px 0 48px}.lede{font-size:18px}.today .n{font-size:34px}
   section{padding:52px 0}.tabs button{flex:1 1 45%}li.method{grid-template-columns:36px 1fr;gap:10px;padding:22px 0}
+  ol.qsteps{grid-template-columns:1fr}
   .teams{grid-template-columns:1fr 1fr}.teams .n{font-size:30px}.intent{grid-template-columns:1fr}.intent .n{grid-row:auto}
   /* phones: the terminal recording's text is too small to read, so the page shows the same run as text */
   .term-gif,.term-text{display:none}.term-phone,.term-phone-k{display:block}.term-phone-k{margin-top:0}}
@@ -736,6 +775,31 @@ ${topbar(null)}
     </div>
   </div>
 </header>
+
+<section id="quick" class="quick" aria-labelledby="quick-h">
+  <h2 id="quick-h">Try it in 2 minutes</h2>
+  <p class="sub">No login, no install. Three links.</p>
+  <ol class="qsteps">
+    <li>
+      <h3>See the double pay on the public explorer</h3>
+      <p class="tag">Recorded on NEAR testnet, ${esc(dp.date)}</p>
+      <p>Both transactions call <code>pay</code> for the same invoice, <code>${esc(dp.invoice)}</code>, in block ${dp.block}, and each moves ${dp.limit} test tokens from the guard to the receiver: ${dp.got} paid on one ${dp.limit}-token invoice. Trial ${dp.trialNo} of ${dp.trials} in ${repoPath("evidence/testnet-2026-11-11.md")}.</p>
+      <div class="go"><a class="btn primary" href="${esc(tx(dp.a))}" rel="noopener">Call A on nearblocks</a><a class="btn ghost" href="${esc(tx(dp.b))}" rel="noopener">Call B</a></div>
+    </li>
+    <li>
+      <h3>Look up a guard live</h3>
+      <p class="tag">Live, reads NEAR testnet</p>
+      <p>Opens the lookup with this planted-flaw guard filled in. It reads testnet when you open it and answers <b>broke</b>. The "fixed guard" button next to it answers <b>held</b>.</p>
+      <div class="go"><a class="btn primary" href="lookup.html?account=${esc(encodeURIComponent(dp.guard))}">Look up the planted-flaw guard</a></div>
+    </li>
+    <li>
+      <h3>See the board</h3>
+      <p class="tag">Recorded local sandbox runs, ${esc(boardRange)}</p>
+      <p>Every attack a hunt ran against each guard, on a local NEAR sandbox: ${boardAttacks} attacks, ${boardGuards.length} guards. Not live.</p>
+      <div class="go"><a class="btn primary" href="board.html">See the board</a><a class="btn ghost" href="docs.html">How to use Arena</a></div>
+    </li>
+  </ol>
+</section>
 
 <section id="problem" class="reveal">
   <div class="problem">
@@ -849,4 +913,7 @@ writeFileSync(join(HERE, "index.html"), page);
 const { buildLookup } = await import("./build-lookup.mjs");
 buildLookup();
 console.log("wrote site/lookup.html and copied the lookup modules");
+const { buildDocs } = await import("./build-docs.mjs");
+const docsOut = buildDocs({ repoPath });
+console.log(`wrote site/docs.html (${(docsOut.bytes / 1024).toFixed(0)} KB)`);
 console.log(`wrote site/index.html (${(page.length / 1024).toFixed(0)} KB): library ${lib.all} (${lib.validated} validated, ${lib.partial} partly, ${lib.unvalidated} unvalidated), hidden ${hidden.count}, ${hunts.runs} hunts; teams ${teams.hold}/${teams.claims}; board ${boardAttacks} (${boardInLib} in library)`);

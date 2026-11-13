@@ -53,14 +53,14 @@ A proof checks every order the calls can arrive in, up to a stated limit. A test
 
 - **Proved, for our own guard:** it never pays one invoice twice. That holds for any number of pay calls on a model of its logic, and for up to 4 pay calls on the real code. It never pays beyond the owner's rules, for up to 10 payment requests in our test setup. Details and limits are in `README.md`.
 - **Measured, not proved:** what an AI agent chooses to do. A language model isn't a program with rules a proof can check, so Arena reports what the agent did, run by run. Testnet results are also measurements: they show what happened on those runs.
-- **Not proved yet:** other teams' guards. Their results are tests against the claims they wrote themselves.
+- **Proved up to small bounds, privately:** four other teams' guards. Of 38 money claims, 34 hold, 3 hold for the contract's own part, and 1 fails (one guard can pay above its daily cap when a refund lands after midnight; we do not say which). The bounds are 2 to 5 payment requests, owner actions and one midnight. Their source and harnesses stay private, so you cannot re-run these proofs from this repo; we publish counts only (`evidence/proofs-all-2026-11-11.md`, row 4). Separately, three of those guards passed tests written from the claims they wrote themselves (`evidence/coverage-table.md`).
 
 ### Where are the private tests?
 
 Two things stay out of this repo on purpose.
 
 - **Other teams' guards.** We name them by letter only. Their code and the map from letter to team stay private, so no team is named without its yes. Results here are listed per letter in `evidence/coverage-table.md`.
-- **A hidden test set.** It is in review and not part of this version yet. When it lands, the repo will hold only the set's fingerprint. Anyone can check later that the set never changed, and we can't tune our own guards to it.
+- **A hidden test set.** 14 admitted attacks kept out of the repo. The repo holds only the set's fingerprint (`hidden-set/COMMITMENT.json`), so anyone can check later that the set did not change after it was committed. Its runs on Arena's own guards are in `evidence/hidden-set/`. How to check it without seeing it: `EVALUATE.md` section 4b. One limit: the set rests on the operator's honesty about which attacks ran.
 
 ### Where does the hunter run, and how secure is that?
 

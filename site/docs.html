@@ -1,0 +1,222 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to use Arena</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cstyle%3E.r%7Bstroke%3A%232F3437%7D.d%7Bfill%3A%239F2F2D%7D%40media%20(prefers-color-scheme%3Adark)%7B.r%7Bstroke%3A%23E6E5E1%7D.d%7Bfill%3A%23F0A39C%7D%7D%3C%2Fstyle%3E%3Cpath%20class%3D%22r%22%20d%3D%22M78.72%2045.96A29%2029%200%201%201%2054.04%2021.28%22%20fill%3D%22none%22%20stroke-width%3D%2210%22%20stroke-linecap%3D%22round%22%2F%3E%3Ccircle%20class%3D%22d%22%20cx%3D%2270.51%22%20cy%3D%2229.49%22%20r%3D%228.5%22%2F%3E%3C%2Fsvg%3E">
+<meta name="description" content="How to use Arena: test your payment guard, check a guard before paying it, or add an attack. Each step gives the command and what it prints.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'"><noscript><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet"></noscript>
+<style>/* Arena theme: the one source of truth for the look of every Arena page.
+   Inlined at build time by site/build.mjs (index.html), site/build-lookup.mjs (lookup.html) and
+   tools/hunter/board.py (board.html), so each page stays one standalone file.
+   A Python script can inline it too: read this file and put its text inside a style tag.
+   Rules for this file: plain CSS only. No closing style tag, no imports, no external files. The fonts
+   (Geist, Geist Mono) come from the Google Fonts <link> each page adds in its <head>.
+   The top bar and footer markup comes from site/nav.json. */
+
+/* ---- tokens (light) */
+:root{
+  --bg:#F7F6F3;--card:#FFFFFF;--ink:#2F3437;--muted:#787774;--line:#EAEAEA;
+  --bad-bg:#FDEBEC;--bad:#9F2F2D;--code:#F1F0EC;
+  --sans:"Geist","SF Pro Display","Helvetica Neue",sans-serif;
+  --mono:"Geist Mono","SF Mono","JetBrains Mono",monospace;
+  --radius-card:12px;--radius-btn:6px;--page:1080px
+}
+/* ---- tokens (dark) */
+@media (prefers-color-scheme:dark){:root{
+  --bg:#191918;--card:#202020;--ink:#E6E5E1;--muted:#9B9A97;--line:rgba(255,255,255,.08);
+  --bad-bg:rgba(190,80,70,.16);--bad:#F0A39C;--code:#2A2A28
+}}
+
+/* ---- base */
+*{box-sizing:border-box}
+html{background:var(--bg);scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+a:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--muted);outline-offset:2px}
+code{font:12px var(--mono);background:var(--code);color:var(--ink);padding:1px 5px;border-radius:4px;overflow-wrap:anywhere}
+.wrap{width:min(var(--page),100% - 32px);margin:0 auto}
+.eyebrow{font:500 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.btn{font:500 14px/1 var(--sans);padding:12px 18px;border-radius:var(--radius-btn);text-decoration:none;white-space:nowrap;transition:transform .2s cubic-bezier(.16,1,.3,1)}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:var(--ink);color:var(--bg)}
+.btn.ghost{color:var(--ink);border:1px solid var(--line);background:var(--card)}
+
+/* ---- status words, shared by the board, the lookup and the sample report.
+   broke = the one red accent. held = quiet and neutral (held is not "safe").
+   none = not run / no result, muted. */
+.st{display:inline-block;font:500 11px/1.5 var(--mono);letter-spacing:.04em;padding:1px 8px;border-radius:999px;border:1px solid var(--line);color:var(--ink);background:var(--card);white-space:nowrap}
+.st-broke{color:var(--bad);background:var(--bad-bg);border-color:transparent}
+.st-held{color:var(--ink);background:var(--code);border-color:transparent}
+.st-none{color:var(--muted);background:transparent;border-style:dashed}
+
+/* ---- top bar */
+.topbar{border-bottom:1px solid var(--line);background:var(--bg)}
+.topbar-in{width:min(var(--page),100% - 32px);margin:0 auto;display:flex;align-items:center;gap:8px 28px;min-height:56px;flex-wrap:wrap}
+.topbar .brand{font:600 17px/1 var(--sans);letter-spacing:-.02em;text-decoration:none;color:var(--ink);padding:6px 0;display:inline-flex;align-items:center;gap:8px}
+.brand-mark{width:20px;height:20px;flex:none;display:block}
+.topbar nav{display:flex;flex-wrap:wrap;gap:4px 2px;margin-left:auto}
+.topbar nav a{font:500 13px/1 var(--sans);color:var(--muted);text-decoration:none;padding:8px 10px;border-radius:var(--radius-btn);white-space:nowrap}
+.topbar nav a:hover{color:var(--ink);background:var(--code)}
+.topbar nav a[aria-current="page"]{color:var(--ink);background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}
+@media (max-width:640px){
+  .topbar-in{padding:10px 0 8px;gap:4px 0}
+  .topbar .brand{flex:1 0 100%}
+  .topbar nav{margin-left:-10px;gap:2px 0}
+  .topbar nav a{padding:8px 10px;font-size:12.5px}
+}
+
+/* ---- footer */
+.site-foot{border-top:1px solid var(--line);color:var(--muted);font-size:13px;margin-top:24px}
+.foot-in{width:min(var(--page),100% - 32px);margin:0 auto;padding:28px 0 64px;display:grid;gap:10px}
+.site-foot nav{display:flex;flex-wrap:wrap;gap:4px 18px}
+.site-foot nav a{color:var(--ink);text-decoration:none;font-weight:500}
+.site-foot nav a:hover{text-decoration:underline}
+.site-foot p{margin:0;max-width:70ch}
+
+/* ---- touch screens: every link and button in the shared parts is at least 44px tall,
+   so a thumb hits the one it aims at. Mouse layouts are unchanged. */
+@media (pointer:coarse){
+  .topbar .brand,.topbar nav a,.site-foot nav a,.btn{display:inline-flex;align-items:center;min-height:44px}
+  .topbar .brand{padding:0}
+  .site-foot nav{gap:0 14px}
+  .site-foot nav a{min-width:44px;justify-content:center}
+}
+@media (pointer:coarse) and (max-width:640px){.topbar nav a{padding:8px}}
+
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+h1{font:600 clamp(34px,5vw,52px)/1.05 var(--sans);letter-spacing:-.035em;margin:16px 0 16px}
+h2{font:600 26px/1.2 var(--sans);letter-spacing:-.02em;margin:0 0 8px}
+.intro{padding:56px 0 40px}
+.lede{font-size:18px;line-height:1.5;max-width:62ch;margin:0 0 22px}
+.sub{color:var(--muted);max-width:66ch;margin:0 0 22px}
+.jump{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 28px}
+.jump a{font:500 13.5px/1 var(--sans);text-decoration:none;border:1px solid var(--line);background:var(--card);border-radius:var(--radius-btn);padding:11px 14px}
+.jump a:hover{background:var(--code)}
+.needs{border:1px solid var(--line);border-radius:var(--radius-card);background:var(--card);padding:20px 24px}
+.needs h2{font-size:18px}
+.needs ul,.plain{margin:0;padding:0 0 0 18px;max-width:80ch}.needs li,.plain li{margin:6px 0}
+section{padding:56px 0;border-top:1px solid var(--line)}
+ol.steps{list-style:none;margin:0;padding:0;counter-reset:s;display:grid;gap:14px}
+li.step{counter-increment:s;display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius-card);overflow:hidden}
+li.step > div{background:var(--card);padding:16px 20px;min-width:0}
+li.step p{margin:0 0 10px;max-width:64ch}
+li.step .k{display:block;font:500 10.5px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+li.step .do .k::before{content:counter(s) ". "}
+pre{font:12.5px/1.7 var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+pre:focus-visible{outline:2px solid var(--muted);outline-offset:2px}
+.more{font-size:13.5px;color:var(--muted);margin:18px 0 0}
+.site-foot code{font-size:11.5px}
+@media (max-width:768px){li.step{grid-template-columns:1fr}.intro{padding:36px 0 28px}section{padding:40px 0}}
+</style></head>
+<body>
+<header class="topbar"><div class="topbar-in"><a class="brand" href="index.html"><svg class="brand-mark" viewBox="0 0 100 100" aria-hidden="true"><path d="M78.72 45.96A29 29 0 1 1 54.04 21.28" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round"/><circle cx="70.51" cy="29.49" r="8.5" style="fill:var(--bad)"/></svg>Arena</a><nav aria-label="Arena pages"><a href="index.html#methods">How it works</a><a href="index.html#results">Results</a><a href="board.html">Board</a><a href="lookup.html">Look up a guard</a><a href="docs.html" aria-current="page">How to use</a><a href="index.html#try">Try it</a></nav></div></header>
+<main class="wrap">
+<header class="intro">
+  <div class="eyebrow">Arena · documentation</div>
+  <h1>How to use Arena</h1>
+  <p class="lede">Arena runs a library of attacks against a payment guard (a NEAR contract that limits what an AI agent can pay) and reports, from final balances, whether the guard held or broke. Pick the part that fits you. Each step says what to do and what you should see.</p>
+  <nav class="jump" aria-label="Sections"><a href="#builders">I build a guard</a><a href="#payers">My agent or wallet pays a guard</a><a href="#authors">I want to add an attack</a><a href="#verify">I want to check Arena's results</a></nav>
+  <div class="needs">
+    <h2>What you need</h2>
+    <ul>
+      <li><b>No install</b> for the lookup page and the results board: they run in a browser.</li>
+      <li><b>Rust</b>, through rustup (<code>curl https://sh.rustup.rs -sSf | sh</code>). The repo pins the toolchain, so the right version comes on first build.</li>
+      <li><b>The NEAR sandbox</b>: nothing to install. The scripts download it on the first run, so that run needs the internet.</li>
+      <li><b>Python 3</b>, for <code>arena check</code> and the tool tests. <b>Node 18 or newer</b>, for the lookup tool.</li>
+      <li>For the proofs only: Kani, z3, and Java 17 or newer (setup in <a href="https://github.com/damli40/arena/blob/main/README.md#check-it-yourself" rel="noopener"><code>README.md</code></a>).</li>
+      <li><b>Tested on macOS (Apple silicon).</b> Nothing has been run on Linux or on GitHub's runners yet.</li>
+      <li><b>Time:</b> about 4 minutes for one <code>arena check</code> after the first build; about 8 minutes for <code>./verify.sh fast</code> on a fresh copy.</li>
+    </ul>
+  </div>
+</header>
+<section id="builders">
+  <h2>Guard builders: test your guard</h2>
+  <p class="sub">You wrote a payment guard and want to know which attacks get money past it.</p>
+  <ol class="steps"><li class="step">
+  <div class="do"><span class="k">Do</span><p>Get Arena and build your guard the way you normally do. You need its <code>.wasm</code> file.</p><pre tabindex="0" aria-label="Command">git clone &lt;arena repo&gt; arena &amp;&amp; cd arena</pre></div>
+  <div class="see"><span class="k">You see</span><p>Nothing to see yet. The first check also builds Arena's harness, which takes a few minutes once.</p></div>
+</li><li class="step">
+  <div class="do"><span class="k">Do</span><p>Run every attack in the library against your guard, on a local NEAR sandbox on your machine (no testnet, no real money).</p><pre tabindex="0" aria-label="Command">./arena check path/to/your_guard.wasm</pre></div>
+  <div class="see"><span class="k">You see</span><p>One line per attack, then a headline. Two recorded runs on Arena's own guards (2026-11-12): the reference guard, and a copy that is leaky on purpose. Exit code 0 means held, 1 broke, 2 the check could not finish. A full check took about 4 minutes on our Mac.</p><pre tabindex="0" aria-label="What it prints">arena: held 49/49 (0 not applicable; 3 stopped by the agent's access key before the guard ran; rules claimed: all 4 (payees, cancel, expiry, daily_cap); 2450 tokens paid against the owner's intent)
+
+arena: broke 5 of 49 (0 not applicable; 3 stopped by the agent's access key before the guard ran; rules claimed: all 4 (payees, cancel, expiry, daily_cap); 2450 tokens paid against the owner's intent)</pre></div>
+</li><li class="step">
+  <div class="do"><span class="k">Do</span><p>Open the report card, <code>arena-report/report.html</code>, in a browser. It is one page and needs no internet.</p></div>
+  <div class="see"><span class="k">You see</span><p>The badge (<code>held N/N</code> or <code>broke K of N</code>), then every attack with its step log. Attacks your guard's rules do not cover are <b>not applicable</b>, never held. Attacks NEAR refused at the agent's access key are <b>stopped by the agent's access key</b>: they tested the key, not your guard. Two numbers are never added together: tokens paid <b>beyond your guard's own rules</b> (any value above 0 is a failure), and tokens paid <b>against the owner's intent</b> (your rules allowed them).</p></div>
+</li><li class="step">
+  <div class="do"><span class="k">Do</span><p>If your guard starts differently or is a different shape, describe it in a config file and pass it with <code>--config</code>. Examples for each shape are in <a href="https://github.com/damli40/arena/tree/main/examples/configs" rel="noopener"><code>examples/configs/</code></a>.</p><pre tabindex="0" aria-label="Command">./arena check your_guard.wasm --config guard.json
+./arena check your_guard.wasm --pays-in native
+./arena check your_guard.wasm --config guard.json --mapping mapping.json</pre></div>
+  <div class="see"><span class="k">You see</span><p>The same report. Use <code>"features"</code> for rules your guard does not have (payee list, cancel, expiry, daily cap), <code>"pays_in": "native"</code> for plain NEAR, <code>"pays_in": "intents"</code> for a guard that pays into NEAR Intents, <code>"signs_via": "chain-signatures"</code> for a guard that asks Chain Signatures to sign, and a mapping file when your method names differ. Intents withdrawals and Chain Signatures are checked against Arena's local stand-ins: nothing is sent to another chain and nothing is really signed. A guard with no invoices, where the agent names the receiver, uses <code>python3 tools/check/direct_check.py --wasm your_guard.wasm --guard-config guard.json --out report-dir</code>.</p></div>
+</li><li class="step">
+  <div class="do"><span class="k">Do</span><p>Run the check on every pull request: copy <a href="https://github.com/damli40/arena/blob/main/examples/workflows/arena-check.yml" rel="noopener"><code>examples/workflows/arena-check.yml</code></a> into your repo's <code>.github/workflows/</code>, fill in the lines marked <code>&lt;- your ...</code>, and replace the <code>ARENA_OWNER/arena@ARENA_COMMIT</code> placeholders.</p></div>
+  <div class="see"><span class="k">You see</span><p>The badge and numbers in the job summary, and the report as a downloadable file. This workflow has not run on GitHub yet; only its script step was run, locally on macOS.</p></div>
+</li><li class="step">
+  <div class="do"><span class="k">Do</span><p>Replay one saved attack against your guard, with no model call.</p><pre tabindex="0" aria-label="Command">./run-arena.sh replay sequences-paper/&lt;file&gt;.json --wasm your_guard.wasm</pre></div>
+  <div class="see"><span class="k">You see</span><p>That attack's result against your guard.</p></div>
+</li></ol>
+  <p class="more">Full guide: <a href="https://github.com/damli40/arena/blob/main/docs/CHECK-YOUR-GUARD.md" rel="noopener"><code>docs/CHECK-YOUR-GUARD.md</code></a>, <a href="https://github.com/damli40/arena/blob/main/docs/REGISTER-A-GUARD.md" rel="noopener"><code>docs/REGISTER-A-GUARD.md</code></a> (put your guard on the board), <a href="https://github.com/damli40/arena/blob/main/docs/ON-CHAIN.md" rel="noopener"><code>docs/ON-CHAIN.md</code></a> (opt in on NEAR testnet).</p>
+</section>
+<section id="payers">
+  <h2>Agents and wallets: check a guard before paying it</h2>
+  <p class="sub">Your agent or wallet is about to send money to a guard, and you want to know what Arena found. Only <code>held</code> is a pass. Every other answer, including a network error, is not.</p>
+  <ol class="steps"><li class="step">
+  <div class="do"><span class="k">Do</span><p>In a browser, open <a href="lookup.html?account=r11cfx4-guard.arena-race-funder-1111.testnet">the lookup page</a> (this link fills in Arena's fixed guard) and type any guard account on NEAR testnet.</p></div>
+  <div class="see"><span class="k">You see</span><p>A status word and one sentence, the guard's code fingerprint and mode, and each result Arena published for that code, with its transaction link. It only reads testnet; it never sends a transaction.</p></div>
+</li><li class="step">
+  <div class="do"><span class="k">Do</span><p>From a terminal (Node 18 or newer, no keys):</p><pre tabindex="0" aria-label="Command">node tools/lookup/cli.mjs r11cfx4-guard.arena-race-funder-1111.testnet</pre></div>
+  <div class="see"><span class="k">You see</span><p>A first line that starts as below, then <code>status:    held</code> and <code>opt-in:    opted_in</code>. Exit code 0 means held, 1 any other answer, 2 bad input or the lookup could not finish.</p><pre tabindex="0" aria-label="What it prints">Held the double-pay race test (5 of 5 runs held, 0 paid over the limit) ...</pre></div>
+</li><li class="step">
+  <div class="do"><span class="k">Do</span><p>From your own JavaScript (no dependencies, uses <code>fetch</code>):</p><pre tabindex="0" aria-label="Command">import { lookup } from &quot;./tools/lookup/arena-lookup.mjs&quot;;
+const a = await lookup(&quot;r11cfx4-guard.arena-race-funder-1111.testnet&quot;);
+if (a.status !== &quot;held&quot;) askUserToConfirm(); // anything else is not a pass, including errors</pre></div>
+  <div class="see"><span class="k">You see</span><p>The same answer as an object: <code>a.status</code>, <code>a.sentence</code>, and <code>a.receipts</code> with each publish transaction, date and evidence file.</p></div>
+</li><li class="step">
+  <div class="do"><span class="k">Do</span><p>From another contract: call <code>arena_result(guard_code_hash, suite, arena_commit)</code> on <code>receipts.dev-20261109195231-98743803426969.testnet</code>. Name the suite when one code runs in more than one mode, for example <code>race-double-pay:mode=fixed</code>.</p></div>
+  <div class="see"><span class="k">You see</span><p>An answer with <code>status</code>: <code>held</code>, <code>broke</code>, <code>incomplete</code> or <code>not_tested</code>, never null. A full near-sdk example that asks before paying is in <a href="https://github.com/damli40/arena/blob/main/receipts/example-caller/src/lib.rs" rel="noopener"><code>receipts/example-caller/src/lib.rs</code></a>.</p></div>
+</li></ol>
+  <p class="more">Full guide: <a href="https://github.com/damli40/arena/blob/main/docs/CHECK-BEFORE-YOU-PAY.md" rel="noopener"><code>docs/CHECK-BEFORE-YOU-PAY.md</code></a>, <a href="https://github.com/damli40/arena/blob/main/docs/ON-CHAIN.md" rel="noopener"><code>docs/ON-CHAIN.md</code></a>.</p>
+</section>
+<section id="authors">
+  <h2>Attack authors: add an attack</h2>
+  <p class="sub">You know a way to make a guard overpay and want it in the library.</p>
+  <ol class="steps"><li class="step">
+  <div class="do"><span class="k">Do</span><p>Write the attack as data: copy <a href="https://github.com/damli40/arena/blob/main/sequences-scripted/02-race-double-pay.json" rel="noopener"><code>sequences-scripted/02-race-double-pay.json</code></a> and change its steps. A step is a call by the agent or an outsider, a view, a race of 2 to 4 calls sent at once, a wait, or an attempt to add a key. Then add a <code>meta</code> block saying who wrote it and what it tries to break.</p></div>
+  <div class="see"><span class="k">You see</span><p>A JSON file. You write data, not code. The rules are in <a href="https://github.com/damli40/arena/blob/main/schema/attack.schema.json" rel="noopener"><code>schema/attack.schema.json</code></a>.</p></div>
+</li><li class="step">
+  <div class="do"><span class="k">Do</span><p>Fill in the fingerprint, then validate the file.</p><pre tabindex="0" aria-label="Command">python3 -I -c &quot;import sys,json; sys.path.insert(0,'tools/hunter'); import validate as V; d=json.load(open(sys.argv[1])); print(V.steps_hash(d['steps']))&quot; your-file.json
+python3 -I tools/hunter/validate.py your-file.json</pre></div>
+  <div class="see"><span class="k">You see</span><p>The fingerprint to paste into <code>meta.steps_sha256</code>, then either a pass or exactly what is wrong, for example <code>step 2: wait_seconds must be 1-30</code>.</p></div>
+</li><li class="step">
+  <div class="do"><span class="k">Do</span><p>Run it against one guard, the leaky-on-purpose control.</p><pre tabindex="0" aria-label="Command">./run-arena.sh replay your-file.json --target control</pre></div>
+  <div class="see"><span class="k">You see</span><p><b>broke</b> if a receiver got tokens beyond that guard's policy, <b>held</b> if not. Put the file in <code>sequences-paper/</code> and the next <code>./run-arena.sh hunt --library</code> runs it against every registered guard.</p></div>
+</li><li class="step">
+  <div class="do"><span class="k">Do</span><p>Ask the admission gate whether the attack catches the flaw it names. The gate runs it 3 times on a guard known to be good (it must hold) and 3 times on a copy with exactly that one flaw (it must break, by the exact amount), from the guards its <code>meta.spec</code> names. It needs the build from <code>./verify.sh fast</code>.</p><pre tabindex="0" aria-label="Command">python3 -I tools/admission/admit.py your-file.json --runs 3</pre></div>
+  <div class="see"><span class="k">You see</span><p>One line with the class: <code>validated</code>, <code>partially-validated</code> or <code>unvalidated</code>, with the reason. For a library attack it reads, for example, <code>ADMISSION scripted-03-sequential-second-pay: validated (every reference matched in 3 counted runs; matched known-bad: mutant:M4)</code> (about 37 s). Saving an attack does not validate it; only the gate's runs count.</p></div>
+</li></ol>
+  <p class="more">Full guide: <a href="https://github.com/damli40/arena/blob/main/docs/ADD-AN-ATTACK.md" rel="noopener"><code>docs/ADD-AN-ATTACK.md</code></a>, and the admission rules in <a href="https://github.com/damli40/arena/blob/main/EVALUATE.md" rel="noopener"><code>EVALUATE.md</code></a> section 4b.</p>
+</section>
+<section id="verify">
+  <h2>Reviewers: check Arena's own results</h2>
+  <p class="sub">You want to re-run what Arena claims instead of reading it.</p>
+  <ol class="steps"><li class="step">
+  <div class="do"><span class="k">Do</span><p>Re-run the headline result on your machine (about 8 minutes the first time).</p><pre tabindex="0" aria-label="Command">./verify.sh fast</pre></div>
+  <div class="see"><span class="k">You see</span><p>PASS or FAIL per check, ending with the line below. It shows the planted-flaw guard paying 200 on one 100-token invoice, and the bench catching the leaky-on-purpose guard.</p><pre tabindex="0" aria-label="What it prints">verify: 5 passed, 0 failed (mode=fast)</pre></div>
+</li><li class="step">
+  <div class="do"><span class="k">Do</span><p>See the fixed guard pay once.</p><pre tabindex="0" aria-label="Command">./run.sh t2_</pre></div>
+  <div class="see"><span class="k">You see</span><p>The fixed guard's payout in each of 5 trials.</p><pre tabindex="0" aria-label="What it prints">RESULT fixed race payouts per trial: [100, 100, 100, 100, 100]</pre></div>
+</li></ol>
+  <p class="more">Full guide: <a href="https://github.com/damli40/arena/blob/main/EVALUATE.md" rel="noopener"><code>EVALUATE.md</code></a> lists every claim with its command, the line you should see, our time and our saved log.</p>
+</section>
+<section id="limits-short">
+  <h2>What these results do not show</h2>
+  <ul class="plain">
+    <li>Held means the attacks Arena ran found nothing. Another attack could still break the guard.</li>
+    <li>Almost everything runs on a local NEAR sandbox. NEAR Intents withdrawals and Chain Signatures are checked against Arena's local stand-ins.</li>
+    <li>Arena reads each payment as one whole invoice amount, so a guard that pays part of an invoice could be scored held where a part-payment reading would be broke.</li>
+  </ul>
+  <p class="more">Every limit: <a href="https://github.com/damli40/arena/blob/main/README.md#limits" rel="noopener"><code>README.md, Limits</code></a>.</p>
+</section>
+</main>
+<footer class="site-foot"><div class="foot-in"><nav aria-label="Arena pages, again"><a href="index.html">Arena</a><a href="index.html#methods">How it works</a><a href="index.html#results">Results</a><a href="board.html">Board</a><a href="lookup.html">Look up a guard</a><a href="docs.html">How to use</a><a href="index.html#try">Try it</a></nav><p>Local sandbox results. Held means these attacks found nothing. Another attack could still break the guard.</p><p>This page is built from the repo's docs by <code>site/build-docs.mjs</code>. The two example headlines are read from <code>evidence/invoice-fixes-2026-11-12/checks</code>.</p></div></footer>
+</body></html>

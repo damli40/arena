@@ -1,4 +1,5 @@
-Guard G (another hackathon team's guard; name kept private, see the fairness rules in the README).
+Guard G (another hackathon team's guard; name kept private. How Arena treats other teams' guards:
+the README section "Other teams' guards" and EVALUATE.md section 6).
 Frozen 2026-11-11, before any Arena run. Not on the board and not in guards/registry.json.
 
 The code is NOT redistributed. This repository does not contain Guard G's wasm.

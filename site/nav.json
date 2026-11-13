@@ -1,5 +1,5 @@
 {
-  "_about": "The top bar and footer of every Arena page. Read by site/chrome.mjs (index.html, lookup.html), tools/hunter/board.py (board.html) and tools/check/report.py (report.html, the logo only). Every href is relative, so the pages work from any folder they are served from. \"repo\" is where site/build.mjs links file names (ARENA_REPO_URL / ARENA_REPO_REF override it).",
+  "_about": "The top bar and footer of every Arena page. Read by site/chrome.mjs (index.html, lookup.html, docs.html), tools/hunter/board.py (board.html) and tools/check/report.py (report.html, the logo only). Every href is relative, so the pages work from any folder they are served from. \"repo\" is where site/build.mjs links file names (ARENA_REPO_URL / ARENA_REPO_REF override it).",
   "brand": {"label": "Arena", "href": "index.html"},
   "repo": {"url": "https://github.com/damli40/arena", "ref": "main"},
   "mark": {"_about": "The Arena logo: an open ring and a dot. Drawn in a 100 x 100 box. The ring is the text colour, the dot the theme's broke red (--bad).",
@@ -9,6 +9,7 @@
     {"id": "results", "label": "Results", "href": "index.html#results"},
     {"id": "board", "label": "Board", "href": "board.html"},
     {"id": "lookup", "label": "Look up a guard", "href": "lookup.html"},
+    {"id": "docs", "label": "How to use", "href": "docs.html"},
     {"id": "try", "label": "Try it", "href": "index.html#try"}
   ],
   "footer_note": "Local sandbox results. Held means these attacks found nothing. Another attack could still break the guard."

@@ -228,6 +228,15 @@ li.method{display:grid;grid-template-columns:64px 1fr;gap:16px;padding:26px 4px;
 .gate-k{list-style:none;display:flex;flex-wrap:wrap;gap:6px 20px;margin:10px 0 0;padding:0;font-size:13.5px}
 .gate-k li{display:flex;align-items:center;gap:7px}.gate-k b{font-weight:600;font-variant-numeric:tabular-nums}
 .gate-k i{display:inline-block;width:10px;height:10px;border-radius:2px}.gate-k .of{color:var(--muted)}
+.quick{padding:40px 0 56px;border-top:1px solid var(--line)}
+.quick h2{margin-bottom:6px}
+ol.qsteps{list-style:none;margin:20px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius-card);overflow:hidden;counter-reset:q}
+ol.qsteps li{background:var(--card);padding:20px 22px;counter-increment:q;min-width:0}
+ol.qsteps li::before{content:counter(q);display:block;font:500 12px/1 var(--mono);color:var(--muted);margin-bottom:10px}
+ol.qsteps h3{font-size:16.5px;margin:0 0 8px}
+ol.qsteps p{margin:0 0 12px;font-size:14px;max-width:46ch}
+ol.qsteps .go{display:flex;flex-wrap:wrap;gap:8px}
+ol.qsteps .tag{font:500 10.5px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
 .r-block{margin:40px 0 0}
 .r-block > h3{margin-bottom:4px}
 .r-block > .sub{margin-bottom:16px}
@@ -304,13 +313,14 @@ figure.term figcaption{font-size:13px;color:var(--muted);margin-top:10px}
 @media (max-width:768px){.callouts{display:none}.callout-list{display:block;margin:10px 0 0;padding-left:20px;font-size:13px;color:var(--muted)}.callout-list b{color:var(--ink);font-weight:500}
   .hero,.run,.problem{grid-template-columns:1fr;gap:28px}.hero{padding:48px 0 48px}.lede{font-size:18px}.today .n{font-size:34px}
   section{padding:52px 0}.tabs button{flex:1 1 45%}li.method{grid-template-columns:36px 1fr;gap:10px;padding:22px 0}
+  ol.qsteps{grid-template-columns:1fr}
   .teams{grid-template-columns:1fr 1fr}.teams .n{font-size:30px}.intent{grid-template-columns:1fr}.intent .n{grid-row:auto}
   /* phones: the terminal recording's text is too small to read, so the page shows the same run as text */
   .term-gif,.term-text{display:none}.term-phone,.term-phone-k{display:block}.term-phone-k{margin-top:0}}
 @media (max-width:400px){.today-grid > div{padding:16px 16px 18px}.today .eyebrow{padding:16px 16px 0}}
 </style></head>
 <body class="iso" data-theme="light">
-<header class="topbar"><div class="topbar-in"><a class="brand" href="index.html"><svg class="brand-mark" viewBox="0 0 100 100" aria-hidden="true"><path d="M78.72 45.96A29 29 0 1 1 54.04 21.28" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round"/><circle cx="70.51" cy="29.49" r="8.5" style="fill:var(--bad)"/></svg>Arena</a><nav aria-label="Arena pages"><a href="index.html#methods">How it works</a><a href="index.html#results">Results</a><a href="board.html">Board</a><a href="lookup.html">Look up a guard</a><a href="index.html#try">Try it</a></nav></div></header>
+<header class="topbar"><div class="topbar-in"><a class="brand" href="index.html"><svg class="brand-mark" viewBox="0 0 100 100" aria-hidden="true"><path d="M78.72 45.96A29 29 0 1 1 54.04 21.28" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round"/><circle cx="70.51" cy="29.49" r="8.5" style="fill:var(--bad)"/></svg>Arena</a><nav aria-label="Arena pages"><a href="index.html#methods">How it works</a><a href="index.html#results">Results</a><a href="board.html">Board</a><a href="lookup.html">Look up a guard</a><a href="docs.html">How to use</a><a href="index.html#try">Try it</a></nav></div></header>
 <main class="wrap">
 <header class="hero">
   <div>
@@ -330,6 +340,31 @@ figure.term figcaption{font-size:13px;color:var(--muted);margin-top:10px}
     </div>
   </div>
 </header>
+
+<section id="quick" class="quick" aria-labelledby="quick-h">
+  <h2 id="quick-h">Try it in 2 minutes</h2>
+  <p class="sub">No login, no install. Three links.</p>
+  <ol class="qsteps">
+    <li>
+      <h3>See the double pay on the public explorer</h3>
+      <p class="tag">Recorded on NEAR testnet, 2026-11-10</p>
+      <p>Both transactions call <code>pay</code> for the same invoice, <code>inv-vulnerable_fixture-3</code>, in block 277089399, and each moves 100 test tokens from the guard to the receiver: 200 paid on one 100-token invoice. Trial 5 of 5 in <a href="https://github.com/damli40/arena/blob/main/evidence/testnet-2026-11-11.md" rel="noopener"><code>evidence/testnet-2026-11-11.md</code></a>.</p>
+      <div class="go"><a class="btn primary" href="https://testnet.nearblocks.io/txns/G66wuWfTVB9ryzgPYmBk4ksYap4SUhhF8Hes2hAGN5CQ" rel="noopener">Call A on nearblocks</a><a class="btn ghost" href="https://testnet.nearblocks.io/txns/AFGE2DVFpcBLzF6nQ8pzWKCxVVkUqWejeoqrXYG94KuJ" rel="noopener">Call B</a></div>
+    </li>
+    <li>
+      <h3>Look up a guard live</h3>
+      <p class="tag">Live, reads NEAR testnet</p>
+      <p>Opens the lookup with this planted-flaw guard filled in. It reads testnet when you open it and answers <b>broke</b>. The "fixed guard" button next to it answers <b>held</b>.</p>
+      <div class="go"><a class="btn primary" href="lookup.html?account=r11bvf3-guard.arena-race-funder-1111.testnet">Look up the planted-flaw guard</a></div>
+    </li>
+    <li>
+      <h3>See the board</h3>
+      <p class="tag">Recorded local sandbox runs, 2026-11-10 to 2026-11-11</p>
+      <p>Every attack a hunt ran against each guard, on a local NEAR sandbox: 61 attacks, 6 guards. Not live.</p>
+      <div class="go"><a class="btn primary" href="board.html">See the board</a><a class="btn ghost" href="docs.html">How to use Arena</a></div>
+    </li>
+  </ol>
+</section>
 
 <section id="problem" class="reveal">
   <div class="problem">
@@ -489,7 +524,7 @@ BROKE scripted-02-race-double-pay: +100</pre>
 </section>
 
 </main>
-<footer class="site-foot"><div class="foot-in"><nav aria-label="Arena pages, again"><a href="index.html">Arena</a><a href="index.html#methods">How it works</a><a href="index.html#results">Results</a><a href="board.html">Board</a><a href="lookup.html">Look up a guard</a><a href="index.html#try">Try it</a></nav><p>Local sandbox results. Held means these attacks found nothing. Another attack could still break the guard.</p><p>Every number on this page is read from <code>evidence/</code> at build time. Fig 1 uses the anatomy kit (MIT, © 2026 Ryan).</p></div></footer>
+<footer class="site-foot"><div class="foot-in"><nav aria-label="Arena pages, again"><a href="index.html">Arena</a><a href="index.html#methods">How it works</a><a href="index.html#results">Results</a><a href="board.html">Board</a><a href="lookup.html">Look up a guard</a><a href="docs.html">How to use</a><a href="index.html#try">Try it</a></nav><p>Local sandbox results. Held means these attacks found nothing. Another attack could still break the guard.</p><p>Every number on this page is read from <code>evidence/</code> at build time. Fig 1 uses the anatomy kit (MIT, © 2026 Ryan).</p></div></footer>
 <script>(function(){
   if (typeof window.IntersectionObserver !== "function") return;
   document.documentElement.classList.add("reveal-js");

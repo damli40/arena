@@ -4,6 +4,31 @@
 
 The arena is a constantly growing crash test for AI-controlled money.
 
+Arena attacks payment guards (NEAR contracts that limit what an AI agent may pay) on a local NEAR sandbox, and scores each attack held or broke from the final token balances.
+
+**Headline result:** on NEAR testnet, a guard with a flaw planted on purpose paid 200 tokens on one 100-token invoice in 5 of 5 trials, and the fixed guard paid 100 in 5 of 5 (`evidence/testnet-2026-11-11.md`).
+
+**Website:** https://arena-guard-bench.netlify.app
+
+## Try it in 2 minutes (no login, no install)
+
+1. **See the double pay on the public explorer.** Open [call A](https://testnet.nearblocks.io/txns/G66wuWfTVB9ryzgPYmBk4ksYap4SUhhF8Hes2hAGN5CQ) and [call B](https://testnet.nearblocks.io/txns/AFGE2DVFpcBLzF6nQ8pzWKCxVVkUqWejeoqrXYG94KuJ) on testnet.nearblocks.io. Both call `pay` for the same invoice, `inv-vulnerable_fixture-3`, in block 277089399, and each moves 100 test tokens from the guard to the receiver: 200 paid on one 100-token invoice. Recorded on NEAR testnet on 2026-11-10 (UTC); trial 5 of 5 in `evidence/testnet-2026-11-11.md`.
+2. **Look up a guard live.** Open [the lookup with the planted-flaw guard filled in](https://arena-guard-bench.netlify.app/lookup.html?account=r11bvf3-guard.arena-race-funder-1111.testnet). It reads NEAR testnet when you open it and answers `broke` for this guard. The "fixed guard" button answers `held`.
+3. **See the board.** [The results board](https://arena-guard-bench.netlify.app/board.html) shows recorded runs on a local NEAR sandbox, 2026-11-10 to 2026-11-11: every attack a hunt ran against each guard. It is not live.
+
+To run Arena on your own guard: `./arena check your_guard.wasm` (needs Rust and Python 3; see "Check it yourself" below and the [how-to page](https://arena-guard-bench.netlify.app/docs.html)).
+
+## What this does not show
+
+- **NEAR Intents and Chain Signatures were tested only against local stand-ins:** the real Intents contract on a local sandbox with Arena's own bridge stand-in for withdrawals, and a stand-in signer that signs nothing. No real bridge, no real MPC signing, no mainnet.
+- **Other teams' guards are published as counts only.** Their code and harnesses stay private, so you cannot re-run those results from this repo.
+- **Arena reads each payment as one whole invoice amount.** A guard that pays part of an invoice could be scored held where a part-payment reading would be broke (see "Limits").
+- **Held means the attacks Arena ran found nothing.** It is not a promise about attacks Arena did not run.
+
+NEAR function-call access keys are tested and reported separately: the agent signs with a key that may call only `pay` on the guard, and attacks NEAR refuses at that key are reported as "stopped by the agent's access key", never counted as held.
+
+## The problem, and every result
+
 Your AI agent pays your bills. A guard is a small contract that stops it
 spending too much. We attacked guards on NEAR and found two ways you still
 lose money:
@@ -91,7 +116,7 @@ Tested on macOS (Apple silicon).
 ```
 ./verify.sh fast     # the headline: the double pay, and the bench catching it. 5 checks
 ./verify.sh          # every local sandbox result in this README. 43 checks
-proofs/run.sh        # Kani on the model, the real code beside it, and z3. 30 checks
+proofs/run.sh        # Kani on the model, the real code beside it, and z3. 33 checks
 tla/run.sh           # near-tla, NEAR's own model of how calls run. 25 checks
 ```
 
@@ -182,7 +207,7 @@ only: no letters, names or code. How to read these and what you can re-run: `EVA
 - **Chain Signatures requests are scored against a stand-in signer, as a count.** For a guard with `"signs_via": "chain-signatures"`, Arena puts its own stand-in in place of `v1.signer` (`contracts/signer-standin`). It records which hashes the guard asked to have signed and returns a fake signature. Arena counts unauthorised requests: hashes off the owner's list (`policy/chain-signatures-allowed.json`), repeats, a different path or key, and requests the guard made because the outsider asked; it never turns that count into tokens, because it cannot know what an unknown hash was worth. It does not test real MPC signing, delivery on another chain, or real transaction encodings: the hashes use Arena's own format, not an Ethereum transaction. The stand-in follows our reading of `v1.signer`'s request rules, not a copy of them, so it may accept or refuse a request the real one would not; a refused request inside the guard's transaction makes the check "could not finish". Only our two test guards have run (`evidence/check-chainsig-2026-11-11.md`).
 - **An attacker can force "could not finish" on an honest Chain Signatures guard.** For example, it can leave too little gas for the guard's call to the signer, or fill the stand-in's storage with a huge `path`. Both block a verdict; neither can make a guard read as held.
 - **Arena credits a signing request to the step whose transaction made it.** If the outsider queues a request in one step and the agent's next step makes the guard sign it, the request is credited to the agent, so a hash on the list passes.
-- **On chain, a result is not tied to the guard's mode or to an opt-in.** The contract's answer does not read the guard's mode, so a contract asking about a wasm that has results under more than one mode must name the suite (`docs/ON-CHAIN.md`). `publish_result` does not check the opt-in table, so a result on chain does not show that the guard's owner agreed to be tested.
+- **On chain, a result is not tied to the guard's mode or to an opt-in.** The contract's answer does not read the guard's mode, so a contract asking about a wasm that has results under more than one mode must name the suite (`docs/ON-CHAIN.md`). `publish_result` does not check the opt-in table, so a result on chain does not show that the guard's owner agreed to be tested. In practice, Arena's publishing script (`tools/receipts/publish.py`) sends results only for Arena's own guards, plus one record of the attack library's counts; Guards A, B and C have an older receipt on chain, by letter and code fingerprint, but no result a contract can query (`evidence/results-testnet-2026-11-11.md`).
 - **"Validated" is only as strong as the attack's written checks.** "Broke through the named mechanism" means the checks the attack's spec lists passed on every counted run (one check is the minimum), and the flaw counts as matched because the broken copy's flaw label equals the one the spec names; nobody checked which line of code fired.
 - **In direct-pay mode, an AI-proposed config also picks which rules the guard claims.** A rule it leaves out is marked not applicable and is never tested, so a proposal that claims fewer rules than the guard enforces tests fewer rules. If every attack is not applicable, the check says could not finish (exit 2), never held. Check the `claims` list in the report before you rely on a result.
 - **The direct-pay callback check has limits.** The gate confirms the callback only by seeing the guard call that method on itself after a payment, with the id the payment returned, of the same JSON type. Each forged call (attack i03) sends exactly what the guard sent itself for the payment it forges against, so per-payment values (amount, nonce, receiver) match; only the caller differs. Held on i03 now means one thing: every forged call was refused by a caller check, either near-sdk's `Method <name> is private` or the refusal text the config names (`direct.callback.refusal_text`). Any other failure, such as a bare wasm trap, a promise-result error or out of gas, ends could not finish (exit 2), because Arena cannot tell it from a forge that never reached the guard's logic. So an honest guard can come out could not finish: one whose own refusal is a bare trap, one whose callback quietly does nothing, or one whose payment returns the id with a different JSON type than its callback takes (self-test S26). If the config names a different method that the guard also calls on itself and that does nothing with the payment, i03 can still come out held. A guard with no callback at all always ends could not finish, because i03 cannot run. Pressing Ctrl-C stops the check with Python's interrupt exit (130 in a shell), which is not a result.
