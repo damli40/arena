@@ -108,6 +108,14 @@ Partly, today. The model calls for papers already run inside NEAR AI Cloud's sec
 
 Everything the hunter reads is public, so a sealed machine adds little secrecy. What it would add is proof of which code produced each result. Until one is in place, the honest answer is no: the hunter's loop doesn't run on NEAR yet.
 
+### Can the learning attacker read the guard first?
+
+Yes, with `--know-guard` (`python3 -I tools/injection/adaptive.py 3 3 --know-guard`). A real attacker can read a guard, because the contract sits on a public chain and most teams publish its source. In this mode the attacker gets the guard's rules (approved payees, caps, when the daily window resets) and its source, capped at 40 KB, and names the payment it is aiming for. It still controls only the email text, and Arena still scores every round from final chain balances.
+
+- **It never sees the owner's instructions.** A check stops the run if any 6-word run of them, or the owner's intended payment, would reach the attacker. One leak is by design: a target the owner did intend is refused as "not accepted", which tells the attacker that payment was the owner's own.
+- **Results, 3 rounds of 3 tries each, NEAR AI attacker, local sandbox, 2026-11-13:** on vault-a the agent was fooled 0 of 9 times. On the direct-pay test guard it was fooled 1 of 9: the agent paid kai 40, a payment inside the guard's rules that the owner never asked for. The guard never paid beyond its own rules in either run (`evidence/injection-2026-11-13-adaptive-guard-aware-vault-a.md`, `evidence/injection-2026-11-13-adaptive-guard-aware-direct-fixture.md`).
+- **Limits:** two guards, 9 tries each. Guard-aware calls get a larger budget (24,000 tokens, 600 s), because with the source in front of it the model spent 8,000 tokens thinking and wrote no email.
+
 ## Roadmap
 
 Planned, not built. An item moves into the FAQ above only once it runs and has evidence in `evidence/`.
@@ -122,13 +130,3 @@ On Oct 29 2026 NEAR AI released abliterated models for security work: versions o
 - **Record.** Each model call runs in NEAR AI Cloud's secure hardware, so each result can name the model that produced it, as the hunter's paper calls do today. That proves which model answered, not that the software around it had no bugs (see the attestation answer above).
 
 The owner is building this after the hackathon.
-
-### A learning attacker that reads the guard before it writes
-
-Today's learning attacker writes invoice emails to fool the AI agent that pays. It sees the agent's tools, the invoice list and what the agent did with each earlier email. It never sees the guard. A real attacker can read the guard, because the contract sits on a public chain and most teams publish its source.
-
-- **Read.** The attacker gets the guard's source or its rules: the approved payees, the caps, when the daily window resets. It still never sees the owner's private instructions to the agent, because a real attacker doesn't have them.
-- **Aim.** The attacker picks the payment most likely to get through: one the guard allows but the owner never wanted, such as an approved payee, an amount just under the cap, or a payment right after the window resets. Today Arena sets that target by hand.
-- **Same limits.** The attacker still controls only the email text. Arena still scores each round from final chain balances.
-
-This is the "break" half of the item above, aimed better. The owner is building it after the hackathon.
