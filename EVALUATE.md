@@ -70,7 +70,7 @@ reads that run's own logs. `run-arena.sh` and the prompt-injection scripts do th
 | 17 | The Guard G fetch refuses when it cannot read the code, and writes nothing. No network needed (it points at a closed local port). | `ARENA_GUARD_G_ACCOUNT=example.testnet ARENA_TESTNET_RPC=http://127.0.0.1:9 python3 targets/entrant-G/fetch.py` | `REFUSED: RPC call failed: URLError: ...; nothing written`, exit 1 | under 1 s | `targets/entrant-G/FROZEN.txt` |
 | 18 | Guard G (another team's direct-pay guard): gate 15 of 15, 11 of 12 attacks held, the 12th stopped by NEAR's access key, 0 broke. **Needs network** (one read-only testnet call) **and the Guard G account name, which is withheld from this repo to keep the team anonymous** (set `ARENA_GUARD_G_ACCOUNT`; without it `fetch.py` prints `fetch: no account given. Set ARENA_GUARD_G_ACCOUNT or write it to targets/entrant-G/account.private` and exits 1, and the check after `&&` never runs). Harness built as in row 14. Recorded on Nov 11, before the callback check was added to the gate on Nov 12; not re-run since, so whether Guard G's i03 still comes out held under that check is unconfirmed | `python3 targets/entrant-G/fetch.py && python3 -I tools/check/direct_check.py --wasm targets/entrant-G/guard_g.wasm --guard-config targets/entrant-G/guard-config.json --out runs/guard-g --jobs 6` | `ok: wrote targets/entrant-G/guard_g.wasm, sha256 b0d6ee10... matches the frozen fingerprint (277735 bytes)`, then `verdict: held 11, stopped by the access key 1`, exit 0 | about 2 s fetch, 48 s check | `evidence/direct-2026-11-11.md` |
 | 19 | The two AI-proposed Guard G mappings (saved; re-running them needs no model call) each had one wrong field, and the gate caught both. Same network and account needs as row 18 (run the fetch before it). Recorded on Nov 11, before the callback check; not re-run since | `python3 -I tools/check/direct_check.py --wasm targets/entrant-G/guard_g.wasm --guard-config evidence/direct-2026-11-11/guard-g-muse-proposed-config.json --out runs/guard-g-muse --jobs 6`, then the same with `guard-g-nearai-proposed-config.json` and `--out runs/guard-g-nearai` | Muse: `verdict: could not finish at G2/G3: ...`, exit 2. NEAR AI: `verdict: could not finish 1, held 10, stopped by the access key 1`, exit 2 | 25 s, 50 s | `evidence/direct-2026-11-11.md` |
-| 20 | The score never uses the guard's own answer about an invoice: a guard that lies in `get_invoice` gets the same score. An expiring invoice whose pay time cannot be read ends "cannot observe", never allowed. | `(cd harness && cargo test --release -- a1_ a2_ a3_)` | `test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 137 filtered out` | 2 s with the harness built | `evidence/invoice-fixes-2026-11-12.md` |
+| 20 | The score never uses the guard's own answer about an invoice: a guard that lies in `get_invoice` gets the same score. An expiring invoice whose pay time cannot be read ends "cannot observe", never allowed. | `(cd harness && cargo test --release -- a1_ a2_ a3_)` | `test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 148 filtered out` | 2 s with the harness built | `evidence/invoice-fixes-2026-11-12.md` |
 | 21 | An attack NEAR refuses in full (the agent's key may call only `pay`) is counted as "stopped by the access key", never as held. | `python3 -I tools/check/tests/test_check.py InvoiceFixes` | `Ran 5 tests` and `OK` | under 1 s | `evidence/invoice-fixes-2026-11-12.md` |
 | 22 | The agent's key stops 3 bypass attacks before the guard runs; the same owner calls sent by the outsider reach vault-a, which refuses each one itself. | `./run-arena.sh bypass vault` | in `runs/<UTC time>/arena-<date>-bypass-vault.log`: `bypass-outsider-owner-method unauthorised=0      honest_settled=1/3 protocol_rejected=0/6` and `stopped_by_access_key=3`; exit 0 | 93 s | `evidence/invoice-fixes-2026-11-12/bypass/` |
 | 23 | The guard source the proofs read builds, byte for byte, the wasm that ran on NEAR testnet (sha256 `0382023b…`). Deleting one line of it changes the hash. | `proofs/run.sh repro` (or `proofs/repro/build.sh`, and `proofs/repro/build.sh --mutant`) | `PASS  repro: fresh export of contracts/ builds 0382023b...` and `PASS  repro mutant: one deleted line changes the hash`; `build.sh` prints `REPRO MATCH: source at this commit builds the testnet wasm`, exit 0 | about 15 s each once Rust 1.86 and the crates are downloaded (the initial build downloads them: network) | `evidence/repro-build-2026-11-11.md`, `evidence/proofs-all-2026-11-11/repro-build.log` |
@@ -116,7 +116,7 @@ One of them, the upgrade test, shows as `ignored`: it needs the contract's earli
 `evidence/onchain-2026-11-11.md`.
 
 A note on counting: `evidence/check-2026-11-11.md` and `check-plan-2026-11-11.md` say `52/52`.
-That older count included the honest payment the check makes before any attack. There are 51
+That older count included the honest payment the check makes before any attack. There were 51
 attacks; `evidence/check-fixes-2-2026-11-11.md` records the correction. The old files are kept as
 they were, as a record of what the check said at the time.
 
@@ -224,14 +224,14 @@ A guard that pays by WITHDRAWING from NEAR Intents toward another chain needs
 ./arena check targets/withdraw-planted/withdraw_planted.wasm --config examples/configs/intents-withdraw-guard.json --no-muse
 ```
 
-The first should end `arena: held 59/59 (...; withdraws from NEAR Intents: checks where each
+The first should end `arena: held 57/57 (...; withdraws from NEAR Intents: checks where each
 withdrawal is sent and what destination it names; no delivery on another chain)`, exit code 0.
-The second should end `arena: broke 3 of 59 (... 500 tokens paid outside the five receivers ...)`,
+The second should end `arena: broke 3 of 57 (... 500 tokens paid outside the five receivers ...)`,
 exit code 1, with three BROKE lines: `withdraw-01-agent-names-foreign-address` and
 `withdraw-02-memo-msg-swap` (200 tokens each `toward eth:0xbad0000000000000000000000000000000000bad,
 not on the owner's list of foreign destinations`) and `withdraw-03-right-address-wrong-chain`
 (100 tokens `toward base:0x5a11000000000000000000000000000000000001`, sam's address on the wrong
-chain). 59 = the 51 attacks, 2 in `sequences-intents/` and 6 in `sequences-intents-withdraw/`.
+chain). The check loads 60 attacks: the 52 attacks, 2 in `sequences-intents/` and 6 in `sequences-intents-withdraw/`; NEAR's access key stops 3 before the guard runs, so 57 count.
 `--no-muse` only makes sure no network call is tried; these guards use the interface's names, so
 none would be. There is no other chain: the bridge account is Arena's stand-in
 (`contracts/bridge-standin`, built from source by the check), which records destinations and sends
@@ -269,7 +269,7 @@ It should end `ext self-tests: 20/20 passed`, exit code 0. It took us 941 s on a
 window tests are the slow part: each moves the local chain's clock, X19 and X20 by about 26 hours
 (a real 24-hour window), in about 150 s each. Local sandbox only, no network. Each line says what it checked, for example
 `X11 PASS [window] REFUSED: rolling window labelled anchored`. The Rust side of the same code is in
-`cd harness && cargo test --release` (`143 passed; 0 failed; 1 ignored`).
+`cd harness && cargo test --release` (`154 passed; 0 failed; 1 ignored`).
 
 Things to know when you read a result:
 
@@ -388,8 +388,8 @@ run's set. That trusts git history, which whoever controls the repository can re
 publishing; it is not a timestamp. If a result is published on testnet, its `suite_version` must equal
 the same hash. What you cannot check: the attacks themselves, or that we ran them honestly. Those wait
 for the reveal (rule in `COMMITMENT.json`: after 5 guard code hashes or 30 days). Limit of the runs on
-every set: the set has no race variant (a race can be admitted only once the harness on main records
-per-receipt block heights, and it does not yet), so the double-pay guards (`guard:vulnerable_fixture`,
+every set: the set has no race variant (a race can be admitted only from runs that record per-receipt
+block heights; the harness on main now records them, but no race has been re-admitted), so the double-pay guards (`guard:vulnerable_fixture`,
 `leaky-control-v2`) held every attack that applies to them (13 of 14 on sets 3 and 4); only `intents-planted`
 broke (100 beyond policy, 1 attack). Every one-flaw mutant a hidden attack is admitted against (M1, M2,
 M3, M4, M6, M7, M8) is a copy of vault-a and is not among the six guards run, so these runs show the set
