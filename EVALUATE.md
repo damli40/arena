@@ -296,7 +296,7 @@ What is in the repo:
 - **25 saved attacks** in `sequences-paper/`, one JSON file each. 14 are call sequences and 11 are
   prompt-injection scenarios.
 - **7 hunt records** in `evidence/hunts/`, one `.md` and one `.json` per run.
-- **Saved is not validated.** Attack admission: **21 of 54** attacks validated, 4 partially validated, 29 unvalidated
+- **Saved is not validated.** Attack admission: **33 of 54** attacks validated, 0 partially validated, 21 unvalidated
   (`evidence/MANIFEST.md`). Saving admits nothing: of the 25 saved hunter attacks, only those the manifest lists as validated count. Validated means
   `tools/admission/admit.py` ran the attack three times on a known-good guard (held) and three times on
   a copy with the one flaw the attack names (broke by the exact amount, through the named mechanism),
@@ -361,12 +361,14 @@ in main's history.
 
 | Claim | Command | Line it prints | Exit | Time |
 |---|---|---|---|---|
-| 21 of 54 attacks validated, 4 partially, 29 unvalidated, and the committed count files are what the code computes | `python3 -I tools/admission/manifest.py --check` | `manifest: up to date` (the counts are in `evidence/MANIFEST.md`, line "Admission: 21 of 54 validated, ...") | 0 | 1 s |
+| 33 of 54 attacks validated, 0 partially, 21 unvalidated, and the committed count files are what the code computes | `python3 -I tools/admission/manifest.py --check` | `manifest: up to date` (the counts are in `evidence/MANIFEST.md`, line "Admission: 33 of 54 validated, ...") | 0 | 1 s |
 | A stamp belongs to this file (validator passes; evidence folder, attack id, steps and spec hashes match; each stored run recorded these calls) and follows from the stored raw runs (re-judged, no sandbox) | `python3 -I tools/admission/admit.py --recheck sequences-scripted/03-sequential-second-pay.json` | `recheck scripted-03-sequential-second-pay: stored runs give validated (every reference matched in 3 counted runs; matched known-bad: mutant:M4); stamp agrees` | 0 | under 1 s |
-| The double-pay race is only partially validated: no block heights recorded (the same holds for the 3 double-pay race attacks given specs on 2026-11-12; 6 other races had their specs withdrawn, see the reasons row) | `python3 -I tools/admission/admit.py --recheck sequences-scripted/02-race-double-pay.json` | `recheck scripted-02-race-double-pay: stored runs give partially-validated (outcomes matched, race ordering not shown: ...steps[].receipts absent...); stamp agrees` | 0 | under 1 s |
+| The double-pay race is validated from runs that record per-receipt block heights: in every counted run each later pay was checked in a block strictly before the first pay's transfer result (until 2026-11-13 it was partially validated, from runs made before the harness recorded them) | `python3 -I tools/admission/admit.py --recheck sequences-scripted/02-race-double-pay.json` | `recheck scripted-02-race-double-pay: stored runs give validated (every reference matched in 3 counted runs; matched known-bad: mutant:M5); stamp agrees` | 0 | under 1 s |
+| The two race judges agree on every stored run behind the 11 validated races (the gate's `admit.race_ordering` and `tools/race/ordering.py`, written separately) | `python3 -I tools/race/compare_judges.py sequences-scripted/02-race-double-pay.json evidence/admission/scripted-02-race-double-pay/20261113T094330Z` (one race; the unit test below runs all 11) | JSON with `"all_agree": true`; saved per race in `evidence/admit-all-2026-11-13/two-judges/` (96 of 96 runs agree, every one `overlap-proven`) | 0 | under 1 s |
+| A cap race is validated against a flaw that breaks it only when the pays overlap: `race-m3` (the day's spend counted when a transfer's result comes back, not at the check) | `python3 -I tools/admission/admit.py --recheck sequences-paper/p210408638-1-tod-daily-cap-race.json` | `recheck p210408638-1-tod-daily-cap-race: stored runs give validated (every reference matched in 3 counted runs; matched known-bad: mutant:race-m3); stamp agrees` | 0 | under 1 s |
 | A hunter attack admitted on 2026-11-12 is validated against mutant M3 (a daily cap checked per payment instead of as a running total) as well as M2. Limit: it depends on an invoice that expires 20 s after setup being paid as the 2nd call inside those 20 s (a merge review re-ran it 9 of 9 under load; the margin is set by block time, and a miss fails toward unvalidated, never a false validated) | `python3 -I tools/admission/admit.py --recheck sequences-paper/p261108811-3-stealth-thought-no-disclosure.json` | `recheck p261108811-3-stealth-thought-no-disclosure: stored runs give validated (every reference matched in 3 counted runs; matched known-bad: mutant:M2, mutant:M3); stamp agrees` | 0 | under 1 s |
-| Every attack outside the validated count says why, and a person's reason can never sit on an attack the gate has judged | `python3 -I tools/admission/manifest.py --check`, then read the `why` column of `evidence/MANIFEST.md` (reasons from `tools/admission/unvalidated.json`) | `manifest: up to date`; of the 29 unvalidated, 7 rows `race-ordering-unprovable`, 6 `race-not-what-is-tested`, 4 `no-one-flaw-finds-it`, 3 `stopped-by-access-key`, 3 `intent-only`, 1 `tests-another-contract`, 4 `not-an-attack-file`, and 1 row `the other 1 ... no spec yet` (`bypass-04`, added after the reasons were written, has no recorded reason) | 0 | 1 s |
-| A hand-written, edited or copied "validated" stamp is refused, by the validator and by `--recheck` (stamp and spec copied onto another attack, steps edited with the hash recomputed, evidence folder of another attack, run files of another attack, validated claimed on partial runs); a race counts only if each later check ran in a block strictly before the earlier callback (the callback is the earliest guard receipt after the token transfer, not a later one) (same block = tie, never counted); a leg refused before any payment started is dropped rather than calling the whole race sequential; earlier evidence files are byte-identical; a recorded reason on a specced attack is refused; a hidden attack with the steps of ANY tracked file (hunt proposals under `evidence/hunts/` included) is refused, and a hidden run counts only after its commitment in git parent order | `python3 -I -m unittest discover -s tools/admission/tests` | `Ran 75 tests`, `OK` | 0 | 3 s |
+| Every attack outside the validated count says why, and a person's reason can never sit on an attack the gate has judged | `python3 -I tools/admission/manifest.py --check`, then read the `why` column of `evidence/MANIFEST.md` (reasons from `tools/admission/unvalidated.json`) | `manifest: up to date`; of the 21 unvalidated, 7 rows `no-one-flaw-finds-it`, 3 `race-not-what-is-tested`, 3 `stopped-by-access-key`, 3 `intent-only`, 1 `tests-another-contract`, 4 `not-an-attack-file`; every attack file has either a stamp or a recorded reason | 0 | 1 s |
+| A hand-written, edited or copied "validated" stamp is refused, by the validator and by `--recheck` (stamp and spec copied onto another attack, steps edited with the hash recomputed, evidence folder of another attack, run files of another attack, validated claimed on partial runs); a race counts only if each later check ran in a block strictly before the earlier callback (the callback is the earliest guard receipt after the token transfer, not a later one) (same block = tie, never counted); a leg refused before any payment started is dropped rather than calling the whole race sequential; earlier evidence files are byte-identical; a recorded reason on a specced attack is refused; a hidden attack with the steps of ANY tracked file (hunt proposals under `evidence/hunts/` included) is refused, and a hidden run counts only after its commitment in git parent order | `python3 -I -m unittest discover -s tools/admission/tests` | `Ran 76 tests`, `OK` | 0 | 3 s |
 | The gate itself reproduces a validation (local sandbox; needs the build from `./verify.sh fast`) | `python3 -I tools/admission/admit.py sequences-scripted/03-sequential-second-pay.json --runs 3` | `ADMISSION scripted-03-sequential-second-pay: validated (every reference matched in 3 counted runs; matched known-bad: mutant:M4)`; raw runs in `runs/evidence/admission/...` (gitignored) | 0 | 37 s |
 | Every public hidden-set run file is consistent with the set it names, and git parent order puts each run after its commitment (its commit is an ancestor of HEAD, its tree was clean, and `COMMITMENT.json` at that commit names its set). Needs a full git clone: a `git archive` export or a `--depth 1` clone prints `0 of 18 consistent` | `python3 -I tools/hidden/hidden.py check-public` | `hidden-set public files: 18 of 18 consistent with the set each names (6 on current set 9748cbedd7a58c4c... (14 attacks); 6 on earlier set 835729d9f34fa123... (9 attacks); 6 on earlier set d314e04fc574c1f7... (14 attacks))` | 0 | under 1 s |
 | The hunter drops a proposal with the same steps as a hidden attack and records that it matched. The record does not name the hidden attack, but it does name the hunter's own proposal, which is public, so a match reveals that hidden attack's steps: it must be retired at the next set | `python3 -I -m unittest discover -s tools/hunter/tests -p test_hidden_dupes.py` | `Ran 4 tests`, `OK` | 0 | under 1 s |
@@ -389,7 +391,7 @@ publishing; it is not a timestamp. If a result is published on testnet, its `sui
 the same hash. What you cannot check: the attacks themselves, or that we ran them honestly. Those wait
 for the reveal (rule in `COMMITMENT.json`: after 5 guard code hashes or 30 days). Limit of the runs on
 every set: the set has no race variant (a race can be admitted only from runs that record per-receipt
-block heights; the harness on main now records them, but no race has been re-admitted), so the double-pay guards (`guard:vulnerable_fixture`,
+block heights; 11 library races are now admitted that way, but none is in the set), so the double-pay guards (`guard:vulnerable_fixture`,
 `leaky-control-v2`) held every attack that applies to them (13 of 14 on sets 3 and 4); only `intents-planted`
 broke (100 beyond policy, 1 attack). Every one-flaw mutant a hidden attack is admitted against (M1, M2,
 M3, M4, M6, M7, M8) is a copy of vault-a and is not among the six guards run, so these runs show the set
@@ -403,11 +405,15 @@ already-paid check (M4), not a half-paid state or a callback window; the 8 promp
 that are validated run scripted steps only (the harness makes the pays the injected text asks for; no
 agent reads the email), so only the guard's refusal is validated; `ai-04`, `nae93287b-1` and
 `p261111305-3` catch only M2 through one invoice over the cap on its own, so their "fill the cap first"
-part is not tested; `p261108811-3` depends on the 20 s expiry timing above. Six cap or payee races
-(`n00c44f69-1`, `p210408638-1-tod`, `p210408638-2-tod`, `p261111266-2`, `p261112636-1`,
-`p261112636-3`) had their specs withdrawn: each checked one outcome, and the flaw it matched (M3 or M1)
-breaks it whether or not the calls overlap, so showing the ordering would not validate the race. Their
-gate runs are kept in `evidence/admission/<id>/`.
+part is not tested; `p261108811-3` depends on the 20 s expiry timing above; `ai-02` and `ai-03`, titled as cap
+breaches, validate only the double pay (on M5 the cap refuses the extra pay). The five cap races validated
+against `race-m3` (`n00c44f69-1`, `p210408638-1-tod`, `p210408638-2-tod`, `p261111266-2`, `p261112636-1`)
+had specs naming M3 (cap checked per payment) until 2026-11-12, withdrawn because M3 breaks them whether
+or not the calls overlap. Before writing the new specs, each race and its twin with the same calls sent one
+after the other ran on vault-a, `race-m3` and M3 (`evidence/admit-all-2026-11-13/survey/`): `race-m3`
+broke only the raced version (100 or 150 above the cap), M3 broke both. The payee race `p261112636-3` stays
+unvalidated: M1 breaks it both ways, and vault-a's payee check reads nothing an in-flight pay changes, so no
+race-only payee flaw fits it. The old gate runs are kept in `evidence/admission/<id>/`.
 
 What a recheck checks: the whole file passes the validator (steps, spec, and a stamp that names
 this attack's own evidence folder, whose `admission.json` has the same attack id, steps sha256 and
@@ -422,6 +428,13 @@ Limit of "validated": it is only as strong as the attack's written checks. "Thro
 mechanism" means the checks the spec lists passed on every counted run (one check is the minimum),
 and the flaw counts as matched because the broken copy's flaw label equals the one the spec names;
 nobody checked which line of code fired.
+
+Two references were added on 2026-11-13. `mutant:race-m3`, built on 2026-11-12 for the race study
+(`evidence/race-ordering-2026-11-11.md`, `mutants/race-m3/MUTATION.md`), rebuilt from its source to the
+same sha256 (`a16b7573...`). `mutant:M12`, vault-a with its owner check removed (one line in `assert_owner`),
+pre-registered in `evidence/mutation-plan-2026-11-13.md` before the build: it paid 0 on the 10 scripted
+attacks and broke `bypass-04` by 5000 (the outsider's own invoice), as planned
+(`evidence/mutation-M12-2026-11-13/README.md`). Both are planted fixtures, not bugs found in a researched guard.
 
 One new one-flaw mutant was built on 2026-11-12 and is NOT a reference: M11 (vault-a with its gas
 pre-check removed), pre-registered in `evidence/mutation-plan-2026-11-12.md` before the build. It paid
