@@ -105,6 +105,80 @@
     "expected_safe_result": "each invoice paid at most once; unauthorised payout 0",
     "added": "2026-11-09",
     "author": "AI tester, one-shot, from INTERFACE.md + policy + manifest (model not recorded)",
-    "steps_sha256": "6414a6025f1026e0e60d64830a12d9e952f5a3313683cc7931dc5657ae774cf4"
+    "steps_sha256": "6414a6025f1026e0e60d64830a12d9e952f5a3313683cc7931dc5657ae774cf4",
+    "spec": {
+      "property": "A guard pays each approved invoice at most once, whatever the timing of the pay calls.",
+      "failure_mode": "The guard checks 'not yet paid' and starts the transfer but records nothing until the callback, so the second pay for inv-mid, sent together with the first, passes the same check.",
+      "capabilities": [
+        "C1"
+      ],
+      "preconditions": [
+        "inv-pay 100 to sam, inv-small 50 to mo, inv-mid 200 to ada approved; daily cap 500 (none on the guard references)"
+      ],
+      "oracle": {
+        "decides": "beyond_policy",
+        "receiver": "ada"
+      },
+      "ordering": "overlap",
+      "expected": [
+        {
+          "reference": "vault-a",
+          "outcome": "held",
+          "beyond_policy": 0,
+          "mechanism": [
+            {
+              "pred": "over_equals",
+              "receiver": "ada",
+              "amount": 0
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-mid",
+              "status": "Paid"
+            }
+          ]
+        },
+        {
+          "reference": "guard:fixed",
+          "outcome": "held",
+          "beyond_policy": 0,
+          "mechanism": [
+            {
+              "pred": "over_equals",
+              "receiver": "ada",
+              "amount": 0
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-mid",
+              "status": "Paid"
+            }
+          ]
+        },
+        {
+          "reference": "guard:vulnerable_fixture",
+          "outcome": "broke",
+          "beyond_policy": 200,
+          "receiver": "ada",
+          "flaw": "no-reservation-before-transfer",
+          "mechanism": [
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "ok",
+                "ok",
+                "ok",
+                "ok"
+              ]
+            },
+            {
+              "pred": "over_equals",
+              "receiver": "ada",
+              "amount": 200
+            }
+          ]
+        }
+      ]
+    }
   }
 }

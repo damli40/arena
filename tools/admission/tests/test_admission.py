@@ -492,10 +492,10 @@ class RecheckCommand(unittest.TestCase):
 
     LINE03 = ("recheck scripted-03-sequential-second-pay: stored runs give validated (every reference matched in 3 "
               "counted runs; matched known-bad: mutant:M4); stamp agrees")
-    LINE02 = ("recheck scripted-02-race-double-pay: stored runs give partially-validated (outcomes matched, race ordering "
-              "not shown: " + "; ".join(f"{r}: ordering unproven (no per-receipt trace in the result (steps[].receipts absent): "
-                                           "ordering cannot be shown)" for r in ("vault-a", "guard:vulnerable_fixture", "mutant:M5"))
-              + "); stamp agrees")
+    # Until 2026-11-13 this stamp was partially-validated (runs made before the harness recorded block
+    # heights). It was re-admitted from runs that record them (evidence/admission/scripted-02-race-double-pay/20261113T094330Z).
+    LINE02 = ("recheck scripted-02-race-double-pay: stored runs give validated (every reference matched in 3 "
+              "counted runs; matched known-bad: mutant:M5); stamp agrees")
 
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
@@ -594,6 +594,28 @@ class RecheckCommand(unittest.TestCase):
                 [("mutant:M4", n, GATE03 / f"run-mutant-m4-{n}.result.json") for n in (1, 2, 3)]
         f = self._own_folder(attack("03-sequential-second-pay"), files, "validated")
         self.assertEqual(A.recheck(f, root=self.tmp)[0], 0)
+
+
+class TwoRaceJudges(unittest.TestCase):
+    """The owner's bar for a race stamp (2026-11-13): the gate's judge (admit.race_ordering) and the second
+    judge (tools/race/ordering.py) must agree on every stored run behind it. Runs tools/race/compare_judges.py
+    on the evidence folder of every library attack whose stamp is validated and whose spec asks for overlap."""
+
+    def test_every_validated_race_stamp_has_both_judges_agreeing(self):
+        sys.path.insert(0, str(ROOT / "tools" / "race"))
+        import compare_judges as C
+        seen = 0
+        for f in sorted(ROOT.glob("sequences-*/*.json")):
+            doc = load(f)
+            meta = doc.get("meta") or {}
+            a, spec = meta.get("admission"), meta.get("spec") or {}
+            if not a or a.get("class") != "validated" or spec.get("ordering") != "overlap":
+                continue
+            out = C.compare(doc, ROOT / a["evidence"])
+            bad = [r for r in out["rows"] if not r["agree"]]
+            self.assertEqual(bad, [], f"{meta['id']}: the two race judges disagree")
+            seen += 1
+        self.assertGreaterEqual(seen, 4, "expected the 4 double-pay races, at least")
 
 
 if __name__ == "__main__":

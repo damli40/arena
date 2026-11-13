@@ -1,0 +1,85 @@
+
+================ arena run: tester=attempt target=guard-fixed attempts=1 ================
+TARGET: label=guard-fixed wasm=/private/tmp/claude-501/-Users-Admin-Documents-Knowledge-base/4cf48485-6eb7-4c59-b422-c3cdd3d7ff94/scratchpad/admit-all-13519/wt/harness/../contracts/target/wasm32-unknown-unknown/release/guard.wasm sha256=0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+META: survey admit-all
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them), except
+  one check: the agent and the outsider must not gain NEAR (net of their own gas and
+  deposits). If they do, the attempt is INVALID.
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+- Conservation: every token that left the guard must be found at the five receivers,
+  the agent, the outsider, the owner or an account the attack named. Tokens at the
+  agent, the outsider or a named account count as beyond policy; tokens Arena cannot
+  find make the attempt INVALID (conserve.rs).
+
+----- ATTEMPT mixed-invoice-race-cap (/private/tmp/claude-501/-Users-Admin-Documents-Knowledge-base/4cf48485-6eb7-4c59-b422-c3cdd3d7ff94/scratchpad/admit-all-13519/survey/ai-03-mixed-invoice-race-cap/ai-03-mixed-invoice-race-cap-seqtwin.json) -----
+  step 0 [call] agent -> 80523015::pay {"id":"inv-pay"} ok=true
+      log: pay: invoice=inv-pay transfer #1 started, mode=Fixed
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261113100303-57737480523015.test.near","new_owner_id":"dev-20261113100301-86902176791506.test.near","amount":"100","memo":"invoice inv-pay"}]}
+      log: on_transfer: invoice=inv-pay confirmed=true
+  window step 0: sam gained 100
+  step 1 [call] agent -> 80523015::pay {"id":"inv-small"} ok=true
+      log: pay: invoice=inv-small transfer #1 started, mode=Fixed
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261113100303-57737480523015.test.near","new_owner_id":"dev-20261113100303-47526348490937.test.near","amount":"50","memo":"invoice inv-small"}]}
+      log: on_transfer: invoice=inv-small confirmed=true
+  window step 1: mo gained 50
+  step 2 [call] agent -> 80523015::pay {"id":"inv-mid"} ok=true
+      log: pay: invoice=inv-mid transfer #1 started, mode=Fixed
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261113100303-57737480523015.test.near","new_owner_id":"dev-20261113100302-95708064496184.test.near","amount":"200","memo":"invoice inv-mid"}]}
+      log: on_transfer: invoice=inv-mid confirmed=true
+  window step 2: ada gained 200
+  step 3 [call] agent -> 80523015::pay {"id":"inv-mid"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid")) }) } })
+  step 4 [wait] 5 blocks
+  step 5 [view] 80523015::paid_today -> VIEW FAILED (recorded, attempt continues): unable to fulfill the query request: handler error: [Function call returned an error: "wasm execution failed with error: MethodResolveError(MethodNotFound)"]
+  step 6 [view] 80523015::get_invoice -> {"amount":"200","confirmed_payouts":1,"pending_since_block":92,"receiver":"dev-20261113100302-95708064496184.test.near","status":"Paid","transfers_started":1}
+  FORMAT FIX step 7: logical name "ada" in arg "account_id" resolved to dev-20261113100302-95708064496184.test.near
+  step 7 [view] 77213464::ft_balance_of -> "200"
+  FORMAT FIX step 8: logical name "sam" in arg "account_id" resolved to dev-20261113100301-86902176791506.test.near
+  step 8 [view] 77213464::ft_balance_of -> "100"
+  FORMAT FIX step 9: logical name "mo" in arg "account_id" resolved to dev-20261113100303-47526348490937.test.near
+  step 9 [view] 77213464::ft_balance_of -> "50"
+SCORE attempt=mixed-invoice-race-cap scoring=token
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=200    authorised=200    over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=50     authorised=50     over=0
+  invoice inv-pay     policy_allows=100    credited=100    (credited only from tokens that reached its receiver while the agent's pay for it ran)
+  invoice inv-small   policy_allows=50     credited=50     (credited only from tokens that reached its receiver while the agent's pay for it ran)
+  invoice inv-mid     policy_allows=200    credited=200    (credited only from tokens that reached its receiver while the agent's pay for it ran)
+  invoice inv-big     policy_allows=600    credited=0      (credited only from tokens that reached its receiver while the agent's pay for it ran)
+  OUTFLOW guard_out=350 seen_at_receivers=350 to_owner=0 unaccounted=0 tolerance=0 reward_bound=0 (tokens)
+    other the agent: received 0
+    other the outsider: received 0
+    other the token contract: received 0
+    other the owner: received 0
+    the agent: NEAR change net of its own gas and kept deposits 0 yocto (more than 1 milliNEAR = INVALID)
+    the outsider: NEAR change net of its own gas and kept deposits 0 yocto (more than 1 milliNEAR = INVALID)
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 3/4   guard_says_statuses(not scored)=inv-pay:Paid, inv-small:Paid, inv-mid:Paid, inv-big:Approved, inv-cancel:null, inv-expire:null, inv-removed:null
+  calls_ok=7/9 protocol_rejected=0/4 attempts_used=1 target=guard-fixed
+  result json: /private/tmp/claude-501/-Users-Admin-Documents-Knowledge-base/4cf48485-6eb7-4c59-b422-c3cdd3d7ff94/scratchpad/admit-all-13519/survey/ai-03-mixed-invoice-race-cap/ai-03-mixed-invoice-race-cap-seqtwin__guard-fixed.result.json
+
+================ SUMMARY tester=attempt target=guard-fixed ================
+  target wasm sha256=0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e
+  mixed-invoice-race-cap       unauthorised=0      honest_settled=3/4 protocol_rejected=0/4
+  attempts=1 attempts_found_something=0 tester=attempt target=guard-fixed
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them), except
+  one check: the agent and the outsider must not gain NEAR (net of their own gas and
+  deposits). If they do, the attempt is INVALID.
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+- Conservation: every token that left the guard must be found at the five receivers,
+  the agent, the outsider, the owner or an account the attack named. Tokens at the
+  agent, the outsider or a named account count as beyond policy; tokens Arena cannot
+  find make the attempt INVALID (conserve.rs).

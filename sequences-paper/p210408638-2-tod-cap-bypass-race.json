@@ -55,6 +55,69 @@
       "native-fixed",
       "vault-a"
     ],
-    "validation": "valid-nothing-broke"
+    "validation": "valid-nothing-broke",
+    "spec": {
+      "property": "A guard never spends more than the daily cap (500) in one day, even when pays arrive together and their checks all run before the first transfer result.",
+      "failure_mode": "The day's spend is counted only when a transfer's result comes back, not at the check: 3 raced pays (inv-pay 100, inv-mid 200, inv-expire 300) each see nothing spent yet, so all 600 is paid against a cap of 500.",
+      "capabilities": [
+        "C1"
+      ],
+      "preconditions": [
+        "inv-pay 100, inv-mid 200, inv-expire 300 approved (inv-expire expires 20 s after setup); daily cap 500"
+      ],
+      "oracle": {
+        "decides": "beyond_policy"
+      },
+      "ordering": "overlap",
+      "expected": [
+        {
+          "reference": "vault-a",
+          "outcome": "held",
+          "beyond_policy": 0,
+          "mechanism": [
+            {
+              "pred": "score_equals",
+              "field": "above_cap",
+              "value": 0
+            },
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "ok",
+                "ok",
+                "contract-failure"
+              ]
+            },
+            {
+              "pred": "failure_contains",
+              "step": 2,
+              "text": "daily cap exceeded"
+            }
+          ]
+        },
+        {
+          "reference": "mutant:race-m3",
+          "outcome": "broke",
+          "beyond_policy": 100,
+          "flaw": "cap-spend-not-reserved-at-check",
+          "note": "race-m3 counts the spend in the callback; the same pays sent one after the other are held (evidence/admit-all-2026-11-13/sequential-twins)",
+          "mechanism": [
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "ok",
+                "ok",
+                "ok"
+              ]
+            },
+            {
+              "pred": "score_equals",
+              "field": "above_cap",
+              "value": 100
+            }
+          ]
+        }
+      ]
+    }
   }
 }

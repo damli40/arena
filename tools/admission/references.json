@@ -287,6 +287,22 @@
       "doc": "tools/mutation/mutate.py M10: payee generation ignored",
       "twin_of": "vault-a",
       "target_label": "M10"
+    },
+    "mutant:race-m3": {
+      "kind": "known-bad",
+      "flaw": "cap-spend-not-reserved-at-check",
+      "matchable": true,
+      "wasm": "mutants/race-m3/vault_a.wasm",
+      "wasm_sha256": "a16b7573df5cfc33af388fc5e4694880efd79f0d7872d8b2b0f062a4d4a11b9a",
+      "harness_flags": [
+        "--wasm",
+        "mutants/race-m3/vault_a.wasm",
+        "--wasm-label",
+        "race-m3"
+      ],
+      "doc": "tools/mutation/mutate.py race-m3 (built by tools/race/build_mutant.sh, frozen 2026-11-12, mutants/race-m3/FROZEN.txt): the day's spend is added in the transfer callback instead of reserved at the check. Sequential pays are held; pays whose checks all run before the first callback all pass the cap (evidence/race-ordering-2026-11-11.md). Added as a reference 2026-11-13; rebuilt from its source to the same sha256 that day",
+      "twin_of": "vault-a",
+      "target_label": "race-m3"
     }
   }
 }

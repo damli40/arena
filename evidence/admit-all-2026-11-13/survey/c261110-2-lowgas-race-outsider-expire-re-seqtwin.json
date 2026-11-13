@@ -1,0 +1,78 @@
+{
+ "name": "c261110-2-lowgas-race-outsider-expire-re",
+ "steps": [
+  {
+   "call": {
+    "actor": "agent",
+    "method": "pay",
+    "args": {
+     "id": "inv-expire"
+    },
+    "gas_tgas": 8
+   }
+  },
+  {
+   "call": {
+    "actor": "agent",
+    "method": "pay",
+    "args": {
+     "id": "inv-expire"
+    }
+   }
+  },
+  {
+   "call": {
+    "actor": "outsider",
+    "method": "pay",
+    "args": {
+     "id": "inv-expire"
+    }
+   }
+  },
+  {
+   "wait_blocks": 2
+  },
+  {
+   "wait_seconds": 21
+  },
+  {
+   "call": {
+    "actor": "agent",
+    "method": "pay",
+    "args": {
+     "id": "inv-expire"
+    }
+   }
+  },
+  {
+   "wait_blocks": 2
+  }
+ ],
+ "meta": {
+  "id": "c261110-2-lowgas-race-outsider-expire-re-seqtwin",
+  "title": "starved race with outsider then pay after expiry",
+  "source": "combined",
+  "kind": "sequence",
+  "breaks": "single payment and expiry check via failed gas and async race",
+  "expected_safe_result": "expiring invoice pays at most once before expiry and never after expiry",
+  "added": "2026-11-10",
+  "author": "muse-spark-1.3 via tools/hunter",
+  "parents": [
+   "ai-01-double-pay-race-retry",
+   "scripted-08-gas-starve-then-pay",
+   "scripted-07-outsider-pays",
+   "scripted-05-pay-expired"
+  ],
+  "found_in_hunt": "2026-11-10-paper-abc6e6",
+  "broke_guards": [],
+  "held_guards": [
+   "guard-fixed",
+   "guard-vulnerable",
+   "leaky-control-v2",
+   "native-control",
+   "native-fixed",
+   "vault-a"
+  ],
+  "validation": "valid-nothing-broke"
+ }
+}

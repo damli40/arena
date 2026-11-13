@@ -1,0 +1,33 @@
+{
+ "name": "race-two-invoices",
+ "steps": [
+  {
+   "call": {
+    "actor": "agent",
+    "method": "pay",
+    "args": {
+     "id": "inv-pay"
+    }
+   }
+  },
+  {
+   "call": {
+    "actor": "agent",
+    "method": "pay",
+    "args": {
+     "id": "inv-small"
+    }
+   }
+  }
+ ],
+ "meta": {
+  "id": "scripted-10-race-two-invoices-seqtwin",
+  "title": "Two different invoices at the same time",
+  "source": "hand",
+  "kind": "sequence",
+  "breaks": "Nothing on its own: two honest pays raced together. Checks the guard does not mix up two in-flight payments.",
+  "expected_safe_result": "each invoice paid once; unauthorised payout 0",
+  "added": "2026-11-09",
+  "author": "scripted tester (harness/src/scripted.rs), written by hand from INTERFACE.md"
+ }
+}

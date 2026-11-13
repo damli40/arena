@@ -1,0 +1,14 @@
+p210408638-1-tod-daily-cap-race          race       vault-a  held    unauth=0 above_cap=0 outcomes=['ok', 'ok', 'contract-failure'] 
+p210408638-1-tod-daily-cap-race          race       race-m3  broke   unauth=100 above_cap=100 outcomes=['ok', 'ok', 'ok'] paid 100 beyond the policy
+p210408638-1-tod-daily-cap-race          race       M3       broke   unauth=100 above_cap=100 outcomes=['ok', 'ok', 'ok'] paid 100 beyond the policy
+p210408638-1-tod-daily-cap-race          sequential vault-a  held    unauth=0 above_cap=0 outcomes=['ok', 'ok', 'contract-failure'] 
+p210408638-1-tod-daily-cap-race          sequential race-m3  held    unauth=0 above_cap=0 outcomes=['ok', 'ok', 'contract-failure'] 
+p210408638-1-tod-daily-cap-race          sequential M3       broke   unauth=100 above_cap=100 outcomes=['ok', 'ok', 'ok'] paid 100 beyond the policy
+n00c44f69-1-split-payments-cap-bypass-ra race       vault-a  held    unauth=0 above_cap=0 outcomes=['ok', 'ok', 'ok', 'contract-failure'] 
+n00c44f69-1-split-payments-cap-bypass-ra race       race-m3  broke   unauth=150 above_cap=150 outcomes=['ok', 'ok', 'ok', 'ok'] paid 150 beyond the policy
+n00c44f69-1-split-payments-cap-bypass-ra race       M3       broke   unauth=150 above_cap=150 outcomes=['ok', 'ok', 'ok', 'ok'] paid 150 beyond the policy
+n00c44f69-1-split-payments-cap-bypass-ra sequential vault-a  held    unauth=0 above_cap=0 outcomes=['ok', 'ok', 'ok', 'contract-failure'] 
+n00c44f69-1-split-payments-cap-bypass-ra sequential race-m3  held    unauth=0 above_cap=0 outcomes=['ok', 'ok', 'ok', 'contract-failure'] 
+n00c44f69-1-split-payments-cap-bypass-ra sequential M3       broke   unauth=150 above_cap=150 outcomes=['ok', 'ok', 'ok', 'ok'] paid 150 beyond the policy
+
+[exited with code 0]
