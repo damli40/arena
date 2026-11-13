@@ -367,7 +367,7 @@ function renderOnchain(a, card) {
     const r = a.onchain_result;
     const p = el("p", {}, el("strong", {}, "Result stored on chain. "), r.sentence);
     if (r.arena_commit) {
-      p.append(el("br"), el("span", { class: "meta" }, `Arena commit ${r.arena_commit.slice(0, 12)}… · ${r.attacks_ran} attacks ran · evidence `),
+      p.append(el("br"), el("span", { class: "meta" }, `Arena commit ${r.arena_commit.slice(0, 12)}… · ${r.attacks_ran} tests in this result · evidence `),
         el("code", {}, r.evidence_path), el("span", { class: "meta" }, ` sha256 ${r.evidence_sha256.slice(0, 12)}…`));
     }
     oc.append(p);
