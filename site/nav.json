@@ -9,5 +9,5 @@
     {"id": "check", "label": "Check your guard", "href": "index.html#check"},
     {"id": "lookup", "label": "Look up a guard", "href": "lookup.html"}
   ],
-  "footer_note": "Local sandbox results. Held means these attacks found nothing, not that a guard is safe."
+  "footer_note": "Local sandbox results. Held means these attacks found nothing. Another attack could still break the guard."
 }

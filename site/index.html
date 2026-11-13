@@ -310,7 +310,7 @@ ul.guides span{display:block;color:var(--muted);font-size:13.5px}
 </header>
 
 <nav class="paths" aria-label="More in Arena">
-  <a href="board.html"><span class="p-k">Results board</span><span class="p-d">Every attack against every guard, with the latest result. 52 attacks, 6 guards.</span><span class="p-go" aria-hidden="true">&rarr;</span></a>
+  <a href="board.html"><span class="p-k">Results board</span><span class="p-d">Every attack against every guard, with the latest result. 61 attacks, 6 guards.</span><span class="p-go" aria-hidden="true">&rarr;</span></a>
   <a href="lookup.html"><span class="p-k">Look up a guard</span><span class="p-d">Type a guard's account on NEAR testnet. See what Arena tested.</span><span class="p-go" aria-hidden="true">&rarr;</span></a>
   <a href="#check"><span class="p-k">Test your own guard</span><span class="p-d">One command runs all 52 attacks against your guard, on your own machine.</span><span class="p-go" aria-hidden="true">&rarr;</span></a>
 </nav>
@@ -414,7 +414,7 @@ python3 -I tools/injection/rescore.py</pre>
 </section>
 
 </main>
-<footer class="site-foot"><div class="foot-in"><nav aria-label="Arena pages, again"><a href="index.html">Arena</a><a href="index.html#replay">Results</a><a href="board.html">Board</a><a href="index.html#check">Check your guard</a><a href="lookup.html">Look up a guard</a></nav><p>Local sandbox results. Held means these attacks found nothing, not that a guard is safe.</p><p>Numbers are read from <code>evidence/</code> at build time. Fig 1 uses the anatomy kit (MIT, © 2026 Ryan).</p></div></footer>
+<footer class="site-foot"><div class="foot-in"><nav aria-label="Arena pages, again"><a href="index.html">Arena</a><a href="index.html#replay">Results</a><a href="board.html">Board</a><a href="index.html#check">Check your guard</a><a href="lookup.html">Look up a guard</a></nav><p>Local sandbox results. Held means these attacks found nothing. Another attack could still break the guard.</p><p>Numbers are read from <code>evidence/</code> at build time. Fig 1 uses the anatomy kit (MIT, © 2026 Ryan).</p></div></footer>
 <script>(function(){
   if (typeof window.IntersectionObserver !== "function") return;
   document.documentElement.classList.add("reveal-js");

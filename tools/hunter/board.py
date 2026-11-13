@@ -117,7 +117,7 @@ def build(hunts_dir=HUNTS):
                    key=lambda a: (src_order.get(a["source"], 9), a["id"]))
     return {
         "_about": "Arena results board: every attack the bench knows x every opt-in guard, latest result. "
-                  "broke = a receiver got tokens beyond that guard's own policy; held = 0 beyond policy (shows these attempts found nothing, not that the guard is safe); "
+                  "broke = a receiver got tokens beyond that guard's own policy; held = 0 beyond policy (these attempts found nothing; another attack could still break the guard); "
                   "not-applicable = the attack tested nothing that guard claims (same rule as arena check, tools/check/applicable.py), not counted as held. "
                   "The honest-payment control is not an attack: it is under \"control\", not in the cells. "
                   "Built by tools/hunter/board.py from evidence/hunts/*.json. Do not edit by hand.",
@@ -189,7 +189,7 @@ __TOPBAR__
 <section class="board" id="arena-board">
 <div class="eyebrow">Results board</div>
 <h1>Every attack, every guard</h1>
-<p class="lede">Every attack the bench knows, against every guard whose owner opted in. Attacks marked "from the news" were written from a summary of posts on X/Telegram: an unchecked lead, not a confirmed incident. <b>broke</b> means a receiver got tokens beyond that guard's own policy. <b>held</b> means these attempts found nothing, not that the guard is safe. <b>not applicable</b> means the attack tested nothing that guard claims, so it is not counted. Guards marked leaky on purpose are there to prove the bench can see a break.</p>
+<p class="lede">Every attack the bench knows, against every guard whose owner opted in. Attacks marked "from the news" were written from a summary of posts on X/Telegram: an unchecked lead, not a confirmed incident. <b>broke</b> means a receiver got tokens beyond that guard's own policy. <b>held</b> means these attempts found nothing. Another attack could still break the guard. <b>not applicable</b> means the attack tested nothing that guard claims, so it is not counted. Guards marked leaky on purpose are there to prove the bench can see a break.</p>
 <div class="summary" id="board-summary"></div>
 <ul class="legend" id="board-legend"></ul>
 <div class="scroll" tabindex="0" role="region" aria-label="Results table, scrolls both ways"><table id="board-table"></table></div>
@@ -226,7 +226,7 @@ __FOOTER__
     stat(latest, 'latest hunt, '+d.generated_from.length+(d.generated_from.length===1?' hunt':' hunts')+' in all');
 
   var leg = '<li><span class="st st-broke">broke</span>a receiver got tokens beyond the guard\\u2019s own policy</li>' +
-            '<li><span class="st st-held">held</span>these attempts found nothing. Not proof the guard is safe</li>' +
+            '<li><span class="st st-held">held</span>these attempts found nothing. Another attack could still break the guard</li>' +
             '<li><span class="st st-none">not run</span>no result for this attack on this guard</li>';
   if(kinds['not-applicable']) leg += '<li><span class="st st-none">not applicable</span>tested nothing this guard claims. Not counted</li>';
   if(kinds.unchecked) leg += '<li><span class="st st-none">unchecked</span>the board could not tell if it applied. Not counted</li>';
