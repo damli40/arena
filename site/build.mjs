@@ -975,7 +975,7 @@ ${topbar(null)}
     <li>The proofs stop at their bounds. For the other teams' guards: ${esc(teams.bounds)}. The proof for any number of calls covers a model of Arena's guard, matched to the real code up to 4 pay calls.</li>
     <li>The prompt-injection attacks in the library run scripted steps. No model reads the email in those runs.</li>
     <li>The hidden set rests on the operator's honesty. Nothing in hardware proves which attacks ran.</li>
-    <li>The hunter does not run on a schedule. Its GitHub workflow stays switched off, and we start each hunt by hand.</li>
+    <li>The hunter's GitHub workflow first ran on 2026-11-13 and now runs one paper hunt a day. That run proposed no new attack. New attacks join the library only through the admission gate, which we run by hand.</li>
   </ul>
   <p class="small">Every limit, with its evidence: ${repoPath("README.md#limits", "README.md, Limits")}.</p>
 </section>

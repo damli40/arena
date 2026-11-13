@@ -46,9 +46,8 @@
 name: paper-hunt
 
 on:
-  # Path A: the workflow stays DISABLED on GitHub. The owner enables it for one watched manual
-  # workflow_dispatch run, then disables it again, so these schedule lines do not fire. They are kept so
-  # the daily plan is written down in one place; they only run if the workflow is left enabled.
+  # The owner switched the workflow on on 2026-11-13, after one watched workflow_dispatch run, so these
+  # schedule lines fire. News runs make no model call until MUSE_API_KEY / ELFA_API_KEY are set.
   schedule:
     - cron: "17 1 * * *"    # papers + news, just after arXiv's daily release
     - cron: "17 7 * * *"    # news only

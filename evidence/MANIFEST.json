@@ -612,7 +612,7 @@
   "attacks_run": 62,
   "attacks_saved": 25,
   "papers_read": 11,
-  "runs": 7,
+  "runs": 8,
   "runs_with_runnable_attacks": 6,
   "saved_broke": 2,
   "saved_valid_nothing_broke": 23
@@ -625,6 +625,7 @@
   "evidence/hunts/2026-11-10-papers-c1bea9.json": "cb615b81ca88da687029a39f7159cdbc1c1353fd342c37c966afa43e40439f72",
   "evidence/hunts/2026-11-11-news-d340fd.json": "d6a0fe2beb8dbb5ad7d93c0df432aaaf139412c3b22cc62608cc563a6e6bc634",
   "evidence/hunts/2026-11-11-papers-e3db55.json": "ac6e7e3ed3ab167fff3b240989ea2071e17c7b881b5b90f74ba1c5dbd7807e6c",
+  "evidence/hunts/2026-11-13-papers-abc826.json": "a0ae559da669141646170e1bbb38a8f9101cd9380f4cc82c0dfda8b225edf64d",
   "evidence/mutation-2026-11-12/summary.tsv": "8d13af78efe4079e919a05ca8fa12dcf3ab99da9f05b62ab3055ac2b47339ab1",
   "hidden-set/COMMITMENT.json": "5eca7108d192e5c5cab17b91a70881130631fdcdc4e09edce12c83b24d0fd74a",
   "sequences-ai/01-double-pay-race-retry.json": "a297f33129ff103b3786bab910657e801f0070353cb42ef763e35806fa1ce8c8",

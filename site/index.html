@@ -392,7 +392,7 @@ figure.term figcaption{font-size:13px;color:var(--muted);margin-top:10px}
     <div><div class="n">54</div><div class="k">attacks in the library</div><div class="note">52 fit a guard that pays in tokens or NEAR</div></div>
     <div><div class="n">33</div><div class="k">validated</div><div class="note">shown to catch the one flaw they name</div></div>
     <div><div class="n">14</div><div class="k">hidden attacks</div><div class="note">kept off GitHub, published as a hash</div></div>
-    <div><div class="n">7</div><div class="k">hunts so far</div><div class="note">41 attacks proposed from papers and news</div></div>
+    <div><div class="n">8</div><div class="k">hunts so far</div><div class="note">41 attacks proposed from papers and news</div></div>
   </div>
 </section>
 
@@ -418,9 +418,9 @@ figure.term figcaption{font-size:13px;color:var(--muted);margin-top:10px}
     </li>
     <li>
       <div>
-        <span class="tag rec">Recorded local sandbox runs, 2026-11-10 to 2026-11-11</span>
+        <span class="tag rec">Recorded local sandbox runs, 2026-11-10 to 2026-11-13</span>
         <h3>See the board</h3>
-        <p>Every attack a hunt ran against each guard, on a local NEAR sandbox: 61 attacks, 7 guards (6 of them can still be run). Not live.</p>
+        <p>Every attack a hunt ran against each guard, on a local NEAR sandbox: 62 attacks, 7 guards (6 of them can still be run). Not live.</p>
       </div>
       <div class="go"><a class="btn primary" href="board.html">See the board</a><a class="btn ghost" href="docs.html">How to use Arena</a></div>
     </li>
@@ -439,7 +439,7 @@ figure.term figcaption{font-size:13px;color:var(--muted);margin-top:10px}
   <h2>How Arena works</h2>
   <p class="sub">Where the attacks come from, which ones count, and how a guard is scored. Every part links the file that backs it.</p>
   <ol class="methods"><li class="method feature">
-  <h3>Attacks from papers, incidents and people</h3><p class="m-d">The hunter is a language model that reads new security papers and hack news and writes attacks as data: a list of steps from a small fixed vocabulary, never code. Real incidents and hand-written attacks fill in the rest. Each hunt can add attacks, which is how the arena keeps growing: 7 hunts so far proposed 41 attacks from 11 paper reads and the news, and Arena kept 25.</p><p class="m-ev">Evidence: <a href="https://github.com/damli40/arena/tree/main/evidence/hunts" rel="noopener"><code>evidence/hunts/</code></a>, <a href="https://github.com/damli40/arena/blob/main/docs/ADD-AN-ATTACK.md" rel="noopener"><code>docs/ADD-AN-ATTACK.md</code></a></p>
+  <h3>Attacks from papers, incidents and people</h3><p class="m-d">The hunter is a language model that reads new security papers and hack news and writes attacks as data: a list of steps from a small fixed vocabulary, never code. Real incidents and hand-written attacks fill in the rest. Each hunt can add attacks, which is how the arena keeps growing: 8 hunts so far proposed 41 attacks from 11 paper reads and the news, and Arena kept 25.</p><p class="m-ev">Evidence: <a href="https://github.com/damli40/arena/tree/main/evidence/hunts" rel="noopener"><code>evidence/hunts/</code></a>, <a href="https://github.com/damli40/arena/blob/main/docs/ADD-AN-ATTACK.md" rel="noopener"><code>docs/ADD-AN-ATTACK.md</code></a></p>
 </li><li class="method">
   <h3>An admission gate</h3><p class="m-d">An attack counts as validated only when it holds on a guard known to be good and breaks a copy with exactly one planted flaw, by the exact amount, in 3 runs each. Partly validated means every run matched but a piece is missing, such as proof that two race calls overlapped. Unvalidated attacks still run on every guard. They stay out of the validated count.</p><div class="gate" role="img" aria-label="33 validated, 0 partly validated, 21 unvalidated, of 54 attacks">
       <div class="bar"><span class="v" style="width:61.11%"></span><span class="p" style="width:0.00%"></span><span class="u" style="width:38.89%"></span></div>
@@ -538,7 +538,7 @@ figure.term figcaption{font-size:13px;color:var(--muted);margin-top:10px}
     <li>The proofs stop at their bounds. For the other teams' guards: 2 to 5 payment requests, one UTC midnight, and up to 2 owner actions. The proof for any number of calls covers a model of Arena's guard, matched to the real code up to 4 pay calls.</li>
     <li>The prompt-injection attacks in the library run scripted steps. No model reads the email in those runs.</li>
     <li>The hidden set rests on the operator's honesty. Nothing in hardware proves which attacks ran.</li>
-    <li>The hunter does not run on a schedule. Its GitHub workflow stays switched off, and we start each hunt by hand.</li>
+    <li>The hunter's GitHub workflow first ran on 2026-11-13 and now runs one paper hunt a day. That run proposed no new attack. New attacks join the library only through the admission gate, which we run by hand.</li>
   </ul>
   <p class="small">Every limit, with its evidence: <a href="https://github.com/damli40/arena/blob/main/README.md#limits" rel="noopener"><code>README.md, Limits</code></a>.</p>
 </section>
@@ -553,7 +553,7 @@ figure.term figcaption{font-size:13px;color:var(--muted);margin-top:10px}
         <li><a href="https://github.com/damli40/arena/blob/main/docs/CHECK-YOUR-GUARD.md" rel="noopener"><code>docs/CHECK-YOUR-GUARD.md</code></a><span>How to test your guard and read the report card.</span></li>
         <li><a href="https://github.com/damli40/arena/blob/main/examples/workflows/arena-check.yml" rel="noopener"><code>examples/workflows/arena-check.yml</code></a><span>Runs the same check on every pull request. On 2026-11-13 it ran on GitHub's Linux runner and printed held 49/49 for Arena's reference guard, the same result as on macOS. <a href="https://github.com/damli40/arena-check-demo/actions/runs/43460356898" rel="noopener">See the public run</a>, or <a href="https://github.com/damli40/arena/blob/main/evidence/github-action-2026-11-13.md" rel="noopener"><code>evidence/github-action-2026-11-13.md</code></a>.</span></li>
         <li><a href="lookup.html"><b>Look up a guard</b></a><span>Type a guard's account on NEAR testnet and see what Arena tested for the code it runs.</span></li>
-        <li><a href="board.html"><b>Results board</b></a><span>61 attacks that hunts have run against 6 guards: 51 from the library, 10 the hunter tried and did not keep.</span></li>
+        <li><a href="board.html"><b>Results board</b></a><span>62 attacks that hunts have run against 6 guards: 52 from the library, 10 the hunter tried and did not keep.</span></li>
       </ul>
       <div class="eyebrow mini">Check our evidence</div>
 <pre tabindex="0" aria-label="Commands to re-run Arena's checks">./verify.sh fast   <span class="c"># about 8 min</span>

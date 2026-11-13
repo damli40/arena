@@ -1,0 +1,76 @@
+```json
+{
+  "scores": [
+    {
+      "arxiv_id": "2611.16065v1",
+      "novelty": 1,
+      "reported_success": 1,
+      "families": ["other"],
+      "reason": "Evaluates well-known Sybil/noise adversaries against FL reward tokens, with no attacks on payment guards."
+    },
+    {
+      "arxiv_id": "2611.13342v1",
+      "novelty": 0,
+      "reported_success": 0,
+      "families": ["other"],
+      "reason": "A rug-pull detection study with no attack method or attack success results reported."
+    },
+    {
+      "arxiv_id": "2611.16495v1",
+      "novelty": 0,
+      "reported_success": 0,
+      "families": ["other"],
+      "reason": "Settlement architecture with ZK-verified pricing; purely defensive, contains no attacks."
+    },
+    {
+      "arxiv_id": "2611.14916v1",
+      "novelty": 0,
+      "reported_success": 0,
+      "families": ["other"],
+      "reason": "GPU EVM execution engine for throughput and testing; no attack technique proposed or evaluated."
+    },
+    {
+      "arxiv_id": "2611.16122v1",
+      "novelty": 2,
+      "reported_success": 1,
+      "families": ["other"],
+      "reason": "Intent-drift is a threat model newer than prompt injection, but the paper is a defense framework with no attack success against guards reported."
+    },
+    {
+      "arxiv_id": "2611.15814v1",
+      "novelty": 0,
+      "reported_success": 0,
+      "families": ["other"],
+      "reason": "Foundation model for payment fraud prediction; defense-oriented with no attacks."
+    },
+    {
+      "arxiv_id": "2611.13183v1",
+      "novelty": 0,
+      "reported_success": 0,
+      "families": ["other"],
+      "reason": "Code-generation benchmark for an enterprise DSL; not an attack on payment guards."
+    },
+    {
+      "arxiv_id": "2611.15223v1",
+      "novelty": 3,
+      "reported_success": 3,
+      "families": ["direct-token", "non-pay-method"],
+      "reason": "Empirically demonstrates runtime controls being bypassed via action paths outside the guarded channel, transferable to paying directly or via unmonitored methods."
+    },
+    {
+      "arxiv_id": "2611.13684v1",
+      "novelty": 3,
+      "reported_success": 3,
+      "families": ["other"],
+      "reason": "First benchmark of agents building EDR-evading loaders on real endpoints, but evasion of endpoint defenses is orthogonal to on-chain payment guards."
+    },
+    {
+      "arxiv_id": "2611.13333v1",
+      "novelty": 0,
+      "reported_success": 0,
+      "families": ["other"],
+      "reason": "Epidemiologic study framework for agent behavior over time; no attack method or results."
+    }
+  ]
+}
+```

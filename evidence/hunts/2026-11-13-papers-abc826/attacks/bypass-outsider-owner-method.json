@@ -1,0 +1,166 @@
+{
+  "name": "bypass-outsider-owner-method",
+  "steps": [
+    {
+      "call": {
+        "actor": "outsider",
+        "method": "approve_invoice",
+        "args": {
+          "id": "inv-bypass",
+          "receiver": "sam",
+          "amount": "5000",
+          "expires_at_ns": 4102444800000000000
+        },
+        "deposit_yocto": 1
+      }
+    },
+    {
+      "call": {
+        "actor": "outsider",
+        "method": "set_daily_cap",
+        "args": {
+          "daily_cap": "1000000"
+        },
+        "deposit_yocto": 1
+      }
+    },
+    {
+      "call": {
+        "actor": "outsider",
+        "method": "cancel_invoice",
+        "args": {
+          "id": "inv-pay"
+        }
+      }
+    },
+    {
+      "call": {
+        "actor": "outsider",
+        "method": "pay",
+        "args": {
+          "id": "inv-bypass"
+        }
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "method": "pay",
+        "args": {
+          "id": "inv-bypass"
+        }
+      }
+    },
+    {
+      "call": {
+        "actor": "agent",
+        "method": "pay",
+        "args": {
+          "id": "inv-pay"
+        }
+      }
+    },
+    {
+      "view": {
+        "method": "get_invoice",
+        "args": {
+          "id": "inv-bypass"
+        }
+      }
+    }
+  ],
+  "meta": {
+    "id": "bypass-04-outsider-owner-method",
+    "title": "An outsider calls owner methods",
+    "source": "hand",
+    "kind": "sequence",
+    "breaks": "Skips the rules from an account with a full-access key: an outsider approves its own invoice, raises the cap and cancels an invoice, then the agent pays.",
+    "expected_safe_result": "each owner call refused by the guard (owner only); the agent's later pays follow the original rules",
+    "added": "2026-11-12",
+    "author": "written by hand for A9: bypass-02 sent by an account whose key reaches the guard",
+    "steps_sha256": "8c259dfc4fa41232f2bdb7cd85b73730b68a0e843fd8d32dec75bed56e3bc1bf",
+    "spec": {
+      "property": "Only the owner can approve invoices, change the cap or cancel invoices; an account whose own key reaches the guard cannot.",
+      "failure_mode": "The owner check is missing, so an outsider approves its own invoice of 5000 to sam and lifts the cap to 1,000,000, and the agent's pay of that invoice moves 5000 the owner never approved.",
+      "capabilities": [
+        "C1"
+      ],
+      "preconditions": [
+        "inv-pay approved: 100 to sam; daily cap 500; the outsider has a full-access key of its own, not the agent's key"
+      ],
+      "oracle": {
+        "decides": "beyond_policy",
+        "receiver": "sam"
+      },
+      "expected": [
+        {
+          "reference": "vault-a",
+          "outcome": "held",
+          "beyond_policy": 0,
+          "mechanism": [
+            {
+              "pred": "failure_contains",
+              "step": 0,
+              "text": "only the owner can do this"
+            },
+            {
+              "pred": "over_equals",
+              "receiver": "sam",
+              "amount": 0
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-pay",
+              "status": "Paid"
+            }
+          ]
+        },
+        {
+          "reference": "mutant:M12",
+          "outcome": "broke",
+          "beyond_policy": 5000,
+          "receiver": "sam",
+          "flaw": "no-owner-check",
+          "mechanism": [
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "ok",
+                "ok",
+                "ok",
+                "contract-failure",
+                "ok",
+                "contract-failure"
+              ]
+            },
+            {
+              "pred": "failure_contains",
+              "step": 3,
+              "text": "only the agent can pay"
+            },
+            {
+              "pred": "over_equals",
+              "receiver": "sam",
+              "amount": 5000
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-pay",
+              "status": "Cancelled"
+            }
+          ]
+        }
+      ]
+    },
+    "admission": {
+      "class": "validated",
+      "evidence": "evidence/admission/bypass-04-outsider-owner-method/20261113T104612Z",
+      "date": "2026-11-13",
+      "gate": "tools/admission/admit.py",
+      "runs_counted": 6,
+      "runs_tried": 6,
+      "why": "every reference matched in 3 counted runs; matched known-bad: mutant:M12"
+    }
+  },
+  "path": "sequences-bypass/04-outsider-owner-method.json"
+}

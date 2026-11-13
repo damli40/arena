@@ -64,7 +64,7 @@ Two things stay out of this repo on purpose.
 
 ### Where does the hunter run, and how secure is that?
 
-Today the hunter is set up as a GitHub Actions workflow (`.github/workflows/hunt.yml`). **It is paused.** It has never run on GitHub, and it stays paused until its keys and its hosting are decided.
+Today the hunter is set up as a GitHub Actions workflow (`.github/workflows/hunt.yml`). **It is switched on.** Its first run on GitHub was on 2026-11-13 (https://github.com/damli40/arena/actions/runs/43466826430, record `evidence/hunts/2026-11-13-papers-abc826.md`). It runs one paper hunt a day; the news runs do nothing until a news key is set.
 
 How it limits damage:
 
