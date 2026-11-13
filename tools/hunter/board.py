@@ -26,6 +26,7 @@ HUNTS = ROOT / "evidence" / "hunts"
 CANARY_ID = "scripted-02-race-double-pay"
 CONTROL_ID = "scripted-01-control-pay-valid"
 REGISTRY = ROOT / "guards" / "registry.json"
+MANIFEST = ROOT / "evidence" / "MANIFEST.json"
 sys.path.insert(0, str(ROOT / "tools" / "check"))
 import applicable as A  # noqa: E402
 import guard_config as C  # noqa: E402
@@ -66,7 +67,17 @@ def classify_cell(c, interface):
     return A.classify("held", r.get("steps", []), setup, C.ROLES, [], [])
 
 
-def build(hunts_dir=HUNTS):
+def _library():
+    """The attack library as evidence/MANIFEST.json counts it (tools/admission/manifest.py): the ids in it and
+    its size. None if the manifest is missing or unreadable; the board then says nothing about the library."""
+    try:
+        m = json.loads(MANIFEST.read_text())["attacks"]
+        return {"ids": {r["id"] for r in m["rows"]}, "size": int(m["library_intents"])}
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+
+
+def build(hunts_dir=HUNTS, library=None):
     hunts = []
     for p in sorted(pathlib.Path(hunts_dir).glob("*.json")):
         if p.name == "used-papers.json":
@@ -115,8 +126,12 @@ def build(hunts_dir=HUNTS):
     src_order = {"news": 0, "paper": 1, "combined": 2, "ai": 3, "hand": 4}
     alist = sorted((a for a in attacks.values() if a["id"] != CONTROL_ID and any(k.startswith(a["id"] + "|") for k in cells)),
                    key=lambda a: (src_order.get(a["source"], 9), a["id"]))
+    lib = _library() if library is None else library
+    for a in alist:
+        a["in_library"] = (a["id"] in lib["ids"]) if lib else None
+    on_board_in_lib = sum(1 for a in alist if a["in_library"]) if lib else None
     return {
-        "_about": "Arena results board: every attack the bench knows x every opt-in guard, latest result. "
+        "_about": "Arena results board: every attack a trusted hunt ran (library or not, see attack_counts) x every opt-in guard, latest result. "
                   "broke = a receiver got tokens beyond that guard's own policy; held = 0 beyond policy (these attempts found nothing; another attack could still break the guard); "
                   "not-applicable = the attack tested nothing that guard claims (same rule as arena check, tools/check/applicable.py), not counted as held. "
                   "The honest-payment control is not an attack: it is under \"control\", not in the cells. "
@@ -125,6 +140,10 @@ def build(hunts_dir=HUNTS):
         "latest_hunt_utc": hunts[-1]["finished_utc"] if hunts else None,
         "guards": glist,
         "attacks": alist,
+        # What the attack count means: every attack a trusted hunt ran, whether or not it is in the library.
+        "attack_counts": {"on_board": len(alist), "in_library": on_board_in_lib,
+                          "not_in_library": (len(alist) - on_board_in_lib) if lib else None,
+                          "library_size": lib["size"] if lib else None},
         "cells": sorted(cells.values(), key=lambda c: (c["attack"], c["guard"])),
         "control": {"id": CONTROL_ID, "results": [control[g["id"]] for g in glist if g["id"] in control]},
     }
@@ -134,7 +153,7 @@ PAGE = """<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Results board · Arena</title>
 __ICON__
-<meta name="description" content="Every attack Arena knows, against every guard whose owner opted in, with the latest result.">
+<meta name="description" content="Every attack Arena's hunts have run, against every guard whose owner opted in, with the latest result.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'"><noscript><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet"></noscript>
 <style>
@@ -152,6 +171,12 @@ p.lede b{color:var(--ink);font-weight:600}
 .summary .bad{background:var(--bad-bg)}.summary .bad .n,.summary .bad .k,.summary .bad .note{color:var(--bad)}
 .legend{display:flex;flex-wrap:wrap;gap:8px 22px;margin:0 0 14px;font-size:13px;color:var(--muted);padding:0;list-style:none}
 .legend li{display:flex;gap:8px;align-items:baseline}
+.scroll-hint{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 10px;font-size:13px;color:var(--muted)}
+.scroll-hint[hidden]{display:none}
+.sh-btns{display:flex;gap:6px;flex:none}
+.sh-btns button{font:500 15px/1 var(--mono);color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:var(--radius-btn);min-width:44px;min-height:40px;cursor:pointer}
+.sh-btns button:active{transform:scale(.98)}
+.sh-btns button:focus-visible,.scroll:focus-visible{outline:2px solid var(--muted);outline-offset:2px}
 .scroll{overflow:auto;max-height:min(72vh,760px);border:1px solid var(--line);border-radius:var(--radius-card);background:var(--card)}
 table{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
 th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;background:var(--card)}
@@ -181,7 +206,7 @@ th small.tip,td small.tip{white-space:normal;min-width:150px;color:var(--ink);fo
 @media (max-width:640px){#board-summary:empty{min-height:230px}#board-legend:empty{min-height:150px}}
 /* short screens (a phone on its side): the table box may fill the screen, not 72% of it, so more than two rows show */
 @media (max-height:520px){.scroll{max-height:calc(100vh - 16px)}.scroll:has(> table:empty){height:calc(100vh - 16px)}}
-@media (max-width:640px){.board{padding-top:32px}.summary{grid-template-columns:1fr 1fr}.summary .n{font-size:24px}.summary > div{padding:14px 14px 12px}tr > :first-child{min-width:150px;max-width:170px}td:first-child{font-size:12.5px}th,td{padding:8px 9px}.c{min-width:92px}}
+@media (max-width:640px){.board{padding-top:32px}.summary{grid-template-columns:1fr 1fr}.summary .n{font-size:24px}.summary > div{padding:14px 14px 12px}tr > :first-child{min-width:112px;max-width:124px}td:first-child{font-size:12.5px}th,td{padding:8px 9px}.c{min-width:84px;white-space:normal}td.not-applicable{font-size:11.5px}}
 @media (max-width:400px){.summary .n{font-size:20px}}
 </style></head><body>
 __TOPBAR__
@@ -189,10 +214,11 @@ __TOPBAR__
 <section class="board" id="arena-board">
 <div class="eyebrow">Results board</div>
 <h1>Every attack, every guard</h1>
-<p class="lede">Every attack the bench knows, against every guard whose owner opted in. Attacks marked "from the news" were written from a summary of posts on X/Telegram: an unchecked lead, not a confirmed incident. <b>broke</b> means a receiver got tokens beyond that guard's own policy. <b>held</b> means these attempts found nothing. Another attack could still break the guard. <b>not applicable</b> means the attack tested nothing that guard claims, so it is not counted. Guards marked leaky on purpose are there to prove the bench can see a break.</p>
+<p class="lede">Every attack a hunt has run, against every guard whose owner opted in. That includes attacks the hunter tried and did not keep, so this count is larger than the attack library on the home page; those rows say "not in the library". Attacks marked "from the news" were written from a summary of posts on X/Telegram: an unchecked lead, not a confirmed incident. <b>broke</b> means a receiver got tokens beyond that guard's own policy. <b>held</b> means these attempts found nothing. Another attack could still break the guard. <b>not applicable</b> means the attack tested nothing that guard claims, so it is not counted. Guards marked leaky on purpose are there to prove the bench can see a break.</p>
 <div class="summary" id="board-summary"></div>
 <ul class="legend" id="board-legend"></ul>
-<div class="scroll" tabindex="0" role="region" aria-label="Results table, scrolls both ways"><table id="board-table"></table></div>
+<div class="scroll-hint" id="board-hint" hidden><span id="board-hint-text">The table is wider than your screen. Swipe it sideways to see every guard.</span><span class="sh-btns"><button type="button" data-dir="-1" aria-label="Show earlier guards">&larr;</button><button type="button" data-dir="1" aria-label="Show more guards">&rarr;</button></span></div>
+<div class="scroll" id="board-scroll" tabindex="0" role="region" aria-label="Results table, scrolls both ways"><table id="board-table"></table></div>
 <p class="foot" id="board-control"></p>
 <p class="foot" id="board-skipped"></p>
 <p class="foot" id="board-foot"></p>
@@ -216,12 +242,20 @@ __FOOTER__
     if(c.result==='not-applicable') na++;
     if(c.result==='broke'){broke++; if(role[c.guard]==='positive-control')brokeLeaky++;}}});
 
+  // Say what the attack count counts: the board shows every attack a hunt ran, including hunter attempts
+  // that were never kept in the library, so it differs from the library size on the home page.
+  function attackNote(){
+    var c = d.attack_counts || {}, parts = [];
+    if (c.in_library != null) parts.push(c.in_library+' from the library of '+c.library_size+', '+c.not_in_library+' the hunter tried and did not keep');
+    if (na) parts.push(na+(na===1?' result was':' results were')+' not applicable, so not counted');
+    return parts.join('. ');
+  }
   var latest = d.latest_hunt_utc ? String(d.latest_hunt_utc).slice(0,10) : 'never';
   var stat = function(n,k,cls,note){return '<div'+(cls?' class="'+cls+'"':'')+'><div class="n">'+esc(n)+'</div><div class="k">'+esc(k)+'</div>'+(note?'<div class="note">'+esc(note)+'</div>':'')+'</div>';};
   var brokeNote = broke===0 ? '' : brokeLeaky===broke ? 'all on guards that are leaky on purpose' : (broke-brokeLeaky)+' on guards that are not leaky on purpose';
   document.getElementById('board-summary').innerHTML =
     stat(guards.length, guards.length===1?'guard in the table':'guards in the table') +
-    stat(d.attacks.length, d.attacks.length===1?'attack':'attacks', '', na ? na+(na===1?' result was':' results were')+' not applicable, so not counted' : '') +
+    stat(d.attacks.length, d.attacks.length===1?'attack run in hunts':'attacks run in hunts', '', attackNote()) +
     stat(broke+' of '+ran, 'results broke', broke>0?'bad':'', brokeNote) +
     stat(latest, 'latest hunt, '+d.generated_from.length+(d.generated_from.length===1?' hunt':' hunts')+' in all');
 
@@ -241,6 +275,7 @@ __FOOTER__
             : a.source==='combined' && a.parents ? 'combined: '+a.parents.map(esc).join(' + ')
             : a.source==='news' && a.news ? 'from the news, '+esc(a.news.date)+(a.news.links && a.news.links.length && ['https://x.com/','https://twitter.com/','https://t.me/'].some(function(p){return a.news.links[0].indexOf(p)===0;}) ? ' <a href="'+esc(a.news.links[0])+'" rel="noopener nofollow">post</a>' : '')+' (unchecked lead)'
             : esc(a.source);
+    if (a.in_library === false) src += ' · not in the library';
     h += '<tr><td title="'+esc(a.breaks)+'">'+esc(a.title)+'<small>'+src+'</small></td>';
     guards.forEach(function(g){
       var c = cells[a.id+'|'+g.id];
@@ -262,6 +297,24 @@ __FOOTER__
     tip = document.createElement('small'); tip.className = 'tip'; tip.textContent = cell.getAttribute('title');
     cell.appendChild(tip);
   });
+
+  // When the table is wider than the screen (a phone shows one or two guard columns), say so above it,
+  // count the guards in view, and give buttons that move one guard column at a time.
+  var box = document.getElementById('board-scroll'), hint = document.getElementById('board-hint'), hintText = document.getElementById('board-hint-text');
+  function colW(){ var c = box.querySelector('thead th.c'); return c ? c.getBoundingClientRect().width : 120; }
+  function updateHint(){
+    var over = box.scrollWidth > box.clientWidth + 2;
+    hint.hidden = !over;
+    if (!over) return;
+    var first = box.querySelector('thead th'), w = colW();
+    var visible = Math.max(1, Math.floor((box.clientWidth - (first ? first.getBoundingClientRect().width : 0)) / w + 0.15));
+    var from = Math.min(guards.length, Math.round(box.scrollLeft / w) + 1), to = Math.min(guards.length, from + visible - 1);
+    hintText.textContent = 'Showing guard'+(to>from?'s '+from+' to '+to:' '+from)+' of '+guards.length+'. Swipe the table sideways, or use the arrows.';
+  }
+  hint.addEventListener('click', function(e){ var b = e.target.closest('button[data-dir]'); if (!b) return; box.scrollBy({left: Number(b.dataset.dir) * colW(), behavior: 'smooth'}); });
+  box.addEventListener('scroll', updateHint, {passive: true});
+  window.addEventListener('resize', updateHint);
+  updateHint();
 
   var ctl = (d.control && d.control.results || []).filter(function(r){return shown[r.guard];});
   var ce = document.getElementById('board-control');
