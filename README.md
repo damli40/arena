@@ -1,6 +1,8 @@
 # Arena
 
-**Prove your AI agent's payment guard before you give it your money.**
+**Can your guard survive the arena?**
+
+The arena is a constantly growing crash test for AI-controlled money.
 
 Your AI agent pays your bills. A guard is a small contract that stops it
 spending too much. We attacked guards on NEAR and found two ways you still
