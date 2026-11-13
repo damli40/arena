@@ -128,6 +128,9 @@
   --mono:"Geist Mono","SF Mono","JetBrains Mono",monospace;
   --radius-card:12px;--radius-btn:6px;--page:1080px
 }
+/* One radius system for every page: boxes (cards, figures, code blocks, logs) use --radius-card,
+   things you press (buttons, tabs, nav links, inputs) use --radius-btn, status words are full pills,
+   inline code is 4px. Nothing else. */
 /* ---- tokens (dark) */
 @media (prefers-color-scheme:dark){:root{
   --bg:#191918;--card:#202020;--ink:#E6E5E1;--muted:#9B9A97;--line:rgba(255,255,255,.08);
@@ -143,10 +146,13 @@ a:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{o
 code{font:12px var(--mono);background:var(--code);color:var(--ink);padding:1px 5px;border-radius:4px;overflow-wrap:anywhere}
 .wrap{width:min(var(--page),100% - 32px);margin:0 auto}
 .eyebrow{font:500 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.btn{font:500 14px/1 var(--sans);padding:12px 18px;border-radius:var(--radius-btn);text-decoration:none;white-space:nowrap;transition:transform .2s cubic-bezier(.16,1,.3,1)}
+.btn{font:500 14px/1 var(--sans);padding:12px 18px;border-radius:var(--radius-btn);text-decoration:none;white-space:nowrap;border:1px solid transparent;transition:transform .2s cubic-bezier(.16,1,.3,1),background-color .2s,border-color .2s,opacity .2s}
+.btn:hover{transform:translateY(-1px)}
 .btn:active{transform:scale(.98)}
 .btn.primary{background:var(--ink);color:var(--bg)}
-.btn.ghost{color:var(--ink);border:1px solid var(--line);background:var(--card)}
+.btn.primary:hover{opacity:.88}
+.btn.ghost{color:var(--ink);border-color:var(--line);background:var(--card)}
+.btn.ghost:hover{border-color:var(--muted)}
 
 /* ---- status words, shared by the board, the lookup and the sample report.
    broke = the one red accent. held = quiet and neutral (held is not "safe").
@@ -158,6 +164,8 @@ code{font:12px var(--mono);background:var(--code);color:var(--ink);padding:1px 5
 
 /* ---- top bar */
 .topbar{border-bottom:1px solid var(--line);background:var(--bg)}
+/* wide screens: the bar stays at the top while you scroll (one line, 56px). Phones: it scrolls away, so it never covers the page. */
+@media (min-width:641px){.topbar{position:sticky;top:0;z-index:10}html{scroll-padding-top:72px}}
 .topbar-in{width:min(var(--page),100% - 32px);margin:0 auto;display:flex;align-items:center;gap:8px 28px;min-height:56px;flex-wrap:wrap}
 .topbar .brand{font:600 17px/1 var(--sans);letter-spacing:-.02em;text-decoration:none;color:var(--ink);padding:6px 0;display:inline-flex;align-items:center;gap:8px}
 .brand-mark{width:20px;height:20px;flex:none;display:block}
@@ -190,70 +198,91 @@ code{font:12px var(--mono);background:var(--code);color:var(--ink);padding:1px 5
 }
 @media (pointer:coarse) and (max-width:640px){.topbar nav a{padding:8px}}
 
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn,.btn:hover,.btn:active{transition:none;transform:none}}
 
 body.iso{--anatomy-page:var(--bg);--anatomy-card:var(--card);--anatomy-text:var(--ink);--anatomy-mono:var(--mono)}
-h1{font:600 clamp(40px,6vw,68px)/1.02 var(--sans);letter-spacing:-.04em;margin:18px 0 20px;max-width:13ch;text-wrap:balance}
-h2{font:600 30px/1.15 var(--sans);letter-spacing:-.025em;margin:0 0 10px}
+body{font-size:16px}
+h1{font:600 clamp(40px,4vw,56px)/1.04 var(--sans);letter-spacing:-.04em;margin:0 0 20px;text-wrap:balance}
+h2{font:600 clamp(28px,3vw,36px)/1.1 var(--sans);letter-spacing:-.03em;margin:0 0 12px;text-wrap:balance}
 h3{font:600 18px/1.3 var(--sans);letter-spacing:-.015em;margin:0 0 6px}
-.sub{color:var(--muted);max-width:60ch;margin:0 0 28px}
-.hero{display:grid;grid-template-columns:1.2fr 1fr;gap:56px;align-items:center;padding:80px 0 72px}
-.lede{font-size:20px;line-height:1.45;letter-spacing:-.01em;max-width:30ch;margin:0 0 32px}
+.sub{color:var(--muted);max-width:62ch;margin:0 0 28px}
+/* ---- hero: words left, a real run right */
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:56px;align-items:center;padding:72px 0 64px}
+.lede{font-size:21px;line-height:1.45;letter-spacing:-.01em;max-width:28ch;margin:0 0 32px}
 .ctas{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .ctas .btn{display:inline-flex;align-items:center;gap:7px}.btn code{background:transparent;color:inherit;font-size:13px;padding:0}
-.btn.primary:hover{background:#111;color:#fff}
-@media (prefers-color-scheme:dark){.btn.primary:hover{background:#fff;color:#111}}
-.hero-note{font-size:13.5px;color:var(--muted);margin:14px 0 0;max-width:46ch}
-.today{border:1px solid var(--line);border-radius:var(--radius-card);background:var(--card);overflow:hidden}
-.today .eyebrow{display:block;padding:18px 22px 0}
-.today-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);margin-top:16px;border-top:1px solid var(--line)}
-.today-grid > div{background:var(--card);padding:18px 22px 20px}
+.hero-shot{margin:0}
+.hero-shot img{display:block;width:100%;height:auto;border-radius:var(--radius-card);border:1px solid var(--line);box-shadow:0 24px 48px -28px rgba(47,52,55,.45)}
+.hero-shot figcaption{font-size:13.5px;line-height:1.5;color:var(--muted);margin:12px 2px 0;max-width:60ch}
+.hero-shot figcaption b{color:var(--ink);font-weight:500}
+/* ---- the arena today: four counts on one line, no box */
+.today{padding:0 0 64px;border-top:0}
+.today .eyebrow{display:block;margin:0 0 14px}
+.today-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line)}
+.today-grid > div{padding:18px 20px 4px 0}
+.today-grid > div + div{padding-left:20px;border-left:1px solid var(--line)}
 .today .n{font:500 44px/1 var(--sans);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
-.today .k{font:500 11px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;margin-top:10px}
-.today .note{font-size:12.5px;line-height:1.45;color:var(--muted);margin-top:4px}
-section{padding:72px 0;border-top:1px solid var(--line)}
-.problem{display:grid;grid-template-columns:1fr 1.4fr;gap:48px;align-items:start}
-.problem p{font-size:17px;line-height:1.6;margin:0 0 14px;max-width:58ch}
-.problem p:last-child{margin:0}
-ol.methods{list-style:none;margin:28px 0 0;padding:0;border-top:1px solid var(--line)}
-li.method{display:grid;grid-template-columns:64px 1fr;gap:16px;padding:26px 4px;border-bottom:1px solid var(--line)}
-.m-n{font:500 13px/1.8 var(--mono);color:var(--muted)}
-.m-d{margin:0 0 10px;max-width:72ch}
+.today .k{font-weight:500;font-size:14.5px;margin-top:10px}
+.today .note{font-size:13px;line-height:1.45;color:var(--muted);margin-top:2px}
+section{padding:80px 0;border-top:1px solid var(--line)}
+/* ---- try it in 2 minutes: three rows, each with what you see and where to click */
+.quick{padding:64px 0}
+.quick h2{margin-bottom:6px}
+ol.qsteps{list-style:none;margin:28px 0 0;padding:0;border-top:1px solid var(--ink);counter-reset:q}
+ol.qsteps > li{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:8px 28px;align-items:start;padding:26px 0;border-bottom:1px solid var(--line);counter-increment:q}
+ol.qsteps > li::before{content:counter(q);font:500 28px/1 var(--sans);letter-spacing:-.03em;color:var(--muted);padding-top:2px}
+ol.qsteps h3{font-size:19px;margin:8px 0 6px}
+ol.qsteps p{margin:0;font-size:15px;max-width:68ch}
+ol.qsteps .go{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;padding-top:6px}
+.tag{display:inline-block;font:500 11.5px/1.5 var(--mono);letter-spacing:.02em;padding:2px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.tag.rec{border-style:dashed}
+.tag.live{color:var(--ink);border-color:var(--ink)}
+/* ---- the problem: said large, once */
+.statement p{font-size:clamp(20px,2.2vw,26px);line-height:1.4;letter-spacing:-.015em;margin:0 0 18px;max-width:34ch}
+.statement p + p{font-size:18px;line-height:1.55;letter-spacing:0;color:var(--muted);max-width:58ch;margin:0}
+/* ---- how Arena works: one wide part, then six two to a row */
+ol.methods{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 48px}
+li.method{padding:28px 0;border-top:1px solid var(--line);min-width:0}
+li.method.feature{grid-column:1/-1;background:var(--card);border:1px solid var(--line);border-radius:var(--radius-card);padding:28px 32px;margin:0 0 20px}
+li.method.feature h3{font-size:22px}
+li.method.feature .m-d{font-size:17px;max-width:70ch}
+.m-d{margin:0 0 10px;max-width:62ch}
 .m-ev{font-size:13px;color:var(--muted);margin:0}
 .m-ev a code{text-decoration:underline;text-underline-offset:2px;text-decoration-color:var(--line)}
-.gate{margin:16px 0 14px;max-width:640px}
-.bar{display:flex;height:12px;border-radius:4px;overflow:hidden;background:var(--code);gap:2px}
-.bar span{display:block;height:100%}
+.gate{margin:16px 0 14px}
+.bar{display:flex;height:10px;gap:3px}
+.bar span{display:block;height:100%;border-radius:2px}
 .v{background:var(--ink)}.p{background:var(--muted)}.u{background:transparent;box-shadow:inset 0 0 0 1px var(--muted)}
 .gate-k{list-style:none;display:flex;flex-wrap:wrap;gap:6px 20px;margin:10px 0 0;padding:0;font-size:13.5px}
 .gate-k li{display:flex;align-items:center;gap:7px}.gate-k b{font-weight:600;font-variant-numeric:tabular-nums}
 .gate-k i{display:inline-block;width:10px;height:10px;border-radius:2px}.gate-k .of{color:var(--muted)}
-.quick{padding:40px 0 56px;border-top:1px solid var(--line)}
-.quick h2{margin-bottom:6px}
-ol.qsteps{list-style:none;margin:20px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius-card);overflow:hidden;counter-reset:q}
-ol.qsteps li{background:var(--card);padding:20px 22px;counter-increment:q;min-width:0}
-ol.qsteps li::before{content:counter(q);display:block;font:500 12px/1 var(--mono);color:var(--muted);margin-bottom:10px}
-ol.qsteps h3{font-size:16.5px;margin:0 0 8px}
-ol.qsteps p{margin:0 0 12px;font-size:14px;max-width:46ch}
-ol.qsteps .go{display:flex;flex-wrap:wrap;gap:8px}
-ol.qsteps .tag{font:500 10.5px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
-.r-block{margin:40px 0 0}
-.r-block > h3{margin-bottom:4px}
-.r-block > .sub{margin-bottom:16px}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th{font:500 10.5px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 14px;border-bottom:1px solid var(--line)}
-td{padding:14px;vertical-align:top}
+/* ---- results */
+.r-block{margin:56px 0 0}
+.r-block:first-of-type{margin-top:32px}
+.r-block > h3{font-size:21px;margin-bottom:4px}
+.r-block > .sub{margin-bottom:18px}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th{font:500 12px/1.4 var(--sans);color:var(--muted);text-align:left;padding:12px 16px;border-bottom:1px solid var(--line)}
+td{padding:14px 16px;vertical-align:top}
 td small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
 tbody tr + tr td{border-top:1px solid var(--line)}
 td.num{font-variant-numeric:tabular-nums;white-space:nowrap}td.bad{color:var(--bad);font-weight:500}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 6px;overflow-x:auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-card);padding:4px 6px;overflow-x:auto}
 .small{font-size:13px;color:var(--muted);margin:12px 0 0}
-.intent{margin:16px 0 0;padding:20px 24px;border:1px solid var(--line);border-radius:12px;background:var(--card);display:grid;grid-template-columns:auto 1fr;gap:6px 24px;align-items:baseline}
+.intent{margin:16px 0 0;padding:22px 26px;border:1px solid var(--line);border-radius:var(--radius-card);background:var(--card);display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 24px;align-items:baseline}
 .intent .n{font:500 40px/1 var(--sans);letter-spacing:-.04em;color:var(--bad);font-variant-numeric:tabular-nums;grid-row:1/3}
-.intent .k{font:500 11px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.intent .k{font-weight:500}
 .intent p{margin:0;font-size:14px;color:var(--muted);max-width:70ch}
+.aware{margin-top:14px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:40px;align-items:start}
+.aware p{margin:0 0 12px;max-width:60ch}
+.aware-n{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line)}
+.aware-n > div{padding:16px 16px 0 0}
+.aware-n > div + div{padding-left:16px;border-left:1px solid var(--line)}
+.aware-n .n{font:500 40px/1 var(--sans);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.aware-n .n small{font-size:18px;color:var(--muted);letter-spacing:-.01em}
+.aware-n .k{font-size:13.5px;color:var(--muted);margin-top:8px}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
-.tabs button{font:500 13px/1.2 var(--sans);color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:10px 14px;cursor:pointer;text-align:left}
+.tabs button{font:500 13px/1.2 var(--sans);color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:var(--radius-btn);padding:10px 14px;cursor:pointer;text-align:left;transition:transform .2s cubic-bezier(.16,1,.3,1)}
 .tabs button small{display:block;font:11px/1.3 var(--mono);color:var(--muted);margin-top:3px}
 .tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .tabs button[aria-selected="true"] small{color:inherit;opacity:.7}
@@ -266,21 +295,24 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}td.bad{color:var(--b
 .callout-list{display:none}
 .meta{display:flex;flex-wrap:wrap;gap:4px 16px;font:12px/1.5 var(--mono);color:var(--muted);margin:12px 0 8px;overflow-wrap:anywhere}
 .meta a{color:var(--ink)}
-ol.log{list-style:none;margin:0;padding:14px 18px;min-height:168px;background:var(--card);border:1px solid var(--line);border-radius:8px;font:12.5px/1.75 var(--mono);counter-reset:s}
+ol.log{list-style:none;margin:0;padding:14px 18px;min-height:168px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius-card);font:12.5px/1.75 var(--mono);counter-reset:s}
 ol.log li{counter-increment:s;transition:opacity .45s cubic-bezier(.16,1,.3,1)}ol.log li.todo{opacity:.3}
 ol.log li::before{content:counter(s,decimal-leading-zero) "  ";color:var(--muted)}
 ol.log li.result{font-weight:500;margin-top:6px}ol.log li.result::before{content:"=   "}
-.teams{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.teams{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius-card);overflow:hidden}
 .teams > div{background:var(--card);padding:18px 20px}
 .teams .n{font:500 36px/1 var(--sans);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
-.teams .k{font:500 10.5px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+.teams .k{font-size:13.5px;font-weight:500;color:var(--muted);margin-top:8px}
 .teams .bad{background:var(--bad-bg)}.teams .bad .n,.teams .bad .k{color:var(--bad)}
 ul.notes{margin:14px 0 0;padding:0 0 0 18px;max-width:76ch}ul.notes li{margin:6px 0}
-ul.limits{padding:0;margin:0;list-style:none;max-width:80ch}ul.limits li{padding:12px 0}ul.limits li + li{border-top:1px solid var(--line)}
-ul.limits li:first-child{font:500 19px/1.45 var(--sans);letter-spacing:-.01em;padding-top:0}
-.run{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+/* ---- limits: the one that matters most, large; the rest two to a row */
+ul.limits{padding:0;margin:8px 0 0;list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 48px}
+ul.limits li{padding:16px 0;border-top:1px solid var(--line);max-width:60ch}
+ul.limits li:first-child{grid-column:1/-1;max-width:none;border-top:0;padding:0 0 22px;font:500 clamp(20px,2.2vw,26px)/1.35 var(--sans);letter-spacing:-.015em}
+/* ---- try it on your guard */
+.run{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:56px;align-items:start}
 /* code boxes: they wrap instead of running off the right edge, and keyboard users can reach them */
-pre{font:13px/1.75 var(--mono);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 18px;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;overflow-x:auto}
+pre{font:13px/1.75 var(--mono);background:var(--card);border:1px solid var(--line);border-radius:var(--radius-card);padding:14px 18px;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;overflow-x:auto}
 pre:focus-visible{outline:2px solid var(--muted);outline-offset:2px}
 pre.cmd{font-size:15px;margin:0 0 6px}
 pre .c{color:var(--muted)}
@@ -288,12 +320,14 @@ ul.paths{list-style:none;margin:24px 0 0;padding:0;border-top:1px solid var(--li
 ul.paths li{padding:14px 0;border-bottom:1px solid var(--line)}
 ul.paths b{display:block;font-weight:600}
 ul.paths span{display:block;color:var(--muted);font-size:14px}
-.mini{font:500 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:28px 0 10px}
+ul.paths span a{color:var(--ink)}
+.mini{margin:32px 0 10px}
 figure.term{margin:0}
 .term-gif{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:var(--radius-card)}
 .term-text{margin:10px 0 0}
 .term-text summary{cursor:pointer;font-size:13.5px;font-weight:500;padding:6px 0}
 .term-text pre,.term-phone{font-size:12px;line-height:1.65;margin-top:8px}.term-phone,.term-phone-k{display:none}
+.term-phone-k{font-size:13.5px;font-weight:500;margin:0 0 8px}
 figure.term figcaption{font-size:13px;color:var(--muted);margin-top:10px}
 .site-foot code{font-size:11.5px}
 @media (max-width:560px){
@@ -305,105 +339,123 @@ figure.term figcaption{font-size:13px;color:var(--muted);margin-top:10px}
   table.stack tbody tr + tr{border-top:1px solid var(--line)}
   table.stack td:first-child{margin-bottom:8px}
   table.stack td[data-label]{display:flex;justify-content:space-between;gap:12px;margin-top:4px;white-space:normal}
-  table.stack td[data-label]::before{content:attr(data-label);font:500 10.5px/1.9 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  table.stack td[data-label]::before{content:attr(data-label);font:500 12px/1.9 var(--sans);color:var(--muted)}
+}
+/* ---- motion: the hero settles in once; sections fade up as they arrive. All of it stops for reduced motion. */
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:no-preference){
+  .hero h1,.hero .lede,.hero .ctas,.hero-shot{animation:rise .8s cubic-bezier(.16,1,.3,1) both}
+  .hero .lede{animation-delay:.08s}.hero .ctas{animation-delay:.16s}.hero-shot{animation-delay:.24s}
 }
 .reveal-js .reveal{opacity:0;transform:translateY(12px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)}.reveal-js .reveal.on{opacity:1;transform:none}
 @media print{.reveal-js .reveal{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal-js .reveal{opacity:1;transform:none;transition:none}ol.log li{transition:none}}
+@media (prefers-color-scheme:dark){.hero-shot img{box-shadow:none}}
+@media (max-width:900px){
+  .hero{grid-template-columns:1fr;gap:36px;padding:48px 0 48px}
+  .today-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .today-grid > div:nth-child(3){padding-left:0;border-left:0}
+  .today-grid > div:nth-child(n+3){border-top:1px solid var(--line);margin-top:14px}
+  .aware{grid-template-columns:1fr;gap:20px}
+}
 @media (max-width:768px){.callouts{display:none}.callout-list{display:block;margin:10px 0 0;padding-left:20px;font-size:13px;color:var(--muted)}.callout-list b{color:var(--ink);font-weight:500}
-  .hero,.run,.problem{grid-template-columns:1fr;gap:28px}.hero{padding:48px 0 48px}.lede{font-size:18px}.today .n{font-size:34px}
-  section{padding:52px 0}.tabs button{flex:1 1 45%}li.method{grid-template-columns:36px 1fr;gap:10px;padding:22px 0}
-  ol.qsteps{grid-template-columns:1fr}
+  .run{grid-template-columns:1fr;gap:28px}.lede{font-size:19px}.today .n{font-size:34px}
+  section{padding:56px 0}.quick{padding:48px 0}.tabs button{flex:1 1 45%}
+  ol.methods,ul.limits{grid-template-columns:1fr}
+  li.method.feature{padding:22px 20px}
+  ol.qsteps > li{grid-template-columns:32px minmax(0,1fr);padding:22px 0}
+  ol.qsteps > li::before{font-size:22px}
+  ol.qsteps .go{grid-column:2;justify-content:flex-start;padding-top:8px}
   .teams{grid-template-columns:1fr 1fr}.teams .n{font-size:30px}.intent{grid-template-columns:1fr}.intent .n{grid-row:auto}
   /* phones: the terminal recording's text is too small to read, so the page shows the same run as text */
-  .term-gif,.term-text{display:none}.term-phone,.term-phone-k{display:block}.term-phone-k{margin-top:0}}
-@media (max-width:400px){.today-grid > div{padding:16px 16px 18px}.today .eyebrow{padding:16px 16px 0}}
+  .term-gif,.term-text{display:none}.term-phone,.term-phone-k{display:block}}
+@media (max-width:420px){.today-grid > div{padding-right:10px}.today-grid > div + div{padding-left:12px}.today-grid > div:nth-child(3){padding-left:0}.hero .btn.primary code{font-size:12px}}
 </style></head>
 <body class="iso" data-theme="light">
 <header class="topbar"><div class="topbar-in"><a class="brand" href="index.html"><svg class="brand-mark" viewBox="0 0 100 100" aria-hidden="true"><path d="M78.72 45.96A29 29 0 1 1 54.04 21.28" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round"/><circle cx="70.51" cy="29.49" r="8.5" style="fill:var(--bad)"/></svg>Arena</a><nav aria-label="Arena pages"><a href="index.html#methods">How it works</a><a href="index.html#results">Results</a><a href="board.html">Board</a><a href="lookup.html">Look up a guard</a><a href="docs.html">How to use</a><a href="index.html#try">Try it</a></nav></div></header>
 <main class="wrap">
 <header class="hero">
-  <div>
-    <div class="eyebrow">Arena · AI security on NEAR</div>
+  <div class="hero-copy">
     <h1>Can your guard survive the arena?</h1>
     <p class="lede">The arena is a constantly growing crash test for AI-controlled money.</p>
-    <div class="ctas"><a class="btn primary" href="https://github.com/damli40/arena/blob/main/README.md" rel="noopener">Run <code>./arena check your_guard.wasm</code></a><a class="btn ghost" href="board.html">See the board</a></div>
-    <p class="hero-note">One command runs Arena's attacks against your guard on a private NEAR sandbox on your machine, and writes a report card.</p>
+    <div class="ctas"><a class="btn primary" href="https://github.com/damli40/arena/blob/main/README.md" rel="noopener">Run <code>./arena check your_guard.wasm</code></a><a class="btn ghost" href="#quick">Try it in 2 minutes</a></div>
   </div>
-  <div class="today">
-    <span class="eyebrow">The arena today</span>
-    <div class="today-grid">
-      <div><div class="n">54</div><div class="k">attacks in the library</div><div class="note">52 fit a guard that pays in tokens or NEAR</div></div>
-      <div><div class="n">33</div><div class="k">validated</div><div class="note">shown to catch the one flaw they name</div></div>
-      <div><div class="n">14</div><div class="k">hidden attacks</div><div class="note">kept off GitHub, published as a hash</div></div>
-      <div><div class="n">7</div><div class="k">hunts so far</div><div class="note">41 attacks proposed from papers and news</div></div>
-    </div>
-  </div>
+  <figure class="hero-shot">
+    <img src="img/hero-check.webp" width="1021" height="589" fetchpriority="high" alt="Terminal output of arena check on Arena's leaky-on-purpose guard. The first line reads: arena: broke 5 of 49. Further down: tokens paid beyond the guard's own rules: 700.">
+    <figcaption>One command runs every attack on a private NEAR sandbox on your machine and prints a report card. This one is Arena's leaky-on-purpose guard: <b>broke 5 of 49</b>, 700 tokens paid beyond its own rules. Recorded 2026-11-12.</figcaption>
+  </figure>
 </header>
+
+<section class="today" aria-labelledby="today-h">
+  <span class="eyebrow" id="today-h">The arena today</span>
+  <div class="today-grid">
+    <div><div class="n">54</div><div class="k">attacks in the library</div><div class="note">52 fit a guard that pays in tokens or NEAR</div></div>
+    <div><div class="n">33</div><div class="k">validated</div><div class="note">shown to catch the one flaw they name</div></div>
+    <div><div class="n">14</div><div class="k">hidden attacks</div><div class="note">kept off GitHub, published as a hash</div></div>
+    <div><div class="n">7</div><div class="k">hunts so far</div><div class="note">41 attacks proposed from papers and news</div></div>
+  </div>
+</section>
 
 <section id="quick" class="quick" aria-labelledby="quick-h">
   <h2 id="quick-h">Try it in 2 minutes</h2>
   <p class="sub">No login, no install. Three links.</p>
   <ol class="qsteps">
     <li>
-      <h3>See the double pay on the public explorer</h3>
-      <p class="tag">Recorded on NEAR testnet, 2026-11-10</p>
-      <p>Both transactions call <code>pay</code> for the same invoice, <code>inv-vulnerable_fixture-3</code>, in block 277089399, and each moves 100 test tokens from the guard to the receiver: 200 paid on one 100-token invoice. Trial 5 of 5 in <a href="https://github.com/damli40/arena/blob/main/evidence/testnet-2026-11-11.md" rel="noopener"><code>evidence/testnet-2026-11-11.md</code></a>.</p>
+      <div>
+        <span class="tag rec">Recorded on NEAR testnet, 2026-11-10</span>
+        <h3>See the double pay on the public explorer</h3>
+        <p>Both transactions call <code>pay</code> for the same invoice, <code>inv-vulnerable_fixture-3</code>, in block 277089399, and each moves 100 test tokens from the guard to the receiver: 200 paid on one 100-token invoice. Trial 5 of 5 in <a href="https://github.com/damli40/arena/blob/main/evidence/testnet-2026-11-11.md" rel="noopener"><code>evidence/testnet-2026-11-11.md</code></a>.</p>
+      </div>
       <div class="go"><a class="btn primary" href="https://testnet.nearblocks.io/txns/G66wuWfTVB9ryzgPYmBk4ksYap4SUhhF8Hes2hAGN5CQ" rel="noopener">Call A on nearblocks</a><a class="btn ghost" href="https://testnet.nearblocks.io/txns/AFGE2DVFpcBLzF6nQ8pzWKCxVVkUqWejeoqrXYG94KuJ" rel="noopener">Call B</a></div>
     </li>
     <li>
-      <h3>Look up a guard live</h3>
-      <p class="tag">Live, reads NEAR testnet</p>
-      <p>Opens the lookup with this planted-flaw guard filled in. It reads testnet when you open it and answers <b>broke</b>. The "fixed guard" button next to it answers <b>held</b>.</p>
+      <div>
+        <span class="tag live">Live, reads NEAR testnet</span>
+        <h3>Look up a guard live</h3>
+        <p>Opens the lookup with this planted-flaw guard filled in. It reads testnet when you open it and answers <b>broke</b>. The "fixed guard" button next to it answers <b>held</b>.</p>
+      </div>
       <div class="go"><a class="btn primary" href="lookup.html?account=r11bvf3-guard.arena-race-funder-1111.testnet">Look up the planted-flaw guard</a></div>
     </li>
     <li>
-      <h3>See the board</h3>
-      <p class="tag">Recorded local sandbox runs, 2026-11-10 to 2026-11-11</p>
-      <p>Every attack a hunt ran against each guard, on a local NEAR sandbox: 61 attacks, 7 guards (6 of them can still be run). Not live.</p>
+      <div>
+        <span class="tag rec">Recorded local sandbox runs, 2026-11-10 to 2026-11-11</span>
+        <h3>See the board</h3>
+        <p>Every attack a hunt ran against each guard, on a local NEAR sandbox: 61 attacks, 7 guards (6 of them can still be run). Not live.</p>
+      </div>
       <div class="go"><a class="btn primary" href="board.html">See the board</a><a class="btn ghost" href="docs.html">How to use Arena</a></div>
     </li>
   </ol>
 </section>
 
 <section id="problem" class="reveal">
-  <div class="problem">
-    <h2>The problem</h2>
-    <div>
-      <p>AI agents will hold money and pay bills for people. A guard is the contract that limits what an agent can pay: which payees, how much a day, which bills.</p>
-      <p>Most teams test their guard with tests they wrote themselves. Those tests share the guard's blind spots. Arena attacks the guard with attacks its team did not write, and keeps adding more.</p>
-    </div>
+  <h2>The problem</h2>
+  <div class="statement">
+    <p>AI agents will hold money and pay bills for people. A guard is the contract that limits what an agent can pay: which payees, how much a day, which bills.</p>
+    <p>Most teams test their guard with tests they wrote themselves. Those tests share the guard's blind spots. Arena attacks the guard with attacks its team did not write, and keeps adding more.</p>
   </div>
 </section>
 
 <section id="methods" class="reveal">
   <h2>How Arena works</h2>
-  <p class="sub">Seven parts. Each names the file that backs it.</p>
-  <ol class="methods"><li class="method">
-  <span class="m-n">01</span>
-  <div><h3>Attacks from papers, incidents and people</h3><p class="m-d">The hunter is a language model that reads new security papers and hack news and writes attacks as data: a list of steps from a small fixed vocabulary, never code. Real incidents and hand-written attacks fill in the rest. Each hunt can add attacks, which is how the arena keeps growing: 7 hunts so far proposed 41 attacks from 11 paper reads and the news, and Arena kept 25.</p><p class="m-ev">Evidence: <a href="https://github.com/damli40/arena/tree/main/evidence/hunts" rel="noopener"><code>evidence/hunts/</code></a>, <a href="https://github.com/damli40/arena/blob/main/docs/ADD-AN-ATTACK.md" rel="noopener"><code>docs/ADD-AN-ATTACK.md</code></a></p></div>
+  <p class="sub">Where the attacks come from, which ones count, and how a guard is scored. Every part links the file that backs it.</p>
+  <ol class="methods"><li class="method feature">
+  <h3>Attacks from papers, incidents and people</h3><p class="m-d">The hunter is a language model that reads new security papers and hack news and writes attacks as data: a list of steps from a small fixed vocabulary, never code. Real incidents and hand-written attacks fill in the rest. Each hunt can add attacks, which is how the arena keeps growing: 7 hunts so far proposed 41 attacks from 11 paper reads and the news, and Arena kept 25.</p><p class="m-ev">Evidence: <a href="https://github.com/damli40/arena/tree/main/evidence/hunts" rel="noopener"><code>evidence/hunts/</code></a>, <a href="https://github.com/damli40/arena/blob/main/docs/ADD-AN-ATTACK.md" rel="noopener"><code>docs/ADD-AN-ATTACK.md</code></a></p>
 </li><li class="method">
-  <span class="m-n">02</span>
-  <div><h3>An admission gate</h3><p class="m-d">An attack counts as validated only when it holds on a guard known to be good and breaks a copy with exactly one planted flaw, by the exact amount, in 3 runs each. Partly validated means every run matched but a piece is missing, such as proof that two race calls overlapped. Unvalidated attacks still run on every guard. They stay out of the validated count.</p><div class="gate" role="img" aria-label="33 validated, 0 partly validated, 21 unvalidated, of 54 attacks">
+  <h3>An admission gate</h3><p class="m-d">An attack counts as validated only when it holds on a guard known to be good and breaks a copy with exactly one planted flaw, by the exact amount, in 3 runs each. Partly validated means every run matched but a piece is missing, such as proof that two race calls overlapped. Unvalidated attacks still run on every guard. They stay out of the validated count.</p><div class="gate" role="img" aria-label="33 validated, 0 partly validated, 21 unvalidated, of 54 attacks">
       <div class="bar"><span class="v" style="width:61.11%"></span><span class="p" style="width:0.00%"></span><span class="u" style="width:38.89%"></span></div>
       <ul class="gate-k"><li><i class="v"></i><b>33</b> validated</li><li><i class="p"></i><b>0</b> partly validated</li><li><i class="u"></i><b>21</b> unvalidated</li><li class="of">of 54 attacks in the library</li></ul>
     </div>
-    <p class="m-d">We also planted 10 single mistakes in Arena's own guard, one at a time. The library caught 7 of them.</p><p class="m-ev">Evidence: <a href="https://github.com/damli40/arena/blob/main/evidence/MANIFEST.md" rel="noopener"><code>evidence/MANIFEST.md</code></a>, <a href="https://github.com/damli40/arena/blob/main/tools/admission/admit.py" rel="noopener"><code>tools/admission/admit.py</code></a></p></div>
+    <p class="m-d">We also planted 10 single mistakes in Arena's own guard, one at a time. The library caught 7 of them.</p><p class="m-ev">Evidence: <a href="https://github.com/damli40/arena/blob/main/evidence/MANIFEST.md" rel="noopener"><code>evidence/MANIFEST.md</code></a>, <a href="https://github.com/damli40/arena/blob/main/tools/admission/admit.py" rel="noopener"><code>tools/admission/admit.py</code></a></p>
 </li><li class="method">
-  <span class="m-n">03</span>
-  <div><h3>A hidden set</h3><p class="m-d">Arena keeps 14 more attacks off GitHub and publishes only a hash of the set (2026-11-12). Nobody can tune a guard to a list they cannot see, and anyone can check later that the set did not change.</p><p class="m-ev">Evidence: <a href="https://github.com/damli40/arena/blob/main/hidden-set/COMMITMENT.json" rel="noopener"><code>hidden-set/COMMITMENT.json</code></a>, <a href="https://github.com/damli40/arena/blob/main/EVALUATE.md" rel="noopener"><code>EVALUATE.md, section 4b</code></a></p></div>
+  <h3>A hidden set</h3><p class="m-d">Arena keeps 14 more attacks off GitHub and publishes only a hash of the set (2026-11-12). Nobody can tune a guard to a list they cannot see, and anyone can check later that the set did not change.</p><p class="m-ev">Evidence: <a href="https://github.com/damli40/arena/blob/main/hidden-set/COMMITMENT.json" rel="noopener"><code>hidden-set/COMMITMENT.json</code></a>, <a href="https://github.com/damli40/arena/blob/main/EVALUATE.md" rel="noopener"><code>EVALUATE.md, section 4b</code></a></p>
 </li><li class="method">
-  <span class="m-n">04</span>
-  <div><h3>Scored from chain balances</h3><p class="m-d">Arena runs every attack on a throwaway local NEAR sandbox and reads each receiver's balance before and after every step. The score is the money that moved. What the guard or the agent says about it never enters the score.</p><p class="m-ev">Evidence: <a href="https://github.com/damli40/arena/blob/main/docs/CHECK-YOUR-GUARD.md" rel="noopener"><code>docs/CHECK-YOUR-GUARD.md</code></a></p></div>
+  <h3>Scored from chain balances</h3><p class="m-d">Arena runs every attack on a throwaway local NEAR sandbox and reads each receiver's balance before and after every step. The score is the money that moved. What the guard or the agent says about it never enters the score.</p><p class="m-ev">Evidence: <a href="https://github.com/damli40/arena/blob/main/docs/CHECK-YOUR-GUARD.md" rel="noopener"><code>docs/CHECK-YOUR-GUARD.md</code></a></p>
 </li><li class="method">
-  <span class="m-n">05</span>
-  <div><h3>NEAR's access key, counted apart</h3><p class="m-d">The agent's key may call only <code>pay</code>, so NEAR refuses some attacks before the guard's code runs. Those tested the key, so Arena reports them as "stopped by the access key" and leaves them out of the held count: 3 of 52 on a guard that pays in tokens.</p><p class="m-ev">Evidence: <a href="https://github.com/damli40/arena/blob/main/evidence/invoice-fixes-2026-11-12/checks/vault-a/summary.md" rel="noopener"><code>evidence/invoice-fixes-2026-11-12/checks/vault-a/summary.md</code></a></p></div>
+  <h3>NEAR's access key, counted apart</h3><p class="m-d">The agent's key may call only <code>pay</code>, so NEAR refuses some attacks before the guard's code runs. Those tested the key, so Arena reports them as "stopped by the access key" and leaves them out of the held count: 3 of 52 on a guard that pays in tokens.</p><p class="m-ev">Evidence: <a href="https://github.com/damli40/arena/blob/main/evidence/invoice-fixes-2026-11-12/checks/vault-a/summary.md" rel="noopener"><code>evidence/invoice-fixes-2026-11-12/checks/vault-a/summary.md</code></a></p>
 </li><li class="method">
-  <span class="m-n">06</span>
-  <div><h3>Proofs on top of tests</h3><p class="m-d">For the money rules that matter most (no double pay, payee list, per-payment cap, approval threshold, daily budget), Arena also checks every case up to a bound, and proves the double-pay fix on a model of the guard for any number of calls. On four other teams' guards the checker caught 64 of 64 planted flaws.</p><p class="m-ev">Evidence: <a href="https://github.com/damli40/arena/blob/main/evidence/proofs-all-2026-11-11.md" rel="noopener"><code>evidence/proofs-all-2026-11-11.md</code></a>, <a href="https://github.com/damli40/arena/blob/main/proofs/properties/README.md" rel="noopener"><code>proofs/properties/README.md</code></a></p></div>
+  <h3>Proofs on top of tests</h3><p class="m-d">For the money rules that matter most (no double pay, payee list, per-payment cap, approval threshold, daily budget), Arena also checks every case up to a bound, and proves the double-pay fix on a model of the guard for any number of calls. On four other teams' guards the checker caught 64 of 64 planted flaws.</p><p class="m-ev">Evidence: <a href="https://github.com/damli40/arena/blob/main/evidence/proofs-all-2026-11-11.md" rel="noopener"><code>evidence/proofs-all-2026-11-11.md</code></a>, <a href="https://github.com/damli40/arena/blob/main/proofs/properties/README.md" rel="noopener"><code>proofs/properties/README.md</code></a></p>
 </li><li class="method">
-  <span class="m-n">07</span>
-  <div><h3>Results on NEAR testnet</h3><p class="m-d">Arena saves results on NEAR testnet. The <a href="lookup.html">lookup page</a> reads which code a guard runs and in which mode, then shows Arena's result for that exact code, so an agent can check a guard before it trusts it with money.</p><p class="m-ev">Evidence: <a href="https://github.com/damli40/arena/blob/main/docs/CHECK-BEFORE-YOU-PAY.md" rel="noopener"><code>docs/CHECK-BEFORE-YOU-PAY.md</code></a></p></div>
+  <h3>Results on NEAR testnet</h3><p class="m-d">Arena saves results on NEAR testnet. The <a href="lookup.html">lookup page</a> reads which code a guard runs and in which mode, then shows Arena's result for that exact code, so an agent can check a guard before it trusts it with money.</p><p class="m-ev">Evidence: <a href="https://github.com/damli40/arena/blob/main/docs/CHECK-BEFORE-YOU-PAY.md" rel="noopener"><code>docs/CHECK-BEFORE-YOU-PAY.md</code></a></p>
 </li></ol>
 </section>
 
@@ -431,6 +483,20 @@ figure.term figcaption{font-size:13px;color:var(--muted);margin-top:10px}
     <p class="small">Each ran 52 attacks. NEAR's access key stopped 3 before the guard's code ran, so 49 count. From <a href="https://github.com/damli40/arena/tree/main/evidence/invoice-fixes-2026-11-12/checks" rel="noopener"><code>evidence/invoice-fixes-2026-11-12/checks/</code></a>.</p>
     <div class="intent"><div class="n">2450</div><div class="k">tokens the owner did not mean to pay, on Arena's reference guard</div>
       <p>The guard kept every rule and the owner still lost money. 15 prompt-injection attacks carry a written owner intent. In them, a scripted agent that obeys every injection paid payees on the owner's list for bills the owner never meant to pay. The 2450 is the sum over all 15. Arena reports it on its own line and never adds it to broke. It comes from Arena's reference guard, not from any team.</p></div>
+  </div>
+
+  <div class="r-block">
+    <h3>An attacker that reads the guard first</h3>
+    <div class="aware">
+      <div>
+        <p>A language model on NEAR AI writes the email the paying agent reads, sees what the agent did, and tries again. In this mode it also reads the guard's rules and source before it writes, the way a real attacker could read a public contract. It never sees the owner's instructions. Arena scores each try from final chain balances.</p>
+        <p class="small">3 rounds of 3 tries per guard, local sandbox, 2026-11-13. On the direct-pay test guard the agent paid 40 tokens the owner never asked for, inside the guard's rules. Neither guard paid beyond its own rules. From <a href="https://github.com/damli40/arena/blob/main/ARENA.md#can-the-learning-attacker-read-the-guard-first" rel="noopener"><code>ARENA.md, FAQ</code></a>, <a href="https://github.com/damli40/arena/blob/main/evidence/injection-2026-11-13-adaptive-guard-aware-vault-a.md" rel="noopener"><code>evidence/injection-2026-11-13-adaptive-guard-aware-vault-a.md</code></a> and <a href="https://github.com/damli40/arena/blob/main/evidence/injection-2026-11-13-adaptive-guard-aware-direct-fixture.md" rel="noopener"><code>evidence/injection-2026-11-13-adaptive-guard-aware-direct-fixture.md</code></a>.</p>
+      </div>
+      <div class="aware-n">
+        <div><div class="n">0 <small>of 9</small></div><div class="k">tries fooled the agent on Arena's reference guard</div></div>
+        <div><div class="n">1 <small>of 9</small></div><div class="k">tries fooled the agent on the direct-pay test guard</div></div>
+      </div>
+    </div>
   </div>
 
   <div class="r-block">
@@ -470,9 +536,9 @@ figure.term figcaption{font-size:13px;color:var(--muted);margin-top:10px}
     <li>Almost everything runs on a local NEAR sandbox. Only the planted flaw and its fix ran on NEAR testnet.</li>
     <li>21 of 54 attacks are unvalidated: they run on every guard, but nobody has shown yet that they catch the flaw they name. Each has a measured reason in <a href="https://github.com/damli40/arena/blob/main/evidence/MANIFEST.md" rel="noopener"><code>evidence/MANIFEST.md</code></a>: most need two planted flaws at once, ask only for valid payments, or are stopped by the agent's access key before the guard sees them.</li>
     <li>The proofs stop at their bounds. For the other teams' guards: 2 to 5 payment requests, one UTC midnight, and up to 2 owner actions. The proof for any number of calls covers a model of Arena's guard, matched to the real code up to 4 pay calls.</li>
-    <li>The prompt-injection attacks run scripted steps. No model reads the email in those runs.</li>
+    <li>The prompt-injection attacks in the library run scripted steps. No model reads the email in those runs.</li>
     <li>The hidden set rests on the operator's honesty. Nothing in hardware proves which attacks ran.</li>
-    <li>The hunter's daily schedule on GitHub has never run. We started every hunt so far by hand.</li>
+    <li>The hunter does not run on a schedule. Its GitHub workflow stays switched off, and we start each hunt by hand.</li>
   </ul>
   <p class="small">Every limit, with its evidence: <a href="https://github.com/damli40/arena/blob/main/README.md#limits" rel="noopener"><code>README.md, Limits</code></a>.</p>
 </section>
@@ -485,11 +551,11 @@ figure.term figcaption{font-size:13px;color:var(--muted);margin-top:10px}
 <pre class="cmd" tabindex="0" aria-label="Command">./arena check your_guard.wasm</pre>
       <ul class="paths">
         <li><a href="https://github.com/damli40/arena/blob/main/docs/CHECK-YOUR-GUARD.md" rel="noopener"><code>docs/CHECK-YOUR-GUARD.md</code></a><span>How to test your guard and read the report card.</span></li>
-        <li><a href="https://github.com/damli40/arena/blob/main/examples/workflows/arena-check.yml" rel="noopener"><code>examples/workflows/arena-check.yml</code></a><span>Runs the same check on every pull request. It has not run on GitHub yet.</span></li>
+        <li><a href="https://github.com/damli40/arena/blob/main/examples/workflows/arena-check.yml" rel="noopener"><code>examples/workflows/arena-check.yml</code></a><span>Runs the same check on every pull request. On 2026-11-13 it ran on GitHub's Linux runner and printed held 49/49 for Arena's reference guard, the same result as on macOS. <a href="https://github.com/damli40/arena-check-demo/actions/runs/43460356898" rel="noopener">See the public run</a>, or <a href="https://github.com/damli40/arena/blob/main/evidence/github-action-2026-11-13.md" rel="noopener"><code>evidence/github-action-2026-11-13.md</code></a>.</span></li>
         <li><a href="lookup.html"><b>Look up a guard</b></a><span>Type a guard's account on NEAR testnet and see what Arena tested for the code it runs.</span></li>
         <li><a href="board.html"><b>Results board</b></a><span>61 attacks that hunts have run against 6 guards: 51 from the library, 10 the hunter tried and did not keep.</span></li>
       </ul>
-      <div class="mini">Check our evidence</div>
+      <div class="eyebrow mini">Check our evidence</div>
 <pre tabindex="0" aria-label="Commands to re-run Arena's checks">./verify.sh fast   <span class="c"># about 8 min</span>
 proofs/run.sh      <span class="c"># about 25 min</span>
 tla/run.sh         <span class="c"># about 46 min</span></pre>
@@ -507,7 +573,7 @@ BROKE ai-02-triple-race-cap-breach: +200
 BROKE c261110-1-race-valid-double-plus-forbidd: +100
 BROKE p210408638-1-reentrancy-async-double-pay: +200
 BROKE scripted-02-race-double-pay: +100</pre></details>
-  <div class="mini term-phone-k">The recorded run, as text</div>
+  <div class="term-phone-k">The recorded run, as text</div>
   <pre class="term-phone" tabindex="0" aria-label="The recorded run, as text">$ ./arena check targets/leaky-control-v2/leaky_control.wasm
 arena: broke 5 of 51 (0 not applicable; rules claimed: all 4 (payees, cancel, expiry, daily_cap); 2450 tokens paid against the owner's intent)
 honest payment: settled
@@ -522,6 +588,7 @@ BROKE scripted-02-race-double-pay: +100</pre>
 </figure></div>
   </div>
 </section>
+
 
 </main>
 <footer class="site-foot"><div class="foot-in"><nav aria-label="Arena pages, again"><a href="index.html">Arena</a><a href="index.html#methods">How it works</a><a href="index.html#results">Results</a><a href="board.html">Board</a><a href="lookup.html">Look up a guard</a><a href="docs.html">How to use</a><a href="index.html#try">Try it</a></nav><p>Local sandbox results. Held means these attacks found nothing. Another attack could still break the guard.</p><p>Every number on this page is read from <code>evidence/</code> at build time. Fig 1 uses the anatomy kit (MIT, © 2026 Ryan).</p></div></footer>

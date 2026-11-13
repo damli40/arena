@@ -150,6 +150,42 @@ if (ref.status !== "held" || ref.broke !== 0 || leaky.status !== "broke" || outf
 const sameRun = [ref, leaky, outflow].every((c) => c.attacks === ref.attacks);
 if (!sameRun) throw new Error("the three reference checks ran different attack counts; the results table says they ran the same attacks");
 
+// ---------------------------------------------------------------- the hero picture
+// site/img/hero-check.webp is a still of the leaky-on-purpose guard's report from the demo film, cropped to the
+// terminal. The picture has its numbers baked in, so the build stops if the saved run no longer says the same.
+const HERO_IMG = { src: "img/hero-check.webp", w: 1021, h: 589, broke: 5, ran: 49, beyond: 700 };
+if (leaky.broke !== HERO_IMG.broke || leaky.ran !== HERO_IMG.ran || leaky.beyond !== HERO_IMG.beyond)
+  throw new Error(`${leaky.path} no longer says broke ${HERO_IMG.broke} of ${HERO_IMG.ran}, ${HERO_IMG.beyond} beyond policy; site/img/hero-check.webp shows that run, so replace the picture`);
+
+// ---------------------------------------------------------------- the pull-request check on GitHub
+// evidence/github-action-2026-11-13.md: the workflow ran once on GitHub's Linux runner, in a public demo repo,
+// on Arena's reference guard. The build checks that its result line is the same as the macOS check above.
+function githubCheck() {
+  const f = "github-action-2026-11-13.md";
+  const t = readFileSync(ev(f), "utf8");
+  const run = (t.match(/^\*\*Where:\*\*.*ubuntu-latest.*?(https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/actions\/runs\/\d+)/m) || [])[1];
+  const res = t.match(/^arena: held (\d+)\/(\d+) /m);
+  if (!run || !res || !/both jobs passed/.test(t)) throw new Error(`evidence/${f}: could not read the run link, the Linux runner or the held line`);
+  const held = Number(res[1]), ran = Number(res[2]);
+  if (held !== ref.held || ran !== ref.ran) throw new Error(`evidence/${f} says held ${held}/${ran} but the macOS check says ${ref.held}/${ref.ran}; the page says they match`);
+  return { run, held, ran, date: f.match(/\d{4}-\d\d-\d\d/)[0], file: `evidence/${f}` };
+}
+const gh = githubCheck();
+
+// ---------------------------------------------------------------- the learning attacker that reads the guard first
+// Two guard-aware runs of tools/injection/adaptive.py (--know-guard). Counts come from each file's Totals line.
+function guardAware(name) {
+  const f = `injection-2026-11-13-adaptive-guard-aware-${name}.md`;
+  const t = readFileSync(ev(f), "utf8");
+  const m = t.match(/^\*\*Totals:\*\* (\d+) rounds, (\d+) victim runs\..*?Agent fooled in (\d+) of (\d+)\. Money out beyond intent, summed over runs: (\d+)\. Guard broke its policy, summed over runs: (\d+)\./m);
+  if (!m || !/provider `nearai`/.test(t)) throw new Error(`evidence/${f}: could not read the Totals line or the NEAR AI provider`);
+  const r = { rounds: +m[1], runs: +m[2], fooled: +m[3], of: +m[4], intent: +m[5], policy: +m[6], file: `evidence/${f}`, date: f.match(/\d{4}-\d\d-\d\d/)[0] };
+  if (r.of !== r.runs) throw new Error(`evidence/${f}: fooled is counted over ${r.of} runs, not the ${r.runs} victim runs`);
+  return r;
+}
+const gaVault = guardAware("vault-a"), gaDirect = guardAware("direct-fixture");
+if (gaVault.rounds !== gaDirect.rounds || gaVault.runs !== gaDirect.runs) throw new Error("the two guard-aware runs differ in size; the page describes them as the same size");
+
 // ---------------------------------------------------------------- the other teams' proofs
 // The one results row of evidence/proofs-all-2026-11-11.md: claims, hold, hold for the contract's part,
 // counterexamples, bounds, planted flaws caught. Counts only: the file never says which guard is which.
@@ -227,7 +263,7 @@ const gifDate = String(gifRun.finished_utc || "").slice(0, 10);
 const gifHtml = existsSync(join(HERE, GIF)) ? `<figure class="term">
   <img class="term-gif" src="${GIF}"${gifDims ? ` width="${gifDims.w}" height="${gifDims.h}" style="aspect-ratio:${gifDims.w}/${gifDims.h}"` : ""} alt="A terminal running ./arena check on Arena's leaky-on-purpose guard. The attacks run one by one, then the report card says broke ${gifT.broke} of ${gifT.attacks}." decoding="async">
   <details class="term-text"><summary>Read the run as text</summary><pre tabindex="0" aria-label="The recorded run, as text">${esc(transcript)}</pre></details>
-  <div class="mini term-phone-k">The recorded run, as text</div>
+  <div class="term-phone-k">The recorded run, as text</div>
   <pre class="term-phone" tabindex="0" aria-label="The recorded run, as text">${esc(transcript)}</pre>
   <figcaption>Recorded ${esc(gifDate)} on <code>leaky-control-v2</code>, Arena's leaky-on-purpose guard. The library had ${gifT.attacks} attacks that day. From ${repoPath(GIF_RUN)}.</figcaption>
 </figure>` : "";
@@ -610,9 +646,10 @@ const METHODS = [
     d: `Arena saves results on NEAR testnet. The <a href="lookup.html">lookup page</a> reads which code a guard runs and in which mode, then shows Arena's result for that exact code, so an agent can check a guard before it trusts it with money.`,
     e: [repoPath("docs/CHECK-BEFORE-YOU-PAY.md")] },
 ];
-const methodsHtml = `<ol class="methods">${METHODS.map((m, i) => `<li class="method">
-  <span class="m-n">${String(i + 1).padStart(2, "0")}</span>
-  <div><h3>${esc(m.k)}</h3><p class="m-d">${m.d}</p>${m.extra || ""}${ev2(...m.e)}</div>
+// The first part (where attacks come from) is the one that makes the arena grow, so it gets the full width;
+// the other six sit two to a row on wide screens and stack on phones.
+const methodsHtml = `<ol class="methods">${METHODS.map((m, i) => `<li class="method${i === 0 ? " feature" : ""}">
+  <h3>${esc(m.k)}</h3><p class="m-d">${m.d}</p>${m.extra || ""}${ev2(...m.e)}
 </li>`).join("")}</ol>`;
 
 const refRow = (c, who, what) => `<tr><td><b>${esc(who)}</b><small><code>${esc(c.dir)}</code>, ${esc(what)}</small></td>
@@ -628,67 +665,88 @@ ${FONTS}
 <style>${k.ISO_CSS}
 ${themeCss()}
 body.iso{--anatomy-page:var(--bg);--anatomy-card:var(--card);--anatomy-text:var(--ink);--anatomy-mono:var(--mono)}
-h1{font:600 clamp(40px,6vw,68px)/1.02 var(--sans);letter-spacing:-.04em;margin:18px 0 20px;max-width:13ch;text-wrap:balance}
-h2{font:600 30px/1.15 var(--sans);letter-spacing:-.025em;margin:0 0 10px}
+body{font-size:16px}
+h1{font:600 clamp(40px,4vw,56px)/1.04 var(--sans);letter-spacing:-.04em;margin:0 0 20px;text-wrap:balance}
+h2{font:600 clamp(28px,3vw,36px)/1.1 var(--sans);letter-spacing:-.03em;margin:0 0 12px;text-wrap:balance}
 h3{font:600 18px/1.3 var(--sans);letter-spacing:-.015em;margin:0 0 6px}
-.sub{color:var(--muted);max-width:60ch;margin:0 0 28px}
-.hero{display:grid;grid-template-columns:1.2fr 1fr;gap:56px;align-items:center;padding:80px 0 72px}
-.lede{font-size:20px;line-height:1.45;letter-spacing:-.01em;max-width:30ch;margin:0 0 32px}
+.sub{color:var(--muted);max-width:62ch;margin:0 0 28px}
+/* ---- hero: words left, a real run right */
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:56px;align-items:center;padding:72px 0 64px}
+.lede{font-size:21px;line-height:1.45;letter-spacing:-.01em;max-width:28ch;margin:0 0 32px}
 .ctas{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .ctas .btn{display:inline-flex;align-items:center;gap:7px}.btn code{background:transparent;color:inherit;font-size:13px;padding:0}
-.btn.primary:hover{background:#111;color:#fff}
-@media (prefers-color-scheme:dark){.btn.primary:hover{background:#fff;color:#111}}
-.hero-note{font-size:13.5px;color:var(--muted);margin:14px 0 0;max-width:46ch}
-.today{border:1px solid var(--line);border-radius:var(--radius-card);background:var(--card);overflow:hidden}
-.today .eyebrow{display:block;padding:18px 22px 0}
-.today-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);margin-top:16px;border-top:1px solid var(--line)}
-.today-grid > div{background:var(--card);padding:18px 22px 20px}
+.hero-shot{margin:0}
+.hero-shot img{display:block;width:100%;height:auto;border-radius:var(--radius-card);border:1px solid var(--line);box-shadow:0 24px 48px -28px rgba(47,52,55,.45)}
+.hero-shot figcaption{font-size:13.5px;line-height:1.5;color:var(--muted);margin:12px 2px 0;max-width:60ch}
+.hero-shot figcaption b{color:var(--ink);font-weight:500}
+/* ---- the arena today: four counts on one line, no box */
+.today{padding:0 0 64px;border-top:0}
+.today .eyebrow{display:block;margin:0 0 14px}
+.today-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line)}
+.today-grid > div{padding:18px 20px 4px 0}
+.today-grid > div + div{padding-left:20px;border-left:1px solid var(--line)}
 .today .n{font:500 44px/1 var(--sans);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
-.today .k{font:500 11px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;margin-top:10px}
-.today .note{font-size:12.5px;line-height:1.45;color:var(--muted);margin-top:4px}
-section{padding:72px 0;border-top:1px solid var(--line)}
-.problem{display:grid;grid-template-columns:1fr 1.4fr;gap:48px;align-items:start}
-.problem p{font-size:17px;line-height:1.6;margin:0 0 14px;max-width:58ch}
-.problem p:last-child{margin:0}
-ol.methods{list-style:none;margin:28px 0 0;padding:0;border-top:1px solid var(--line)}
-li.method{display:grid;grid-template-columns:64px 1fr;gap:16px;padding:26px 4px;border-bottom:1px solid var(--line)}
-.m-n{font:500 13px/1.8 var(--mono);color:var(--muted)}
-.m-d{margin:0 0 10px;max-width:72ch}
+.today .k{font-weight:500;font-size:14.5px;margin-top:10px}
+.today .note{font-size:13px;line-height:1.45;color:var(--muted);margin-top:2px}
+section{padding:80px 0;border-top:1px solid var(--line)}
+/* ---- try it in 2 minutes: three rows, each with what you see and where to click */
+.quick{padding:64px 0}
+.quick h2{margin-bottom:6px}
+ol.qsteps{list-style:none;margin:28px 0 0;padding:0;border-top:1px solid var(--ink);counter-reset:q}
+ol.qsteps > li{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:8px 28px;align-items:start;padding:26px 0;border-bottom:1px solid var(--line);counter-increment:q}
+ol.qsteps > li::before{content:counter(q);font:500 28px/1 var(--sans);letter-spacing:-.03em;color:var(--muted);padding-top:2px}
+ol.qsteps h3{font-size:19px;margin:8px 0 6px}
+ol.qsteps p{margin:0;font-size:15px;max-width:68ch}
+ol.qsteps .go{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;padding-top:6px}
+.tag{display:inline-block;font:500 11.5px/1.5 var(--mono);letter-spacing:.02em;padding:2px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.tag.rec{border-style:dashed}
+.tag.live{color:var(--ink);border-color:var(--ink)}
+/* ---- the problem: said large, once */
+.statement p{font-size:clamp(20px,2.2vw,26px);line-height:1.4;letter-spacing:-.015em;margin:0 0 18px;max-width:34ch}
+.statement p + p{font-size:18px;line-height:1.55;letter-spacing:0;color:var(--muted);max-width:58ch;margin:0}
+/* ---- how Arena works: one wide part, then six two to a row */
+ol.methods{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 48px}
+li.method{padding:28px 0;border-top:1px solid var(--line);min-width:0}
+li.method.feature{grid-column:1/-1;background:var(--card);border:1px solid var(--line);border-radius:var(--radius-card);padding:28px 32px;margin:0 0 20px}
+li.method.feature h3{font-size:22px}
+li.method.feature .m-d{font-size:17px;max-width:70ch}
+.m-d{margin:0 0 10px;max-width:62ch}
 .m-ev{font-size:13px;color:var(--muted);margin:0}
 .m-ev a code{text-decoration:underline;text-underline-offset:2px;text-decoration-color:var(--line)}
-.gate{margin:16px 0 14px;max-width:640px}
-.bar{display:flex;height:12px;border-radius:4px;overflow:hidden;background:var(--code);gap:2px}
-.bar span{display:block;height:100%}
+.gate{margin:16px 0 14px}
+.bar{display:flex;height:10px;gap:3px}
+.bar span{display:block;height:100%;border-radius:2px}
 .v{background:var(--ink)}.p{background:var(--muted)}.u{background:transparent;box-shadow:inset 0 0 0 1px var(--muted)}
 .gate-k{list-style:none;display:flex;flex-wrap:wrap;gap:6px 20px;margin:10px 0 0;padding:0;font-size:13.5px}
 .gate-k li{display:flex;align-items:center;gap:7px}.gate-k b{font-weight:600;font-variant-numeric:tabular-nums}
 .gate-k i{display:inline-block;width:10px;height:10px;border-radius:2px}.gate-k .of{color:var(--muted)}
-.quick{padding:40px 0 56px;border-top:1px solid var(--line)}
-.quick h2{margin-bottom:6px}
-ol.qsteps{list-style:none;margin:20px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius-card);overflow:hidden;counter-reset:q}
-ol.qsteps li{background:var(--card);padding:20px 22px;counter-increment:q;min-width:0}
-ol.qsteps li::before{content:counter(q);display:block;font:500 12px/1 var(--mono);color:var(--muted);margin-bottom:10px}
-ol.qsteps h3{font-size:16.5px;margin:0 0 8px}
-ol.qsteps p{margin:0 0 12px;font-size:14px;max-width:46ch}
-ol.qsteps .go{display:flex;flex-wrap:wrap;gap:8px}
-ol.qsteps .tag{font:500 10.5px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
-.r-block{margin:40px 0 0}
-.r-block > h3{margin-bottom:4px}
-.r-block > .sub{margin-bottom:16px}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th{font:500 10.5px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 14px;border-bottom:1px solid var(--line)}
-td{padding:14px;vertical-align:top}
+/* ---- results */
+.r-block{margin:56px 0 0}
+.r-block:first-of-type{margin-top:32px}
+.r-block > h3{font-size:21px;margin-bottom:4px}
+.r-block > .sub{margin-bottom:18px}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th{font:500 12px/1.4 var(--sans);color:var(--muted);text-align:left;padding:12px 16px;border-bottom:1px solid var(--line)}
+td{padding:14px 16px;vertical-align:top}
 td small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
 tbody tr + tr td{border-top:1px solid var(--line)}
 td.num{font-variant-numeric:tabular-nums;white-space:nowrap}td.bad{color:var(--bad);font-weight:500}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 6px;overflow-x:auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-card);padding:4px 6px;overflow-x:auto}
 .small{font-size:13px;color:var(--muted);margin:12px 0 0}
-.intent{margin:16px 0 0;padding:20px 24px;border:1px solid var(--line);border-radius:12px;background:var(--card);display:grid;grid-template-columns:auto 1fr;gap:6px 24px;align-items:baseline}
+.intent{margin:16px 0 0;padding:22px 26px;border:1px solid var(--line);border-radius:var(--radius-card);background:var(--card);display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 24px;align-items:baseline}
 .intent .n{font:500 40px/1 var(--sans);letter-spacing:-.04em;color:var(--bad);font-variant-numeric:tabular-nums;grid-row:1/3}
-.intent .k{font:500 11px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.intent .k{font-weight:500}
 .intent p{margin:0;font-size:14px;color:var(--muted);max-width:70ch}
+.aware{margin-top:14px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:40px;align-items:start}
+.aware p{margin:0 0 12px;max-width:60ch}
+.aware-n{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line)}
+.aware-n > div{padding:16px 16px 0 0}
+.aware-n > div + div{padding-left:16px;border-left:1px solid var(--line)}
+.aware-n .n{font:500 40px/1 var(--sans);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.aware-n .n small{font-size:18px;color:var(--muted);letter-spacing:-.01em}
+.aware-n .k{font-size:13.5px;color:var(--muted);margin-top:8px}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
-.tabs button{font:500 13px/1.2 var(--sans);color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:10px 14px;cursor:pointer;text-align:left}
+.tabs button{font:500 13px/1.2 var(--sans);color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:var(--radius-btn);padding:10px 14px;cursor:pointer;text-align:left;transition:transform .2s cubic-bezier(.16,1,.3,1)}
 .tabs button small{display:block;font:11px/1.3 var(--mono);color:var(--muted);margin-top:3px}
 .tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .tabs button[aria-selected="true"] small{color:inherit;opacity:.7}
@@ -701,21 +759,24 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}td.bad{color:var(--b
 .callout-list{display:none}
 .meta{display:flex;flex-wrap:wrap;gap:4px 16px;font:12px/1.5 var(--mono);color:var(--muted);margin:12px 0 8px;overflow-wrap:anywhere}
 .meta a{color:var(--ink)}
-ol.log{list-style:none;margin:0;padding:14px 18px;min-height:168px;background:var(--card);border:1px solid var(--line);border-radius:8px;font:12.5px/1.75 var(--mono);counter-reset:s}
+ol.log{list-style:none;margin:0;padding:14px 18px;min-height:168px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius-card);font:12.5px/1.75 var(--mono);counter-reset:s}
 ol.log li{counter-increment:s;transition:opacity .45s cubic-bezier(.16,1,.3,1)}ol.log li.todo{opacity:.3}
 ol.log li::before{content:counter(s,decimal-leading-zero) "  ";color:var(--muted)}
 ol.log li.result{font-weight:500;margin-top:6px}ol.log li.result::before{content:"=   "}
-.teams{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.teams{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius-card);overflow:hidden}
 .teams > div{background:var(--card);padding:18px 20px}
 .teams .n{font:500 36px/1 var(--sans);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
-.teams .k{font:500 10.5px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+.teams .k{font-size:13.5px;font-weight:500;color:var(--muted);margin-top:8px}
 .teams .bad{background:var(--bad-bg)}.teams .bad .n,.teams .bad .k{color:var(--bad)}
 ul.notes{margin:14px 0 0;padding:0 0 0 18px;max-width:76ch}ul.notes li{margin:6px 0}
-ul.limits{padding:0;margin:0;list-style:none;max-width:80ch}ul.limits li{padding:12px 0}ul.limits li + li{border-top:1px solid var(--line)}
-ul.limits li:first-child{font:500 19px/1.45 var(--sans);letter-spacing:-.01em;padding-top:0}
-.run{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+/* ---- limits: the one that matters most, large; the rest two to a row */
+ul.limits{padding:0;margin:8px 0 0;list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 48px}
+ul.limits li{padding:16px 0;border-top:1px solid var(--line);max-width:60ch}
+ul.limits li:first-child{grid-column:1/-1;max-width:none;border-top:0;padding:0 0 22px;font:500 clamp(20px,2.2vw,26px)/1.35 var(--sans);letter-spacing:-.015em}
+/* ---- try it on your guard */
+.run{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:56px;align-items:start}
 /* code boxes: they wrap instead of running off the right edge, and keyboard users can reach them */
-pre{font:13px/1.75 var(--mono);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 18px;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;overflow-x:auto}
+pre{font:13px/1.75 var(--mono);background:var(--card);border:1px solid var(--line);border-radius:var(--radius-card);padding:14px 18px;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;overflow-x:auto}
 pre:focus-visible{outline:2px solid var(--muted);outline-offset:2px}
 pre.cmd{font-size:15px;margin:0 0 6px}
 pre .c{color:var(--muted)}
@@ -723,12 +784,14 @@ ul.paths{list-style:none;margin:24px 0 0;padding:0;border-top:1px solid var(--li
 ul.paths li{padding:14px 0;border-bottom:1px solid var(--line)}
 ul.paths b{display:block;font-weight:600}
 ul.paths span{display:block;color:var(--muted);font-size:14px}
-.mini{font:500 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:28px 0 10px}
+ul.paths span a{color:var(--ink)}
+.mini{margin:32px 0 10px}
 figure.term{margin:0}
 .term-gif{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:var(--radius-card)}
 .term-text{margin:10px 0 0}
 .term-text summary{cursor:pointer;font-size:13.5px;font-weight:500;padding:6px 0}
 .term-text pre,.term-phone{font-size:12px;line-height:1.65;margin-top:8px}.term-phone,.term-phone-k{display:none}
+.term-phone-k{font-size:13.5px;font-weight:500;margin:0 0 8px}
 figure.term figcaption{font-size:13px;color:var(--muted);margin-top:10px}
 .site-foot code{font-size:11.5px}
 @media (max-width:560px){
@@ -740,80 +803,105 @@ figure.term figcaption{font-size:13px;color:var(--muted);margin-top:10px}
   table.stack tbody tr + tr{border-top:1px solid var(--line)}
   table.stack td:first-child{margin-bottom:8px}
   table.stack td[data-label]{display:flex;justify-content:space-between;gap:12px;margin-top:4px;white-space:normal}
-  table.stack td[data-label]::before{content:attr(data-label);font:500 10.5px/1.9 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  table.stack td[data-label]::before{content:attr(data-label);font:500 12px/1.9 var(--sans);color:var(--muted)}
+}
+/* ---- motion: the hero settles in once; sections fade up as they arrive. All of it stops for reduced motion. */
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:no-preference){
+  .hero h1,.hero .lede,.hero .ctas,.hero-shot{animation:rise .8s cubic-bezier(.16,1,.3,1) both}
+  .hero .lede{animation-delay:.08s}.hero .ctas{animation-delay:.16s}.hero-shot{animation-delay:.24s}
 }
 .reveal-js .reveal{opacity:0;transform:translateY(12px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)}.reveal-js .reveal.on{opacity:1;transform:none}
 @media print{.reveal-js .reveal{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal-js .reveal{opacity:1;transform:none;transition:none}ol.log li{transition:none}}
+@media (prefers-color-scheme:dark){.hero-shot img{box-shadow:none}}
+@media (max-width:900px){
+  .hero{grid-template-columns:1fr;gap:36px;padding:48px 0 48px}
+  .today-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .today-grid > div:nth-child(3){padding-left:0;border-left:0}
+  .today-grid > div:nth-child(n+3){border-top:1px solid var(--line);margin-top:14px}
+  .aware{grid-template-columns:1fr;gap:20px}
+}
 @media (max-width:768px){.callouts{display:none}.callout-list{display:block;margin:10px 0 0;padding-left:20px;font-size:13px;color:var(--muted)}.callout-list b{color:var(--ink);font-weight:500}
-  .hero,.run,.problem{grid-template-columns:1fr;gap:28px}.hero{padding:48px 0 48px}.lede{font-size:18px}.today .n{font-size:34px}
-  section{padding:52px 0}.tabs button{flex:1 1 45%}li.method{grid-template-columns:36px 1fr;gap:10px;padding:22px 0}
-  ol.qsteps{grid-template-columns:1fr}
+  .run{grid-template-columns:1fr;gap:28px}.lede{font-size:19px}.today .n{font-size:34px}
+  section{padding:56px 0}.quick{padding:48px 0}.tabs button{flex:1 1 45%}
+  ol.methods,ul.limits{grid-template-columns:1fr}
+  li.method.feature{padding:22px 20px}
+  ol.qsteps > li{grid-template-columns:32px minmax(0,1fr);padding:22px 0}
+  ol.qsteps > li::before{font-size:22px}
+  ol.qsteps .go{grid-column:2;justify-content:flex-start;padding-top:8px}
   .teams{grid-template-columns:1fr 1fr}.teams .n{font-size:30px}.intent{grid-template-columns:1fr}.intent .n{grid-row:auto}
   /* phones: the terminal recording's text is too small to read, so the page shows the same run as text */
-  .term-gif,.term-text{display:none}.term-phone,.term-phone-k{display:block}.term-phone-k{margin-top:0}}
-@media (max-width:400px){.today-grid > div{padding:16px 16px 18px}.today .eyebrow{padding:16px 16px 0}}
+  .term-gif,.term-text{display:none}.term-phone,.term-phone-k{display:block}}
+@media (max-width:420px){.today-grid > div{padding-right:10px}.today-grid > div + div{padding-left:12px}.today-grid > div:nth-child(3){padding-left:0}.hero .btn.primary code{font-size:12px}}
 </style></head>
 <body class="iso" data-theme="light">
 ${topbar(null)}
 <main class="wrap">
 <header class="hero">
-  <div>
-    <div class="eyebrow">Arena · AI security on NEAR</div>
+  <div class="hero-copy">
     <h1>Can your guard survive the arena?</h1>
     <p class="lede">The arena is a constantly growing crash test for AI-controlled money.</p>
-    <div class="ctas"><a class="btn primary" href="${esc(README)}" rel="noopener">Run <code>./arena check your_guard.wasm</code></a><a class="btn ghost" href="board.html">See the board</a></div>
-    <p class="hero-note">One command runs Arena's attacks against your guard on a private NEAR sandbox on your machine, and writes a report card.</p>
+    <div class="ctas"><a class="btn primary" href="${esc(README)}" rel="noopener">Run <code>./arena check your_guard.wasm</code></a><a class="btn ghost" href="#quick">Try it in 2 minutes</a></div>
   </div>
-  <div class="today">
-    <span class="eyebrow">The arena today</span>
-    <div class="today-grid">
-      <div><div class="n">${lib.all}</div><div class="k">attacks in the library</div><div class="note">${lib.token} fit a guard that pays in tokens or NEAR</div></div>
-      <div><div class="n">${lib.validated}</div><div class="k">validated</div><div class="note">shown to catch the one flaw they name</div></div>
-      <div><div class="n">${hidden.count}</div><div class="k">hidden attacks</div><div class="note">kept off GitHub, published as a hash</div></div>
-      <div><div class="n">${hunts.runs}</div><div class="k">hunts so far</div><div class="note">${hunts.proposed} attacks proposed from papers and news</div></div>
-    </div>
-  </div>
+  <figure class="hero-shot">
+    <img src="${HERO_IMG.src}" width="${HERO_IMG.w}" height="${HERO_IMG.h}" fetchpriority="high" alt="Terminal output of arena check on Arena's leaky-on-purpose guard. The first line reads: arena: broke ${leaky.broke} of ${leaky.ran}. Further down: tokens paid beyond the guard's own rules: ${leaky.beyond}.">
+    <figcaption>One command runs every attack on a private NEAR sandbox on your machine and prints a report card. This one is Arena's leaky-on-purpose guard: <b>broke ${leaky.broke} of ${leaky.ran}</b>, ${leaky.beyond} tokens paid beyond its own rules. Recorded ${esc(leaky.date)}.</figcaption>
+  </figure>
 </header>
+
+<section class="today" aria-labelledby="today-h">
+  <span class="eyebrow" id="today-h">The arena today</span>
+  <div class="today-grid">
+    <div><div class="n">${lib.all}</div><div class="k">attacks in the library</div><div class="note">${lib.token} fit a guard that pays in tokens or NEAR</div></div>
+    <div><div class="n">${lib.validated}</div><div class="k">validated</div><div class="note">shown to catch the one flaw they name</div></div>
+    <div><div class="n">${hidden.count}</div><div class="k">hidden attacks</div><div class="note">kept off GitHub, published as a hash</div></div>
+    <div><div class="n">${hunts.runs}</div><div class="k">hunts so far</div><div class="note">${hunts.proposed} attacks proposed from papers and news</div></div>
+  </div>
+</section>
 
 <section id="quick" class="quick" aria-labelledby="quick-h">
   <h2 id="quick-h">Try it in 2 minutes</h2>
   <p class="sub">No login, no install. Three links.</p>
   <ol class="qsteps">
     <li>
-      <h3>See the double pay on the public explorer</h3>
-      <p class="tag">Recorded on NEAR testnet, ${esc(dp.date)}</p>
-      <p>Both transactions call <code>pay</code> for the same invoice, <code>${esc(dp.invoice)}</code>, in block ${dp.block}, and each moves ${dp.limit} test tokens from the guard to the receiver: ${dp.got} paid on one ${dp.limit}-token invoice. Trial ${dp.trialNo} of ${dp.trials} in ${repoPath("evidence/testnet-2026-11-11.md")}.</p>
+      <div>
+        <span class="tag rec">Recorded on NEAR testnet, ${esc(dp.date)}</span>
+        <h3>See the double pay on the public explorer</h3>
+        <p>Both transactions call <code>pay</code> for the same invoice, <code>${esc(dp.invoice)}</code>, in block ${dp.block}, and each moves ${dp.limit} test tokens from the guard to the receiver: ${dp.got} paid on one ${dp.limit}-token invoice. Trial ${dp.trialNo} of ${dp.trials} in ${repoPath("evidence/testnet-2026-11-11.md")}.</p>
+      </div>
       <div class="go"><a class="btn primary" href="${esc(tx(dp.a))}" rel="noopener">Call A on nearblocks</a><a class="btn ghost" href="${esc(tx(dp.b))}" rel="noopener">Call B</a></div>
     </li>
     <li>
-      <h3>Look up a guard live</h3>
-      <p class="tag">Live, reads NEAR testnet</p>
-      <p>Opens the lookup with this planted-flaw guard filled in. It reads testnet when you open it and answers <b>broke</b>. The "fixed guard" button next to it answers <b>held</b>.</p>
+      <div>
+        <span class="tag live">Live, reads NEAR testnet</span>
+        <h3>Look up a guard live</h3>
+        <p>Opens the lookup with this planted-flaw guard filled in. It reads testnet when you open it and answers <b>broke</b>. The "fixed guard" button next to it answers <b>held</b>.</p>
+      </div>
       <div class="go"><a class="btn primary" href="lookup.html?account=${esc(encodeURIComponent(dp.guard))}">Look up the planted-flaw guard</a></div>
     </li>
     <li>
-      <h3>See the board</h3>
-      <p class="tag">Recorded local sandbox runs, ${esc(boardRange)}</p>
-      <p>Every attack a hunt ran against each guard, on a local NEAR sandbox: ${boardAttacks} attacks, ${boardData.guards.length} guards (${boardGuards.length} of them can still be run). Not live.</p>
+      <div>
+        <span class="tag rec">Recorded local sandbox runs, ${esc(boardRange)}</span>
+        <h3>See the board</h3>
+        <p>Every attack a hunt ran against each guard, on a local NEAR sandbox: ${boardAttacks} attacks, ${boardData.guards.length} guards (${boardGuards.length} of them can still be run). Not live.</p>
+      </div>
       <div class="go"><a class="btn primary" href="board.html">See the board</a><a class="btn ghost" href="docs.html">How to use Arena</a></div>
     </li>
   </ol>
 </section>
 
 <section id="problem" class="reveal">
-  <div class="problem">
-    <h2>The problem</h2>
-    <div>
-      <p>AI agents will hold money and pay bills for people. A guard is the contract that limits what an agent can pay: which payees, how much a day, which bills.</p>
-      <p>Most teams test their guard with tests they wrote themselves. Those tests share the guard's blind spots. Arena attacks the guard with attacks its team did not write, and keeps adding more.</p>
-    </div>
+  <h2>The problem</h2>
+  <div class="statement">
+    <p>AI agents will hold money and pay bills for people. A guard is the contract that limits what an agent can pay: which payees, how much a day, which bills.</p>
+    <p>Most teams test their guard with tests they wrote themselves. Those tests share the guard's blind spots. Arena attacks the guard with attacks its team did not write, and keeps adding more.</p>
   </div>
 </section>
 
 <section id="methods" class="reveal">
   <h2>How Arena works</h2>
-  <p class="sub">Seven parts. Each names the file that backs it.</p>
+  <p class="sub">Where the attacks come from, which ones count, and how a guard is scored. Every part links the file that backs it.</p>
   ${methodsHtml}
 </section>
 
@@ -832,6 +920,20 @@ ${topbar(null)}
     <p class="small">Each ran ${ref.attacks} attacks. NEAR's access key stopped ${ref.key} before the guard's code ran, so ${ref.ran} count. From ${repoPath(CHECKS + "/")}.</p>
     ${ref.intent ? `<div class="intent"><div class="n">${ref.intent}</div><div class="k">tokens the owner did not mean to pay, on Arena's reference guard</div>
       <p>The guard kept every rule and the owner still lost money. ${ref.intentAttacks} prompt-injection attacks carry a written owner intent. In them, a scripted agent that obeys every injection paid payees on the owner's list for bills the owner never meant to pay. The ${ref.intent} is the sum over all ${ref.intentAttacks}. Arena reports it on its own line and never adds it to broke. It comes from Arena's reference guard, not from any team.</p></div>` : ""}
+  </div>
+
+  <div class="r-block">
+    <h3>An attacker that reads the guard first</h3>
+    <div class="aware">
+      <div>
+        <p>A language model on NEAR AI writes the email the paying agent reads, sees what the agent did, and tries again. In this mode it also reads the guard's rules and source before it writes, the way a real attacker could read a public contract. It never sees the owner's instructions. Arena scores each try from final chain balances.</p>
+        <p class="small">${gaVault.rounds} rounds of ${gaVault.runs / gaVault.rounds} tries per guard, local sandbox, ${esc(gaVault.date)}. ${gaDirect.intent ? `On the direct-pay test guard the agent paid ${gaDirect.intent} tokens the owner never asked for, inside the guard's rules. ` : ""}${gaVault.policy + gaDirect.policy === 0 ? "Neither guard paid beyond its own rules. " : ""}From ${repoPath("ARENA.md#can-the-learning-attacker-read-the-guard-first", "ARENA.md, FAQ")}, ${repoPath(gaVault.file)} and ${repoPath(gaDirect.file)}.</p>
+      </div>
+      <div class="aware-n">
+        <div><div class="n">${gaVault.fooled} <small>of ${gaVault.of}</small></div><div class="k">tries fooled the agent on Arena's reference guard</div></div>
+        <div><div class="n">${gaDirect.fooled} <small>of ${gaDirect.of}</small></div><div class="k">tries fooled the agent on the direct-pay test guard</div></div>
+      </div>
+    </div>
   </div>
 
   <div class="r-block">
@@ -871,9 +973,9 @@ ${topbar(null)}
     <li>Almost everything runs on a local NEAR sandbox. Only the planted flaw and its fix ran on NEAR testnet.</li>
     <li>${lib.unvalidated} of ${lib.all} attacks are unvalidated: they run on every guard, but nobody has shown yet that they catch the flaw they name. Each has a measured reason in ${repoPath("evidence/MANIFEST.md")}: most need two planted flaws at once, ask only for valid payments, or are stopped by the agent's access key before the guard sees them.</li>
     <li>The proofs stop at their bounds. For the other teams' guards: ${esc(teams.bounds)}. The proof for any number of calls covers a model of Arena's guard, matched to the real code up to 4 pay calls.</li>
-    <li>The prompt-injection attacks run scripted steps. No model reads the email in those runs.</li>
+    <li>The prompt-injection attacks in the library run scripted steps. No model reads the email in those runs.</li>
     <li>The hidden set rests on the operator's honesty. Nothing in hardware proves which attacks ran.</li>
-    <li>The hunter's daily schedule on GitHub has never run. We started every hunt so far by hand.</li>
+    <li>The hunter does not run on a schedule. Its GitHub workflow stays switched off, and we start each hunt by hand.</li>
   </ul>
   <p class="small">Every limit, with its evidence: ${repoPath("README.md#limits", "README.md, Limits")}.</p>
 </section>
@@ -886,11 +988,11 @@ ${topbar(null)}
 <pre class="cmd" tabindex="0" aria-label="Command">./arena check your_guard.wasm</pre>
       <ul class="paths">
         <li>${repoPath("docs/CHECK-YOUR-GUARD.md")}<span>How to test your guard and read the report card.</span></li>
-        <li>${repoPath("examples/workflows/arena-check.yml")}<span>Runs the same check on every pull request. It has not run on GitHub yet.</span></li>
+        <li>${repoPath("examples/workflows/arena-check.yml")}<span>Runs the same check on every pull request. On ${esc(gh.date)} it ran on GitHub's Linux runner and printed held ${gh.held}/${gh.ran} for Arena's reference guard, the same result as on macOS. <a href="${esc(gh.run)}" rel="noopener">See the public run</a>, or ${repoPath(gh.file)}.</span></li>
         <li><a href="lookup.html"><b>Look up a guard</b></a><span>Type a guard's account on NEAR testnet and see what Arena tested for the code it runs.</span></li>
         <li><a href="board.html"><b>Results board</b></a><span>${boardAttacks} attacks that hunts have run against ${boardGuards.length} guards: ${boardInLib} from the library, ${boardAttacks - boardInLib} the hunter tried and did not keep.</span></li>
       </ul>
-      <div class="mini">Check our evidence</div>
+      <div class="eyebrow mini">Check our evidence</div>
 <pre tabindex="0" aria-label="Commands to re-run Arena's checks">./verify.sh fast   <span class="c"># about 8 min</span>
 proofs/run.sh      <span class="c"># about 25 min</span>
 tla/run.sh         <span class="c"># about 46 min</span></pre>
@@ -899,6 +1001,7 @@ tla/run.sh         <span class="c"># about 46 min</span></pre>
     <div>${gifHtml}</div>
   </div>
 </section>
+
 
 </main>
 ${footer("Every number on this page is read from <code>evidence/</code> at build time. Fig 1 uses the anatomy kit (MIT, © 2026 Ryan).")}
@@ -914,6 +1017,6 @@ const { buildLookup } = await import("./build-lookup.mjs");
 buildLookup();
 console.log("wrote site/lookup.html and copied the lookup modules");
 const { buildDocs } = await import("./build-docs.mjs");
-const docsOut = buildDocs({ repoPath });
+const docsOut = buildDocs({ repoPath, gh });
 console.log(`wrote site/docs.html (${(docsOut.bytes / 1024).toFixed(0)} KB)`);
 console.log(`wrote site/index.html (${(page.length / 1024).toFixed(0)} KB): library ${lib.all} (${lib.validated} validated, ${lib.partial} partly, ${lib.unvalidated} unvalidated), hidden ${hidden.count}, ${hunts.runs} hunts; teams ${teams.hold}/${teams.claims}; board ${boardAttacks} (${boardInLib} in library)`);
