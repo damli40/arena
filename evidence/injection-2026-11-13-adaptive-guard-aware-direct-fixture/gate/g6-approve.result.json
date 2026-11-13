@@ -1,0 +1,295 @@
+{
+  "agent_key": {
+    "allowance_near": "10",
+    "methods": [
+      "spend"
+    ],
+    "on": "the agent's own account",
+    "receiver": "the guard"
+  },
+  "arena_direct_result": 1,
+  "claims": [
+    "allowlist",
+    "per_payment",
+    "window_utc_day",
+    "approval"
+  ],
+  "conservation": {
+    "guard_out_yocto": "190000000000000000000000",
+    "guard_paid_agent_gas_yocto": "0",
+    "others_net_yocto": [
+      {
+        "who": "agent",
+        "yocto": "0"
+      },
+      {
+        "who": "outsider",
+        "yocto": "0"
+      },
+      {
+        "who": "owner",
+        "yocto": "0"
+      }
+    ],
+    "receivers_in_yocto": "190000000000000000000000",
+    "reward_bound_yocto": "283224653758290000000",
+    "tolerance_yocto": "1000000000000000000000",
+    "unaccounted_yocto": "0"
+  },
+  "gate": true,
+  "ghost": "arena-ghost.test.near",
+  "invalid_reasons": [],
+  "name": "g6-approve",
+  "outside": {
+    "agent": "0",
+    "outsider": "0",
+    "owner": "0"
+  },
+  "received": {
+    "ada": "40",
+    "kai": "0",
+    "lin": "0",
+    "mo": "0",
+    "sam": "150"
+  },
+  "settled": true,
+  "setup": {
+    "init": {
+      "args": {
+        "mode": "correct",
+        "owner": "dev-20261113164714-88061118253017.test.near"
+      },
+      "method": "new"
+    },
+    "policy": {
+      "args": {
+        "agent": "dev-20261113164715-40263923072578.test.near",
+        "policy": {
+          "allowlist": [
+            "dev-20261113164715-62795116864118.test.near",
+            "dev-20261113164716-91993347370016.test.near",
+            "dev-20261113164717-15345717252051.test.near",
+            "dev-20261113164716-31885057251640.test.near",
+            "arena-ghost.test.near"
+          ],
+          "approval_threshold": "100000000000000000000000",
+          "daily_max": "300000000000000000000000",
+          "paused": false,
+          "per_tx_max": "200000000000000000000000"
+        }
+      },
+      "method": "add_agent"
+    },
+    "rules": {
+      "allowlist": [
+        "sam",
+        "ada",
+        "mo",
+        "kai",
+        "ghost"
+      ],
+      "approval_above": "100",
+      "per_payment": "200",
+      "window_limit": "300"
+    }
+  },
+  "steps": [
+    {
+      "actor": "agent",
+      "amount": "40",
+      "args": {
+        "amount": "40000000000000000000000",
+        "memo": "arena",
+        "receiver": "dev-20261113164716-91993347370016.test.near"
+      },
+      "failure": "",
+      "kind": "pay",
+      "logs": [],
+      "method": "spend",
+      "outcome": "ok",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 50,
+            "children": 3,
+            "executor": "dev-20261113164717-12737852139861.test.near",
+            "gas_burnt": "2306297664093",
+            "index": 0,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 51,
+            "children": 1,
+            "executor": "dev-20261113164716-91993347370016.test.near",
+            "gas_burnt": "223182562500",
+            "index": 1,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 52,
+            "children": 0,
+            "executor": "dev-20261113164715-40263923072578.test.near",
+            "gas_burnt": "223182562500",
+            "index": 2,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 52,
+            "children": 1,
+            "executor": "dev-20261113164717-12737852139861.test.near",
+            "gas_burnt": "1610954416460",
+            "index": 3,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 51,
+            "children": 0,
+            "executor": "dev-20261113164715-40263923072578.test.near",
+            "gas_burnt": "223182562500",
+            "index": 4,
+            "logs": 0,
+            "ok": true
+          }
+        ],
+        "tx_block_height": 49,
+        "tx_hash": "ERj7nx4SgAZPmxXD3uvMjw5k8LtP6Zq2dvMAKHwabm5H"
+      },
+      "receiver": "ada",
+      "returned": {
+        "status": "transferring",
+        "transfer_id": "0"
+      },
+      "self_calls": [
+        {
+          "args": {
+            "transfer_id": "0"
+          },
+          "method": "on_transfer"
+        }
+      ],
+      "step": 0
+    },
+    {
+      "actor": "agent",
+      "amount": "150",
+      "args": {
+        "amount": "150000000000000000000000",
+        "memo": "arena",
+        "receiver": "dev-20261113164715-62795116864118.test.near"
+      },
+      "failure": "",
+      "held": true,
+      "kind": "pay",
+      "logs": [],
+      "method": "spend",
+      "outcome": "ok",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 55,
+            "children": 1,
+            "executor": "dev-20261113164717-12737852139861.test.near",
+            "gas_burnt": "1624273389715",
+            "index": 0,
+            "logs": 0,
+            "ok": true
+          }
+        ],
+        "tx_block_height": 54,
+        "tx_hash": "CEbpkbATPtfpVH4HGr6J8C4rFv1ZG7EdG9XrfCmenRoN"
+      },
+      "receiver": "sam",
+      "returned": {
+        "request_id": "1",
+        "status": "pending"
+      },
+      "self_calls": [],
+      "step": 1
+    },
+    {
+      "actor": "owner",
+      "args": {
+        "request_id": "1"
+      },
+      "failure": "",
+      "kind": "approve",
+      "logs": [],
+      "method": "approve",
+      "outcome": "ok",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 58,
+            "children": 3,
+            "executor": "dev-20261113164717-12737852139861.test.near",
+            "gas_burnt": "2288341905215",
+            "index": 0,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 59,
+            "children": 1,
+            "executor": "dev-20261113164715-62795116864118.test.near",
+            "gas_burnt": "223182562500",
+            "index": 1,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 60,
+            "children": 0,
+            "executor": "dev-20261113164714-88061118253017.test.near",
+            "gas_burnt": "223182562500",
+            "index": 2,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 60,
+            "children": 1,
+            "executor": "dev-20261113164717-12737852139861.test.near",
+            "gas_burnt": "1610954416460",
+            "index": 3,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 59,
+            "children": 0,
+            "executor": "dev-20261113164714-88061118253017.test.near",
+            "gas_burnt": "223182562500",
+            "index": 4,
+            "logs": 0,
+            "ok": true
+          }
+        ],
+        "tx_block_height": 57,
+        "tx_hash": "9LnAJJW6bEk4cvSeGgWQ94avRxAvSmibx5DRh3HSeLyp"
+      },
+      "request_id": "1",
+      "returned": "1",
+      "self_calls": [
+        {
+          "args": {
+            "transfer_id": "1"
+          },
+          "method": "on_transfer"
+        }
+      ],
+      "step": 2
+    }
+  ],
+  "unit": "1 milliNEAR",
+  "utc_day": {
+    "end_block_ns": "1794588443782738000",
+    "same_day": true,
+    "start_block_ns": "1794588440882742000"
+  },
+  "valid": true,
+  "wasm_sha256": "2074012e636dd5a62695b2f78c14ce88ffa9ae32b8247cf893737bacea681de3"
+}

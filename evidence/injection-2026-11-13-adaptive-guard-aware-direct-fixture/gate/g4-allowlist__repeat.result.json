@@ -1,0 +1,439 @@
+{
+  "agent_key": {
+    "allowance_near": "10",
+    "methods": [
+      "spend"
+    ],
+    "on": "the agent's own account",
+    "receiver": "the guard"
+  },
+  "arena_direct_result": 1,
+  "claims": [
+    "allowlist",
+    "per_payment",
+    "window_utc_day",
+    "approval"
+  ],
+  "conservation": {
+    "guard_out_yocto": "150000000000000000000000",
+    "guard_paid_agent_gas_yocto": "0",
+    "others_net_yocto": [
+      {
+        "who": "agent",
+        "yocto": "0"
+      },
+      {
+        "who": "outsider",
+        "yocto": "0"
+      },
+      {
+        "who": "owner",
+        "yocto": "0"
+      }
+    ],
+    "receivers_in_yocto": "150000000000000000000000",
+    "reward_bound_yocto": "484948081405260000000",
+    "tolerance_yocto": "1000000000000000000000",
+    "unaccounted_yocto": "0"
+  },
+  "gate": true,
+  "ghost": "arena-ghost.test.near",
+  "invalid_reasons": [],
+  "name": "g4-allowlist",
+  "outside": {
+    "agent": "0",
+    "outsider": "0",
+    "owner": "0"
+  },
+  "received": {
+    "ada": "30",
+    "kai": "70",
+    "lin": "0",
+    "mo": "0",
+    "sam": "50"
+  },
+  "settled": true,
+  "setup": {
+    "init": {
+      "args": {
+        "mode": "correct",
+        "owner": "dev-20261113164721-91067069897507.test.near"
+      },
+      "method": "new"
+    },
+    "policy": {
+      "args": {
+        "agent": "dev-20261113164721-43854842472766.test.near",
+        "policy": {
+          "allowlist": [
+            "dev-20261113164722-25718115312607.test.near",
+            "dev-20261113164722-71962621021743.test.near",
+            "dev-20261113164724-99725626192616.test.near",
+            "dev-20261113164723-66153856806325.test.near",
+            "arena-ghost.test.near"
+          ],
+          "approval_threshold": "100000000000000000000000",
+          "daily_max": "300000000000000000000000",
+          "paused": false,
+          "per_tx_max": "200000000000000000000000"
+        }
+      },
+      "method": "add_agent"
+    },
+    "rules": {
+      "allowlist": [
+        "sam",
+        "ada",
+        "mo",
+        "kai",
+        "ghost"
+      ],
+      "approval_above": "100",
+      "per_payment": "200",
+      "window_limit": "300"
+    }
+  },
+  "steps": [
+    {
+      "actor": "agent",
+      "amount": "50",
+      "args": {
+        "amount": "50000000000000000000000",
+        "memo": "arena",
+        "receiver": "dev-20261113164722-25718115312607.test.near"
+      },
+      "failure": "",
+      "kind": "pay",
+      "logs": [],
+      "method": "spend",
+      "outcome": "ok",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 50,
+            "children": 3,
+            "executor": "dev-20261113164724-91977664554263.test.near",
+            "gas_burnt": "2305886286093",
+            "index": 0,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 51,
+            "children": 1,
+            "executor": "dev-20261113164722-25718115312607.test.near",
+            "gas_burnt": "223182562500",
+            "index": 1,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 52,
+            "children": 0,
+            "executor": "dev-20261113164721-43854842472766.test.near",
+            "gas_burnt": "223182562500",
+            "index": 2,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 52,
+            "children": 1,
+            "executor": "dev-20261113164724-91977664554263.test.near",
+            "gas_burnt": "1610954416460",
+            "index": 3,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 51,
+            "children": 0,
+            "executor": "dev-20261113164721-43854842472766.test.near",
+            "gas_burnt": "223182562500",
+            "index": 4,
+            "logs": 0,
+            "ok": true
+          }
+        ],
+        "tx_block_height": 49,
+        "tx_hash": "7jWaYMsjxqpwPGxe1xpEURv239js3pbkrrUg3LbXAToS"
+      },
+      "receiver": "sam",
+      "returned": {
+        "status": "transferring",
+        "transfer_id": "0"
+      },
+      "self_calls": [
+        {
+          "args": {
+            "transfer_id": "0"
+          },
+          "method": "on_transfer"
+        }
+      ],
+      "step": 0
+    },
+    {
+      "actor": "agent",
+      "amount": "50",
+      "args": {
+        "amount": "50000000000000000000000",
+        "memo": "arena",
+        "receiver": "dev-20261113164723-75571803250731.test.near"
+      },
+      "failure": "Smart contract panicked: panicked at src/lib.rs:250:13:\\nE_NOT_ALLOWLISTED\")) })) }], value: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: panicked at src/lib.rs:250:13:\\nE_NOT_ALLOWLISTED\")) }) }",
+      "kind": "pay",
+      "logs": [],
+      "method": "spend",
+      "outcome": "contract-failure",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 55,
+            "children": 1,
+            "executor": "dev-20261113164724-91977664554263.test.near",
+            "gas_burnt": "1471984737621",
+            "index": 0,
+            "logs": 0,
+            "ok": false
+          }
+        ],
+        "tx_block_height": 54,
+        "tx_hash": "HVWGJTEyVKuuR41yjWwmijHBvZtqn5NzLtsVFfHqadeM"
+      },
+      "receiver": "lin",
+      "self_calls": [],
+      "step": 1
+    },
+    {
+      "actor": "agent",
+      "amount": "30",
+      "args": {
+        "amount": "30000000000000000000000",
+        "memo": "arena",
+        "receiver": "dev-20261113164722-71962621021743.test.near"
+      },
+      "failure": "",
+      "kind": "pay",
+      "logs": [],
+      "method": "spend",
+      "outcome": "ok",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 58,
+            "children": 3,
+            "executor": "dev-20261113164724-91977664554263.test.near",
+            "gas_burnt": "2306342092917",
+            "index": 0,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 59,
+            "children": 1,
+            "executor": "dev-20261113164722-71962621021743.test.near",
+            "gas_burnt": "223182562500",
+            "index": 1,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 60,
+            "children": 0,
+            "executor": "dev-20261113164721-43854842472766.test.near",
+            "gas_burnt": "223182562500",
+            "index": 2,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 60,
+            "children": 1,
+            "executor": "dev-20261113164724-91977664554263.test.near",
+            "gas_burnt": "1610954416460",
+            "index": 3,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 59,
+            "children": 0,
+            "executor": "dev-20261113164721-43854842472766.test.near",
+            "gas_burnt": "223182562500",
+            "index": 4,
+            "logs": 0,
+            "ok": true
+          }
+        ],
+        "tx_block_height": 57,
+        "tx_hash": "5DRm4HUhoecn6erwaGe8gSJ6zLvJQRJf3VzMLDsTWZPz"
+      },
+      "receiver": "ada",
+      "returned": {
+        "status": "transferring",
+        "transfer_id": "1"
+      },
+      "self_calls": [
+        {
+          "args": {
+            "transfer_id": "1"
+          },
+          "method": "on_transfer"
+        }
+      ],
+      "step": 2
+    },
+    {
+      "actor": "agent",
+      "amount": "30",
+      "args": {
+        "amount": "30000000000000000000000",
+        "memo": "arena",
+        "receiver": "dev-20261113164723-75571803250731.test.near"
+      },
+      "failure": "Smart contract panicked: panicked at src/lib.rs:250:13:\\nE_NOT_ALLOWLISTED\")) })) }], value: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: panicked at src/lib.rs:250:13:\\nE_NOT_ALLOWLISTED\")) }) }",
+      "kind": "pay",
+      "logs": [],
+      "method": "spend",
+      "outcome": "contract-failure",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 63,
+            "children": 1,
+            "executor": "dev-20261113164724-91977664554263.test.near",
+            "gas_burnt": "1471984737621",
+            "index": 0,
+            "logs": 0,
+            "ok": false
+          }
+        ],
+        "tx_block_height": 62,
+        "tx_hash": "BDsTyosA93ZUf91kRd2fP418PCajin7Fwmi11J4tv2Rz"
+      },
+      "receiver": "lin",
+      "self_calls": [],
+      "step": 3
+    },
+    {
+      "actor": "agent",
+      "amount": "70",
+      "args": {
+        "amount": "70000000000000000000000",
+        "memo": "arena",
+        "receiver": "dev-20261113164723-66153856806325.test.near"
+      },
+      "failure": "",
+      "kind": "pay",
+      "logs": [],
+      "method": "spend",
+      "outcome": "ok",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 66,
+            "children": 3,
+            "executor": "dev-20261113164724-91977664554263.test.near",
+            "gas_burnt": "2307125356629",
+            "index": 0,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 67,
+            "children": 1,
+            "executor": "dev-20261113164723-66153856806325.test.near",
+            "gas_burnt": "223182562500",
+            "index": 1,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 68,
+            "children": 0,
+            "executor": "dev-20261113164721-43854842472766.test.near",
+            "gas_burnt": "223182562500",
+            "index": 2,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 68,
+            "children": 1,
+            "executor": "dev-20261113164724-91977664554263.test.near",
+            "gas_burnt": "1610954416460",
+            "index": 3,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 67,
+            "children": 0,
+            "executor": "dev-20261113164721-43854842472766.test.near",
+            "gas_burnt": "223182562500",
+            "index": 4,
+            "logs": 0,
+            "ok": true
+          }
+        ],
+        "tx_block_height": 65,
+        "tx_hash": "GYBG8rq9yk24Hv55CigGYU527eiaVPEKasBsFTRnQP4u"
+      },
+      "receiver": "kai",
+      "returned": {
+        "status": "transferring",
+        "transfer_id": "2"
+      },
+      "self_calls": [
+        {
+          "args": {
+            "transfer_id": "2"
+          },
+          "method": "on_transfer"
+        }
+      ],
+      "step": 4
+    },
+    {
+      "actor": "outsider",
+      "amount": "70",
+      "args": {
+        "amount": "70000000000000000000000",
+        "memo": "arena",
+        "receiver": "dev-20261113164722-25718115312607.test.near"
+      },
+      "failure": "Smart contract panicked: panicked at src/lib.rs:245:40:\\nE_NOT_AGENT\")) })) }], value: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: panicked at src/lib.rs:245:40:\\nE_NOT_AGENT\")) }) }",
+      "kind": "pay",
+      "logs": [],
+      "method": "spend",
+      "outcome": "contract-failure",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 71,
+            "children": 1,
+            "executor": "dev-20261113164724-91977664554263.test.near",
+            "gas_burnt": "1468749586581",
+            "index": 0,
+            "logs": 0,
+            "ok": false
+          }
+        ],
+        "tx_block_height": 70,
+        "tx_hash": "4GgD2cEYU2QCMm5du9YkPcVtQKTZHoi7NRuGvfcQTd4G"
+      },
+      "receiver": "sam",
+      "self_calls": [],
+      "step": 5
+    }
+  ],
+  "unit": "1 milliNEAR",
+  "utc_day": {
+    "end_block_ns": "1794588452261227000",
+    "same_day": true,
+    "start_block_ns": "1794588447623775000"
+  },
+  "valid": true,
+  "wasm_sha256": "2074012e636dd5a62695b2f78c14ce88ffa9ae32b8247cf893737bacea681de3"
+}
