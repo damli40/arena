@@ -24,7 +24,9 @@ const report = (dir) => {
 const LOOKUP_EXAMPLE = "r11cfx4-guard.arena-race-funder-1111.testnet"; // the kept fixed guard (evidence/testnet-2026-11-11.md)
 const RECEIPTS = "receipts.dev-20261109195231-98743803426969.testnet"; // docs/ON-CHAIN.md
 
-export function buildDocs({ repoPath }) {
+export function buildDocs({ repoPath, gh }) {
+  // gh: the pull-request check's one run on GitHub's Linux runner, read and checked by site/build.mjs
+  // from evidence/github-action-2026-11-13.md (run link, held N/N, date).
   const held = report("vault-a");
   const broke = report("leaky-control-v2");
   const pre = (text, label) => `<pre tabindex="0" aria-label="${esc(label)}">${esc(text)}</pre>`;
@@ -54,7 +56,7 @@ export function buildDocs({ repoPath }) {
       cmd: "./arena check your_guard.wasm --config guard.json\n./arena check your_guard.wasm --pays-in native\n./arena check your_guard.wasm --config guard.json --mapping mapping.json",
       see: "The same report. Use <code>\"features\"</code> for rules your guard does not have (payee list, cancel, expiry, daily cap), <code>\"pays_in\": \"native\"</code> for plain NEAR, <code>\"pays_in\": \"intents\"</code> for a guard that pays into NEAR Intents, <code>\"signs_via\": \"chain-signatures\"</code> for a guard that asks Chain Signatures to sign, and a mapping file when your method names differ. Intents withdrawals and Chain Signatures are checked against Arena's local stand-ins: nothing is sent to another chain and nothing is really signed. A guard with no invoices, where the agent names the receiver, uses <code>python3 tools/check/direct_check.py --wasm your_guard.wasm --guard-config guard.json --out report-dir</code>." },
     { do: "Run the check on every pull request: copy " + repoPath("examples/workflows/arena-check.yml") + " into your repo's <code>.github/workflows/</code>, fill in the lines marked <code>&lt;- your ...</code>, and replace the <code>ARENA_OWNER/arena@ARENA_COMMIT</code> placeholders.",
-      see: "The badge and numbers in the job summary, and the report as a downloadable file. This workflow has not run on GitHub yet; only its script step was run, locally on macOS." },
+      see: `The badge and numbers in the job summary, and the report as a downloadable file. On ${esc(gh.date)} this workflow ran on GitHub's Linux runner and printed <code>held ${gh.held}/${gh.ran}</code> for Arena's reference guard, the same result as on macOS: <a href="${esc(gh.run)}" rel="noopener">the public run</a>, ${repoPath(gh.file)}.` },
     { do: "Replay one saved attack against your guard, with no model call.",
       cmd: "./run-arena.sh replay sequences-paper/<file>.json --wasm your_guard.wasm",
       see: "That attack's result against your guard." },
@@ -102,7 +104,6 @@ export function buildDocs({ repoPath }) {
   const body = `${topbar("docs")}
 <main class="wrap">
 <header class="intro">
-  <div class="eyebrow">Arena · documentation</div>
   <h1>How to use Arena</h1>
   <p class="lede">Arena runs a library of attacks against a payment guard (a NEAR contract that limits what an AI agent can pay) and reports, from final balances, whether the guard held or broke. Pick the part that fits you. Each step says what to do and what you should see.</p>
   <nav class="jump" aria-label="Sections"><a href="#builders">I build a guard</a><a href="#payers">My agent or wallet pays a guard</a><a href="#authors">I want to add an attack</a><a href="#verify">I want to check Arena's results</a></nav>
@@ -114,7 +115,7 @@ export function buildDocs({ repoPath }) {
       <li><b>The NEAR sandbox</b>: nothing to install. The scripts download it on the first run, so that run needs the internet.</li>
       <li><b>Python 3</b>, for <code>arena check</code> and the tool tests. <b>Node 18 or newer</b>, for the lookup tool.</li>
       <li>For the proofs only: Kani, z3, and Java 17 or newer (setup in ${repoPath("README.md#check-it-yourself", "README.md")}).</li>
-      <li><b>Tested on macOS (Apple silicon).</b> Nothing has been run on Linux or on GitHub's runners yet.</li>
+      <li><b>Tested on macOS (Apple silicon).</b> The pull-request check also ran once on GitHub's Linux runner, with the same result. The proofs, <code>./verify.sh</code> and the hunter have not been run on Linux.</li>
       <li><b>Time:</b> about 4 minutes for one <code>arena check</code> after the first build; about 8 minutes for <code>./verify.sh fast</code> on a fresh copy.</li>
     </ul>
   </div>
@@ -141,14 +142,15 @@ ${FAVICON}
 <meta name="description" content="How to use Arena: test your payment guard, check a guard before paying it, or add an attack. Each step gives the command and what it prints.">
 ${FONTS}
 <style>${themeCss()}
-h1{font:600 clamp(34px,5vw,52px)/1.05 var(--sans);letter-spacing:-.035em;margin:16px 0 16px}
+h1{font:600 clamp(34px,5vw,52px)/1.05 var(--sans);letter-spacing:-.035em;margin:0 0 16px}
 h2{font:600 26px/1.2 var(--sans);letter-spacing:-.02em;margin:0 0 8px}
-.intro{padding:56px 0 40px}
+.intro{padding:64px 0 48px}
 .lede{font-size:18px;line-height:1.5;max-width:62ch;margin:0 0 22px}
 .sub{color:var(--muted);max-width:66ch;margin:0 0 22px}
 .jump{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 28px}
 .jump a{font:500 13.5px/1 var(--sans);text-decoration:none;border:1px solid var(--line);background:var(--card);border-radius:var(--radius-btn);padding:11px 14px}
 .jump a:hover{background:var(--code)}
+@media (prefers-reduced-motion:no-preference){.jump a{transition:background-color .2s}}
 .needs{border:1px solid var(--line);border-radius:var(--radius-card);background:var(--card);padding:20px 24px}
 .needs h2{font-size:18px}
 .needs ul,.plain{margin:0;padding:0 0 0 18px;max-width:80ch}.needs li,.plain li{margin:6px 0}
@@ -157,9 +159,9 @@ ol.steps{list-style:none;margin:0;padding:0;counter-reset:s;display:grid;gap:14p
 li.step{counter-increment:s;display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius-card);overflow:hidden}
 li.step > div{background:var(--card);padding:16px 20px;min-width:0}
 li.step p{margin:0 0 10px;max-width:64ch}
-li.step .k{display:block;font:500 10.5px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+li.step .k{display:block;font:500 12.5px/1.4 var(--sans);color:var(--muted);margin-bottom:6px}
 li.step .do .k::before{content:counter(s) ". "}
-pre{font:12.5px/1.7 var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+pre{font:12.5px/1.7 var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:var(--radius-card);padding:10px 14px;margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
 pre:focus-visible{outline:2px solid var(--muted);outline-offset:2px}
 .more{font-size:13.5px;color:var(--muted);margin:18px 0 0}
 .site-foot code{font-size:11.5px}

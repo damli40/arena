@@ -20,6 +20,9 @@
   --mono:"Geist Mono","SF Mono","JetBrains Mono",monospace;
   --radius-card:12px;--radius-btn:6px;--page:1080px
 }
+/* One radius system for every page: boxes (cards, figures, code blocks, logs) use --radius-card,
+   things you press (buttons, tabs, nav links, inputs) use --radius-btn, status words are full pills,
+   inline code is 4px. Nothing else. */
 /* ---- tokens (dark) */
 @media (prefers-color-scheme:dark){:root{
   --bg:#191918;--card:#202020;--ink:#E6E5E1;--muted:#9B9A97;--line:rgba(255,255,255,.08);
@@ -35,10 +38,13 @@ a:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{o
 code{font:12px var(--mono);background:var(--code);color:var(--ink);padding:1px 5px;border-radius:4px;overflow-wrap:anywhere}
 .wrap{width:min(var(--page),100% - 32px);margin:0 auto}
 .eyebrow{font:500 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.btn{font:500 14px/1 var(--sans);padding:12px 18px;border-radius:var(--radius-btn);text-decoration:none;white-space:nowrap;transition:transform .2s cubic-bezier(.16,1,.3,1)}
+.btn{font:500 14px/1 var(--sans);padding:12px 18px;border-radius:var(--radius-btn);text-decoration:none;white-space:nowrap;border:1px solid transparent;transition:transform .2s cubic-bezier(.16,1,.3,1),background-color .2s,border-color .2s,opacity .2s}
+.btn:hover{transform:translateY(-1px)}
 .btn:active{transform:scale(.98)}
 .btn.primary{background:var(--ink);color:var(--bg)}
-.btn.ghost{color:var(--ink);border:1px solid var(--line);background:var(--card)}
+.btn.primary:hover{opacity:.88}
+.btn.ghost{color:var(--ink);border-color:var(--line);background:var(--card)}
+.btn.ghost:hover{border-color:var(--muted)}
 
 /* ---- status words, shared by the board, the lookup and the sample report.
    broke = the one red accent. held = quiet and neutral (held is not "safe").
@@ -50,6 +56,8 @@ code{font:12px var(--mono);background:var(--code);color:var(--ink);padding:1px 5
 
 /* ---- top bar */
 .topbar{border-bottom:1px solid var(--line);background:var(--bg)}
+/* wide screens: the bar stays at the top while you scroll (one line, 56px). Phones: it scrolls away, so it never covers the page. */
+@media (min-width:641px){.topbar{position:sticky;top:0;z-index:10}html{scroll-padding-top:72px}}
 .topbar-in{width:min(var(--page),100% - 32px);margin:0 auto;display:flex;align-items:center;gap:8px 28px;min-height:56px;flex-wrap:wrap}
 .topbar .brand{font:600 17px/1 var(--sans);letter-spacing:-.02em;text-decoration:none;color:var(--ink);padding:6px 0;display:inline-flex;align-items:center;gap:8px}
 .brand-mark{width:20px;height:20px;flex:none;display:block}
@@ -82,16 +90,17 @@ code{font:12px var(--mono);background:var(--code);color:var(--ink);padding:1px 5
 }
 @media (pointer:coarse) and (max-width:640px){.topbar nav a{padding:8px}}
 
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn,.btn:hover,.btn:active{transition:none;transform:none}}
 
-h1{font:600 clamp(34px,5vw,52px)/1.05 var(--sans);letter-spacing:-.035em;margin:16px 0 16px}
+h1{font:600 clamp(34px,5vw,52px)/1.05 var(--sans);letter-spacing:-.035em;margin:0 0 16px}
 h2{font:600 26px/1.2 var(--sans);letter-spacing:-.02em;margin:0 0 8px}
-.intro{padding:56px 0 40px}
+.intro{padding:64px 0 48px}
 .lede{font-size:18px;line-height:1.5;max-width:62ch;margin:0 0 22px}
 .sub{color:var(--muted);max-width:66ch;margin:0 0 22px}
 .jump{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 28px}
 .jump a{font:500 13.5px/1 var(--sans);text-decoration:none;border:1px solid var(--line);background:var(--card);border-radius:var(--radius-btn);padding:11px 14px}
 .jump a:hover{background:var(--code)}
+@media (prefers-reduced-motion:no-preference){.jump a{transition:background-color .2s}}
 .needs{border:1px solid var(--line);border-radius:var(--radius-card);background:var(--card);padding:20px 24px}
 .needs h2{font-size:18px}
 .needs ul,.plain{margin:0;padding:0 0 0 18px;max-width:80ch}.needs li,.plain li{margin:6px 0}
@@ -100,9 +109,9 @@ ol.steps{list-style:none;margin:0;padding:0;counter-reset:s;display:grid;gap:14p
 li.step{counter-increment:s;display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius-card);overflow:hidden}
 li.step > div{background:var(--card);padding:16px 20px;min-width:0}
 li.step p{margin:0 0 10px;max-width:64ch}
-li.step .k{display:block;font:500 10.5px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+li.step .k{display:block;font:500 12.5px/1.4 var(--sans);color:var(--muted);margin-bottom:6px}
 li.step .do .k::before{content:counter(s) ". "}
-pre{font:12.5px/1.7 var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+pre{font:12.5px/1.7 var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:var(--radius-card);padding:10px 14px;margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
 pre:focus-visible{outline:2px solid var(--muted);outline-offset:2px}
 .more{font-size:13.5px;color:var(--muted);margin:18px 0 0}
 .site-foot code{font-size:11.5px}
@@ -112,7 +121,6 @@ pre:focus-visible{outline:2px solid var(--muted);outline-offset:2px}
 <header class="topbar"><div class="topbar-in"><a class="brand" href="index.html"><svg class="brand-mark" viewBox="0 0 100 100" aria-hidden="true"><path d="M78.72 45.96A29 29 0 1 1 54.04 21.28" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round"/><circle cx="70.51" cy="29.49" r="8.5" style="fill:var(--bad)"/></svg>Arena</a><nav aria-label="Arena pages"><a href="index.html#methods">How it works</a><a href="index.html#results">Results</a><a href="board.html">Board</a><a href="lookup.html">Look up a guard</a><a href="docs.html" aria-current="page">How to use</a><a href="index.html#try">Try it</a></nav></div></header>
 <main class="wrap">
 <header class="intro">
-  <div class="eyebrow">Arena · documentation</div>
   <h1>How to use Arena</h1>
   <p class="lede">Arena runs a library of attacks against a payment guard (a NEAR contract that limits what an AI agent can pay) and reports, from final balances, whether the guard held or broke. Pick the part that fits you. Each step says what to do and what you should see.</p>
   <nav class="jump" aria-label="Sections"><a href="#builders">I build a guard</a><a href="#payers">My agent or wallet pays a guard</a><a href="#authors">I want to add an attack</a><a href="#verify">I want to check Arena's results</a></nav>
@@ -124,7 +132,7 @@ pre:focus-visible{outline:2px solid var(--muted);outline-offset:2px}
       <li><b>The NEAR sandbox</b>: nothing to install. The scripts download it on the first run, so that run needs the internet.</li>
       <li><b>Python 3</b>, for <code>arena check</code> and the tool tests. <b>Node 18 or newer</b>, for the lookup tool.</li>
       <li>For the proofs only: Kani, z3, and Java 17 or newer (setup in <a href="https://github.com/damli40/arena/blob/main/README.md#check-it-yourself" rel="noopener"><code>README.md</code></a>).</li>
-      <li><b>Tested on macOS (Apple silicon).</b> Nothing has been run on Linux or on GitHub's runners yet.</li>
+      <li><b>Tested on macOS (Apple silicon).</b> The pull-request check also ran once on GitHub's Linux runner, with the same result. The proofs, <code>./verify.sh</code> and the hunter have not been run on Linux.</li>
       <li><b>Time:</b> about 4 minutes for one <code>arena check</code> after the first build; about 8 minutes for <code>./verify.sh fast</code> on a fresh copy.</li>
     </ul>
   </div>
@@ -150,7 +158,7 @@ arena: broke 5 of 49 (0 not applicable; 3 stopped by the agent's access key befo
   <div class="see"><span class="k">You see</span><p>The same report. Use <code>"features"</code> for rules your guard does not have (payee list, cancel, expiry, daily cap), <code>"pays_in": "native"</code> for plain NEAR, <code>"pays_in": "intents"</code> for a guard that pays into NEAR Intents, <code>"signs_via": "chain-signatures"</code> for a guard that asks Chain Signatures to sign, and a mapping file when your method names differ. Intents withdrawals and Chain Signatures are checked against Arena's local stand-ins: nothing is sent to another chain and nothing is really signed. A guard with no invoices, where the agent names the receiver, uses <code>python3 tools/check/direct_check.py --wasm your_guard.wasm --guard-config guard.json --out report-dir</code>.</p></div>
 </li><li class="step">
   <div class="do"><span class="k">Do</span><p>Run the check on every pull request: copy <a href="https://github.com/damli40/arena/blob/main/examples/workflows/arena-check.yml" rel="noopener"><code>examples/workflows/arena-check.yml</code></a> into your repo's <code>.github/workflows/</code>, fill in the lines marked <code>&lt;- your ...</code>, and replace the <code>ARENA_OWNER/arena@ARENA_COMMIT</code> placeholders.</p></div>
-  <div class="see"><span class="k">You see</span><p>The badge and numbers in the job summary, and the report as a downloadable file. This workflow has not run on GitHub yet; only its script step was run, locally on macOS.</p></div>
+  <div class="see"><span class="k">You see</span><p>The badge and numbers in the job summary, and the report as a downloadable file. On 2026-11-13 this workflow ran on GitHub's Linux runner and printed <code>held 49/49</code> for Arena's reference guard, the same result as on macOS: <a href="https://github.com/damli40/arena-check-demo/actions/runs/43460356898" rel="noopener">the public run</a>, <a href="https://github.com/damli40/arena/blob/main/evidence/github-action-2026-11-13.md" rel="noopener"><code>evidence/github-action-2026-11-13.md</code></a>.</p></div>
 </li><li class="step">
   <div class="do"><span class="k">Do</span><p>Replay one saved attack against your guard, with no model call.</p><pre tabindex="0" aria-label="Command">./run-arena.sh replay sequences-paper/&lt;file&gt;.json --wasm your_guard.wasm</pre></div>
   <div class="see"><span class="k">You see</span><p>That attack's result against your guard.</p></div>
