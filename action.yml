@@ -64,7 +64,7 @@ outputs:
     description: "'true' only when the badge is green: held, every attack applied, all 4 rules claimed, nothing missing, unconfirmed or refused. 'false' otherwise (including a yellow held)."
     value: ${{ steps.check.outputs.full }}
   badge:
-    description: The badge text, e.g. "held 51/51 (0 not applicable; rules claimed: all 4)".
+    description: 'The badge text, e.g. "held 51/51 (0 not applicable; rules claimed: all 4)".'
     value: ${{ steps.check.outputs.badge }}
   beyond-policy:
     description: "Amount paid beyond the guard's own rules, summed over attacks. In tokens, or for a native guard in milliNEAR (1000 = 1 NEAR); see units."
