@@ -168,7 +168,7 @@
     },
     "admission": {
       "class": "validated",
-      "evidence": "evidence/admission/ai-01-double-pay-race-retry/20261113T094454Z",
+      "evidence": "evidence/admission/ai-01-double-pay-race-retry/20261113T110442Z",
       "date": "2026-11-13",
       "gate": "tools/admission/admit.py",
       "runs_counted": 12,

@@ -198,7 +198,7 @@
     },
     "admission": {
       "class": "validated",
-      "evidence": "evidence/admission/c261110-1-race-valid-double-plus-forbidd/20261113T094539Z",
+      "evidence": "evidence/admission/c261110-1-race-valid-double-plus-forbidd/20261113T110545Z",
       "date": "2026-11-13",
       "gate": "tools/admission/admit.py",
       "runs_counted": 12,

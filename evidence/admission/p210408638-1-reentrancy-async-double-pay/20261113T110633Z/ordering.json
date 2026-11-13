@@ -1,0 +1,386 @@
+[
+ {
+  "reference": "guard:fixed",
+  "n": 1,
+  "ordering": {
+   "status": "proven",
+   "why": "every later call's guard check ran in a block strictly before every earlier call's callback",
+   "races": [
+    {
+     "status": "proven",
+     "legs": [
+      {
+       "step": 0,
+       "guard": "dev-20261113110637-10059292340321.test.near",
+       "check_height": 81,
+       "check_ok": true,
+       "callback_height": 83,
+       "callback_ok": true
+      },
+      {
+       "step": 1,
+       "guard": "dev-20261113110637-10059292340321.test.near",
+       "check_height": 81,
+       "check_ok": false,
+       "callback_height": null,
+       "callback_ok": null
+      }
+     ],
+     "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+    }
+   ]
+  }
+ },
+ {
+  "reference": "guard:fixed",
+  "n": 2,
+  "ordering": {
+   "status": "proven",
+   "why": "every later call's guard check ran in a block strictly before every earlier call's callback",
+   "races": [
+    {
+     "status": "proven",
+     "legs": [
+      {
+       "step": 0,
+       "guard": "dev-20261113110649-71142466898197.test.near",
+       "check_height": 82,
+       "check_ok": true,
+       "callback_height": 84,
+       "callback_ok": true
+      },
+      {
+       "step": 1,
+       "guard": "dev-20261113110649-71142466898197.test.near",
+       "check_height": 82,
+       "check_ok": false,
+       "callback_height": null,
+       "callback_ok": null
+      }
+     ],
+     "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+    }
+   ]
+  }
+ },
+ {
+  "reference": "guard:fixed",
+  "n": 3,
+  "ordering": {
+   "status": "proven",
+   "why": "every later call's guard check ran in a block strictly before every earlier call's callback",
+   "races": [
+    {
+     "status": "proven",
+     "legs": [
+      {
+       "step": 0,
+       "guard": "dev-20261113110652-70852116987781.test.near",
+       "check_height": 81,
+       "check_ok": true,
+       "callback_height": 83,
+       "callback_ok": true
+      },
+      {
+       "step": 1,
+       "guard": "dev-20261113110652-70852116987781.test.near",
+       "check_height": 81,
+       "check_ok": false,
+       "callback_height": null,
+       "callback_ok": null
+      }
+     ],
+     "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+    }
+   ]
+  }
+ },
+ {
+  "reference": "guard:vulnerable_fixture",
+  "n": 1,
+  "ordering": {
+   "status": "proven",
+   "why": "every later call's guard check ran in a block strictly before every earlier call's callback",
+   "races": [
+    {
+     "status": "proven",
+     "legs": [
+      {
+       "step": 0,
+       "guard": "dev-20261113110653-61776040480786.test.near",
+       "check_height": 81,
+       "check_ok": true,
+       "callback_height": 83,
+       "callback_ok": true
+      },
+      {
+       "step": 1,
+       "guard": "dev-20261113110653-61776040480786.test.near",
+       "check_height": 81,
+       "check_ok": true,
+       "callback_height": 83,
+       "callback_ok": true
+      }
+     ],
+     "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+    }
+   ]
+  }
+ },
+ {
+  "reference": "guard:vulnerable_fixture",
+  "n": 2,
+  "ordering": {
+   "status": "proven",
+   "why": "every later call's guard check ran in a block strictly before every earlier call's callback",
+   "races": [
+    {
+     "status": "proven",
+     "legs": [
+      {
+       "step": 0,
+       "guard": "dev-20261113110653-75138596053996.test.near",
+       "check_height": 81,
+       "check_ok": true,
+       "callback_height": 83,
+       "callback_ok": true
+      },
+      {
+       "step": 1,
+       "guard": "dev-20261113110653-75138596053996.test.near",
+       "check_height": 81,
+       "check_ok": true,
+       "callback_height": 83,
+       "callback_ok": true
+      }
+     ],
+     "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+    }
+   ]
+  }
+ },
+ {
+  "reference": "guard:vulnerable_fixture",
+  "n": 3,
+  "ordering": {
+   "status": "proven",
+   "why": "every later call's guard check ran in a block strictly before every earlier call's callback",
+   "races": [
+    {
+     "status": "proven",
+     "legs": [
+      {
+       "step": 0,
+       "guard": "dev-20261113110700-83235324313564.test.near",
+       "check_height": 81,
+       "check_ok": true,
+       "callback_height": 83,
+       "callback_ok": true
+      },
+      {
+       "step": 1,
+       "guard": "dev-20261113110700-83235324313564.test.near",
+       "check_height": 81,
+       "check_ok": true,
+       "callback_height": 83,
+       "callback_ok": true
+      }
+     ],
+     "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+    }
+   ]
+  }
+ },
+ {
+  "reference": "mutant:M5",
+  "n": 1,
+  "ordering": {
+   "status": "proven",
+   "why": "every later call's guard check ran in a block strictly before every earlier call's callback",
+   "races": [
+    {
+     "status": "proven",
+     "legs": [
+      {
+       "step": 0,
+       "guard": "dev-20261113110704-43130623468131.test.near",
+       "check_height": 111,
+       "check_ok": true,
+       "callback_height": 113,
+       "callback_ok": true
+      },
+      {
+       "step": 1,
+       "guard": "dev-20261113110704-43130623468131.test.near",
+       "check_height": 111,
+       "check_ok": true,
+       "callback_height": 113,
+       "callback_ok": true
+      }
+     ],
+     "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+    }
+   ]
+  }
+ },
+ {
+  "reference": "mutant:M5",
+  "n": 2,
+  "ordering": {
+   "status": "proven",
+   "why": "every later call's guard check ran in a block strictly before every earlier call's callback",
+   "races": [
+    {
+     "status": "proven",
+     "legs": [
+      {
+       "step": 0,
+       "guard": "dev-20261113110705-85499922645605.test.near",
+       "check_height": 110,
+       "check_ok": true,
+       "callback_height": 112,
+       "callback_ok": true
+      },
+      {
+       "step": 1,
+       "guard": "dev-20261113110705-85499922645605.test.near",
+       "check_height": 110,
+       "check_ok": true,
+       "callback_height": 112,
+       "callback_ok": true
+      }
+     ],
+     "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+    }
+   ]
+  }
+ },
+ {
+  "reference": "mutant:M5",
+  "n": 3,
+  "ordering": {
+   "status": "proven",
+   "why": "every later call's guard check ran in a block strictly before every earlier call's callback",
+   "races": [
+    {
+     "status": "proven",
+     "legs": [
+      {
+       "step": 0,
+       "guard": "dev-20261113110705-88271473558224.test.near",
+       "check_height": 110,
+       "check_ok": true,
+       "callback_height": 112,
+       "callback_ok": true
+      },
+      {
+       "step": 1,
+       "guard": "dev-20261113110705-88271473558224.test.near",
+       "check_height": 110,
+       "check_ok": true,
+       "callback_height": 112,
+       "callback_ok": true
+      }
+     ],
+     "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+    }
+   ]
+  }
+ },
+ {
+  "reference": "vault-a",
+  "n": 1,
+  "ordering": {
+   "status": "proven",
+   "why": "every later call's guard check ran in a block strictly before every earlier call's callback",
+   "races": [
+    {
+     "status": "proven",
+     "legs": [
+      {
+       "step": 0,
+       "guard": "dev-20261113110637-49018668645093.test.near",
+       "check_height": 111,
+       "check_ok": true,
+       "callback_height": 113,
+       "callback_ok": true
+      },
+      {
+       "step": 1,
+       "guard": "dev-20261113110637-49018668645093.test.near",
+       "check_height": 111,
+       "check_ok": false,
+       "callback_height": null,
+       "callback_ok": null
+      }
+     ],
+     "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+    }
+   ]
+  }
+ },
+ {
+  "reference": "vault-a",
+  "n": 2,
+  "ordering": {
+   "status": "proven",
+   "why": "every later call's guard check ran in a block strictly before every earlier call's callback",
+   "races": [
+    {
+     "status": "proven",
+     "legs": [
+      {
+       "step": 0,
+       "guard": "dev-20261113110637-56877077947969.test.near",
+       "check_height": 111,
+       "check_ok": true,
+       "callback_height": 113,
+       "callback_ok": true
+      },
+      {
+       "step": 1,
+       "guard": "dev-20261113110637-56877077947969.test.near",
+       "check_height": 111,
+       "check_ok": false,
+       "callback_height": null,
+       "callback_ok": null
+      }
+     ],
+     "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+    }
+   ]
+  }
+ },
+ {
+  "reference": "vault-a",
+  "n": 3,
+  "ordering": {
+   "status": "proven",
+   "why": "every later call's guard check ran in a block strictly before every earlier call's callback",
+   "races": [
+    {
+     "status": "proven",
+     "legs": [
+      {
+       "step": 0,
+       "guard": "dev-20261113110637-61486299169134.test.near",
+       "check_height": 111,
+       "check_ok": true,
+       "callback_height": 113,
+       "callback_ok": true
+      },
+      {
+       "step": 1,
+       "guard": "dev-20261113110637-61486299169134.test.near",
+       "check_height": 111,
+       "check_ok": false,
+       "callback_height": null,
+       "callback_ok": null
+      }
+     ],
+     "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+    }
+   ]
+  }
+ }
+]

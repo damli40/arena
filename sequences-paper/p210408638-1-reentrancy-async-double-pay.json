@@ -140,7 +140,7 @@
     },
     "admission": {
       "class": "validated",
-      "evidence": "evidence/admission/p210408638-1-reentrancy-async-double-pay/20261113T094627Z",
+      "evidence": "evidence/admission/p210408638-1-reentrancy-async-double-pay/20261113T110633Z",
       "date": "2026-11-13",
       "gate": "tools/admission/admit.py",
       "runs_counted": 12,
