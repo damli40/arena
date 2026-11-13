@@ -303,6 +303,22 @@
       "doc": "tools/mutation/mutate.py race-m3 (built by tools/race/build_mutant.sh, frozen 2026-11-12, mutants/race-m3/FROZEN.txt): the day's spend is added in the transfer callback instead of reserved at the check. Sequential pays are held; pays whose checks all run before the first callback all pass the cap (evidence/race-ordering-2026-11-11.md). Added as a reference 2026-11-13; rebuilt from its source to the same sha256 that day",
       "twin_of": "vault-a",
       "target_label": "race-m3"
+    },
+    "mutant:M12": {
+      "kind": "known-bad",
+      "flaw": "no-owner-check",
+      "matchable": true,
+      "wasm": "mutants/M12/vault_a.wasm",
+      "wasm_sha256": "253eacb2335151b2afc4f3374a6924bf3e4af4e28ff598a822706a3b2d5d5f89",
+      "harness_flags": [
+        "--wasm",
+        "mutants/M12/vault_a.wasm",
+        "--wasm-label",
+        "M12"
+      ],
+      "doc": "tools/mutation/mutate.py M12: owner check removed (assert_owner does nothing), pre-registered in evidence/mutation-plan-2026-11-13.md; 0 on the 10 scripted attacks (evidence/mutation-M12-2026-11-13)",
+      "twin_of": "vault-a",
+      "target_label": "M12"
     }
   }
 }
