@@ -107,3 +107,18 @@ Partly, today. The model calls for papers already run inside NEAR AI Cloud's sec
 - **A Phala secure container** could run the whole hunter and prove which exact code ran. We haven't confirmed that the local NEAR sandbox runs inside one, and it is not set up.
 
 Everything the hunter reads is public, so a sealed machine adds little secrecy. What it would add is proof of which code produced each result. Until one is in place, the honest answer is no: the hunter's loop doesn't run on NEAR yet.
+
+## Roadmap
+
+Planned, not built. An item moves into the FAQ above only once it runs and has evidence in `evidence/`.
+
+### Abliterated models that break guards, then fix them (NEAR AI)
+
+On Oct 29 2026 NEAR AI released abliterated models for security work: versions of DeepSeek V4.1 Flash and Qwen 3.8 "modified to reduce refusals that interrupt legitimate security testing", running inside trusted execution environments ([NEAR AI blog](https://near.ai/blog/cybersecurity-models-and-near-ai-red-launch), accessed 2026-11-13). The plan is to point one of them at a guard and let it try to make that guard pay money it shouldn't, then try to fix what it broke.
+
+- **Break.** The model proposes attacks in Arena's fixed step format, on the same throwaway local NEAR sandbox Arena uses today. A proposal counts only after the admission gate admits it: it must hold on a guard known to be good and break a copy with one planted flaw, 3 runs each. The model can't add an attack by saying it works.
+- **Fix.** When an attack breaks a guard, the model proposes a patch. Arena runs the patched guard against the attack that broke it, the full library and the honest payments. The patch counts only if every one holds and every honest payment still goes through.
+- **Scope.** Only guards whose code the owner sent or published, only on a local sandbox, never against a live deployment.
+- **Record.** Each model call runs in NEAR AI Cloud's secure hardware, so each result can name the model that produced it, as the hunter's paper calls do today. That proves which model answered, not that the software around it had no bugs (see the attestation answer above).
+
+The owner is building this after the hackathon.
