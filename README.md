@@ -5,133 +5,95 @@
   </picture>
 </p>
 
+
 # Arena
 
 **Can your guard survive the arena?**
 
-The arena is a constantly growing crash test for AI-controlled money.
-
-Arena attacks payment guards (NEAR contracts that limit what an AI agent may pay) on a local NEAR sandbox, and scores each attack held or broke from the final token balances.
+Your AI agent pays your bills, and a payment guard (a NEAR contract that limits what the agent may pay) stops it spending too much. Arena attacks such guards on a throwaway local NEAR sandbox and scores each attack held or broke from the final token balances, never from what the guard or the agent reports. It finds two ways you still lose money: NEAR runs one call across several blocks, so a guard that records a payment after the transfer comes back can pay one bill twice; and an agent fooled by an email can pay bills you never meant to pay, inside the guard's rules. A hunter adds attacks from new papers and hack news as data, never code, and an admission gate checks that each attack catches the flaw it names.
 
 **Headline result:** on NEAR testnet, a guard with a flaw planted on purpose paid 200 tokens on one 100-token invoice in 5 of 5 trials, and the fixed guard paid 100 in 5 of 5 (`evidence/testnet-2026-11-11.md`).
 
-**Website:** https://arena-guard-bench.netlify.app
+**Track:** AI Security & Defense (`security`). **Status:** working prototype on a local NEAR sandbox, with the double-pay result confirmed on NEAR testnet. **Website:** https://arena-guard-bench.netlify.app. **AI reviewers:** start with `ARENA.md`, section "For AI reviewers".
 
 ## Try it in 2 minutes (no login, no install)
 
-1. **See the double pay on the public explorer.** Open [call A](https://testnet.nearblocks.io/txns/G66wuWfTVB9ryzgPYmBk4ksYap4SUhhF8Hes2hAGN5CQ) and [call B](https://testnet.nearblocks.io/txns/AFGE2DVFpcBLzF6nQ8pzWKCxVVkUqWejeoqrXYG94KuJ) on testnet.nearblocks.io. Both call `pay` for the same invoice, `inv-vulnerable_fixture-3`, in block 277089399, and each moves 100 test tokens from the guard to the receiver: 200 paid on one 100-token invoice. Recorded on NEAR testnet on 2026-11-10 (UTC); trial 5 of 5 in `evidence/testnet-2026-11-11.md`.
-2. **Look up a guard live.** Open [the lookup with the planted-flaw guard filled in](https://arena-guard-bench.netlify.app/lookup.html?account=r11bvf3-guard.arena-race-funder-1111.testnet). It reads NEAR testnet when you open it and answers `broke` for this guard. The "fixed guard" button answers `held`.
-3. **See the board.** [The results board](https://arena-guard-bench.netlify.app/board.html) shows recorded runs on a local NEAR sandbox, 2026-11-10 to 2026-11-11: every attack a hunt ran against each guard. It is not live.
+1. **See the double pay on the public explorer.** Open [call A](https://testnet.nearblocks.io/txns/G66wuWfTVB9ryzgPYmBk4ksYap4SUhhF8Hes2hAGN5CQ) and [call B](https://testnet.nearblocks.io/txns/AFGE2DVFpcBLzF6nQ8pzWKCxVVkUqWejeoqrXYG94KuJ). Both call `pay` for the invoice `inv-vulnerable_fixture-3` in block 277089399, and each moves 100 test tokens to the receiver: 200 paid on one 100-token invoice (NEAR testnet, 2026-11-10 UTC; trial 5 of 5 in `evidence/testnet-2026-11-11.md`).
+2. **Look up a guard live.** Open [the lookup with the planted-flaw guard filled in](https://arena-guard-bench.netlify.app/lookup.html?account=r11bvf3-guard.arena-race-funder-1111.testnet). It reads NEAR testnet and answers `broke`. The "fixed guard" button answers `held`.
+3. **See the board.** [The results board](https://arena-guard-bench.netlify.app/board.html) shows every attack a hunt ran against each guard, on a local NEAR sandbox, 2026-11-10 to 2026-11-11. It is a recording, not live.
 
-To run Arena on your own guard: `./arena check your_guard.wasm` (needs Rust and Python 3; see "Check it yourself" below and the [how-to page](https://arena-guard-bench.netlify.app/docs.html)).
+## Check it in 5 minutes (Python 3 and Node 18+, no build, no key)
 
-## How it works
+Run from the repo root. Each command finishes in seconds; the two lookups read NEAR testnet, so they need the internet.
+
+```
+python3 -I tools/admission/manifest.py --check
+#   manifest: up to date                        (every library count matches the repo; exit 0)
+python3 -I -m unittest discover -s tools/admission/tests
+#   OK                                          (README and EVALUATE quote the manifest's numbers)
+python3 -I tools/hunter/validate.py --self-test
+#   self-test: ok (validator vs schema/attack.schema.json)
+python3 -I tools/hunter/recheck_attestation.py evidence/hunts/2026-11-13-papers-abc826.json
+#   recheck: all checks pass (Intel and NVIDIA signatures are not checked offline)
+python3 -I tools/injection/rescore.py
+#   ... Check: recomputed wrong-payment totals match the intent_leak recorded at run time (0 mismatches).
+node tools/lookup/cli.mjs r11bvf3-guard.arena-race-funder-1111.testnet
+#   status:    broke                            (planted-flaw guard, read live from testnet; exit 1)
+node tools/lookup/cli.mjs r11cfx4-guard.arena-race-funder-1111.testnet
+#   status:    held                             (fixed guard; exit 0)
+```
+
+With Rust installed, `./verify.sh fast` (about 8 minutes cold) ends `verify: 5 passed, 0 failed (mode=fast)`: the planted-flaw guard pays 200 on a 100 invoice, and the bench catches a leaky-on-purpose guard. `./run.sh t2_` shows the fixed guard paying 100 (`RESULT fixed race payouts per trial: [100, 100, 100, 100, 100]`). To run Arena on your own guard: `./arena check your_guard.wasm` (see "Check it yourself" below and the [how-to page](https://arena-guard-bench.netlify.app/docs.html)).
+
+## Every result: claim, evidence, command
+
+Commands marked *key* need a model API key; *private* means the inputs stay outside this repo (see "What this does not show"). `EVALUATE.md` gives each command's expected line and our time.
+
+| Claim | Evidence | Re-check |
+|---|---|---|
+| Planted-flaw guard: two `pay` calls at once for one 100-token invoice pay 200, in 5 of 5 trials, on the local sandbox and on NEAR testnet | `evidence/testnet-2026-11-11.md` (first run: `evidence/testnet-2026-11-09.md`) | `./verify.sh fast`; the lookup above |
+| The fixed guard pays 100 in 5 of 5, on both, with the current build (`0382023b…`); the other call is refused with `payment already in flight` | `evidence/testnet-2026-11-11.md`, `evidence/verify-2026-11-11.md` | `./run.sh t2_` |
+| Worst case under the broad rules: z3 searched every sequence of up to 10 pay requests; its answer, replayed twice on a local chain, paid 500 tokens against the owner's intent in one run and 0 beyond policy | `evidence/proofs-2026-11-10.md` | `proofs/run.sh proof2`, then `proofs/crosscheck.sh` |
+| 10 mistakes planted in our own guard (vault-a), one at a time: our attacks caught 7. The other 3 sit on paths no attack walks down | `evidence/mutation-table-2026-11-11.md` | `tools/mutation/run.sh` (about 40 min) |
+| A review of our proofs found a bug in our own fix (`reconcile` reopened a paid bill after an outside top-up, so the guard paid 200 on a 100 bill). We fixed it and re-ran: `proofs/run.sh` 30 of 30 then, 33 of 33 after three later checks were added; near-tla 25 of 25 as planned | `evidence/proofs-adversarial-review-2026-11-11.md`, `evidence/proofs-inductive-2026-11-11.md`, `evidence/proofs-all-2026-11-11.md` row 5 | `proofs/run.sh`, `tla/run.sh` |
+| 33 of 54 library attacks validated by the admission gate | `evidence/MANIFEST.md` | `python3 -I tools/admission/manifest.py --check` |
+| Fully fooled agent (a script that obeys every injection), 5 scenario runs: 0 tokens paid beyond policy; 450 against the owner's intent summed, at most 200 in one run | `evidence/injection-intent-by-recipient.md` | `ARENA_AGENT=compromised python3 -I tools/injection/run.py`, then `python3 -I tools/injection/rescore.py` |
+| Real model (Muse Spark 1.3): 25 trials, then 30 against an attacker model that rewrote its email after each failure: 0 fooled in the 52 trials where it read the email; 0 tokens against the owner's intent | `evidence/injection-2026-11-09-model.md`, `evidence/injection-2026-11-09-adaptive.md` | *key*: `ARENA_MODEL_PROVIDER=muse python3 -I tools/injection/run.py` (the 25 trials) |
+| Real model on NEAR AI Cloud (glm-5.3-flash), the same 5 scenarios, 2 trials each: 0 fooled in 10; 0 tokens against the owner's intent | `evidence/injection-2026-11-11-nearai-model.md` | *key*: `python3 -I tools/injection/run.py` |
+| The learning attacker also shown the guard's rules and source (`--know-guard`, NEAR AI model, 3 rounds of 3 tries per guard, 2026-11-13): vault-a fooled 0 of 9; direct-pay test guard fooled 1 of 9 (kai paid 40, inside the guard's rules, never asked for by the owner); paid beyond its rules: 0 in both | `evidence/injection-2026-11-13-adaptive-guard-aware-vault-a.md`, `evidence/injection-2026-11-13-adaptive-guard-aware-direct-fixture.md` | *key*: `python3 -I tools/injection/adaptive.py 3 3 --know-guard` |
+| Three other teams' guards (A, B, C), tests written from each guard's own claims: 29 of 29 held, 0 tokens paid beyond policy | `evidence/coverage-table.md` | *private* |
+| A fourth team's guard (Guard G), which pays directly with no invoices: 12 attacks, 11 held, 1 stopped by NEAR's access key, 0 broke. 25 of 25 self-tests on a broken fixture gave the result each defect demands. Two AI-proposed configs each had one wrong field, and the gate caught both: neither came out held | `evidence/direct-2026-11-11.md` | self-tests: `EVALUATE.md` rows 14 to 17; the guard itself: *private* (account withheld) |
+| Four other teams' guards: 34 of 38 money claims hold up to small bounds, 3 for the contract's part, 1 fails | `evidence/proofs-all-2026-11-11.md` row 4 | *private* |
+| `./arena check` on GitHub's Linux runner: held 49/49 on vault-a, the same as on macOS | `evidence/github-action-2026-11-13.md` | `./arena check targets/vault-a/vault_a.wasm` |
 
 ![How Arena works: the hunter and the admission gate grow the attack library; ./arena check runs the library against your guard on a throwaway local NEAR sandbox; the scorer reads final balances and writes a report card; results are published to a contract on NEAR testnet that a lookup or another contract can read before paying](docs/architecture/arena.png)
 
-*The attack library grows on its own track (hunter proposals, plus attacks written by hand, all through the admission gate); `./arena check` runs it against your guard and scores it from the final balances. Source: `docs/architecture/arena.excalidraw`.*
+*The attack library grows on its own track (hunter proposals and hand-written attacks, all through the admission gate); `./arena check` runs it against your guard and scores it from the final balances. Source: `docs/architecture/arena.excalidraw`.*
 
 ## What this does not show
 
-- **NEAR Intents and Chain Signatures were tested only against local stand-ins:** the real Intents contract on a local sandbox with Arena's own bridge stand-in for withdrawals, and a stand-in signer that signs nothing. No real bridge, no real MPC signing, no mainnet.
+- **NEAR Intents and Chain Signatures ran against local stand-ins only:** the real Intents contract on a local sandbox with Arena's own bridge stand-in for withdrawals, and a stand-in signer that signs nothing. No real bridge, no real MPC signing, no mainnet.
 - **Other teams' guards are published as counts only.** Their code and harnesses stay private, so you cannot re-run those results from this repo.
-- **Arena reads each payment as one whole invoice amount.** A guard that pays part of an invoice could be scored held where a part-payment reading would be broke (see "Limits").
+- **Arena reads each payment as one whole invoice amount.** A guard that pays part of an invoice could score held where a part-payment reading would be broke (see "Limits").
 - **Held means the attacks Arena ran found nothing.** It is not a promise about attacks Arena did not run.
 
-NEAR function-call access keys are tested and reported separately: the agent signs with a key that may call only `pay` on the guard, and attacks NEAR refuses at that key are reported as "stopped by the agent's access key", never counted as held.
+NEAR function-call access keys are reported separately: the agent signs with a key that may call `pay` on the guard and nothing else, and attacks NEAR refuses at that key count as "stopped by the agent's access key", never as held.
 
-## The problem, and every result
+## What we proved, and the limits of each proof
 
-Your AI agent pays your bills. A guard is a small contract that stops it
-spending too much. We attacked guards on NEAR and found two ways you still
-lose money:
-
-1. **The guard pays one bill twice.** Two pay messages for one 100 bill
-   arrive together. Our planted-flaw guard paid 200, on NEAR testnet,
-   5 times out of 5.
-2. **A tricked agent pays bills you never meant to pay.** Every payment
-   followed the guard's rules. In the worst case we found, replayed twice on
-   a local test chain, 500 tokens went out in one run that the owner never
-   wanted sent.
-
-![Arena home page: the headline and "The arena today" panel](docs/img/home-hero.png)
-
-*The home page: 54 attacks in the library, 33 of them validated.*
-
-![Two real ./arena check results in a terminal](docs/img/arena-check-terminal.png)
-
-*Two real runs: Arena's reference guard held 49 of 49 attacks; the leaky-on-purpose guard broke on 5.*
-
-![The results board](docs/img/board.png)
-
-*The board: every attack a hunt has run, against every guard in the table.*
-
-**From the demo film**
-
-![Film frame: the planted-flaw guard paid 200 on a 100-token bill in 5 of 5 testnet trials](docs/img/film-double-pay-testnet.jpg)
-
-*The double pay on NEAR testnet, Nov 9: the planted-flaw guard paid 200 on a 100-token bill in 5 of 5 trials (`evidence/testnet-2026-11-09.md`).*
-
-![Film frame: the attack library, 54 attacks with 33 validated, and the hunter's sources](docs/img/film-attack-library.jpg)
-
-*The attack library: 54 attacks, 33 validated by the admission gate, 14 more kept hidden; the hunter writes each attack as a list of steps, never code.*
-
-![Film frame: an AI attacker rewrites the invoice email over 10 rounds; the paying agent was fooled 0 times](docs/img/film-learning-attacker.jpg)
-
-*The learning attacker: it rewrote the invoice email over 10 rounds; the paying agent was fooled 0 times in 30 runs, and it read the email in 28 of them (`evidence/injection-2026-11-09-adaptive.md`).*
-
-![Film frame: the lookup page answering held for the fixed guard](docs/img/film-lookup.jpg)
-
-*The lookup page answering `held` for the fixed guard. This is a saved example read at testnet block 277155273, not a live answer.*
-
-Testing alone is not enough. We planted 10 mistakes in our own guard and
-our attacks found 7. A review of our proofs then found a bug in our own fix,
-and we fixed it.
-
-So Arena also **proves**. A proof checks every way the calls can line up,
-not just the ones we tried.
+A proof checks every way the calls can line up, up to a stated bound, not just the runs we tried. We needed proofs because testing missed things: our attacks caught 7 of 10 planted mistakes.
 
 | What we proved | Result | Tool |
 |---|---|---|
 | The fixed guard never pays a bill twice when pay messages race | on the real code, holds for every order of up to 4 pay calls; on the model, for any number of calls. The broken guard fails, as it should | Kani, plus NEAR's own near-tla (up to 3 pay calls) |
 | Tight rules never pay more than the owner meant | holds for up to 10 payment requests, in our test setup | z3 |
 | The code we proved is the code that ran on testnet | our guard's source, rebuilt from a clean copy with the pinned Rust, gives exactly the testnet wasm (`0382023b…`); a one-line change gives a different hash | a reproducible build |
-| Direct-pay rules (per-payment cap, daily cap, payee list, approval threshold) never pay beyond their own policy | holds for every policy, every amount and every order of up to 8 steps, for the design where a refund only counts on its own day. The design where a refund comes off today's total pays above the daily cap across a midnight | z3 |
-| Five reusable money rules: no double pay, payee list only, per-payment cap, approval threshold, daily budget | 116 lines of spec in `proofs/properties/`, with a harness template you copy for your own guard. Each rule catches its own planted flaw. On our guard (real code, every order of 3 pay calls) no-double-pay holds | Rust, every case up to the bound |
-| Four other teams' guards: 34 of 38 money claims hold, 3 for the contract's part only, 1 fails | 38 money claims, each checked on every case up to a small bound (2 to 5 payment requests, with owner actions and a midnight), on each team's real code. 34 hold; 3 more hold for the contract's own part, because their other half is a NEAR rule about keys that our model does not include; 1 counterexample: one of the four guards can pay above its daily cap when a refund lands after midnight (we do not say which). 64 of 64 planted flaws caught. Guard G was proved on our rebuild of its source with a newer SDK, not on its deployed bytes. Counts only, to keep the teams anonymous | Rust, every case up to the bound |
-| The result is public | saved on NEAR testnet, so anyone can look a guard's results up. A lookup shows the guard's code fingerprint; our broken and fixed guards share one, so a lookup must also read the guard's mode. Receipts for the current build were published Nov 10; results another contract can read before paying, Nov 11 (`evidence/results-testnet-2026-11-11.md`) | arena-receipts |
+| Direct-pay rules (per-payment cap, daily cap, payee list, approval threshold) never pay beyond their own policy | holds for every policy, every amount and every order of up to 8 steps, for the design where a refund counts on its own day. The design where a refund comes off today's total pays above the daily cap across a midnight | z3 |
+| Five reusable money rules: no double pay, payee list, per-payment cap, approval threshold, daily budget | 116 lines of spec in `proofs/properties/`, with a harness template you copy for your own guard. Each rule catches its own planted flaw. On our guard (real code, every order of 3 pay calls) no-double-pay holds | Rust, every case up to the bound |
+| Four other teams' guards: 34 of 38 money claims hold, 3 for the contract's part, 1 fails | each claim checked on each team's real code, every case up to a small bound (bounds in "Limits"). The 3 partial claims rest on a NEAR key rule our model does not include. The counterexample: one of the four guards can pay above its daily cap when a refund lands after midnight (we do not say which). 64 of 64 planted flaws caught | Rust, every case up to the bound |
+| The result is public | saved on NEAR testnet, so anyone can look a guard's results up (a lookup must also read the guard's mode; see "Limits"). Receipts for the current build were published Nov 10; results another contract can read before paying, Nov 11 (`evidence/results-testnet-2026-11-11.md`) | arena-receipts |
 
-**What "proved" means here:** the "any number of calls" proof covers a
-careful copy of the guard's logic (the model), not the contract itself. We
-then ran the real code beside the model and they matched in every case we
-checked: every order of up to 4 pay calls (4,555 states), and every order of
-2 pay calls in a fuller world where callbacks die, `reconcile` runs and
-outside tokens arrive (21,345 states). It is a proof up to these limits, not
-a promise about every possible future.
-
-Check it yourself: `./verify.sh fast` (about 8 min), `proofs/run.sh` (about
-25 min), `tla/run.sh` (about 46 min for all 25; the quick check
-`tla/run.sh vuln_race fixed_1inv h1_outside_transfer_reconcile` takes about 15 s).
-
-`EVALUATE.md` lists every claim with its command, the line you should see, our time, and our saved log.
-
-**Track:** AI Security & Defense (`security`). **Status:** working prototype on a local NEAR sandbox, with the double-pay result confirmed on NEAR testnet.
-
-## Every result, with its evidence
-
-| What we tested | Result | Evidence |
-|---|---|---|
-| Planted-flaw guard: two `pay` calls at once for one 100-token invoice | paid 200, in 5 of 5 trials, on the local sandbox and on NEAR testnet | `evidence/testnet-2026-11-11.md` (first run: `evidence/testnet-2026-11-09.md`) |
-| The same guard with the fix | paid 100, in 5 of 5 trials, on both, with the current build (`0382023b…`). The other call was refused with `payment already in flight` every time | `evidence/testnet-2026-11-11.md`, `evidence/verify-2026-11-11.md` |
-| Worst case under the broad rules: z3 searched every sequence of up to 10 pay requests, and we replayed its answer twice on a local test chain | 500 tokens against the owner's intent in one run, 0 beyond policy, both replays | `evidence/proofs-2026-11-10.md` |
-| 10 mistakes planted in our own guard (vault-a), one at a time | our attacks caught 7 of 10. The other 3 sit on paths no attack walks down | `evidence/mutation-table-2026-11-11.md` |
-| The bug in our own fix: `reconcile` reopened a paid bill after an outside top-up, so the guard paid 200 on a 100 bill | a review of the proofs found it; we fixed it and re-ran everything: proofs 30 of 30, near-tla 25 of 25 as planned | `evidence/proofs-adversarial-review-2026-11-11.md`, `evidence/fix-plan-2026-11-11.md`, `evidence/proofs-inductive-2026-11-11.md` |
-| A fourth team's guard (Guard G), which pays directly with no invoices: a fixed gate proved Arena was calling it correctly, then came 12 attacks | 11 held, 1 stopped by NEAR's access key, 0 broke. 25 of 25 self-tests on a deliberately broken fixture gave the result each defect demands. Two AI-proposed mappings each had one wrong field; for both, the layout of the owner's policy arguments was copied from the hand mapping and every fixed extra argument of the payment call was set to "arena", so the AI chose method and field names and the claimed rules. The gate caught both: what each got wrong could not finish, and none of it came out held | `evidence/direct-2026-11-11.md` |
-| Three other teams' guards (Guard A, B, C), tests written from each guard's own claims | 29 of 29 tests of their own rules held. 0 tokens paid beyond policy | `evidence/coverage-table.md` |
-| Fully fooled agent (a script that obeys every injection), 5 separate scenario runs | 0 tokens paid beyond policy. 450 tokens against the owner's intent across the five runs added up; at most 200 in any one run | `evidence/injection-intent-by-recipient.md` |
-| Real model (Muse Spark 1.3): 25 trials, then 30 trials against an attacker model that rewrote its email after each failure | 0 fooled in 52 trials where it read the email. 0 tokens paid against the owner's intent |
-| The same learning attacker, also shown the guard's rules and source (`--know-guard`, NEAR AI model, 3 rounds of 3 tries per guard, 2026-11-13) | vault-a: 0 fooled of 9. Direct-pay test guard: 1 fooled of 9 (kai paid 40, inside the guard's rules, never asked for by the owner). Guard paid beyond its rules: 0 in both (`ARENA.md`, "Can the learning attacker read the guard first?") | `evidence/injection-2026-11-09-model.md`, `evidence/injection-2026-11-09-adaptive.md` |
-| Real model on NEAR AI Cloud (glm-5.3-flash), the same 5 scenarios, 2 trials each | 0 fooled in 10 trials. 0 tokens paid against the owner's intent | `evidence/injection-2026-11-11-nearai-model.md` |
+**What "proved" means here:** the "any number of calls" proof covers a careful copy of the guard's logic (the model), not the contract itself. We ran the real code beside the model and they matched in every case we checked: every order of up to 4 pay calls (4,555 states), and every order of 2 pay calls in a fuller world where callbacks die, `reconcile` runs and outside tokens arrive (21,345 states). It is a proof up to these limits.
 
 ## Check it yourself
 
@@ -152,7 +114,7 @@ proofs/run.sh        # Kani on the model, the real code beside it, and z3. 33 ch
 tla/run.sh           # near-tla, NEAR's own model of how calls run. 25 checks
 ```
 
-Each check prints PASS or FAIL. The last line of `verify.sh` is `verify: 5 passed, 0 failed (mode=fast)` or `verify: 43 passed, 0 failed (mode=full)`, and each script exits 0 only if every check passes. Measured times: `fast` took 481 s on a fresh copy with no build folders (Nov 9) and 196 s with the builds already there; the full `verify.sh` took 943 to 965 s (four runs); `proofs/run.sh` took 1,504 s; `tla/run.sh` took about 46 min, most of it in two checks (`fixed_2inv` and `h1_open_world_2faults`). Neither proof script has a quick mode. `tla/run.sh <name>` runs only the named checks, and the small ones take a few seconds. `proofs/run.sh proof2` runs only z3. The proofs need Kani and z3 (setup in the header of `proofs/run.sh`); near-tla needs Java 17+ (setup in `tla/README.md`). Each run writes its logs to a new folder `runs/<UTC time>/` (not tracked by git), so running the checks never changes a committed file; set `ARENA_RECORD=1` to write into `evidence/` instead. Every `verify.sh` run appends one line to `verify-summary.log` in its run folder.
+Each check prints PASS or FAIL. The last line of `verify.sh` is `verify: 5 passed, 0 failed (mode=fast)` or `verify: 43 passed, 0 failed (mode=full)`, and each script exits 0 only if every check passes. Measured times: `fast` 481 s on a fresh copy with no build folders (Nov 9), 196 s with the builds there; the full `verify.sh` 943 to 965 s (four runs); `proofs/run.sh` 1,504 s; `tla/run.sh` about 46 min, most of it in `fixed_2inv` and `h1_open_world_2faults`. `tla/run.sh <name>` runs the named checks alone (the quick trio `vuln_race fixed_1inv h1_outside_transfer_reconcile` takes about 15 s), and `proofs/run.sh proof2` runs z3 alone. Each run writes its logs to a new folder `runs/<UTC time>/` (not tracked by git), so running the checks never changes a committed file; set `ARENA_RECORD=1` to write into `evidence/` instead. Every `verify.sh` run appends one line to `verify-summary.log` in its run folder.
 
 The prompt-injection results, after `./verify.sh` has built the harness:
 
@@ -178,9 +140,27 @@ These tools are for guard builders. Each one runs on the local sandbox unless it
 | Look up a guard on NEAR testnet before paying it: `node tools/lookup/cli.mjs <account>` | `status: held`, `broke`, `not_tested` or another answer; only `held` is a pass | `docs/CHECK-BEFORE-YOU-PAY.md` |
 | Opt your guard in on NEAR testnet, or ask for a result from another contract before paying | the contract stores who signed and which code; it never says "safe" | `docs/ON-CHAIN.md`, `docs/REGISTER-A-GUARD.md` |
 
-**The hunter.** A language model reads new security papers and hack news and proposes attacks as data: a list of steps from a small fixed vocabulary, never code. A validator rejects anything else, and the bench runs the rest against Arena's own guards and guards whose owners opted in. 7 hunts so far proposed 41 attacks from 10 papers (11 reads: one paper, 2104.08638, was read in two hunts) and 4 news items; 25 were saved and 2 broke a guard, both guards built to be broken. The GitHub workflow (`.github/workflows/hunt.yml`) first ran on 2026-11-13 (https://github.com/damli40/arena/actions/runs/43466826430): it checked NEAR's attestation on GitHub's runner, considered 5 new papers and proposed no attack, and its canary broke all three planted-flaw guards and held on the fixed ones (`evidence/hunts/2026-11-13-papers-abc826.md`). It is now switched on: one paper hunt a day. Results leave as a downloadable file; the workflow never commits. The model now runs on NEAR AI Cloud by default, and such a run saves NEAR's attestation report (2 hunts so far: `2026-11-11-papers-e3db55` and the 2026-11-13 GitHub run; the earlier hunts ran on Muse Spark, which has none), which you can re-check offline: `python3 -I tools/hunter/recheck_attestation.py evidence/hunts/2026-11-11-papers-e3db55.json`. The report shows which model answered, not that an attack is good. Details: `EVALUATE.md` section 4.
+## The hunter
 
-**Which attacks are proven to detect something.** Running cleanly on every guard does not show an attack can catch anything. An attack counts as validated only when a script (`tools/admission/admit.py`) has run it on a guard known to be good (it must hold) and on a copy with exactly the one flaw the attack names (it must break, by the exact amount, the way the attack says), three times each, and kept the raw runs. Attack admission: **33 of 54** attacks validated, 0 partially validated, 21 unvalidated. The 54 are 48 attack files plus 4 prompt-injection scenarios from `tools/injection/scenarios.json` (52 for a guard paying in tokens or NEAR), plus 2 NEAR Intents files. 11 of the validated are races. A race counts only when the harness's per-receipt block numbers show every later pay was checked in a block strictly before the first pay's transfer result came back, and two separate judges of that ordering (`tools/admission/admit.py` and `tools/race/ordering.py`) agree on every stored run (96 of 96: `evidence/admit-all-2026-11-13/two-judges/` for 8 races, and `evidence/integrate-2026-11-13/two-judges/` for ai-01, c261110-1 and p210408638-1, re-run on a clean tree). Six of the 11 are double pays, caught by M5 (vault-a without its in-flight mark before the transfer) or by the guard fixture that records a payment only in its callback (one, `ai-03`, by the fixture alone). Five are cap races, caught by `race-m3`, a copy of vault-a that counts the day's spend only when a transfer's result comes back: sent together, the pays all fit under the cap; sent one after the other, `race-m3` holds, so the flaw is a race flaw (`evidence/admit-all-2026-11-13/survey/`). `bypass-04`, an outsider sending owner methods from its own key, is validated against M12 (the owner check removed), a planted copy added on 2026-11-13 with its plan written before the build (`evidence/mutation-plan-2026-11-13.md`). A class can also be narrower than an attack's title: some validate only one check (for example the already-paid check), the prompt-injection attacks run scripted steps with no agent reading the email, two races titled as cap breaches validate only the double pay, and one attack depends on 20 s expiry timing; each limit is printed after "LIMIT:" in `evidence/MANIFEST.md`. The 21 unvalidated ones still run on every guard, and each row of `evidence/MANIFEST.md` says why, measured on the planted copies: 7 break nothing a single planted flaw can show, 3 are races where the only flaw that breaks them breaks them just as well with the calls one after the other, 3 are stopped by NEAR's access key before any guard code runs (they show that layer works, and cannot break a guard), 3 are judged only by the owner's intent, which the gate does not decide, 1 tests NEAR Intents' own rules, and the 4 scenarios are not step files. Saving a hunter attack admits nothing: of the 25 saved, only the ones the gate admitted count. Every count: `evidence/MANIFEST.md`, generated by `tools/admission/manifest.py`. A hidden set of 14 more admitted attacks (set 4, 2026-11-12) is kept out of the repo and committed by hash only (`hidden-set/COMMITMENT.json`). Before it is committed, a check refuses any hidden attack with the same steps as an attack file tracked on any branch, or the same steps apart from gas and wait values; other variants of public attacks (different invoices, order or actors) can still be in the set, so a guard tuned to the public library may still pass some hidden attacks; its first runs on our own guards are in `evidence/hidden-set/`, and they hold one limit: the set has no race variant yet. How to check both without seeing the set: `EVALUATE.md` section 4b.
+A language model reads new security papers and hack news and proposes attacks as data: a list of steps from a small fixed vocabulary, never code. A validator rejects anything else, and the bench runs the rest against Arena's own guards and guards whose owners opted in.
+
+- **What it found so far.** The repo holds 8 hunt records. They proposed 41 attacks from 10 papers (11 reads: 2104.08638 was read in two hunts) and 4 news items; 25 were saved and 2 broke a guard, both guards built to be broken (`evidence/MANIFEST.md`, "Hunts").
+- **Where it runs.** A GitHub Actions workflow (`.github/workflows/hunt.yml`), switched on since 2026-11-13, with four hunts a day on its schedule (papers and news at 01:17 UTC, news only three more times). Results leave as a downloadable file; the workflow never commits. Its paper run on 2026-11-13 (https://github.com/damli40/arena/actions/runs/43466826430) checked NEAR's attestation on GitHub's runner, considered 5 new papers and proposed no attack, and its canary broke all three planted-flaw guards and held on the fixed ones (`evidence/hunts/2026-11-13-papers-abc826.md`). Its news run the same day (https://github.com/damli40/arena/actions/runs/43522805712) read Elfa news summaries; that record is in the run's artifact and not yet in this repo, so the counts above leave it out.
+- **Which model.** Papers go to glm-5.3-flash on NEAR AI Cloud, and each such run saves NEAR's attestation report (2 records so far: `2026-11-11-papers-e3db55` and `2026-11-13-papers-abc826`; re-check offline with `python3 -I tools/hunter/recheck_attestation.py <record>.json`). The report shows which model answered, not that an attack is good. News stays on Muse Spark, which has no attestation, because the attested model's news attacks failed the validator more often (`evidence/news-model-2026-11-14.md`).
+
+Details, keys and threat model: `ARENA.md` and `EVALUATE.md` section 4.
+
+## Attack admission: which attacks catch something
+
+Running cleanly on every guard does not show an attack can catch anything. An attack counts as validated when `tools/admission/admit.py` has run it on a guard known to be good (it must hold) and on a copy with exactly the one flaw the attack names (it must break, by the exact amount, the way the attack says), three times each, and kept the raw runs. Attack admission: **33 of 54** attacks validated, 0 partially validated, 21 unvalidated. Every count is in `evidence/MANIFEST.md`, generated by `tools/admission/manifest.py`.
+
+- **What the 54 are.** 48 attack files plus 4 prompt-injection scenarios from `tools/injection/scenarios.json` (52 for a guard paying in tokens or NEAR), plus 2 NEAR Intents files.
+- **Races.** 11 of the validated are races. A race counts when the harness's per-receipt block numbers show every later pay was checked in a block strictly before the first pay's transfer result came back, and two separate judges of that ordering (`tools/admission/admit.py` and `tools/race/ordering.py`) agree on every stored run (96 of 96: `evidence/admit-all-2026-11-13/two-judges/` for 8 races, and `evidence/integrate-2026-11-13/two-judges/` for ai-01, c261110-1 and p210408638-1, re-run on a clean tree). Six of the 11 are double pays, caught by M5 (vault-a without its in-flight mark before the transfer) or by the guard fixture that records a payment in its callback (one, `ai-03`, by the fixture alone). Five are cap races, caught by `race-m3`, a copy of vault-a that counts the day's spend when a transfer's result comes back: sent together, the pays all fit under the cap; sent one after the other, `race-m3` holds, so the flaw is a race flaw (`evidence/admit-all-2026-11-13/survey/`).
+- **Owner methods.** `bypass-04`, an outsider sending owner methods from its own key, is validated against M12 (the owner check removed), a planted copy added on 2026-11-13 with its plan written before the build (`evidence/mutation-plan-2026-11-13.md`).
+- **Narrower than the title.** Some attacks validate one check (for example the already-paid check), the prompt-injection attacks run scripted steps with no agent reading the email, two races titled as cap breaches validate the double pay alone, and one attack depends on 20 s expiry timing. Each limit is printed after "LIMIT:" in `evidence/MANIFEST.md`.
+- **The 21 unvalidated** still run on every guard, and each row of `evidence/MANIFEST.md` says why, measured on the planted copies: 7 break nothing a single planted flaw can show, 3 are races that the matching flaw breaks just as well with the calls one after the other, 3 are stopped by NEAR's access key before any guard code runs, 3 are judged by the owner's intent alone, which the gate does not decide, 1 tests NEAR Intents' own rules, and the 4 scenarios are not step files.
+- **Saved is not admitted.** Of the hunter's 25 saved attacks, the ones the gate admitted count; the rest are unvalidated.
+- **Hidden set.** 14 more admitted attacks (set 4, 2026-11-12) are kept out of the repo and committed by hash (`hidden-set/COMMITMENT.json`). Before the commit, a check refuses any hidden attack with the same steps as an attack file tracked on any branch, or the same steps apart from gas and wait values. Other variants of public attacks (different invoices, order or actors) can still be in the set, so a guard tuned to the public library may still pass some hidden attacks. Its runs on our own guards are in `evidence/hidden-set/`; the set has no race variant yet. How to check both without seeing the set: `EVALUATE.md` section 4b.
 
 ## The two numbers Arena reports, never combined
 
@@ -203,11 +183,11 @@ We name them only by letter. Before any run, for each guard, we wrote down what 
 |---|---|---|---|---|---|
 | A | invoice payer with payee list and daily cap, token | 7 | 7 | 0 | cross-chain payments, escrow |
 | B | vault in native NEAR with caps, approvals, pause | 10 | 10 | 0 | a refund callback that lands after UTC midnight |
-| C | company treasury with a server-bill pot and a profit pot | 12 | 12 | 0 | swaps and withdrawals that need secure hardware and NEAR's shared signing network |
+| C | company treasury with a server-bill pot and a profit pot | 12 | 12 | 0 | swaps and withdrawals that need sealed hardware (a TEE) and NEAR's shared signing network |
 
 That is 29 tests, and 29 held. Each guard also made one normal payment to show it works, and all 3 went through. Guard A faced one more test, on a rule it never promised, and it held. So the coverage table has 33 rows: 29, plus 3, plus 1.
 
-Guard G is tested on a separate path, because it has no invoices: 12 attacks, 11 held, 1 stopped by NEAR's access key before its code ran, 0 broke (`evidence/direct-2026-11-11.md`). Its code is not in this repo; `targets/entrant-G/fetch.py` reads it from testnet and refuses any build but the frozen one.
+Guard G has no invoices, so it runs on the direct-pay path (results in the claim table above, `evidence/direct-2026-11-11.md`). Its code is not in this repo; `targets/entrant-G/fetch.py` reads it from testnet and refuses any build but the frozen one.
 
 Guards A to C all held for the same reason: each records the payment before it moves the money. Their source code, built files and test runners are not in this repo, to keep them anonymous. Per-test detail, including the two corrections we made during the runs: `evidence/coverage-table.md`.
 
@@ -224,7 +204,7 @@ only: no letters, names or code. How to read these and what you can re-run: `EVA
 - **The other teams' guards were checked only up to small bounds, and privately.** 2 to 5 payment requests, a few owner actions, one midnight; more did not finish in our time on a shared machine. The source and harnesses stay outside this repo, so you cannot re-run them from here (`EVALUATE.md`, entry 26). Guard G's source was not rebuilt byte for byte (its pinned SDK was not in our local cache and we did not fetch it): the check ran the team's logic on a newer SDK with one call-site edit, and the build has the same functions and error codes as the deployed one. The wasm wrappers' own checks (`#[private]`, `#[payable]`) are not exercised.
 - **What is measured, not proved.** How an AI model behaves when an email tries to fool it is measured in trials: a model is not code we can enumerate, so no bound covers it. What happened on testnet is an observation of one chain on one day. Both are labelled as measurements.
 - **A receipt lookup needs the mode.** The broken and fixed guards share one code fingerprint, so a lookup must also read the guard's mode.
-- **29 of 29 held means each guard kept the rules it wrote down, in these tests.** We built each guard's tests from its claims, so the three guards faced different tests, and we could not test some paths locally (table above). It is not a proof that a guard is secure.
+- **29 of 29 held means each guard kept the rules it wrote down, in these tests.** We built each guard's tests from its claims, so the three guards faced different tests, and we could not test some paths locally (table above). It does not prove a guard free of flaws.
 - **The 450 tokens are five separate runs added up, from a scripted agent that obeys every injection.** No single run paid more than 200. The 500 is a different number: the worst single run z3 found under the same rules, which we replayed on a local test chain. The real model resisted in every run we made; that does not show it always will. All 450 tokens went to creditors the owner had approved. None reached an attacker's account. In one scenario the intended recipient got nothing.
 - **One model played both attacker and victim** in the adaptive test, with one goal and one guard.
 - **The agent never sees a refusal.** In the injection test, `pay` returns "submitted" and the chain runs after the conversation.
@@ -250,6 +230,20 @@ only: no letters, names or code. How to read these and what you can re-run: `EVA
 - **The double-pay guard (`contracts/guard`, mode `vulnerable_fixture`) is a labelled test case.** Never deploy it.
 - **Direct-pay guards: one tested so far, fixed amounts.** Guard G is the only external guard on the direct-pay path. Arena's amounts and receivers are fixed, so a guard that special-cases them could pass the gate. Re-running Guard G needs network access to fetch its code.
 
+## Screens
+
+![Arena home page: the headline and "The arena today" panel](docs/img/home-hero.png)
+
+*The home page: 54 attacks in the library, 33 of them validated.*
+
+![Two real ./arena check results in a terminal](docs/img/arena-check-terminal.png)
+
+*Two real runs: Arena's reference guard held 49 of 49 attacks; the leaky-on-purpose guard broke on 5.*
+
+![The results board](docs/img/board.png)
+
+*The board: every attack a hunt has run, against every guard in the table.*
+
 ## Where to look next
 
 | For | Read |
@@ -273,4 +267,3 @@ only: no letters, names or code. How to read these and what you can re-run: `EVA
 
 Built with Rust 1.86, near-sdk 5.27, near-workspaces 0.24 and near-sandbox (nearcore 2.14); the other teams' guards were built from their source with Rust 1.99.1. AI coding agents wrote parts of the code, under review. All code was written from Nov 8, 2026, inside the hackathon window (Nov 1 to 14). MIT licence (`LICENSE`).
 
-**Summary:** 0 tokens paid beyond policy across 29 tests of three teams' guards; the planted flaw caught at 200 on a 100 invoice, locally and on testnet; 500 tokens paid against the owner's intent in one run (the worst case, replayed on a local test chain), through payments the guard's rules allowed; 7 of 10 planted mistakes caught; proofs 30 of 30 and near-tla 25 of 25 as planned after we fixed the bug the review found in our own fix.

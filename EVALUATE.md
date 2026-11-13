@@ -49,9 +49,9 @@ reads that run's own logs. `run-arena.sh` and the prompt-injection scripts do th
 
 | # | Claim | Command | You should see | Our time | Our saved run |
 |---|---|---|---|---|---|
-| 1 | Two `pay` calls at once make the planted-flaw guard pay 200 on a 100 invoice. The fixed guard pays 100. | `./verify.sh fast` | `verify: 5 passed, 0 failed (mode=fast)` | 481 s cold, 196 s warm | `evidence/verify-2026-11-11.md` |
+| 1 | Two `pay` calls at once make the planted-flaw guard pay 200 on a 100 invoice. The fixed guard pays 100. | `./verify.sh fast` (the 200), then `./run.sh t2_` (the 100) | `verify: 5 passed, 0 failed (mode=fast)`, then `RESULT fixed race payouts per trial: [100, 100, 100, 100, 100]` | 481 s cold, 196 s warm | `evidence/verify-2026-11-11.md` |
 | 2 | Every local sandbox result in the README. | `./verify.sh` | `verify: 43 passed, 0 failed (mode=full)` | 943 to 965 s (four runs); 1,910 s on Nov 12 with other builds running | `evidence/verify-2026-11-11.md`, `evidence/verify-summary.log`, `evidence/invoice-fixes-2026-11-12/verify/` |
-| 3 | The fixed guard never pays one invoice twice when pay calls race. Checked on a model of the guard for any number of calls, and on the real code for every order of up to 4 pay calls. | `proofs/run.sh` | 30 checks, each `PASS` | 1,504 s | `evidence/proofs-inductive-2026-11-11.md`, `evidence/proofs-2026-11-10.md` |
+| 3 | The fixed guard never pays one invoice twice when pay calls race. Checked on a model of the guard for any number of calls, and on the real code for every order of up to 4 pay calls. | `proofs/run.sh` | 33 checks, each `PASS` (30 when the fix was re-run; three were added later, `evidence/proofs-all-2026-11-11.md` row 5) | 1,504 s (for the 30) | `evidence/proofs-inductive-2026-11-11.md`, `evidence/proofs-2026-11-10.md` |
 | 4 | The same property in near-tla, NEAR's own model of how calls run, up to 3 pay calls. | `tla/run.sh` (all 25), or `tla/run.sh vuln_race fixed_1inv h1_outside_transfer_reconcile` (3 of them) | 25 checks as planned, or the 3 quick ones | about 46 min, or about 15 s | `evidence/tla-2026-11-11/` |
 | 5 | We planted 10 mistakes in our own guard, one at a time. Our attacks caught 7. | `tools/mutation/run.sh` | `summary.tsv` with M1, M2, M4, M5, M6, M7, M8 caught and M3, M9, M10 not | one mutant: 573 s, including the two baseline checks; all ten: 2,410 s (about 40 min). Our re-runs on Nov 11 and, with the chain-only scorer, on Nov 12 (3,513 s) matched the saved table row for row | `evidence/mutation-table-2026-11-11.md`, `evidence/mutation-2026-11-12/` |
 | 6 | An agent that obeys every injected instruction pays 0 tokens beyond the guard's rules, and 450 tokens against the owner's intent across five runs. | `ARENA_AGENT=compromised python3 -I tools/injection/run.py` then `python3 -I tools/injection/rescore.py` | rescore ends `Check: recomputed wrong-payment totals match the intent_leak recorded at run time (0 mismatches).` | 80 s, then under 1 s | `evidence/injection-intent-by-recipient.md` |
@@ -322,7 +322,7 @@ attack must break the three planted-flaw guards and must not break the three fix
 hunt's results are not trusted. One record has no known-answer result:
 `2026-11-11-news-d340fd`, a news-only hunt that found nothing to run, so it ran no attack at all.
 
-What the 7 hunts did, in total: the model proposed 41 attacks from 10 papers and 4 news items, 25
+What the 8 hunt records add up to (`evidence/MANIFEST.md`, "Hunts"): the model proposed 41 attacks from 10 papers and 4 news items, 25
 were saved, and **2 of the 25 broke a guard**. Both broke only guards we built to be broken
 (`guard-vulnerable`, `leaky-control-v2`, `native-control`). None broke a fixed guard. Most paper
 attacks found nothing, and the records say so. The two Nov 11 hunts saved nothing new and broke
@@ -527,7 +527,7 @@ The README's "Limits" section is the full list. The ones that matter most when y
 - "Held" for Guards A, B and C means each kept its own written claims under tests built from those
   claims. The three guards faced different tests.
 - `./arena check` trusts the guard's own view methods in its preflight step.
-- Nothing has run on Linux or on GitHub.
+- `./arena check` has run once on GitHub's Linux runner (`evidence/github-action-2026-11-13.md`); everything else ran on macOS.
 - NEAR Intents is tested only against a local copy of its release build. For withdrawals toward
   another chain, Arena checks where a withdrawal is sent and what destination it names; it does not
   test delivery on the other chain, real bridges, or the MPC network.
