@@ -62,6 +62,125 @@
       "native-fixed",
       "vault-a"
     ],
-    "validation": "valid-nothing-broke"
+    "validation": "valid-nothing-broke",
+    "spec": {
+      "property": "A guard pays each invoice at most once and never spends more than the daily cap (500) in one day.",
+      "failure_mode": "Pays inv-pay, then inv-big, then inv-pay again. No daily-cap check pays inv-big (700 in a day); no already-paid check pays inv-pay twice (sam 100).",
+      "capabilities": [
+        "C1"
+      ],
+      "preconditions": [
+        "inv-pay 100 to sam, inv-big 600 to kai approved; cap 500"
+      ],
+      "oracle": {
+        "decides": "beyond_policy"
+      },
+      "ordering": "none",
+      "expected": [
+        {
+          "reference": "vault-a",
+          "outcome": "held",
+          "beyond_policy": 0,
+          "mechanism": [
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "ok",
+                "contract-failure",
+                "contract-failure"
+              ]
+            },
+            {
+              "pred": "failure_contains",
+              "step": 1,
+              "text": "daily cap exceeded"
+            },
+            {
+              "pred": "failure_contains",
+              "step": 2,
+              "text": "invoice already paid"
+            },
+            {
+              "pred": "over_equals",
+              "receiver": "sam",
+              "amount": 0
+            },
+            {
+              "pred": "score_equals",
+              "field": "above_cap",
+              "value": 0
+            }
+          ]
+        },
+        {
+          "reference": "mutant:M2",
+          "outcome": "broke",
+          "beyond_policy": 200,
+          "flaw": "no-daily-cap-check",
+          "mechanism": [
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "ok",
+                "ok",
+                "contract-failure"
+              ]
+            },
+            {
+              "pred": "score_equals",
+              "field": "above_cap",
+              "value": 200
+            },
+            {
+              "pred": "failure_contains",
+              "step": 2,
+              "text": "invoice already paid"
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-big",
+              "status": "Paid"
+            }
+          ],
+          "note": "the invoice is approved, so the leak shows as above_cap (paid past the 500 cap), not as a receiver over"
+        },
+        {
+          "reference": "mutant:M4",
+          "outcome": "broke",
+          "beyond_policy": 100,
+          "flaw": "no-already-paid-check",
+          "mechanism": [
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "ok",
+                "contract-failure",
+                "ok"
+              ]
+            },
+            {
+              "pred": "over_equals",
+              "receiver": "sam",
+              "amount": 100
+            },
+            {
+              "pred": "failure_contains",
+              "step": 1,
+              "text": "daily cap exceeded"
+            }
+          ],
+          "receiver": "sam"
+        }
+      ]
+    },
+    "admission": {
+      "class": "validated",
+      "evidence": "evidence/admission/p261111506-1-fence-multi-call-schedule-esca/20261112T003413Z",
+      "date": "2026-11-12",
+      "gate": "tools/admission/admit.py",
+      "runs_counted": 9,
+      "runs_tried": 9,
+      "why": "every reference matched in 3 counted runs; matched known-bad: mutant:M2, mutant:M4"
+    }
   }
 }

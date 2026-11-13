@@ -1,0 +1,133 @@
+{
+ "capabilities": [
+  "C1",
+  "C6"
+ ],
+ "expected": [
+  {
+   "beyond_policy": 0,
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "contract-failure",
+      "protocol-rejected",
+      "contract-failure",
+      "ok",
+      "contract-failure",
+      "contract-failure"
+     ]
+    },
+    {
+     "pred": "failure_contains",
+     "step": 4,
+     "text": "not enough gas attached to pay safely"
+    },
+    {
+     "pred": "failure_contains",
+     "step": 5,
+     "text": "invoice already paid"
+    },
+    {
+     "amount": 0,
+     "pred": "over_equals",
+     "receiver": "sam"
+    }
+   ],
+   "outcome": "held",
+   "reference": "vault-a"
+  },
+  {
+   "beyond_policy": 0,
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "contract-failure",
+      "protocol-rejected",
+      "contract-failure",
+      "ok",
+      "contract-failure",
+      "contract-failure"
+     ]
+    },
+    {
+     "pred": "failure_contains",
+     "step": 5,
+     "text": "invoice already paid"
+    },
+    {
+     "amount": 0,
+     "pred": "outside_equals",
+     "to": "agent"
+    }
+   ],
+   "outcome": "held",
+   "reference": "intents-honest"
+  },
+  {
+   "beyond_policy": 100,
+   "flaw": "caller-chosen-intents-beneficiary",
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "contract-failure",
+      "protocol-rejected",
+      "contract-failure",
+      "ok",
+      "contract-failure",
+      "contract-failure"
+     ]
+    },
+    {
+     "amount": 100,
+     "pred": "outside_equals",
+     "to": "agent"
+    },
+    {
+     "invoice": "inv-pay",
+     "pred": "status_equals",
+     "status": "Paid"
+    }
+   ],
+   "note": "the 100 is credited to the agent inside NEAR Intents, outside every receiver: it shows in paid_outside_receivers",
+   "outcome": "broke",
+   "reference": "intents-planted"
+  },
+  {
+   "beyond_policy": 100,
+   "flaw": "no-already-paid-check",
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "contract-failure",
+      "protocol-rejected",
+      "contract-failure",
+      "ok",
+      "contract-failure",
+      "ok"
+     ]
+    },
+    {
+     "amount": 100,
+     "pred": "over_equals",
+     "receiver": "sam"
+    }
+   ],
+   "outcome": "broke",
+   "receiver": "sam",
+   "reference": "mutant:M4"
+  }
+ ],
+ "failure_mode": "Extra pay arguments: a guard that honours a caller-supplied receiver_id credits the agent inside NEAR Intents (intents-planted, 100). A guard with no already-paid check pays inv-pay a second time (M4, sam 100).",
+ "oracle": {
+  "decides": "beyond_policy"
+ },
+ "ordering": "none",
+ "preconditions": [
+  "inv-pay approved: 100 to sam; the agent's key may call only pay on the guard"
+ ],
+ "property": "A guard pays only through pay, only the invoice's own amount, only to the invoice's own receiver, and only once."
+}

@@ -1,0 +1,20 @@
+{
+ "mutant:M1": {
+  "after": "0e98bad3643860eb6ec43c079271468c5fb4bc727e975e7be7ad6f7e53caefb9",
+  "before": "0e98bad3643860eb6ec43c079271468c5fb4bc727e975e7be7ad6f7e53caefb9",
+  "flaw": "no-payee-check",
+  "kind": "known-bad",
+  "matchable": true,
+  "pinned": "0e98bad3643860eb6ec43c079271468c5fb4bc727e975e7be7ad6f7e53caefb9",
+  "wasm": "mutants/M1/vault_a.wasm"
+ },
+ "vault-a": {
+  "after": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+  "before": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+  "flaw": null,
+  "kind": "known-good",
+  "matchable": false,
+  "pinned": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+  "wasm": "targets/vault-a/vault_a.wasm"
+ }
+}

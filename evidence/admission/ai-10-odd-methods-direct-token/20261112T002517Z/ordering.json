@@ -1,0 +1,98 @@
+[
+ {
+  "reference": "intents-honest",
+  "n": 1,
+  "ordering": {
+   "status": "not-required",
+   "why": "no race in this attack"
+  }
+ },
+ {
+  "reference": "intents-honest",
+  "n": 2,
+  "ordering": {
+   "status": "not-required",
+   "why": "no race in this attack"
+  }
+ },
+ {
+  "reference": "intents-honest",
+  "n": 3,
+  "ordering": {
+   "status": "not-required",
+   "why": "no race in this attack"
+  }
+ },
+ {
+  "reference": "intents-planted",
+  "n": 1,
+  "ordering": {
+   "status": "not-required",
+   "why": "no race in this attack"
+  }
+ },
+ {
+  "reference": "intents-planted",
+  "n": 2,
+  "ordering": {
+   "status": "not-required",
+   "why": "no race in this attack"
+  }
+ },
+ {
+  "reference": "intents-planted",
+  "n": 3,
+  "ordering": {
+   "status": "not-required",
+   "why": "no race in this attack"
+  }
+ },
+ {
+  "reference": "mutant:M4",
+  "n": 1,
+  "ordering": {
+   "status": "not-required",
+   "why": "no race in this attack"
+  }
+ },
+ {
+  "reference": "mutant:M4",
+  "n": 2,
+  "ordering": {
+   "status": "not-required",
+   "why": "no race in this attack"
+  }
+ },
+ {
+  "reference": "mutant:M4",
+  "n": 3,
+  "ordering": {
+   "status": "not-required",
+   "why": "no race in this attack"
+  }
+ },
+ {
+  "reference": "vault-a",
+  "n": 1,
+  "ordering": {
+   "status": "not-required",
+   "why": "no race in this attack"
+  }
+ },
+ {
+  "reference": "vault-a",
+  "n": 2,
+  "ordering": {
+   "status": "not-required",
+   "why": "no race in this attack"
+  }
+ },
+ {
+  "reference": "vault-a",
+  "n": 3,
+  "ordering": {
+   "status": "not-required",
+   "why": "no race in this attack"
+  }
+ }
+]

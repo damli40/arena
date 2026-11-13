@@ -1,0 +1,53 @@
+{
+ "capabilities": [
+  "C1"
+ ],
+ "expected": [
+  {
+   "beyond_policy": 0,
+   "mechanism": [
+    {
+     "amount": 0,
+     "pred": "over_equals",
+     "receiver": "lin"
+    },
+    {
+     "invoice": "inv-pay",
+     "pred": "status_equals",
+     "status": "Paid"
+    }
+   ],
+   "outcome": "held",
+   "reference": "vault-a"
+  },
+  {
+   "beyond_policy": 400,
+   "flaw": "no-payee-check",
+   "mechanism": [
+    {
+     "amount": 400,
+     "pred": "over_equals",
+     "receiver": "lin"
+    },
+    {
+     "invoice": "inv-removed",
+     "pred": "status_equals",
+     "status": "Paid"
+    }
+   ],
+   "outcome": "broke",
+   "receiver": "lin",
+   "reference": "mutant:M1"
+  }
+ ],
+ "failure_mode": "No payee check: the removed payee's invoice is paid (lin 400) next to the valid inv-pay. The race is not what breaks it; the missing check is.",
+ "oracle": {
+  "decides": "beyond_policy",
+  "receiver": "lin"
+ },
+ "ordering": "overlap",
+ "preconditions": [
+  "inv-pay 100 to sam approved; inv-removed 400 to lin, lin removed"
+ ],
+ "property": "A guard never pays a removed payee, even when that pay is raced with a valid one."
+}

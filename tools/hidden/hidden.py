@@ -17,7 +17,12 @@ before any run, so a result that names the hash shows the set was fixed before t
 
   python3 -I tools/hidden/hidden.py check-public
       For outsiders (no private files, no network): every public run file in evidence/hidden-set/ names
-      the committed set hash, has one row per committed attack, and its totals add up.
+      the committed set hash (or a set committed earlier and kept in hidden-set/previous/), has one row
+      per attack of that set, and its totals add up.
+
+A new set replaces the old one by a new `commit --write`: the old COMMITMENT.json is moved, unchanged,
+to hidden-set/previous/<its set sha256>.json, so run files made on the old set still check against
+the commitment they name. Only the current set can be run or published.
 
 What it proves, and what it does not: see the `limits` field written into every public file.
 Local sandbox only. Nothing here touches a network.
@@ -31,6 +36,7 @@ import validate as V  # noqa: E402
 import admit  # noqa: E402
 
 COMMITMENT = ROOT / "hidden-set" / "COMMITMENT.json"
+PREVIOUS = ROOT / "hidden-set" / "previous"
 LIMITS = ("Proves: the set existed and was fixed when COMMITMENT.json was committed, and every hidden attack was admitted "
           "against a matched known-bad reference before commitment. Does not prove: that the operator ran it honestly "
           "(no hardware attestation; one key publishes), that the hidden attacks find flaws outside their public twins' "
@@ -81,13 +87,91 @@ def check_file(p, doc, private_root):
     V._need(meta["admission"]["class"] == "validated", f"{p.name}: gate class {meta['admission']['class']}, not validated")
 
 
-def public_hashes():
-    import catalog
-    attacks, _ = catalog.load()
-    hs = {a["meta"]["steps_sha256"] for a in attacks}
-    for p in sorted((ROOT / "sequences-intents").glob("*.json")):
-        hs.add(json.loads(p.read_text())["meta"]["steps_sha256"])
-    return hs
+WAITS = ("wait_blocks", "wait_seconds")
+
+
+def loose_hash(steps):
+    """A near-duplicate fingerprint: the canonical steps with every call's gas dropped and every wait's
+    length replaced by a placeholder. Two attacks that differ only in gas or wait values share it."""
+    out = []
+    for st in V.canonical_steps(steps):
+        (k, v), = st.items()
+        if k == "call":
+            out.append({"call": {a: b for a, b in v.items() if a != "gas_tgas"}})
+        elif k == "race":
+            out.append({"race": [{a: b for a, b in el.items() if a != "gas_tgas"} for el in v]})
+        elif k in WAITS:
+            out.append({"wait": "*"})
+        else:
+            out.append({k: v})
+    return sha(json.dumps(out, sort_keys=True, separators=(",", ":")).encode())
+
+
+def _attack_blobs(root):
+    """Text of every .json blob (up to 1 MB) tracked at the tip of ANY branch this repository knows
+    (refs/heads and refs/remotes), not only HEAD: a sibling branch merges too. Falls back to the .json
+    files on disk if this copy has no git."""
+    git = lambda *a, **k: subprocess.run(["git", *a], cwd=root, capture_output=True, **k)
+    refs = git("for-each-ref", "--format=%(objectname)", "refs/heads", "refs/remotes")
+    if refs.returncode != 0:
+        for p in root.rglob("*.json"):
+            if not {"runs", "target", "node_modules", ".git"} & set(p.relative_to(root).parts) and p.stat().st_size <= 1_000_000:
+                yield p.read_bytes()
+        return
+    blobs = set()
+    for c in sorted(set(refs.stdout.decode().split())):
+        for line in git("ls-tree", "-r", "-l", "-z", c).stdout.decode().split("\0"):
+            if not line:
+                continue
+            meta, name = line.split("\t", 1)
+            _mode, typ, obj, size = meta.split()
+            if typ == "blob" and name.endswith(".json") and size.isdigit() and int(size) <= 1_000_000:
+                blobs.add(obj)
+    if not blobs:
+        return
+    out = git("cat-file", "--batch", input="\n".join(sorted(blobs)).encode() + b"\n").stdout
+    i = 0
+    while i < len(out):
+        nl = out.index(b"\n", i)
+        header = out[i:nl].split()
+        n = int(header[2])
+        yield out[nl + 1:nl + 1 + n]
+        i = nl + 1 + n + 1
+
+
+def public_fingerprints(root=ROOT):
+    """{"exact": steps hashes, "loose": near-duplicate fingerprints} of every attack-shaped .json file
+    on any branch: the library, the intents suite, hunt proposals under evidence/hunts/**/attacks/, a
+    sibling branch's new suites, anything. Exact = the steps as written AND any meta.steps_sha256."""
+    ex, lo = set(), set()
+    for b in _attack_blobs(root):
+        try:
+            d = json.loads(b)
+        except ValueError:
+            continue
+        if not (isinstance(d, dict) and isinstance(d.get("steps"), list)):
+            continue
+        try:
+            ex.add(V.steps_hash(d["steps"]))
+            lo.add(loose_hash(d["steps"]))
+        except Exception:  # not valid steps: nothing to match against
+            pass
+        m = d.get("meta")
+        if isinstance(m, dict) and isinstance(m.get("steps_sha256"), str):
+            ex.add(m["steps_sha256"])
+    return {"exact": ex, "loose": lo}
+
+
+def public_hashes(root=ROOT):
+    return public_fingerprints(root)["exact"]
+
+
+def public_overlap(docs, root=ROOT):
+    """Names of the hidden files whose steps equal any tracked file's on any branch, exactly or up to
+    gas and wait values."""
+    fp = public_fingerprints(root)
+    return [p.name for p, doc in docs
+            if {V.steps_hash(doc["steps"]), doc["meta"]["steps_sha256"]} & fp["exact"] or loose_hash(doc["steps"]) in fp["loose"]]
 
 
 def cmd_commit(a):
@@ -105,12 +189,11 @@ def cmd_commit(a):
         except V.Invalid as e:
             bad += 1
             print("NOT ADMITTED", e)
-    pub = public_hashes()
-    overlap = [p.name for p, doc in docs if doc["meta"]["steps_sha256"] in pub]
+    overlap = public_overlap(docs)
     for n in overlap:
-        print("IN PUBLIC LIBRARY", n)
+        print("SAME OR NEAR-SAME STEPS AS A TRACKED FILE ON SOME BRANCH", n)
     if bad or overlap:
-        sys.exit(f"refused: {bad} not validated, {len(overlap)} also in the public library")
+        sys.exit(f"refused: {bad} not validated, {len(overlap)} with the same or near-same steps as a file tracked on some branch")
     head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
     c = {"about": "Hidden test set commitment. The attacks are NOT in this repo. Written by tools/hidden/hidden.py commit.",
          "set_sha256": set_sha256(docs),
@@ -127,6 +210,16 @@ def cmd_commit(a):
     print(json.dumps(c, indent=1))
     if a.write:
         COMMITMENT.parent.mkdir(exist_ok=True)
+        if COMMITMENT.exists():
+            old = json.loads(COMMITMENT.read_text())
+            if old["set_sha256"] == c["set_sha256"]:
+                sys.exit("refused: this set is already the committed one (a re-commit would only move created_at)")
+            PREVIOUS.mkdir(exist_ok=True)
+            keep = PREVIOUS / f"{old['set_sha256']}.json"
+            if keep.exists():
+                sys.exit(f"refused: {keep.relative_to(ROOT)} already exists")
+            keep.write_bytes(COMMITMENT.read_bytes())
+            print(f"kept the previous commitment unchanged as {keep.relative_to(ROOT)}")
         COMMITMENT.write_text(json.dumps(c, indent=1) + "\n")
         print(f"wrote {COMMITMENT.relative_to(ROOT)}")
 
@@ -145,6 +238,9 @@ def cmd_run(a):
     got = set_sha256(docs)
     if got != c["set_sha256"]:
         sys.exit(f"refused: the set on disk hashes to {got}, the committed set is {c['set_sha256']}")
+    overlap = public_overlap(docs)
+    if overlap:
+        sys.exit(f"refused: {len(overlap)} hidden attack(s) now have the same or near-same steps as a file tracked on some branch; commit a new set without them")
     refs = V.load_references()
     if a.reference not in refs:
         sys.exit(f"unknown reference {a.reference} (closed list: tools/admission/references.json)")
@@ -198,16 +294,59 @@ def cmd_run(a):
     print(f"public: {base.with_suffix('.json').relative_to(ROOT)} (+ .md); private: {run_dir}")
 
 
-def cmd_check_public(a):
-    c = json.loads(COMMITMENT.read_text())
-    files = sorted((ROOT / "evidence" / "hidden-set").glob("*.json"))
+def commitments(root=ROOT):
+    """{set sha256: commitment} for the current set and every earlier one kept in hidden-set/previous/."""
+    cur = json.loads((root / "hidden-set" / "COMMITMENT.json").read_text())
+    out = {cur["set_sha256"]: cur}
+    prev = root / "hidden-set" / "previous"
+    for f in sorted(prev.glob("*.json")) if prev.is_dir() else []:
+        old = json.loads(f.read_text())
+        if f.stem != old.get("set_sha256") or old["set_sha256"] == cur["set_sha256"]:
+            raise SystemExit(f"{f.relative_to(root)}: file name is not its set_sha256, or it repeats the current set")
+        out[old["set_sha256"]] = old
+    return cur, out
+
+
+def order_problems(p, root=ROOT):
+    """The run must come after its commitment, judged only by git parent order (commit dates can be set by
+    anyone, so they are not used): the run's arena_commit is an ancestor of HEAD, the tree was clean, and
+    hidden-set/COMMITMENT.json AT that commit already names this run's set. This trusts git history,
+    which whoever controls the repo can rewrite before publishing; it does not prove a wall-clock time."""
+    probs = []
+    c = p.get("arena_commit")
+    if not (isinstance(c, str) and len(c) == 40):
+        return ["no arena_commit"]
+    if p.get("arena_tree_clean") is not True:
+        probs.append("run made on a dirty tree")
+    git = lambda *a: subprocess.run(["git", *a], cwd=root, capture_output=True, text=True)
+    if git("cat-file", "-e", f"{c}^{{commit}}").returncode != 0:
+        return probs + [f"arena_commit {c[:12]} is not in this repository's history (a copy without git history cannot check the order)"]
+    if git("merge-base", "--is-ancestor", c, "HEAD").returncode != 0:
+        return probs + [f"arena_commit {c[:12]} is not an ancestor of HEAD"]
+    r = git("show", f"{c}:hidden-set/COMMITMENT.json")
+    try:
+        named = json.loads(r.stdout).get("set_sha256") if r.returncode == 0 else None
+    except ValueError:
+        named = None
+    if named != p.get("set_sha256"):
+        probs.append(f"at arena_commit {c[:12]} hidden-set/COMMITMENT.json does not name this set (commitment not committed before the run)")
+    return probs
+
+
+def cmd_check_public(a, root=ROOT):
+    cur, known = commitments(root)
+    files = sorted((root / "evidence" / "hidden-set").glob("*.json"))
     bad = 0
+    per_set = {}
     for f in files:
         p = json.loads(f.read_text())
         rows = p["rows"]
         probs = []
-        if p.get("set_sha256") != c["set_sha256"]:
-            probs.append("names another set")
+        c = known.get(p.get("set_sha256"))
+        if c is None:
+            probs.append("names a set that was never committed")
+            c = cur
+        per_set[c["set_sha256"]] = per_set.get(c["set_sha256"], 0) + 1
         if len(rows) != c["attack_count"] or [r["id"] for r in rows] != [f"h-{i:02d}" for i in range(1, c["attack_count"] + 1)]:
             probs.append("rows do not match the committed count")
         for k in ("held", "broke", "inapplicable"):
@@ -217,9 +356,11 @@ def cmd_check_public(a):
             probs.append("beyond-policy total wrong")
         if sorted({r["family"] for r in rows}) != c["families_covered"]:
             probs.append("families differ from the commitment")
+        probs += order_problems(p, root)
         bad += bool(probs)
-        print(f"{'ok ' if not probs else 'BAD'} {f.relative_to(ROOT)}: {p['guard_reference']} held {p['held']} broke {p['broke']} inapplicable {p['inapplicable']}" + (f" ({'; '.join(probs)})" if probs else ""))
-    print(f"hidden-set public files: {len(files) - bad} of {len(files)} consistent with set {c['set_sha256'][:16]}... ({c['attack_count']} attacks)")
+        print(f"{'ok ' if not probs else 'BAD'} {f.relative_to(root)}: {p['guard_reference']} held {p['held']} broke {p['broke']} inapplicable {p['inapplicable']}" + (f" ({'; '.join(probs)})" if probs else ""))
+    sets = "; ".join(f"{n} on {'current' if h == cur['set_sha256'] else 'earlier'} set {h[:16]}... ({known[h]['attack_count']} attacks)" for h, n in sorted(per_set.items(), key=lambda x: x[0] != cur["set_sha256"]))
+    print(f"hidden-set public files: {len(files) - bad} of {len(files)} consistent with the set each names ({sets})")
     return 1 if bad or not files else 0
 
 

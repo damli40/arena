@@ -53,6 +53,87 @@
       "native-fixed",
       "vault-a"
     ],
-    "validation": "valid-nothing-broke"
+    "validation": "valid-nothing-broke",
+    "spec": {
+      "property": "A guard pays each approved invoice at most once.",
+      "failure_mode": "No already-paid check: the second pay of inv-mid pays ada again. The harness waits for each call to finish, so the second pay comes after the first callback: this tests the already-paid check, not a callback window.",
+      "capabilities": [
+        "C1"
+      ],
+      "preconditions": [
+        "inv-mid approved: 200 to ada"
+      ],
+      "oracle": {
+        "decides": "beyond_policy",
+        "receiver": "ada"
+      },
+      "ordering": "none",
+      "expected": [
+        {
+          "reference": "vault-a",
+          "outcome": "held",
+          "beyond_policy": 0,
+          "mechanism": [
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "ok",
+                "contract-failure"
+              ]
+            },
+            {
+              "pred": "failure_contains",
+              "step": 1,
+              "text": "invoice already paid"
+            },
+            {
+              "pred": "over_equals",
+              "receiver": "ada",
+              "amount": 0
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-mid",
+              "status": "Paid"
+            }
+          ]
+        },
+        {
+          "reference": "mutant:M4",
+          "outcome": "broke",
+          "beyond_policy": 200,
+          "flaw": "no-already-paid-check",
+          "mechanism": [
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "ok",
+                "ok"
+              ]
+            },
+            {
+              "pred": "over_equals",
+              "receiver": "ada",
+              "amount": 200
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-mid",
+              "status": "Paid"
+            }
+          ],
+          "receiver": "ada"
+        }
+      ]
+    },
+    "admission": {
+      "class": "validated",
+      "evidence": "evidence/admission/p210408638-2-reentrancy-callback-window-ret/20261112T003252Z",
+      "date": "2026-11-12",
+      "gate": "tools/admission/admit.py",
+      "runs_counted": 6,
+      "runs_tried": 6,
+      "why": "every reference matched in 3 counted runs; matched known-bad: mutant:M4"
+    }
   }
 }

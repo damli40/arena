@@ -100,7 +100,12 @@ NEAR's signature on every reply. News items go to Muse Spark. Why each job got i
    top papers first, and every score is logged with its reason in the hunt file.
 2. The model writes attacks as data in the step vocabulary above. It may also **combine** two or more
    library attacks (`source: combined`, with `parents`).
-3. Every attack is validated, checked for duplicates, and run on every guard. It **joins the library
+3. Every attack is validated, checked for duplicates, and run on every guard. Duplicates means the
+   same steps as a library attack, an attack earlier in the same hunt, or (when the operator passes the
+   private folder: `hunt.py --hidden-set <dir>` or `ARENA_HIDDEN_SET`) an attack in the hidden test set.
+   A hidden-set match is dropped and recorded as "a hidden-set attack (not named)", next to the
+   model's proposal, which is public: so the match reveals that hidden attack's steps, and it must be
+   retired at the next set (`tools/hunter/hidden_dupes.py`). It **joins the library
    (`sequences-paper/`) only after it runs cleanly on every guard**, recorded in `meta.validation` as
    `broke` or `valid-nothing-broke`. Rejected or erroring attacks are logged in the hunt file and
    never added.

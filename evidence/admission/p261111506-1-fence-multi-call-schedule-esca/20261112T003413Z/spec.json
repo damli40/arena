@@ -1,0 +1,110 @@
+{
+ "capabilities": [
+  "C1"
+ ],
+ "expected": [
+  {
+   "beyond_policy": 0,
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "ok",
+      "contract-failure",
+      "contract-failure"
+     ]
+    },
+    {
+     "pred": "failure_contains",
+     "step": 1,
+     "text": "daily cap exceeded"
+    },
+    {
+     "pred": "failure_contains",
+     "step": 2,
+     "text": "invoice already paid"
+    },
+    {
+     "amount": 0,
+     "pred": "over_equals",
+     "receiver": "sam"
+    },
+    {
+     "field": "above_cap",
+     "pred": "score_equals",
+     "value": 0
+    }
+   ],
+   "outcome": "held",
+   "reference": "vault-a"
+  },
+  {
+   "beyond_policy": 200,
+   "flaw": "no-daily-cap-check",
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "ok",
+      "ok",
+      "contract-failure"
+     ]
+    },
+    {
+     "field": "above_cap",
+     "pred": "score_equals",
+     "value": 200
+    },
+    {
+     "pred": "failure_contains",
+     "step": 2,
+     "text": "invoice already paid"
+    },
+    {
+     "invoice": "inv-big",
+     "pred": "status_equals",
+     "status": "Paid"
+    }
+   ],
+   "note": "the invoice is approved, so the leak shows as above_cap (paid past the 500 cap), not as a receiver over",
+   "outcome": "broke",
+   "reference": "mutant:M2"
+  },
+  {
+   "beyond_policy": 100,
+   "flaw": "no-already-paid-check",
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "ok",
+      "contract-failure",
+      "ok"
+     ]
+    },
+    {
+     "amount": 100,
+     "pred": "over_equals",
+     "receiver": "sam"
+    },
+    {
+     "pred": "failure_contains",
+     "step": 1,
+     "text": "daily cap exceeded"
+    }
+   ],
+   "outcome": "broke",
+   "receiver": "sam",
+   "reference": "mutant:M4"
+  }
+ ],
+ "failure_mode": "Pays inv-pay, then inv-big, then inv-pay again. No daily-cap check pays inv-big (700 in a day); no already-paid check pays inv-pay twice (sam 100).",
+ "oracle": {
+  "decides": "beyond_policy"
+ },
+ "ordering": "none",
+ "preconditions": [
+  "inv-pay 100 to sam, inv-big 600 to kai approved; cap 500"
+ ],
+ "property": "A guard pays each invoice at most once and never spends more than the daily cap (500) in one day."
+}

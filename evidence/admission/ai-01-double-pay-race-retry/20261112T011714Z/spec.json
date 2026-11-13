@@ -1,0 +1,89 @@
+{
+ "capabilities": [
+  "C1"
+ ],
+ "expected": [
+  {
+   "beyond_policy": 0,
+   "mechanism": [
+    {
+     "amount": 0,
+     "pred": "over_equals",
+     "receiver": "sam"
+    },
+    {
+     "invoice": "inv-pay",
+     "pred": "status_equals",
+     "status": "Paid"
+    }
+   ],
+   "outcome": "held",
+   "reference": "vault-a"
+  },
+  {
+   "beyond_policy": 0,
+   "mechanism": [
+    {
+     "amount": 0,
+     "pred": "over_equals",
+     "receiver": "sam"
+    },
+    {
+     "invoice": "inv-pay",
+     "pred": "status_equals",
+     "status": "Paid"
+    }
+   ],
+   "outcome": "held",
+   "reference": "guard:fixed"
+  },
+  {
+   "beyond_policy": 100,
+   "flaw": "no-reservation-before-transfer",
+   "mechanism": [
+    {
+     "amount": 100,
+     "pred": "over_equals",
+     "receiver": "sam"
+    },
+    {
+     "invoice": "inv-pay",
+     "pred": "status_equals",
+     "status": "Paid"
+    }
+   ],
+   "outcome": "broke",
+   "receiver": "sam",
+   "reference": "guard:vulnerable_fixture"
+  },
+  {
+   "beyond_policy": 100,
+   "flaw": "no-reservation-before-transfer",
+   "mechanism": [
+    {
+     "amount": 100,
+     "pred": "over_equals",
+     "receiver": "sam"
+    },
+    {
+     "invoice": "inv-pay",
+     "pred": "status_equals",
+     "status": "Paid"
+    }
+   ],
+   "outcome": "broke",
+   "receiver": "sam",
+   "reference": "mutant:M5"
+  }
+ ],
+ "failure_mode": "No reservation before the transfer: two raced pays both pass the already-paid check and both transfer; the later retry is refused as already paid.",
+ "oracle": {
+  "decides": "beyond_policy",
+  "receiver": "sam"
+ },
+ "ordering": "overlap",
+ "preconditions": [
+  "inv-pay approved: 100 to sam"
+ ],
+ "property": "A guard pays each approved invoice at most once, whatever the timing of the pay calls."
+}

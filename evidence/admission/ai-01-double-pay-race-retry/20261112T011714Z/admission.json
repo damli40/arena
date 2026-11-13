@@ -1,0 +1,339 @@
+{
+ "attack_file_sha256": "20114553a1732c78e199e410d8bf079084f45ad8d02faffb6825414221d59df4",
+ "attack_id": "ai-01-double-pay-race-retry",
+ "class": "partially-validated",
+ "date": "2026-11-12",
+ "gate": "tools/admission/admit.py",
+ "gate_sha256": "ac77e3a3dbd43be40a2c007c92230d80f4d6f72e592e10d84549d0f808aace50",
+ "gate_version": 1,
+ "git_head": "56872c9fff7e36891928c6baa486160b45ca24c0",
+ "git_tree_clean": true,
+ "harness_sha256": "ce4724f3b1c4da37e5916d767504d611425b1842a0fe75afe43995335fdd2db6",
+ "matched": [
+  "guard:vulnerable_fixture",
+  "mutant:M5"
+ ],
+ "references": {
+  "guard:fixed": {
+   "after": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+   "before": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+   "flaw": null,
+   "kind": "known-good",
+   "matchable": false,
+   "pinned": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+   "wasm": "contracts/target/wasm32-unknown-unknown/release/guard.wasm"
+  },
+  "guard:vulnerable_fixture": {
+   "after": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+   "before": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+   "flaw": "no-reservation-before-transfer",
+   "kind": "known-bad",
+   "matchable": true,
+   "pinned": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+   "wasm": "contracts/target/wasm32-unknown-unknown/release/guard.wasm"
+  },
+  "mutant:M5": {
+   "after": "e92c54bb2744391ca9169c40827a2f71d3a55343a5df19dc28ee86168d3e5513",
+   "before": "e92c54bb2744391ca9169c40827a2f71d3a55343a5df19dc28ee86168d3e5513",
+   "flaw": "no-reservation-before-transfer",
+   "kind": "known-bad",
+   "matchable": true,
+   "pinned": "e92c54bb2744391ca9169c40827a2f71d3a55343a5df19dc28ee86168d3e5513",
+   "wasm": "mutants/M5/vault_a.wasm"
+  },
+  "vault-a": {
+   "after": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+   "before": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+   "flaw": null,
+   "kind": "known-good",
+   "matchable": false,
+   "pinned": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+   "wasm": "targets/vault-a/vault_a.wasm"
+  }
+ },
+ "runs": [
+  {
+   "counted": false,
+   "file": "run-guard-fixed-1.result.json",
+   "file_sha256": "2c67aaa3bdec192c328e35519572763cef517eb4c13c9cb74125ae2ce6847842",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 1,
+   "ordering": {
+    "races": [
+     {
+      "legs": [],
+      "status": "unproven",
+      "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+     }
+    ],
+    "status": "unproven",
+    "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "guard:fixed",
+   "seconds": 15.4
+  },
+  {
+   "counted": false,
+   "file": "run-guard-fixed-2.result.json",
+   "file_sha256": "4b5befdc44c360d26e3690d85c5dc3ca0186adb1739aef7472a54517b96f3d95",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 2,
+   "ordering": {
+    "races": [
+     {
+      "legs": [],
+      "status": "unproven",
+      "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+     }
+    ],
+    "status": "unproven",
+    "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "guard:fixed",
+   "seconds": 15.0
+  },
+  {
+   "counted": false,
+   "file": "run-guard-fixed-3.result.json",
+   "file_sha256": "9c888ac8567c5038356c8bec23fc1542c13c30b9db607b1bd0d608643348891d",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 3,
+   "ordering": {
+    "races": [
+     {
+      "legs": [],
+      "status": "unproven",
+      "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+     }
+    ],
+    "status": "unproven",
+    "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "guard:fixed",
+   "seconds": 15.8
+  },
+  {
+   "counted": false,
+   "file": "run-guard-vulnerable-fixture-1.result.json",
+   "file_sha256": "aa1e23c85943c80f8390be542da48b1e83caee94810fc6821d8f48cc048a1b11",
+   "harness_status": "broke",
+   "harness_why": "paid 100 beyond the policy",
+   "n": 1,
+   "ordering": {
+    "races": [
+     {
+      "legs": [],
+      "status": "unproven",
+      "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+     }
+    ],
+    "status": "unproven",
+    "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "guard:vulnerable_fixture",
+   "seconds": 15.0
+  },
+  {
+   "counted": false,
+   "file": "run-guard-vulnerable-fixture-2.result.json",
+   "file_sha256": "0144e12f9e7a8d5c956f82bbb8c6db9c786733e8c73390145e21b9db4e1f6f75",
+   "harness_status": "broke",
+   "harness_why": "paid 100 beyond the policy",
+   "n": 2,
+   "ordering": {
+    "races": [
+     {
+      "legs": [],
+      "status": "unproven",
+      "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+     }
+    ],
+    "status": "unproven",
+    "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "guard:vulnerable_fixture",
+   "seconds": 15.8
+  },
+  {
+   "counted": false,
+   "file": "run-guard-vulnerable-fixture-3.result.json",
+   "file_sha256": "9803625c6e22375b7f51f64109432b94f3caab5f69b6a93eb3b050aec19e210f",
+   "harness_status": "broke",
+   "harness_why": "paid 100 beyond the policy",
+   "n": 3,
+   "ordering": {
+    "races": [
+     {
+      "legs": [],
+      "status": "unproven",
+      "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+     }
+    ],
+    "status": "unproven",
+    "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "guard:vulnerable_fixture",
+   "seconds": 16.0
+  },
+  {
+   "counted": false,
+   "file": "run-mutant-m5-1.result.json",
+   "file_sha256": "6b0780f564dd583f6c933e75486b22b26e96371d1a609fd37f52cc7258775f93",
+   "harness_status": "broke",
+   "harness_why": "paid 100 beyond the policy",
+   "n": 1,
+   "ordering": {
+    "races": [
+     {
+      "legs": [],
+      "status": "unproven",
+      "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+     }
+    ],
+    "status": "unproven",
+    "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "mutant:M5",
+   "seconds": 17.6
+  },
+  {
+   "counted": false,
+   "file": "run-mutant-m5-2.result.json",
+   "file_sha256": "d4606526b22d6f76e749987eab10bc90ee1ee366629fffaca67db8b96bf8eaac",
+   "harness_status": "broke",
+   "harness_why": "paid 100 beyond the policy",
+   "n": 2,
+   "ordering": {
+    "races": [
+     {
+      "legs": [],
+      "status": "unproven",
+      "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+     }
+    ],
+    "status": "unproven",
+    "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "mutant:M5",
+   "seconds": 17.8
+  },
+  {
+   "counted": false,
+   "file": "run-mutant-m5-3.result.json",
+   "file_sha256": "725624e6999268cf912fb33d00f01a10a9eaff3b06bb8ac312561306717060c5",
+   "harness_status": "broke",
+   "harness_why": "paid 100 beyond the policy",
+   "n": 3,
+   "ordering": {
+    "races": [
+     {
+      "legs": [],
+      "status": "unproven",
+      "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+     }
+    ],
+    "status": "unproven",
+    "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "mutant:M5",
+   "seconds": 17.5
+  },
+  {
+   "counted": false,
+   "file": "run-vault-a-1.result.json",
+   "file_sha256": "a337ba98d441d4d9f69fdc3b4ac5cfa531bf8774b947ac1e0ac006988886edb5",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 1,
+   "ordering": {
+    "races": [
+     {
+      "legs": [],
+      "status": "unproven",
+      "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+     }
+    ],
+    "status": "unproven",
+    "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "vault-a",
+   "seconds": 20.1
+  },
+  {
+   "counted": false,
+   "file": "run-vault-a-2.result.json",
+   "file_sha256": "a453552bac3bd07e7916a76def194ae4c5f5db1c1b536b5780a8db7c74bbdd89",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 2,
+   "ordering": {
+    "races": [
+     {
+      "legs": [],
+      "status": "unproven",
+      "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+     }
+    ],
+    "status": "unproven",
+    "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "vault-a",
+   "seconds": 19.9
+  },
+  {
+   "counted": false,
+   "file": "run-vault-a-3.result.json",
+   "file_sha256": "fe488e133413067d04b9b01236d78d7f739d315eb8e016db891c03cef1701721",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 3,
+   "ordering": {
+    "races": [
+     {
+      "legs": [],
+      "status": "unproven",
+      "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+     }
+    ],
+    "status": "unproven",
+    "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "vault-a",
+   "seconds": 20.1
+  }
+ ],
+ "runs_counted": 0,
+ "runs_required": 3,
+ "runs_tried": 12,
+ "spec_sha256": "4066096129cfd18246c506d690e9c9fb4959e1062bbfccb6ac96a38d36b9ed51",
+ "stamp": "20261112T011714Z",
+ "steps_sha256": "38df90353a63b1fb3cac34c5cfb4043471197af9a335551b42a23c4d43274106",
+ "why": "outcomes matched, race ordering not shown: vault-a: ordering unproven (no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown); guard:fixed: ordering unproven (no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown); guard:vulnerable_fixture: ordering unproven (no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown); mutant:M5: ordering unproven (no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown)"
+}

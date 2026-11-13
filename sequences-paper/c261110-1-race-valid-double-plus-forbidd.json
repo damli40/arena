@@ -106,6 +106,104 @@
       "native-fixed",
       "vault-a"
     ],
-    "validation": "broke"
+    "validation": "broke",
+    "spec": {
+      "property": "A guard pays each approved invoice at most once, whatever the timing, and the forbidden invoices raced alongside stay refused.",
+      "failure_mode": "No reservation before the transfer: the two raced pays of inv-pay both transfer (sam 200). The cancelled, removed-payee and outsider pays are refused on every reference.",
+      "capabilities": [
+        "C1"
+      ],
+      "preconditions": [
+        "inv-pay approved: 100 to sam; inv-cancel cancelled; inv-removed's payee removed"
+      ],
+      "oracle": {
+        "decides": "beyond_policy",
+        "receiver": "sam"
+      },
+      "ordering": "overlap",
+      "expected": [
+        {
+          "reference": "vault-a",
+          "outcome": "held",
+          "beyond_policy": 0,
+          "mechanism": [
+            {
+              "pred": "over_equals",
+              "receiver": "sam",
+              "amount": 0
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-pay",
+              "status": "Paid"
+            }
+          ]
+        },
+        {
+          "reference": "guard:fixed",
+          "outcome": "held",
+          "beyond_policy": 0,
+          "mechanism": [
+            {
+              "pred": "over_equals",
+              "receiver": "sam",
+              "amount": 0
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-pay",
+              "status": "Paid"
+            }
+          ]
+        },
+        {
+          "reference": "guard:vulnerable_fixture",
+          "outcome": "broke",
+          "beyond_policy": 100,
+          "flaw": "no-reservation-before-transfer",
+          "mechanism": [
+            {
+              "pred": "over_equals",
+              "receiver": "sam",
+              "amount": 100
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-pay",
+              "status": "Paid"
+            }
+          ],
+          "receiver": "sam"
+        },
+        {
+          "reference": "mutant:M5",
+          "outcome": "broke",
+          "beyond_policy": 100,
+          "flaw": "no-reservation-before-transfer",
+          "mechanism": [
+            {
+              "pred": "over_equals",
+              "receiver": "sam",
+              "amount": 100
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-pay",
+              "status": "Paid"
+            }
+          ],
+          "receiver": "sam"
+        }
+      ]
+    },
+    "admission": {
+      "class": "partially-validated",
+      "evidence": "evidence/admission/c261110-1-race-valid-double-plus-forbidd/20261112T011747Z",
+      "date": "2026-11-12",
+      "gate": "tools/admission/admit.py",
+      "runs_counted": 0,
+      "runs_tried": 12,
+      "why": "outcomes matched, race ordering not shown: vault-a: ordering unproven (no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown); guard:fixed: ordering unproven (no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown); guard:vulnerable_fixture: ordering unproven (no per-receipt trace in the result (steps[].receipts absent): ordering can"
+    }
   }
 }

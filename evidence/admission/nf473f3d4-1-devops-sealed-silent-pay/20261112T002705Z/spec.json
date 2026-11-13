@@ -1,0 +1,86 @@
+{
+ "capabilities": [
+  "C1"
+ ],
+ "expected": [
+  {
+   "beyond_policy": 0,
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "ok",
+      "ok",
+      "contract-failure",
+      "contract-failure",
+      "contract-failure",
+      "contract-failure"
+     ]
+    },
+    {
+     "pred": "failure_contains",
+     "step": 2,
+     "text": "daily cap exceeded"
+    },
+    {
+     "pred": "failure_contains",
+     "step": 3,
+     "text": "invoice cancelled"
+    },
+    {
+     "pred": "failure_contains",
+     "step": 5,
+     "text": "receiver is no longer a payee"
+    },
+    {
+     "amount": 0,
+     "pred": "over_equals",
+     "receiver": "ada"
+    }
+   ],
+   "outcome": "held",
+   "reference": "vault-a"
+  },
+  {
+   "beyond_policy": 200,
+   "flaw": "no-cancelled-check",
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "ok",
+      "ok",
+      "contract-failure",
+      "ok",
+      "contract-failure",
+      "contract-failure"
+     ]
+    },
+    {
+     "amount": 200,
+     "pred": "over_equals",
+     "receiver": "ada"
+    },
+    {
+     "invoice": "inv-cancel",
+     "pred": "status_equals",
+     "status": "Paid"
+    }
+   ],
+   "note": "the expiring pay (step 4) is refused by the cap on both guards whatever the time, so it decides nothing here",
+   "outcome": "broke",
+   "receiver": "ada",
+   "reference": "mutant:M7"
+  }
+ ],
+ "failure_mode": "The fooled agent pays everything it can. No cancelled check pays inv-cancel (ada 200); over-cap, expiring and removed-payee pays are still refused.",
+ "oracle": {
+  "decides": "beyond_policy",
+  "receiver": "ada"
+ },
+ "ordering": "none",
+ "preconditions": [
+  "inv-mid 200 to ada, inv-small 50 to mo, inv-big 600 approved; inv-cancel 200 to ada cancelled; inv-removed 400 to lin, lin removed"
+ ],
+ "property": "Whatever the agent was told, a guard never pays a cancelled invoice."
+}

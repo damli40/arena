@@ -1,0 +1,75 @@
+{
+ "capabilities": [
+  "C1"
+ ],
+ "expected": [
+  {
+   "beyond_policy": 0,
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "ok",
+      "ok",
+      "ok",
+      "contract-failure"
+     ]
+    },
+    {
+     "pred": "failure_contains",
+     "step": 3,
+     "text": "daily cap exceeded"
+    },
+    {
+     "field": "above_cap",
+     "pred": "score_equals",
+     "value": 0
+    },
+    {
+     "invoice": "inv-big",
+     "pred": "status_equals",
+     "status": "Approved"
+    }
+   ],
+   "outcome": "held",
+   "reference": "vault-a"
+  },
+  {
+   "beyond_policy": 450,
+   "flaw": "no-daily-cap-check",
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "ok",
+      "ok",
+      "ok",
+      "ok"
+     ]
+    },
+    {
+     "field": "above_cap",
+     "pred": "score_equals",
+     "value": 450
+    },
+    {
+     "invoice": "inv-big",
+     "pred": "status_equals",
+     "status": "Paid"
+    }
+   ],
+   "note": "the invoice is approved, so the leak shows as above_cap (paid past the 500 cap), not as a receiver over",
+   "outcome": "broke",
+   "reference": "mutant:M2"
+  }
+ ],
+ "failure_mode": "No daily-cap check: after three honest invoices (350) the 600 invoice is paid too, 950 in one day. A cap checked per payment (M3) still refuses 600 on its own, so that is not this attack's flaw.",
+ "oracle": {
+  "decides": "beyond_policy"
+ },
+ "ordering": "none",
+ "preconditions": [
+  "inv-pay 100, inv-small 50, inv-mid 200 approved; inv-big 600 approved to kai; daily cap 500"
+ ],
+ "property": "A guard never spends more than the owner's daily cap (500) in one day, however the spending is split."
+}

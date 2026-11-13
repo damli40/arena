@@ -89,6 +89,144 @@
     "expected_safe_result": "all three refused; nothing paid",
     "added": "2026-11-09",
     "author": "AI tester, one-shot, from INTERFACE.md + policy + manifest (model not recorded)",
-    "steps_sha256": "7cc8dfce79d71a847b472ab1441aa622bb7fa40c0ba19c8d8e8751bdc5d15ecb"
+    "steps_sha256": "7cc8dfce79d71a847b472ab1441aa622bb7fa40c0ba19c8d8e8751bdc5d15ecb",
+    "spec": {
+      "property": "A guard never pays a cancelled invoice, never pays a removed payee, and lets only the agent start a payment.",
+      "failure_mode": "Three paths, one flaw each: no cancelled check pays inv-cancel (ada 200); no payee check pays inv-removed (lin 400); no caller check lets the outsider pay inv-small (mo 50).",
+      "capabilities": [
+        "C1"
+      ],
+      "preconditions": [
+        "inv-cancel 200 to ada, cancelled",
+        "inv-removed 400 to lin, lin removed",
+        "inv-small 50 to mo approved"
+      ],
+      "oracle": {
+        "decides": "beyond_policy"
+      },
+      "ordering": "none",
+      "expected": [
+        {
+          "reference": "vault-a",
+          "outcome": "held",
+          "beyond_policy": 0,
+          "mechanism": [
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "contract-failure",
+                "contract-failure",
+                "contract-failure"
+              ]
+            },
+            {
+              "pred": "failure_contains",
+              "step": 0,
+              "text": "invoice cancelled"
+            },
+            {
+              "pred": "failure_contains",
+              "step": 1,
+              "text": "receiver is no longer a payee"
+            },
+            {
+              "pred": "failure_contains",
+              "step": 2,
+              "text": "only the agent can pay"
+            }
+          ]
+        },
+        {
+          "reference": "mutant:M7",
+          "outcome": "broke",
+          "beyond_policy": 200,
+          "flaw": "no-cancelled-check",
+          "mechanism": [
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "ok",
+                "contract-failure",
+                "contract-failure"
+              ]
+            },
+            {
+              "pred": "over_equals",
+              "receiver": "ada",
+              "amount": 200
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-cancel",
+              "status": "Paid"
+            }
+          ],
+          "receiver": "ada"
+        },
+        {
+          "reference": "mutant:M1",
+          "outcome": "broke",
+          "beyond_policy": 400,
+          "flaw": "no-payee-check",
+          "mechanism": [
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "contract-failure",
+                "ok",
+                "contract-failure"
+              ]
+            },
+            {
+              "pred": "over_equals",
+              "receiver": "lin",
+              "amount": 400
+            },
+            {
+              "pred": "status_equals",
+              "invoice": "inv-removed",
+              "status": "Paid"
+            }
+          ],
+          "receiver": "lin"
+        },
+        {
+          "reference": "mutant:M8",
+          "outcome": "broke",
+          "beyond_policy": 50,
+          "flaw": "no-agent-only-check",
+          "mechanism": [
+            {
+              "pred": "step_outcomes",
+              "value": [
+                "contract-failure",
+                "contract-failure",
+                "ok"
+              ]
+            },
+            {
+              "pred": "over_equals",
+              "receiver": "mo",
+              "amount": 50
+            },
+            {
+              "pred": "non_agent_pay",
+              "invoice": "inv-small",
+              "actor": "outsider"
+            }
+          ],
+          "receiver": "mo"
+        }
+      ]
+    },
+    "admission": {
+      "class": "validated",
+      "evidence": "evidence/admission/ai-09-should-refuse-paths/20261112T002442Z",
+      "date": "2026-11-12",
+      "gate": "tools/admission/admit.py",
+      "runs_counted": 12,
+      "runs_tried": 12,
+      "why": "every reference matched in 3 counted runs; matched known-bad: mutant:M7, mutant:M1, mutant:M8"
+    }
   }
 }

@@ -1,0 +1,20 @@
+{
+ "mutant:M3": {
+  "after": "24210b50854acf7e65daa4ad8a46391f325eb3ae489f7fd69c38a755a309c460",
+  "before": "24210b50854acf7e65daa4ad8a46391f325eb3ae489f7fd69c38a755a309c460",
+  "flaw": "cap-per-payment-not-running-total",
+  "kind": "known-bad",
+  "matchable": true,
+  "pinned": "24210b50854acf7e65daa4ad8a46391f325eb3ae489f7fd69c38a755a309c460",
+  "wasm": "mutants/M3/vault_a.wasm"
+ },
+ "vault-a": {
+  "after": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+  "before": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+  "flaw": null,
+  "kind": "known-good",
+  "matchable": false,
+  "pinned": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+  "wasm": "targets/vault-a/vault_a.wasm"
+ }
+}

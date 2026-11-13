@@ -1,0 +1,129 @@
+{
+ "capabilities": [
+  "C1"
+ ],
+ "expected": [
+  {
+   "beyond_policy": 0,
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "contract-failure",
+      "contract-failure",
+      "contract-failure"
+     ]
+    },
+    {
+     "pred": "failure_contains",
+     "step": 0,
+     "text": "invoice cancelled"
+    },
+    {
+     "pred": "failure_contains",
+     "step": 1,
+     "text": "receiver is no longer a payee"
+    },
+    {
+     "pred": "failure_contains",
+     "step": 2,
+     "text": "only the agent can pay"
+    }
+   ],
+   "outcome": "held",
+   "reference": "vault-a"
+  },
+  {
+   "beyond_policy": 200,
+   "flaw": "no-cancelled-check",
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "ok",
+      "contract-failure",
+      "contract-failure"
+     ]
+    },
+    {
+     "amount": 200,
+     "pred": "over_equals",
+     "receiver": "ada"
+    },
+    {
+     "invoice": "inv-cancel",
+     "pred": "status_equals",
+     "status": "Paid"
+    }
+   ],
+   "outcome": "broke",
+   "receiver": "ada",
+   "reference": "mutant:M7"
+  },
+  {
+   "beyond_policy": 400,
+   "flaw": "no-payee-check",
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "contract-failure",
+      "ok",
+      "contract-failure"
+     ]
+    },
+    {
+     "amount": 400,
+     "pred": "over_equals",
+     "receiver": "lin"
+    },
+    {
+     "invoice": "inv-removed",
+     "pred": "status_equals",
+     "status": "Paid"
+    }
+   ],
+   "outcome": "broke",
+   "receiver": "lin",
+   "reference": "mutant:M1"
+  },
+  {
+   "beyond_policy": 50,
+   "flaw": "no-agent-only-check",
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "contract-failure",
+      "contract-failure",
+      "ok"
+     ]
+    },
+    {
+     "amount": 50,
+     "pred": "over_equals",
+     "receiver": "mo"
+    },
+    {
+     "actor": "outsider",
+     "invoice": "inv-small",
+     "pred": "non_agent_pay"
+    }
+   ],
+   "outcome": "broke",
+   "receiver": "mo",
+   "reference": "mutant:M8"
+  }
+ ],
+ "failure_mode": "Three paths, one flaw each: no cancelled check pays inv-cancel (ada 200); no payee check pays inv-removed (lin 400); no caller check lets the outsider pay inv-small (mo 50).",
+ "oracle": {
+  "decides": "beyond_policy"
+ },
+ "ordering": "none",
+ "preconditions": [
+  "inv-cancel 200 to ada, cancelled",
+  "inv-removed 400 to lin, lin removed",
+  "inv-small 50 to mo approved"
+ ],
+ "property": "A guard never pays a cancelled invoice, never pays a removed payee, and lets only the agent start a payment."
+}

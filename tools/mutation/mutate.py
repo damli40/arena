@@ -73,6 +73,11 @@ MUTANTS = {
         "                Some(g) if *g == inv.payee_generation => {}\n",
         "                Some(_) => {} // MUTANT M10: payee generation ignored\n",
     )],
+    # gas pre-check in pay removed (added 2026-11-12, plan: evidence/mutation-plan-2026-11-12.md)
+    "M11": [(
+        "        require!(remaining >= needed, \"not enough gas attached to pay safely\");\n",
+        "        let _ = (remaining, needed); // MUTANT M11: gas pre-check removed\n",
+    )],
 }
 
 

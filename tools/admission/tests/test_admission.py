@@ -428,6 +428,19 @@ class RaceOrdering(unittest.TestCase):
         r = self._legs([(g, 10, True), (t, 11, True), (g, 12, True)], [(g, 9, False)])
         self.assertEqual(A.race_ordering(r, [0, 1])["status"], "not-overlapping")
 
+    def test_early_refused_leg_does_not_hide_an_overlap_between_the_others(self):
+        # race-ordering review: leg A refused at 109; legs B and C check at 110, callbacks 112. Without A
+        # this is a proven overlap; A must be dropped, not turn the whole race into "sequential".
+        g, t = self.g, "token.test.near"
+        pay = lambda: [(g, 110, True), (t, 111, True), (g, 112, True)]
+        r = self._legs([(g, 109, False)], pay(), pay())
+        o = A.race_ordering(r, [0, 1, 2])
+        self.assertEqual(o["status"], "proven", o["why"])
+        self.assertIn("not counted", o["why"])
+        # B and C still in a row after dropping A: not overlapping, judged on B and C
+        r = self._legs([(g, 109, False)], pay(), [(g, 113, True), (t, 114, True), (g, 115, True)])
+        self.assertEqual(A.race_ordering(r, [0, 1, 2])["status"], "not-overlapping")
+
     def test_unknown_height_unproven(self):
         t = trace(self.g, 111, 113)
         t["receipts"][2]["block_height"] = None

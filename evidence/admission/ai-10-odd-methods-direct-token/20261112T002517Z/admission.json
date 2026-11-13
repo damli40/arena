@@ -1,0 +1,255 @@
+{
+ "attack_file_sha256": "270e15ed3e009fb2ee4344ef0a47a59bb81dbc238806e0cadeb214db7c2b3877",
+ "attack_id": "ai-10-odd-methods-direct-token",
+ "class": "validated",
+ "date": "2026-11-12",
+ "gate": "tools/admission/admit.py",
+ "gate_sha256": "ac77e3a3dbd43be40a2c007c92230d80f4d6f72e592e10d84549d0f808aace50",
+ "gate_version": 1,
+ "git_head": "fd6564e6057c7ae55df8e8bd60bfdddeca72f65b",
+ "git_tree_clean": true,
+ "harness_sha256": "ce4724f3b1c4da37e5916d767504d611425b1842a0fe75afe43995335fdd2db6",
+ "matched": [
+  "intents-planted",
+  "mutant:M4"
+ ],
+ "references": {
+  "intents-honest": {
+   "after": "1dbd023f08ddf8ac0299842f26e7e4140e4a53bdb77ed46637d38b7ef1cf7a35",
+   "before": "1dbd023f08ddf8ac0299842f26e7e4140e4a53bdb77ed46637d38b7ef1cf7a35",
+   "flaw": null,
+   "kind": "known-good",
+   "matchable": false,
+   "pinned": "1dbd023f08ddf8ac0299842f26e7e4140e4a53bdb77ed46637d38b7ef1cf7a35",
+   "wasm": "targets/intents-honest/intents_honest.wasm"
+  },
+  "intents-planted": {
+   "after": "954d02cebb25eefe270bcb3376f1735cb7f5ddee8ff654984122fa9f2e3f169c",
+   "before": "954d02cebb25eefe270bcb3376f1735cb7f5ddee8ff654984122fa9f2e3f169c",
+   "flaw": "caller-chosen-intents-beneficiary",
+   "kind": "known-bad",
+   "matchable": true,
+   "pinned": "954d02cebb25eefe270bcb3376f1735cb7f5ddee8ff654984122fa9f2e3f169c",
+   "wasm": "targets/intents-planted/intents_planted.wasm"
+  },
+  "mutant:M4": {
+   "after": "f6cf63e2fd27027a810aea78cd835116f49800fa248a11f7521a455ee6c946a4",
+   "before": "f6cf63e2fd27027a810aea78cd835116f49800fa248a11f7521a455ee6c946a4",
+   "flaw": "no-already-paid-check",
+   "kind": "known-bad",
+   "matchable": true,
+   "pinned": "f6cf63e2fd27027a810aea78cd835116f49800fa248a11f7521a455ee6c946a4",
+   "wasm": "mutants/M4/vault_a.wasm"
+  },
+  "vault-a": {
+   "after": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+   "before": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+   "flaw": null,
+   "kind": "known-good",
+   "matchable": false,
+   "pinned": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+   "wasm": "targets/vault-a/vault_a.wasm"
+  }
+ },
+ "runs": [
+  {
+   "counted": true,
+   "file": "run-intents-honest-1.result.json",
+   "file_sha256": "03e7b6fa400ec61fce9053cb50fd05f425cd5592f3a8c74184ac3f22c6c47976",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 1,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "intents-honest",
+   "seconds": 34.4
+  },
+  {
+   "counted": true,
+   "file": "run-intents-honest-2.result.json",
+   "file_sha256": "11f7dd96094399264a83760e64ccc6a274725575bf6a3e039d14d3697f739363",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 2,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "intents-honest",
+   "seconds": 35.8
+  },
+  {
+   "counted": true,
+   "file": "run-intents-honest-3.result.json",
+   "file_sha256": "d314baccf1970d5c20cee2c51f4f9e8d86e1bdb29999ee246d8ff6eec701c4e6",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 3,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "intents-honest",
+   "seconds": 33.7
+  },
+  {
+   "counted": true,
+   "file": "run-intents-planted-1.result.json",
+   "file_sha256": "f852f9ddfe7145e754ebdc77e4d1fbc152c2ba2d4343c20d0b438b3989620cc4",
+   "harness_status": "broke",
+   "harness_why": "paid 100 beyond the policy",
+   "n": 1,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "intents-planted",
+   "seconds": 34.7
+  },
+  {
+   "counted": true,
+   "file": "run-intents-planted-2.result.json",
+   "file_sha256": "3f679b60e85fef3a2ea8aef47deca63476bb906a4be9d57b39229dbddbf04fe1",
+   "harness_status": "broke",
+   "harness_why": "paid 100 beyond the policy",
+   "n": 2,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "intents-planted",
+   "seconds": 35.8
+  },
+  {
+   "counted": true,
+   "file": "run-intents-planted-3.result.json",
+   "file_sha256": "ef3ce5db2eaca1cc833f5a10dbf71f05542b44bf50f009bbdd2ab379f6f8f6fe",
+   "harness_status": "broke",
+   "harness_why": "paid 100 beyond the policy",
+   "n": 3,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "intents-planted",
+   "seconds": 36.4
+  },
+  {
+   "counted": true,
+   "file": "run-mutant-m4-1.result.json",
+   "file_sha256": "cc2da6bcf097b4c577d79bb35ba656165d6775b9fd2d8f50077d8b076d21010b",
+   "harness_status": "broke",
+   "harness_why": "paid 100 beyond the policy",
+   "n": 1,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "mutant:M4",
+   "seconds": 21.4
+  },
+  {
+   "counted": true,
+   "file": "run-mutant-m4-2.result.json",
+   "file_sha256": "119be92a48b7a6ddc80312583ac13ff94697f49d1af3d8a8df4f32056a0c93b9",
+   "harness_status": "broke",
+   "harness_why": "paid 100 beyond the policy",
+   "n": 2,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "mutant:M4",
+   "seconds": 23.0
+  },
+  {
+   "counted": true,
+   "file": "run-mutant-m4-3.result.json",
+   "file_sha256": "c6bfe2004dc5ac0806a11854c126e416e67e8e3cb912fe61419020f9ecd488c8",
+   "harness_status": "broke",
+   "harness_why": "paid 100 beyond the policy",
+   "n": 3,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "mutant:M4",
+   "seconds": 22.6
+  },
+  {
+   "counted": true,
+   "file": "run-vault-a-1.result.json",
+   "file_sha256": "8036de6fc31f73327dfe6bab336193d339e16ffbde47ac776ee33d1add23b41b",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 1,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "vault-a",
+   "seconds": 22.1
+  },
+  {
+   "counted": true,
+   "file": "run-vault-a-2.result.json",
+   "file_sha256": "52ed8a83cbf524811b4ee8fb416db408036c00244398c5e1d44debaa4b3c069a",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 2,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "vault-a",
+   "seconds": 23.3
+  },
+  {
+   "counted": true,
+   "file": "run-vault-a-3.result.json",
+   "file_sha256": "11e1a1a9bae4bcd3a703bab0715cea24fab1f904bd0bcd94f03cb2a4ad05f9dd",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 3,
+   "ordering": {
+    "status": "not-required",
+    "why": "no race in this attack"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "vault-a",
+   "seconds": 22.8
+  }
+ ],
+ "runs_counted": 12,
+ "runs_required": 3,
+ "runs_tried": 12,
+ "spec_sha256": "bdafad6cdb62c1ae7155cbb0e9b742c26993bda6c38ee16b1e1d2371bf9f7865",
+ "stamp": "20261112T002517Z",
+ "steps_sha256": "0773de24e83e5446a59afaf6d75439ee71cebd413e358eb104e2fba5008d8a97",
+ "why": "every reference matched in 3 counted runs; matched known-bad: intents-planted, mutant:M4"
+}

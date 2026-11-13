@@ -44,6 +44,20 @@ class Manifest(unittest.TestCase):
                 self.assertTrue(r["evidence"], r["id"])
                 self.assertTrue((ROOT / r["evidence"] / "admission.json").is_file(), r["id"])
 
+    def test_recorded_reasons_only_for_attacks_the_gate_has_not_judged(self):
+        # a person's reason (tools/admission/unvalidated.json) never sits on an attack with a spec or a stamp
+        reasons = M.load_reasons()
+        rows = {r["id"]: r for r in self.m["attacks"]["rows"]}
+        for aid, (reason, _) in reasons.items():
+            self.assertIn(aid, rows)
+            self.assertEqual(rows[aid]["class"], "unvalidated", aid)
+            self.assertTrue(rows[aid]["why"].startswith(reason + ":"), aid)
+
+    def test_reason_on_a_specced_attack_is_refused(self):
+        a = {"meta": {"id": "x", "spec": {"property": "p"}}, "steps": []}
+        with self.assertRaises(SystemExit):
+            M.attack_class(a, {"x": ("intent-only", "d")})
+
 
 if __name__ == "__main__":
     unittest.main()

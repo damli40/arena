@@ -1,0 +1,182 @@
+{
+ "attack_file_sha256": "73f64a3e6b4a54201e17193ced326e08b09be8b191e0a35b04c9be9b2a70464a",
+ "attack_id": "p261112636-3-substituted-payee-binding-race",
+ "class": "partially-validated",
+ "date": "2026-11-12",
+ "gate": "tools/admission/admit.py",
+ "gate_sha256": "ac77e3a3dbd43be40a2c007c92230d80f4d6f72e592e10d84549d0f808aace50",
+ "gate_version": 1,
+ "git_head": "56872c9fff7e36891928c6baa486160b45ca24c0",
+ "git_tree_clean": true,
+ "harness_sha256": "ce4724f3b1c4da37e5916d767504d611425b1842a0fe75afe43995335fdd2db6",
+ "matched": [
+  "mutant:M1"
+ ],
+ "references": {
+  "mutant:M1": {
+   "after": "0e98bad3643860eb6ec43c079271468c5fb4bc727e975e7be7ad6f7e53caefb9",
+   "before": "0e98bad3643860eb6ec43c079271468c5fb4bc727e975e7be7ad6f7e53caefb9",
+   "flaw": "no-payee-check",
+   "kind": "known-bad",
+   "matchable": true,
+   "pinned": "0e98bad3643860eb6ec43c079271468c5fb4bc727e975e7be7ad6f7e53caefb9",
+   "wasm": "mutants/M1/vault_a.wasm"
+  },
+  "vault-a": {
+   "after": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+   "before": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+   "flaw": null,
+   "kind": "known-good",
+   "matchable": false,
+   "pinned": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+   "wasm": "targets/vault-a/vault_a.wasm"
+  }
+ },
+ "runs": [
+  {
+   "counted": false,
+   "file": "run-mutant-m1-1.result.json",
+   "file_sha256": "d4f58b320561dffdc2a8b138f08c9a69fa61a3335124f3b79f3e850358cadc62",
+   "harness_status": "broke",
+   "harness_why": "paid 400 beyond the policy",
+   "n": 1,
+   "ordering": {
+    "races": [
+     {
+      "legs": [],
+      "status": "unproven",
+      "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+     }
+    ],
+    "status": "unproven",
+    "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "mutant:M1",
+   "seconds": 18.6
+  },
+  {
+   "counted": false,
+   "file": "run-mutant-m1-2.result.json",
+   "file_sha256": "afad12c6dba46cd59bdc0d184e3156bb9a1e9001b58884576bd7ddbded08f328",
+   "harness_status": "broke",
+   "harness_why": "paid 400 beyond the policy",
+   "n": 2,
+   "ordering": {
+    "races": [
+     {
+      "legs": [],
+      "status": "unproven",
+      "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+     }
+    ],
+    "status": "unproven",
+    "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "mutant:M1",
+   "seconds": 22.5
+  },
+  {
+   "counted": false,
+   "file": "run-mutant-m1-3.result.json",
+   "file_sha256": "cc9a4ed77649115ff753de292d8514f7936677f12308499b3b763390901097df",
+   "harness_status": "broke",
+   "harness_why": "paid 400 beyond the policy",
+   "n": 3,
+   "ordering": {
+    "races": [
+     {
+      "legs": [],
+      "status": "unproven",
+      "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+     }
+    ],
+    "status": "unproven",
+    "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "mutant:M1",
+   "seconds": 19.6
+  },
+  {
+   "counted": false,
+   "file": "run-vault-a-1.result.json",
+   "file_sha256": "c658a0766973f17fcdce926b5750fc8cf33ce2c3b32d2310f6430d19e7010f7f",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 1,
+   "ordering": {
+    "races": [
+     {
+      "legs": [],
+      "status": "unproven",
+      "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+     }
+    ],
+    "status": "unproven",
+    "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "vault-a",
+   "seconds": 18.9
+  },
+  {
+   "counted": false,
+   "file": "run-vault-a-2.result.json",
+   "file_sha256": "4ded231cf92dacff7058a1129b5621d32819be47e91a3cc899a34cfe39b93c42",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 2,
+   "ordering": {
+    "races": [
+     {
+      "legs": [],
+      "status": "unproven",
+      "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+     }
+    ],
+    "status": "unproven",
+    "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "vault-a",
+   "seconds": 19.5
+  },
+  {
+   "counted": false,
+   "file": "run-vault-a-3.result.json",
+   "file_sha256": "20888fed9eacb8582d2c14712b01655ec98ed090efe43b6825ad653ae85ad2e5",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 3,
+   "ordering": {
+    "races": [
+     {
+      "legs": [],
+      "status": "unproven",
+      "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+     }
+    ],
+    "status": "unproven",
+    "why": "no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "vault-a",
+   "seconds": 22.0
+  }
+ ],
+ "runs_counted": 0,
+ "runs_required": 3,
+ "runs_tried": 6,
+ "spec_sha256": "7017d4f0a7b6898293d54c681349f19d07e0a0eb2e0678b91150e9cab262ed1f",
+ "stamp": "20261112T012025Z",
+ "steps_sha256": "a9b669faa3c64104f6873b2590509960a5b0d071ecce3ce94f475d7068dae789",
+ "why": "outcomes matched, race ordering not shown: vault-a: ordering unproven (no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown); mutant:M1: ordering unproven (no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown)"
+}

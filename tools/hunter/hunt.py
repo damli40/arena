@@ -45,7 +45,7 @@ import argparse, datetime, hashlib, json, os, pathlib, secrets, subprocess, sys,
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import arxiv, board, catalog, memory, muse, nearai, news, proposals, registry, runner  # noqa: E402
+import arxiv, board, catalog, hidden_dupes, memory, muse, nearai, news, proposals, registry, runner  # noqa: E402
 import validate as V  # noqa: E402
 
 ROOT = HERE.parents[1]
@@ -103,6 +103,7 @@ def parse_args(argv):
     ap.add_argument("--out-dir", default=str(ROOT / "evidence" / "hunts"))
     ap.add_argument("--board-out", default=str(ROOT / "site"))
     ap.add_argument("--no-save", action="store_true")
+    ap.add_argument("--hidden-set", default=None, help="private hidden-set folder (outside the repo; default $ARENA_HIDDEN_SET): drop proposals with the same steps as a hidden attack, recording only that they matched")
     ap.add_argument("--candidates", type=int, default=10, help="papers scored before the top --max-papers are attacked")
     ap.add_argument("--combine", type=int, default=None, help="combined attacks to ask for (0 = off; 1 model call; default 2, 0 for --source news)")
     ap.add_argument("--memory-picks", type=int, default=None, help="library attacks re-run where the memory says (0 = off; default 6, 0 for --source news)")
@@ -377,6 +378,15 @@ def main(argv):
     library, problems = catalog.load()
     H["library_problems"] = problems
     lib_index = catalog.index_by_hash(library)
+    hidden_src = a.hidden_set or os.environ.get("ARENA_HIDDEN_SET")
+    if not hidden_src:
+        hidden_state = hidden_dupes.not_run("no private hidden-set folder given (--hidden-set or ARENA_HIDDEN_SET)")
+    else:
+        try:
+            hidden_state = hidden_dupes.load(hidden_src)
+        except ValueError as e:
+            print(f"hidden-set check refused: {e}", file=sys.stderr)
+            return 2
     lib_unique, _ = catalog.unique(library)
     mem = memory.build(out_dir, library)
     fam_counts = {}
@@ -399,6 +409,11 @@ def main(argv):
         h = doc["meta"]["steps_sha256"]
         if h in lib_index:
             H["duplicates"].append({"attack": doc["meta"]["id"], "same_steps_as": lib_index[h]["meta"]["id"], "where": f"library ({where_from})"})
+            return False
+        if hidden_dupes.match(hidden_state, h):
+            # public record: only that it matched; never which hidden attack (hidden_dupes.py)
+            H["duplicates"].append({"attack": doc["meta"]["id"], "same_steps_as": "a hidden-set attack (not named)",
+                                    "where": f"hidden set {hidden_state['set_sha256'][:16]} ({where_from})"})
             return False
         if h in seen_hashes:
             H["duplicates"].append({"attack": doc["meta"]["id"], "same_steps_as": seen_hashes[h], "where": f"this hunt ({where_from})"})
@@ -734,6 +749,7 @@ def main(argv):
     def count(status, roles=None):
         return sum(1 for e in H["attacks"] for g, c in e["results"].items()
                    if c.get("status") == status and (roles is None or next(x["role"] for x in guards_all if x["id"] == g) in roles))
+    H["hidden_set_check"] = hidden_dupes.record(hidden_state)
     H["counts"] = {
         "papers_read": sum(1 for p in H["papers"] if p.get("status") == "attacked"),
         "papers_considered": len(H["papers"]),
@@ -975,6 +991,10 @@ def render_md(H):
     L += [f"- {r['paper']} attack {r['index']} ({r['name']}): {r['reason']}" for r in H["rejections"]] or ["None."]
     L += ["", "## Duplicates (same steps as an attack we already had)", ""]
     L += [f"- `{d['attack']}` = `{d['same_steps_as']}` ({d['where']})" for d in H["duplicates"]] or ["None."]
+    hc = H.get("hidden_set_check")
+    if hc:
+        L += ["", "Hidden-set duplicate check: " + (f"ran against set {hc['set_sha256'][:16]}..., {hc['matches']} match(es)." + (" " + hc["retire"] if hc.get("retire") else "")
+                                                   if hc["ran"] else f"not run ({hc['why']}).")]
     if H.get("muse"):
         L += ["", "## Model calls", "", f"{H['muse']['calls']} of a hard cap of {H['muse']['cap']} (every chat request counts)."
               + (f" Signature lookups (no tokens): {H['muse'].get('signature_requests')}. Cost from NEAR's listed prices: ${H['muse']['cost_usd']:.4f}." if H['muse'].get('cost_usd') is not None else ""), ""]
