@@ -197,13 +197,13 @@
       ]
     },
     "admission": {
-      "class": "partially-validated",
-      "evidence": "evidence/admission/c261110-1-race-valid-double-plus-forbidd/20261112T011747Z",
-      "date": "2026-11-12",
+      "class": "validated",
+      "evidence": "evidence/admission/c261110-1-race-valid-double-plus-forbidd/20261113T094539Z",
+      "date": "2026-11-13",
       "gate": "tools/admission/admit.py",
-      "runs_counted": 0,
+      "runs_counted": 12,
       "runs_tried": 12,
-      "why": "outcomes matched, race ordering not shown: vault-a: ordering unproven (no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown); guard:fixed: ordering unproven (no per-receipt trace in the result (steps[].receipts absent): ordering cannot be shown); guard:vulnerable_fixture: ordering unproven (no per-receipt trace in the result (steps[].receipts absent): ordering can"
+      "why": "every reference matched in 3 counted runs; matched known-bad: guard:vulnerable_fixture, mutant:M5"
     }
   }
 }

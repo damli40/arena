@@ -1,0 +1,413 @@
+{
+ "attack_file_sha256": "fd857ed99648c5c8ae38f02fb48255a6774ce075c8579e92f5e068229d3e5751",
+ "attack_id": "scripted-02-race-double-pay",
+ "class": "validated",
+ "date": "2026-11-13",
+ "gate": "tools/admission/admit.py",
+ "gate_sha256": "e03b5754225de3ab3ce8764b0da9b4ce2ae2aca022d367606dd0ab0debd0e57e",
+ "gate_version": 1,
+ "git_head": "8935241bb626ebc499a0d0df3d3561c6fffeab6f",
+ "git_tree_clean": true,
+ "harness_sha256": "76825035c0924905f5f86ab41b35b95915dd3db713d09c59dc152bf1ca4abfa8",
+ "matched": [
+  "mutant:M5"
+ ],
+ "references": {
+  "guard:vulnerable_fixture": {
+   "after": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+   "before": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+   "flaw": "no-reservation-before-transfer",
+   "kind": "known-bad",
+   "matchable": true,
+   "pinned": "0382023bed1208667d8ef56af7223c2a46d8fa069caf1414c2aa84c08b48510e",
+   "wasm": "contracts/target/wasm32-unknown-unknown/release/guard.wasm"
+  },
+  "mutant:M5": {
+   "after": "e92c54bb2744391ca9169c40827a2f71d3a55343a5df19dc28ee86168d3e5513",
+   "before": "e92c54bb2744391ca9169c40827a2f71d3a55343a5df19dc28ee86168d3e5513",
+   "flaw": "no-reservation-before-transfer",
+   "kind": "known-bad",
+   "matchable": true,
+   "pinned": "e92c54bb2744391ca9169c40827a2f71d3a55343a5df19dc28ee86168d3e5513",
+   "wasm": "mutants/M5/vault_a.wasm"
+  },
+  "vault-a": {
+   "after": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+   "before": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+   "flaw": null,
+   "kind": "known-good",
+   "matchable": false,
+   "pinned": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+   "wasm": "targets/vault-a/vault_a.wasm"
+  }
+ },
+ "runs": [
+  {
+   "counted": true,
+   "file": "run-guard-vulnerable-fixture-1.result.json",
+   "file_sha256": "feadc374b80f5059ec5548db9d4a993c63d155e70b1cd297d089e79d34ef5e6a",
+   "harness_status": "broke",
+   "harness_why": "paid 100 beyond the policy",
+   "n": 1,
+   "ordering": {
+    "races": [
+     {
+      "legs": [
+       {
+        "callback_height": 84,
+        "callback_ok": true,
+        "check_height": 82,
+        "check_ok": true,
+        "guard": "dev-20261113094334-61292785818003.test.near",
+        "step": 0
+       },
+       {
+        "callback_height": 84,
+        "callback_ok": true,
+        "check_height": 82,
+        "check_ok": true,
+        "guard": "dev-20261113094334-61292785818003.test.near",
+        "step": 1
+       }
+      ],
+      "status": "proven",
+      "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+     }
+    ],
+    "status": "proven",
+    "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "guard:vulnerable_fixture",
+   "seconds": 11.6
+  },
+  {
+   "counted": true,
+   "file": "run-guard-vulnerable-fixture-2.result.json",
+   "file_sha256": "588371c38f5b090d676830f752996e752bec34ee6fbbf5d2e4bcda7835ec8c43",
+   "harness_status": "broke",
+   "harness_why": "paid 100 beyond the policy",
+   "n": 2,
+   "ordering": {
+    "races": [
+     {
+      "legs": [
+       {
+        "callback_height": 84,
+        "callback_ok": true,
+        "check_height": 82,
+        "check_ok": true,
+        "guard": "dev-20261113094346-39887699121439.test.near",
+        "step": 0
+       },
+       {
+        "callback_height": 84,
+        "callback_ok": true,
+        "check_height": 82,
+        "check_ok": true,
+        "guard": "dev-20261113094346-39887699121439.test.near",
+        "step": 1
+       }
+      ],
+      "status": "proven",
+      "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+     }
+    ],
+    "status": "proven",
+    "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "guard:vulnerable_fixture",
+   "seconds": 11.4
+  },
+  {
+   "counted": true,
+   "file": "run-guard-vulnerable-fixture-3.result.json",
+   "file_sha256": "82973326d2d93106ff278442dd92619e94562ba6801d6ef460de08af9b7a190d",
+   "harness_status": "broke",
+   "harness_why": "paid 100 beyond the policy",
+   "n": 3,
+   "ordering": {
+    "races": [
+     {
+      "legs": [
+       {
+        "callback_height": 84,
+        "callback_ok": true,
+        "check_height": 82,
+        "check_ok": true,
+        "guard": "dev-20261113094349-47833946438136.test.near",
+        "step": 0
+       },
+       {
+        "callback_height": 84,
+        "callback_ok": true,
+        "check_height": 82,
+        "check_ok": true,
+        "guard": "dev-20261113094349-47833946438136.test.near",
+        "step": 1
+       }
+      ],
+      "status": "proven",
+      "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+     }
+    ],
+    "status": "proven",
+    "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "guard:vulnerable_fixture",
+   "seconds": 11.4
+  },
+  {
+   "counted": true,
+   "file": "run-mutant-m5-1.result.json",
+   "file_sha256": "f327ccd494b00d8c7a3dc730a5cdcfad8378f0866b077e41297afc3f5d01f968",
+   "harness_status": "broke",
+   "harness_why": "paid 100 beyond the policy",
+   "n": 1,
+   "ordering": {
+    "races": [
+     {
+      "legs": [
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113094349-33020485643094.test.near",
+        "step": 0
+       },
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113094349-33020485643094.test.near",
+        "step": 1
+       }
+      ],
+      "status": "proven",
+      "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+     }
+    ],
+    "status": "proven",
+    "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "mutant:M5",
+   "seconds": 15.3
+  },
+  {
+   "counted": true,
+   "file": "run-mutant-m5-2.result.json",
+   "file_sha256": "04cbeaaa5914b86d73ab11118d34982e7faffe5162d8ae2b89cf571f7fb4480b",
+   "harness_status": "broke",
+   "harness_why": "paid 100 beyond the policy",
+   "n": 2,
+   "ordering": {
+    "races": [
+     {
+      "legs": [
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113094350-15393592813967.test.near",
+        "step": 0
+       },
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113094350-15393592813967.test.near",
+        "step": 1
+       }
+      ],
+      "status": "proven",
+      "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+     }
+    ],
+    "status": "proven",
+    "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "mutant:M5",
+   "seconds": 15.2
+  },
+  {
+   "counted": true,
+   "file": "run-mutant-m5-3.result.json",
+   "file_sha256": "a8e1c68f7be64785c9d1cbef658363b8c90050ba145d9daa2d8e52cba2ad6e68",
+   "harness_status": "broke",
+   "harness_why": "paid 100 beyond the policy",
+   "n": 3,
+   "ordering": {
+    "races": [
+     {
+      "legs": [
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113094357-71351864511905.test.near",
+        "step": 0
+       },
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113094357-71351864511905.test.near",
+        "step": 1
+       }
+      ],
+      "status": "proven",
+      "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+     }
+    ],
+    "status": "proven",
+    "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "mutant:M5",
+   "seconds": 15.2
+  },
+  {
+   "counted": true,
+   "file": "run-vault-a-1.result.json",
+   "file_sha256": "c88780ef0be0b8deaf1d75ffeebb3ea7536c2c9bb0aa0aa3a731ca12850d3f65",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 1,
+   "ordering": {
+    "races": [
+     {
+      "legs": [
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113094334-31932194516045.test.near",
+        "step": 0
+       },
+       {
+        "callback_height": null,
+        "callback_ok": null,
+        "check_height": 112,
+        "check_ok": false,
+        "guard": "dev-20261113094334-31932194516045.test.near",
+        "step": 1
+       }
+      ],
+      "status": "proven",
+      "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+     }
+    ],
+    "status": "proven",
+    "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "vault-a",
+   "seconds": 15.2
+  },
+  {
+   "counted": true,
+   "file": "run-vault-a-2.result.json",
+   "file_sha256": "f422b65fcf82af80a4997cd576c2baaa80fb4c0c51fb0038b7e0379ea8ca5e29",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 2,
+   "ordering": {
+    "races": [
+     {
+      "legs": [
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113094334-31190003906230.test.near",
+        "step": 0
+       },
+       {
+        "callback_height": null,
+        "callback_ok": null,
+        "check_height": 112,
+        "check_ok": false,
+        "guard": "dev-20261113094334-31190003906230.test.near",
+        "step": 1
+       }
+      ],
+      "status": "proven",
+      "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+     }
+    ],
+    "status": "proven",
+    "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "vault-a",
+   "seconds": 15.1
+  },
+  {
+   "counted": true,
+   "file": "run-vault-a-3.result.json",
+   "file_sha256": "07ef9617c2f09b327246e7c712635c5e26a72d3ff9b854ee34d60fd83390e5fd",
+   "harness_status": "held",
+   "harness_why": "",
+   "n": 3,
+   "ordering": {
+    "races": [
+     {
+      "legs": [
+       {
+        "callback_height": 114,
+        "callback_ok": true,
+        "check_height": 112,
+        "check_ok": true,
+        "guard": "dev-20261113094334-63706104659984.test.near",
+        "step": 0
+       },
+       {
+        "callback_height": null,
+        "callback_ok": null,
+        "check_height": 112,
+        "check_ok": false,
+        "guard": "dev-20261113094334-63706104659984.test.near",
+        "step": 1
+       }
+      ],
+      "status": "proven",
+      "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+     }
+    ],
+    "status": "proven",
+    "why": "every later call's guard check ran in a block strictly before every earlier call's callback"
+   },
+   "outcome_ok": true,
+   "reasons": [],
+   "reference": "vault-a",
+   "seconds": 15.3
+  }
+ ],
+ "runs_counted": 9,
+ "runs_required": 3,
+ "runs_tried": 9,
+ "spec_sha256": "256b099ff0b6b54a8641cefd955cd0136ca90e514cfc2c25d7dedd496a4c582f",
+ "stamp": "20261113T094330Z",
+ "steps_sha256": "f8eda0fc36884d21c867e8af650254c215e400ff030515f96f1fcbe2d97cb627",
+ "why": "every reference matched in 3 counted runs; matched known-bad: mutant:M5"
+}

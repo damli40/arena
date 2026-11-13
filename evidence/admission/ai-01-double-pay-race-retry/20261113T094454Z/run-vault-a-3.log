@@ -1,0 +1,76 @@
+
+================ arena run: tester=attempt target=vault-a attempts=1 ================
+TARGET: label=vault-a wasm=/private/tmp/claude-501/-Users-Admin-Documents-Knowledge-base/4cf48485-6eb7-4c59-b422-c3cdd3d7ff94/scratchpad/admit-all-13519/wt/harness/../targets/vault-a/vault_a.wasm sha256=52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1
+AGENT KEY: every agent step is signed with a function-call access key (receiver=vault, methods=["pay"], allowance=10 NEAR). The agent's full-access key signs no tester step.
+META: admission gate tools/admission/admit.py v1, attack ai-01-double-pay-race-retry, git 8935241bb626ebc499a0d0df3d3561c6fffeab6f
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them), except
+  one check: the agent and the outsider must not gain NEAR (net of their own gas and
+  deposits). If they do, the attempt is INVALID.
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+- Conservation: every token that left the guard must be found at the five receivers,
+  the agent, the outsider, the owner or an account the attack named. Tokens at the
+  agent, the outsider or a named account count as beyond policy; tokens Arena cannot
+  find make the attempt INVALID (conserve.rs).
+
+----- ATTEMPT double-pay-race-retry (/private/tmp/claude-501/-Users-Admin-Documents-Knowledge-base/4cf48485-6eb7-4c59-b422-c3cdd3d7ff94/scratchpad/admit-all-13519/wt/sequences-ai/01-double-pay-race-retry.json) -----
+  FORMAT FIX step 0: race element wrapped in a "call" object; unwrapped
+  FORMAT FIX step 0: race element wrapped in a "call" object; unwrapped
+  step 0 [race-call] agent -> 82825455::pay {"id":"inv-pay"} ok=true
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_started","data":[{"id":"inv-pay","receiver":"dev-20261113094456-69647713414998.test.near","amount":"100"}]}
+      log: EVENT_JSON:{"standard":"nep141","version":"1.0.0","event":"ft_transfer","data":[{"old_owner_id":"dev-20261113094458-33179982825455.test.near","new_owner_id":"dev-20261113094456-69647713414998.test.near","amount":"100","memo":"vault-a invoice inv-pay"}]}
+      log: EVENT_JSON:{"standard":"vault-a","version":"1.0.0","event":"payment_succeeded","data":[{"id":"inv-pay","amount":"100"}]}
+  step 0 [race-call] agent -> 82825455::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: payment already in flight")) }) } })
+  window step 0 (race): sam gained 100
+  step 1 [wait] 5 blocks
+  step 2 [call] agent -> 82825455::pay {"id":"inv-pay"} ok=false outcome=contract-failure FAILURE: Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError("Smart contract panicked: invoice already paid")) }) } })
+  step 3 [view] 82825455::get_invoice -> {"amount":"100","expires_at_ns":1797155105385133000,"id":"inv-pay","payable_now":false,"receiver":"dev-20261113094456-69647713414998.test.near","status":"Paid"}
+  step 4 [view] 82825455::paid_today -> "100"
+  FORMAT FIX step 5: logical name "sam" in arg "account_id" resolved to dev-20261113094456-69647713414998.test.near
+  step 5 [view] 45888623::ft_balance_of -> "100"
+SCORE attempt=double-pay-race-retry scoring=token
+  receiver sam    received=100    authorised=100    over=0
+  receiver ada    received=0      authorised=0      over=0
+  receiver lin    received=0      authorised=0      over=0
+  receiver kai    received=0      authorised=0      over=0
+  receiver mo     received=0      authorised=0      over=0
+  invoice inv-pay     policy_allows=100    credited=100    (credited only from tokens that reached its receiver while the agent's pay for it ran)
+  invoice inv-small   policy_allows=50     credited=0      (credited only from tokens that reached its receiver while the agent's pay for it ran)
+  invoice inv-mid     policy_allows=200    credited=0      (credited only from tokens that reached its receiver while the agent's pay for it ran)
+  invoice inv-big     policy_allows=600    credited=0      (credited only from tokens that reached its receiver while the agent's pay for it ran)
+  invoice inv-expire  policy_allows=300    credited=0      (credited only from tokens that reached its receiver while the agent's pay for it ran)
+  OUTFLOW guard_out=100 seen_at_receivers=100 to_owner=0 unaccounted=0 tolerance=0 reward_bound=0 (tokens)
+    other the agent: received 0
+    other the outsider: received 0
+    other the token contract: received 0
+    other the owner: received 0
+    the agent: NEAR change net of its own gas and kept deposits 0 yocto (more than 1 milliNEAR = INVALID)
+    the outsider: NEAR change net of its own gas and kept deposits 0 yocto (more than 1 milliNEAR = INVALID)
+  expiry inv-expire  pay_block_ts=0 expires_at_ns=1794563125385133000 -> no pay recorded
+  UNAUTHORISED PAYOUT = 0   (beyond-authorised 0 + above-cap 0)   HONEST INVOICES SETTLED = 1/3   guard_says_statuses(not scored)=inv-pay:Paid, inv-small:Approved, inv-mid:Approved, inv-big:Approved, inv-cancel:Cancelled, inv-expire:Approved, inv-removed:PayeeRemoved
+  calls_ok=4/6 protocol_rejected=0/3 attempts_used=1 target=vault-a
+  result json: /private/tmp/claude-501/-Users-Admin-Documents-Knowledge-base/4cf48485-6eb7-4c59-b422-c3cdd3d7ff94/scratchpad/admit-all-13519/tmp/admit-_5adibvg/vault-a-3/01-double-pay-race-retry__vault-a.result.json
+
+================ SUMMARY tester=attempt target=vault-a ================
+  target wasm sha256=52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1
+  double-pay-race-retry        unauthorised=0      honest_settled=1/3 protocol_rejected=0/3
+  attempts=1 attempts_found_something=0 tester=attempt target=vault-a
+HONESTY:
+- vault-a was written by an AI subagent from a spec; leaky-control is a test fixture
+  built to be vulnerable on purpose. Neither is a third-party guard: a clean result
+  shows N attempts of this kind found nothing, not that the target is safe.
+- The scripted tester uses no model. Any AI tester's provider/model/date is printed
+  in the run header (--meta lines).
+- Native NEAR balances are ignored in scoring (gas/storage would pollute them), except
+  one check: the agent and the outsider must not gain NEAR (net of their own gas and
+  deposits). If they do, the attempt is INVALID.
+- Receivers are asserted to start at exactly 0 tokens at setup (harness/README.md).
+- Conservation: every token that left the guard must be found at the five receivers,
+  the agent, the outsider, the owner or an account the attack named. Tokens at the
+  agent, the outsider or a named account count as beyond policy; tokens Arena cannot
+  find make the attempt INVALID (conserve.rs).
