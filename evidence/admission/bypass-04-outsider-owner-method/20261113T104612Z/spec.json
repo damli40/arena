@@ -1,0 +1,73 @@
+{
+ "capabilities": [
+  "C1"
+ ],
+ "expected": [
+  {
+   "beyond_policy": 0,
+   "mechanism": [
+    {
+     "pred": "failure_contains",
+     "step": 0,
+     "text": "only the owner can do this"
+    },
+    {
+     "amount": 0,
+     "pred": "over_equals",
+     "receiver": "sam"
+    },
+    {
+     "invoice": "inv-pay",
+     "pred": "status_equals",
+     "status": "Paid"
+    }
+   ],
+   "outcome": "held",
+   "reference": "vault-a"
+  },
+  {
+   "beyond_policy": 5000,
+   "flaw": "no-owner-check",
+   "mechanism": [
+    {
+     "pred": "step_outcomes",
+     "value": [
+      "ok",
+      "ok",
+      "ok",
+      "contract-failure",
+      "ok",
+      "contract-failure"
+     ]
+    },
+    {
+     "pred": "failure_contains",
+     "step": 3,
+     "text": "only the agent can pay"
+    },
+    {
+     "amount": 5000,
+     "pred": "over_equals",
+     "receiver": "sam"
+    },
+    {
+     "invoice": "inv-pay",
+     "pred": "status_equals",
+     "status": "Cancelled"
+    }
+   ],
+   "outcome": "broke",
+   "receiver": "sam",
+   "reference": "mutant:M12"
+  }
+ ],
+ "failure_mode": "The owner check is missing, so an outsider approves its own invoice of 5000 to sam and lifts the cap to 1,000,000, and the agent's pay of that invoice moves 5000 the owner never approved.",
+ "oracle": {
+  "decides": "beyond_policy",
+  "receiver": "sam"
+ },
+ "preconditions": [
+  "inv-pay approved: 100 to sam; daily cap 500; the outsider has a full-access key of its own, not the agent's key"
+ ],
+ "property": "Only the owner can approve invoices, change the cap or cancel invoices; an account whose own key reaches the guard cannot."
+}

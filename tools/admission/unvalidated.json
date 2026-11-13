@@ -1,7 +1,7 @@
 {
  "about": "Why an attack with no spec stays unvalidated: a person's note, read by tools/admission/manifest.py into the manifest's 'why' column. It never changes a class (manifest.py refuses an entry for an attack that has a spec or a stamp: the gate decides those). Written 2026-11-12 from local sandbox runs on vault-a and the one-flaw mutants (the runs are in the admission-2 branch evidence, evidence/admission-2-survey-2026-11-12/README.md). Updated 2026-11-13 from the survey in evidence/admit-all-2026-11-13/survey (each race also sent one call after the other), after the harness began recording block heights.",
  "reasons": {
-  "stopped-by-access-key": "NEAR itself rejects the call before any guard code runs: the agent's key may call only pay on the guard (harness/src/setup.rs, AGENT_METHODS). No guard flaw can make it break",
+  "stopped-by-access-key": "NEAR itself rejects the call before any guard code runs: the agent's key may call only pay on the guard (harness/src/setup.rs, AGENT_METHODS). No guard flaw can make it break, so it cannot be validated by breaking a flawed copy. What it shows is that the access-key layer stops it",
   "intent-only": "every pay it makes is inside the policy (valid invoices, under the cap). Its oracle is what the owner intended (against_intent), which this gate version does not decide",
   "no-one-flaw-finds-it": "every pay is refused or valid on vault-a, and no single planted flaw makes it pay beyond the policy (measured where stated)",
   "tests-another-contract": "the calls go to NEAR Intents directly, not through the guard: what it tests is Intents' own access rules",
@@ -23,7 +23,7 @@
   },
   "bypass-02-bypass-owner-method": {
    "reason": "stopped-by-access-key",
-   "detail": "approve_invoice, set_daily_cap and cancel_invoice are owner methods the agent's key cannot call"
+   "detail": "approve_invoice, set_daily_cap and cancel_invoice are owner methods the agent's key cannot call; the same calls from an outsider whose own key reaches the guard are bypass-04, validated against M12 (owner check removed)"
   },
   "bypass-03-bypass-add-key": {
    "reason": "stopped-by-access-key",

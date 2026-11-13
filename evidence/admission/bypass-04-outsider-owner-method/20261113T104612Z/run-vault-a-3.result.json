@@ -1,0 +1,478 @@
+{
+  "attempt": "bypass-outsider-owner-method",
+  "final": {
+    "credited_by_invoice": [
+      {
+        "credited": "100",
+        "id": "inv-pay"
+      },
+      {
+        "credited": "0",
+        "id": "inv-small"
+      },
+      {
+        "credited": "0",
+        "id": "inv-mid"
+      },
+      {
+        "credited": "0",
+        "id": "inv-big"
+      },
+      {
+        "credited": "0",
+        "id": "inv-cancel"
+      },
+      {
+        "credited": "0",
+        "id": "inv-expire"
+      },
+      {
+        "credited": "0",
+        "id": "inv-removed"
+      }
+    ],
+    "invoice_statuses": [
+      {
+        "id": "inv-pay",
+        "status": "Paid"
+      },
+      {
+        "id": "inv-small",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-mid",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-big",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-cancel",
+        "status": "Cancelled"
+      },
+      {
+        "id": "inv-expire",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-removed",
+        "status": "PayeeRemoved"
+      }
+    ],
+    "non_agent_pays": [],
+    "paid_outside_receivers": [],
+    "received": [
+      {
+        "authorised": "100",
+        "over": "0",
+        "received": "100",
+        "receiver": "sam"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "ada"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "lin"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "kai"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "mo"
+      }
+    ]
+  },
+  "score": {
+    "above_cap": "0",
+    "beyond_authorised": "0",
+    "conservation": {
+      "guard_outflow": "100",
+      "measured_in": "tokens",
+      "near_net_gain_yocto": [
+        {
+          "account": "the agent",
+          "gain": "0"
+        },
+        {
+          "account": "the outsider",
+          "gain": "0"
+        }
+      ],
+      "ok": true,
+      "others": [
+        {
+          "account": "the agent",
+          "received": "0"
+        },
+        {
+          "account": "the outsider",
+          "received": "0"
+        },
+        {
+          "account": "the token contract",
+          "received": "0"
+        },
+        {
+          "account": "the owner",
+          "received": "0"
+        },
+        {
+          "account": "account 5000 (named in the attack)",
+          "received": "0"
+        },
+        {
+          "account": "account inv-bypass (named in the attack)",
+          "received": "0"
+        },
+        {
+          "account": "account 1000000 (named in the attack)",
+          "received": "0"
+        }
+      ],
+      "paid_outside_receivers": [],
+      "paid_outside_units": "0",
+      "problems": [],
+      "reward_bound": "0",
+      "seen_at_receivers": "100",
+      "supply_drop": "0",
+      "to_owner": "0",
+      "tolerance": "0",
+      "unaccounted": "0",
+      "unit_yocto": "1"
+    },
+    "expiry": [
+      {
+        "expires_at_ns": 1794566803187798000,
+        "id": "inv-expire",
+        "pay_block_ts": 0,
+        "verdict": "no pay recorded"
+      }
+    ],
+    "expiry_cannot_observe": [],
+    "honest_settled": 1,
+    "invalid_reasons": [],
+    "native_yocto": [],
+    "notes": [],
+    "paid_outside_receivers": "0",
+    "scoring": "token",
+    "should_pay": 3,
+    "statuses_scored": false,
+    "stopped_by_access_key": false,
+    "unauthorised_payout": "0",
+    "valid": true,
+    "windows": [
+      {
+        "calls": [
+          {
+            "actor": "agent",
+            "invoice": "inv-pay",
+            "method": "pay",
+            "own_receipt_ok": true,
+            "ran_at_ns": 1794566790032244000
+          }
+        ],
+        "gained": [
+          {
+            "receiver": "sam",
+            "units": "100"
+          }
+        ],
+        "problems": [],
+        "step": "step 5"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "actor": "outsider",
+      "args": {
+        "amount": "5000",
+        "expires_at_ns": 4102444800000000000,
+        "id": "inv-bypass",
+        "receiver": "dev-20261113104614-32821268634651.test.near"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: only the owner can do this\")) }) } })",
+      "kind": "call",
+      "logs": [],
+      "method": "approve_invoice",
+      "outcome": "contract-failure",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 120,
+            "children": 2,
+            "executor": "dev-20261113104616-73520484390004.test.near",
+            "gas_burnt": "1369601954112",
+            "index": 0,
+            "logs": 0,
+            "ok": false
+          },
+          {
+            "block_height": 121,
+            "children": 0,
+            "executor": "dev-20261113104613-48328443955728.test.near",
+            "gas_burnt": "223182562500",
+            "index": 1,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 121,
+            "children": 0,
+            "executor": "dev-20261113104613-48328443955728.test.near",
+            "gas_burnt": "223182562500",
+            "index": 2,
+            "logs": 0,
+            "ok": true
+          }
+        ],
+        "tx_block_height": 119,
+        "tx_hash": "5giB1CogM1RoqauyNJUFfvGY2HTHMcFijVbhbhJnpucE"
+      },
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "outsider",
+      "args": {
+        "daily_cap": "1000000"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: only the owner can do this\")) }) } })",
+      "kind": "call",
+      "logs": [],
+      "method": "set_daily_cap",
+      "outcome": "contract-failure",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 124,
+            "children": 2,
+            "executor": "dev-20261113104616-73520484390004.test.near",
+            "gas_burnt": "1359969151012",
+            "index": 0,
+            "logs": 0,
+            "ok": false
+          },
+          {
+            "block_height": 125,
+            "children": 0,
+            "executor": "dev-20261113104613-48328443955728.test.near",
+            "gas_burnt": "223182562500",
+            "index": 1,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 125,
+            "children": 0,
+            "executor": "dev-20261113104613-48328443955728.test.near",
+            "gas_burnt": "223182562500",
+            "index": 2,
+            "logs": 0,
+            "ok": true
+          }
+        ],
+        "tx_block_height": 123,
+        "tx_hash": "69SpwknVBvXGs9drky1fqS5pNzJn1E3mKJqzHynZKom2"
+      },
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "outsider",
+      "args": {
+        "id": "inv-pay"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: only the owner can do this\")) }) } })",
+      "kind": "call",
+      "logs": [],
+      "method": "cancel_invoice",
+      "outcome": "contract-failure",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 128,
+            "children": 1,
+            "executor": "dev-20261113104616-73520484390004.test.near",
+            "gas_burnt": "1358583368206",
+            "index": 0,
+            "logs": 0,
+            "ok": false
+          }
+        ],
+        "tx_block_height": 127,
+        "tx_hash": "4xs7qTiB7XE9nyjpSzJt7TgV425NTHFmNRHX3MhEr3eB"
+      },
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "outsider",
+      "args": {
+        "id": "inv-bypass"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: only the agent can pay\")) }) } })",
+      "kind": "call",
+      "logs": [],
+      "method": "pay",
+      "outcome": "contract-failure",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 131,
+            "children": 1,
+            "executor": "dev-20261113104616-73520484390004.test.near",
+            "gas_burnt": "1357387483952",
+            "index": 0,
+            "logs": 0,
+            "ok": false
+          }
+        ],
+        "tx_block_height": 130,
+        "tx_hash": "FUztmjenCzJq8H7ssaCrLMF59ZRDqxBdHgXnMRau8Dq4"
+      },
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-bypass"
+      },
+      "failure": "Some(Error { repr: Custom { kind: Execution, error: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: invoice not found\")) }) } })",
+      "kind": "call",
+      "logs": [],
+      "method": "pay",
+      "outcome": "contract-failure",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 134,
+            "children": 1,
+            "executor": "dev-20261113104616-73520484390004.test.near",
+            "gas_burnt": "1422789594451",
+            "index": 0,
+            "logs": 0,
+            "ok": false
+          }
+        ],
+        "tx_block_height": 133,
+        "tx_hash": "2hWdoXDz2VVUpELBHGUf77kehi3Lw2qpEMvoC5UVvwfT"
+      },
+      "rejected_by_protocol": false,
+      "success": false,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-pay"
+      },
+      "failure": "",
+      "kind": "call",
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"vault-a\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":[{\"id\":\"inv-pay\",\"receiver\":\"dev-20261113104614-32821268634651.test.near\",\"amount\":\"100\"}]}",
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"dev-20261113104616-73520484390004.test.near\",\"new_owner_id\":\"dev-20261113104614-32821268634651.test.near\",\"amount\":\"100\",\"memo\":\"vault-a invoice inv-pay\"}]}",
+        "EVENT_JSON:{\"standard\":\"vault-a\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":[{\"id\":\"inv-pay\",\"amount\":\"100\"}]}"
+      ],
+      "method": "pay",
+      "outcome": "ok",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 137,
+            "children": 3,
+            "executor": "dev-20261113104616-73520484390004.test.near",
+            "gas_burnt": "2674738595980",
+            "index": 0,
+            "logs": 1,
+            "ok": true
+          },
+          {
+            "block_height": 138,
+            "children": 1,
+            "executor": "dev-20261113104616-85762720082792.test.near",
+            "gas_burnt": "1785298294260",
+            "index": 1,
+            "logs": 1,
+            "ok": true
+          },
+          {
+            "block_height": 139,
+            "children": 0,
+            "executor": "dev-20261113104613-31632094059166.test.near",
+            "gas_burnt": "223182562500",
+            "index": 2,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 139,
+            "children": 1,
+            "executor": "dev-20261113104616-73520484390004.test.near",
+            "gas_burnt": "1789616641879",
+            "index": 3,
+            "logs": 1,
+            "ok": true
+          },
+          {
+            "block_height": 138,
+            "children": 0,
+            "executor": "dev-20261113104613-31632094059166.test.near",
+            "gas_burnt": "223182562500",
+            "index": 4,
+            "logs": 0,
+            "ok": true
+          }
+        ],
+        "tx_block_height": 136,
+        "tx_hash": "2RpCJpFRLrkqv5Y74BpZXzshBcUNmRJYzh5Av24Sph8X"
+      },
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "-",
+      "args": {
+        "id": "inv-bypass"
+      },
+      "failure": "",
+      "kind": "view",
+      "logs": [],
+      "method": "get_invoice",
+      "outcome": "ok",
+      "receipts": null,
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    }
+  ],
+  "target": "vault-a",
+  "target_wasm_sha256": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1"
+}
