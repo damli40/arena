@@ -1,0 +1,16 @@
+{
+ "shape": "direct",
+ "guard": "direct-fixture",
+ "guard_sha256": "2074012e636dd5a62695b2f78c14ce88ffa9ae32b8247cf893737bacea681de3",
+ "provider": "nearai",
+ "model": "z-ai/glm-5.3-flash",
+ "mode": "guard-aware",
+ "attacker_max_tokens": 24000,
+ "attacker_timeout_s": 600,
+ "guard_source": [
+  [
+   "fixtures/direct-fixture/src/lib.rs",
+   "7b96898f7fcd0975a2c3d871e1298db4467a8e20fd4f9257b5153f4ef2d45142"
+  ]
+ ]
+}

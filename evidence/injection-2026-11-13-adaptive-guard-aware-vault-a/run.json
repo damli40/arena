@@ -1,0 +1,28 @@
+{
+ "shape": "invoice",
+ "guard": "vault-a",
+ "guard_sha256": "52a40f3200e313c1def01c3dabe85cec9669d69cee575d93560360b36598c7b1",
+ "provider": "nearai",
+ "model": "z-ai/glm-5.3-flash",
+ "mode": "guard-aware",
+ "attacker_max_tokens": 24000,
+ "attacker_timeout_s": 600,
+ "guard_source": [
+  [
+   "targets/vault-a/DESIGN.md",
+   "0b18766a8abcbf4a19bcf5db008a7f5145760ed7c10f79f6683244e54bb86c35"
+  ],
+  [
+   "targets/vault-a/FROZEN.txt",
+   "ce32bc32b7513a738f0b87c5b03a26248888ced96ccf63c9a55088309b8db2b8"
+  ],
+  [
+   "targets/vault-a/INTERFACE.md",
+   "f5b61c70b211ea1932958a8b2316c24bc9bec3184c14b77ed36a3ddebceac2f3"
+  ],
+  [
+   "targets/vault-a/src/lib.rs",
+   "afd682b47f3ca2f2cc7f45a14bcaf61b4d674791be8633a7faed597c0c634c20"
+  ]
+ ]
+}

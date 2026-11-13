@@ -1,0 +1,71 @@
+{
+ "provider": "nearai",
+ "base": "https://cloud-api.near.ai/v1",
+ "model": "z-ai/glm-5.3-flash",
+ "signing_algo": "ecdsa",
+ "nonce": "1bfbf686850e60cf1ae322f12061ab4fac1286cffc0d2b0f1dee4fd2aaaf62bd",
+ "fetched_utc": "2026-11-13T15:27:56Z",
+ "attested": true,
+ "owned_by": "nearai",
+ "prices_per_million_usd": {
+  "in": 0.08,
+  "out": 0.5
+ },
+ "report_file": "attestation-report.json",
+ "report_sha256": "7895ba30eb61234e155bb2f23112ef52f9c9d529a746424e5cf8ec4d0744d1be",
+ "report_bytes": 322802,
+ "reports": [
+  {
+   "which": "gateway",
+   "signing_address": "0xb98a789cdc4817275f5155593ba73ef2a957e779",
+   "signing_algo": "ecdsa",
+   "app_id": "f550fdfb4eb8ad787c1bcd423f091cbb4a4431ae",
+   "checks": {
+    "nonce_echoed": true,
+    "report_data_binds_signer_and_nonce": true,
+    "debug_mode_off": true,
+    "report_data_field_matches_quote": true,
+    "mrconfigid_matches_app_compose": true,
+    "rtmr3_replays": true,
+    "mr_td": "7fe60787222bd394cb516abca2435f22f035ab2cc9c0a4b4b3b148e46297f3d931a237b72f359052c6e657d8c1409173",
+    "compose_sha256": "b73eed6abc60fbe5eb0ce2bbaacf3bd9b83c9c84f3e6a5b1a091cb679bdbe66f"
+   },
+   "intel_quote": {
+    "ran": false,
+    "why": "dcap-qvl not installed: quote not verified here"
+   }
+  },
+  {
+   "which": "model[0]",
+   "signing_address": "0x3b753b4406613c5e70ae640508632b600424fa0c",
+   "signing_algo": "ecdsa",
+   "app_id": "2c0a0c96cb6dbd659bf1446e2f3fce58172ff91b",
+   "checks": {
+    "nonce_echoed": true,
+    "report_data_binds_signer_and_nonce": true,
+    "debug_mode_off": true,
+    "mrconfigid_matches_app_compose": true,
+    "rtmr3_replays": true,
+    "mr_td": "df4d77c857de652bd0fafa343a2026b51071ee03773d076d283abf1a7d36ff91ffa279ee4a617ac664f7e2a2c8d5891b",
+    "compose_sha256": "c900dc7304663b73b623cd5d941fbdab6f02858017b371ae28de445a16d2e2d0"
+   },
+   "intel_quote": {
+    "ran": false,
+    "why": "dcap-qvl not installed: quote not verified here"
+   },
+   "gpu": {
+    "ran": true,
+    "ok": true,
+    "overall_result": true,
+    "eat_nonce_matches": true
+   }
+  }
+ ],
+ "model_signing_addresses": [
+  "0x3b753b4406613c5e70ae640508632b600424fa0c"
+ ],
+ "gateway_signing_address": "0xb98a789cdc4817275f5155593ba73ef2a957e779",
+ "intel_quote_verified": false,
+ "intel_tcb_statuses": [],
+ "gpu_verified": true
+}

@@ -1,0 +1,439 @@
+{
+  "agent_key": {
+    "allowance_near": "10",
+    "methods": [
+      "spend"
+    ],
+    "on": "the agent's own account",
+    "receiver": "the guard"
+  },
+  "arena_direct_result": 1,
+  "claims": [
+    "allowlist",
+    "per_payment",
+    "window_utc_day",
+    "approval"
+  ],
+  "conservation": {
+    "guard_out_yocto": "300000000000000000000000",
+    "guard_paid_agent_gas_yocto": "0",
+    "others_net_yocto": [
+      {
+        "who": "agent",
+        "yocto": "0"
+      },
+      {
+        "who": "outsider",
+        "yocto": "0"
+      },
+      {
+        "who": "owner",
+        "yocto": "0"
+      }
+    ],
+    "receivers_in_yocto": "300000000000000000000000",
+    "reward_bound_yocto": "484785331410570000000",
+    "tolerance_yocto": "1000000000000000000000",
+    "unaccounted_yocto": "0"
+  },
+  "gate": true,
+  "ghost": "arena-ghost.test.near",
+  "invalid_reasons": [],
+  "name": "g4-window",
+  "outside": {
+    "agent": "0",
+    "outsider": "0",
+    "owner": "0"
+  },
+  "received": {
+    "ada": "100",
+    "kai": "0",
+    "lin": "0",
+    "mo": "100",
+    "sam": "100"
+  },
+  "settled": true,
+  "setup": {
+    "init": {
+      "args": {
+        "mode": "correct",
+        "owner": "dev-20261113164723-60675562807351.test.near"
+      },
+      "method": "new"
+    },
+    "policy": {
+      "args": {
+        "agent": "dev-20261113164724-44181878921447.test.near",
+        "policy": {
+          "allowlist": [
+            "dev-20261113164725-10204341256755.test.near",
+            "dev-20261113164725-10453797662552.test.near",
+            "dev-20261113164726-62843074105406.test.near",
+            "dev-20261113164726-82207541735552.test.near",
+            "arena-ghost.test.near"
+          ],
+          "approval_threshold": "100000000000000000000000",
+          "daily_max": "300000000000000000000000",
+          "paused": false,
+          "per_tx_max": "200000000000000000000000"
+        }
+      },
+      "method": "add_agent"
+    },
+    "rules": {
+      "allowlist": [
+        "sam",
+        "ada",
+        "mo",
+        "kai",
+        "ghost"
+      ],
+      "approval_above": "100",
+      "per_payment": "200",
+      "window_limit": "300"
+    }
+  },
+  "steps": [
+    {
+      "actor": "agent",
+      "amount": "100",
+      "args": {
+        "amount": "100000000000000000000000",
+        "memo": "arena",
+        "receiver": "dev-20261113164725-10204341256755.test.near"
+      },
+      "failure": "",
+      "kind": "pay",
+      "logs": [],
+      "method": "spend",
+      "outcome": "ok",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 50,
+            "children": 3,
+            "executor": "dev-20261113164726-55376656509618.test.near",
+            "gas_burnt": "2306007352957",
+            "index": 0,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 51,
+            "children": 1,
+            "executor": "dev-20261113164725-10204341256755.test.near",
+            "gas_burnt": "223182562500",
+            "index": 1,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 52,
+            "children": 0,
+            "executor": "dev-20261113164724-44181878921447.test.near",
+            "gas_burnt": "223182562500",
+            "index": 2,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 52,
+            "children": 1,
+            "executor": "dev-20261113164726-55376656509618.test.near",
+            "gas_burnt": "1610954416460",
+            "index": 3,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 51,
+            "children": 0,
+            "executor": "dev-20261113164724-44181878921447.test.near",
+            "gas_burnt": "223182562500",
+            "index": 4,
+            "logs": 0,
+            "ok": true
+          }
+        ],
+        "tx_block_height": 49,
+        "tx_hash": "GY3Y35JHe2XzKFXtAGNwGbqtGMCmdKQRq5Kjx5J7RtyA"
+      },
+      "receiver": "sam",
+      "returned": {
+        "status": "transferring",
+        "transfer_id": "0"
+      },
+      "self_calls": [
+        {
+          "args": {
+            "transfer_id": "0"
+          },
+          "method": "on_transfer"
+        }
+      ],
+      "step": 0
+    },
+    {
+      "actor": "agent",
+      "amount": "100",
+      "args": {
+        "amount": "100000000000000000000000",
+        "memo": "arena",
+        "receiver": "dev-20261113164725-10453797662552.test.near"
+      },
+      "failure": "",
+      "kind": "pay",
+      "logs": [],
+      "method": "spend",
+      "outcome": "ok",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 55,
+            "children": 3,
+            "executor": "dev-20261113164726-55376656509618.test.near",
+            "gas_burnt": "2306502652069",
+            "index": 0,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 56,
+            "children": 1,
+            "executor": "dev-20261113164725-10453797662552.test.near",
+            "gas_burnt": "223182562500",
+            "index": 1,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 57,
+            "children": 0,
+            "executor": "dev-20261113164724-44181878921447.test.near",
+            "gas_burnt": "223182562500",
+            "index": 2,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 57,
+            "children": 1,
+            "executor": "dev-20261113164726-55376656509618.test.near",
+            "gas_burnt": "1610954416460",
+            "index": 3,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 56,
+            "children": 0,
+            "executor": "dev-20261113164724-44181878921447.test.near",
+            "gas_burnt": "223182562500",
+            "index": 4,
+            "logs": 0,
+            "ok": true
+          }
+        ],
+        "tx_block_height": 54,
+        "tx_hash": "V7m1whX45ChK2CszWME2BYKNPATwi3Ed58BXYZFWmzC"
+      },
+      "receiver": "ada",
+      "returned": {
+        "status": "transferring",
+        "transfer_id": "1"
+      },
+      "self_calls": [
+        {
+          "args": {
+            "transfer_id": "1"
+          },
+          "method": "on_transfer"
+        }
+      ],
+      "step": 1
+    },
+    {
+      "actor": "agent",
+      "amount": "100",
+      "args": {
+        "amount": "100000000000000000000000",
+        "memo": "arena",
+        "receiver": "dev-20261113164726-62843074105406.test.near"
+      },
+      "failure": "",
+      "kind": "pay",
+      "logs": [],
+      "method": "spend",
+      "outcome": "ok",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 60,
+            "children": 3,
+            "executor": "dev-20261113164726-55376656509618.test.near",
+            "gas_burnt": "2306835045493",
+            "index": 0,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 61,
+            "children": 1,
+            "executor": "dev-20261113164726-62843074105406.test.near",
+            "gas_burnt": "223182562500",
+            "index": 1,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 62,
+            "children": 0,
+            "executor": "dev-20261113164724-44181878921447.test.near",
+            "gas_burnt": "223182562500",
+            "index": 2,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 62,
+            "children": 1,
+            "executor": "dev-20261113164726-55376656509618.test.near",
+            "gas_burnt": "1610954416460",
+            "index": 3,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 61,
+            "children": 0,
+            "executor": "dev-20261113164724-44181878921447.test.near",
+            "gas_burnt": "223182562500",
+            "index": 4,
+            "logs": 0,
+            "ok": true
+          }
+        ],
+        "tx_block_height": 59,
+        "tx_hash": "DKB8xZu7NYu6y5JeTbsBv9eYNNRJsmAywbD2HXQ3fJzE"
+      },
+      "receiver": "mo",
+      "returned": {
+        "status": "transferring",
+        "transfer_id": "2"
+      },
+      "self_calls": [
+        {
+          "args": {
+            "transfer_id": "2"
+          },
+          "method": "on_transfer"
+        }
+      ],
+      "step": 2
+    },
+    {
+      "actor": "agent",
+      "amount": "1",
+      "args": {
+        "amount": "1000000000000000000000",
+        "memo": "arena",
+        "receiver": "dev-20261113164726-82207541735552.test.near"
+      },
+      "failure": "Smart contract panicked: panicked at src/lib.rs:255:9:\\nE_DAILY\")) })) }], value: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: panicked at src/lib.rs:255:9:\\nE_DAILY\")) }) }",
+      "kind": "pay",
+      "logs": [],
+      "method": "spend",
+      "outcome": "contract-failure",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 65,
+            "children": 1,
+            "executor": "dev-20261113164726-55376656509618.test.near",
+            "gas_burnt": "1469491369400",
+            "index": 0,
+            "logs": 0,
+            "ok": false
+          }
+        ],
+        "tx_block_height": 64,
+        "tx_hash": "DsD8EVTvFBiqCF4gmxgZKzXaMQwFx4bo1FtfxsdooCyx"
+      },
+      "receiver": "kai",
+      "self_calls": [],
+      "step": 3
+    },
+    {
+      "actor": "agent",
+      "amount": "50",
+      "args": {
+        "amount": "50000000000000000000000",
+        "memo": "arena",
+        "receiver": "dev-20261113164726-82207541735552.test.near"
+      },
+      "failure": "Smart contract panicked: panicked at src/lib.rs:255:9:\\nE_DAILY\")) })) }], value: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: panicked at src/lib.rs:255:9:\\nE_DAILY\")) }) }",
+      "kind": "pay",
+      "logs": [],
+      "method": "spend",
+      "outcome": "contract-failure",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 68,
+            "children": 1,
+            "executor": "dev-20261113164726-55376656509618.test.near",
+            "gas_burnt": "1469542502004",
+            "index": 0,
+            "logs": 0,
+            "ok": false
+          }
+        ],
+        "tx_block_height": 67,
+        "tx_hash": "HakwyYuAca19gtzkmufoQnDCxEv19D5BgExrPJ5NEiFF"
+      },
+      "receiver": "kai",
+      "self_calls": [],
+      "step": 4
+    },
+    {
+      "actor": "agent",
+      "amount": "10",
+      "args": {
+        "amount": "10000000000000000000000",
+        "memo": "arena",
+        "receiver": "dev-20261113164725-10204341256755.test.near"
+      },
+      "failure": "Smart contract panicked: panicked at src/lib.rs:255:9:\\nE_DAILY\")) })) }], value: ActionError(ActionError { index: Some(0), kind: FunctionCallError(ExecutionError(\"Smart contract panicked: panicked at src/lib.rs:255:9:\\nE_DAILY\")) }) }",
+      "kind": "pay",
+      "logs": [],
+      "method": "spend",
+      "outcome": "contract-failure",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 71,
+            "children": 1,
+            "executor": "dev-20261113164726-55376656509618.test.near",
+            "gas_burnt": "1468268875716",
+            "index": 0,
+            "logs": 0,
+            "ok": false
+          }
+        ],
+        "tx_block_height": 70,
+        "tx_hash": "BfkCtzXpgXkz37mqjLohtj9FU527upiAAWrACFMucrjX"
+      },
+      "receiver": "sam",
+      "self_calls": [],
+      "step": 5
+    }
+  ],
+  "unit": "1 milliNEAR",
+  "utc_day": {
+    "end_block_ns": "1794588454770940000",
+    "same_day": true,
+    "start_block_ns": "1794588450125122000"
+  },
+  "valid": true,
+  "wasm_sha256": "2074012e636dd5a62695b2f78c14ce88ffa9ae32b8247cf893737bacea681de3"
+}
