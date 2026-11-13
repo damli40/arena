@@ -42,7 +42,7 @@ export function buildDocs({ repoPath }) {
 
   const builders = [
     { do: "Get Arena and build your guard the way you normally do. You need its <code>.wasm</code> file.",
-      cmd: "git clone <arena repo> arena && cd arena",
+      cmd: "git clone https://github.com/damli40/arena arena && cd arena",
       see: "Nothing to see yet. The first check also builds Arena's harness, which takes a few minutes once." },
     { do: "Run every attack in the library against your guard, on a local NEAR sandbox on your machine (no testnet, no real money).",
       cmd: "./arena check path/to/your_guard.wasm",

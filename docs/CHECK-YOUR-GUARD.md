@@ -14,7 +14,7 @@ harness, which takes a few more minutes once.
 **1. Get Arena and build your guard.** You need Rust through rustup and Python 3.
 
 ```
-git clone <arena repo> arena && cd arena
+git clone https://github.com/damli40/arena arena && cd arena
 # build your guard however you normally do; you need its .wasm file
 ```
 
@@ -563,9 +563,9 @@ marked `<- your ...` (your build command and your wasm path), and every pull req
 The report is uploaded as an artifact, and the badge and numbers go to the job summary. Commenting
 on the pull request is an optional extra job, described at the bottom of that file.
 
-**Status: this has never run on GitHub or on Linux.** Arena has no public GitHub home yet, so the
-example still says `ARENA_OWNER/arena@ARENA_COMMIT`; replace both with Arena's real place and a full
-40-character commit SHA once it has one. Only the script step was run, locally on macOS, with
+**Status: this has never run on GitHub or on Linux.** The example says
+`ARENA_OWNER/arena@ARENA_COMMIT`; replace them with `damli40/arena` and a full 40-character commit
+SHA from https://github.com/damli40/arena. Only the script step was run, locally on macOS, with
 `tools/check/action-local.sh`
 (output: `evidence/check-fixes-2-2026-11-11/action-local.txt`; what changed in that round:
 `evidence/check-fixes-2-2026-11-11.md`).

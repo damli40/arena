@@ -133,7 +133,7 @@ pre:focus-visible{outline:2px solid var(--muted);outline-offset:2px}
   <h2>Guard builders: test your guard</h2>
   <p class="sub">You wrote a payment guard and want to know which attacks get money past it.</p>
   <ol class="steps"><li class="step">
-  <div class="do"><span class="k">Do</span><p>Get Arena and build your guard the way you normally do. You need its <code>.wasm</code> file.</p><pre tabindex="0" aria-label="Command">git clone &lt;arena repo&gt; arena &amp;&amp; cd arena</pre></div>
+  <div class="do"><span class="k">Do</span><p>Get Arena and build your guard the way you normally do. You need its <code>.wasm</code> file.</p><pre tabindex="0" aria-label="Command">git clone https://github.com/damli40/arena arena &amp;&amp; cd arena</pre></div>
   <div class="see"><span class="k">You see</span><p>Nothing to see yet. The first check also builds Arena's harness, which takes a few minutes once.</p></div>
 </li><li class="step">
   <div class="do"><span class="k">Do</span><p>Run every attack in the library against your guard, on a local NEAR sandbox on your machine (no testnet, no real money).</p><pre tabindex="0" aria-label="Command">./arena check path/to/your_guard.wasm</pre></div>
