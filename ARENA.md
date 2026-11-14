@@ -22,12 +22,22 @@ Arena tests payment guards: NEAR contracts that limit what an AI agent may pay. 
 
 Then, with Rust installed: `./verify.sh fast` (about 8 minutes on a cold machine) ends `verify: 5 passed, 0 failed (mode=fast)`. It shows the planted-flaw guard paying 200 on a 100 invoice (t1). It does not run the fixed guard; `./run.sh t2_` does, and prints `RESULT fixed race payouts per trial: [100, 100, 100, 100, 100]`. `EVALUATE.md` lists every claim with its command, expected line and our time.
 
+**The hunter's attacks pass the same gate.** 16 of the hunter's 25 saved attacks are validated (each held three times on a guard known to be good and broke a copy with the one flaw it names three times). Replay one, with Rust built, no model and no key, about 15 s each:
+
+```
+./run-arena.sh replay sequences-paper/p210408638-1-reentrancy-async-double-pay.json --target control
+#   UNAUTHORISED PAYOUT = 200   (the leaky-on-purpose guard pays one invoice twice)
+./run-arena.sh replay sequences-paper/p210408638-1-reentrancy-async-double-pay.json --target vault
+#   UNAUTHORISED PAYOUT = 0     (vault-a refuses the second pay: "payment already in flight")
+```
+
 **Where each headline number lives.** If two files disagree, `evidence/MANIFEST.md` decides the library and hunt counts, and the dated evidence file decides everything else.
 
 | Number | File |
 |---|---|
 | planted-flaw guard paid 200 on one 100 invoice, 5 of 5 on testnet; the fix paid 100, 5 of 5 | `evidence/testnet-2026-11-11.md` |
 | 33 of 54 attacks validated by the admission gate | `evidence/MANIFEST.md` |
+| 16 of the hunter's 25 saved attacks validated by the admission gate | `evidence/MANIFEST.json` (each row's `class`), `evidence/admission/<attack>/` |
 | 9 hunt records: 46 attacks proposed, 26 saved, 2 broke a guard (both built to be broken) | `evidence/MANIFEST.md`, section "Hunts" |
 | 7 of 10 planted mistakes caught | `evidence/mutation-table-2026-11-11.md` |
 | `proofs/run.sh` 33 passed; near-tla 25 of 25 as planned | `evidence/proofs-all-2026-11-11.md`, row 5 |

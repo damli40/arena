@@ -37,6 +37,17 @@ class Manifest(unittest.TestCase):
             for g in found:
                 self.assertEqual(tuple(int(x) for x in g), want, f"{f} quotes {g}, manifest says {want}")
 
+    def test_hunter_sentences_match(self):
+        # "V of the hunter's N saved attacks" in README.md and ARENA.md = validated rows / rows from sequences-paper/
+        rows = [r for r in self.m["attacks"]["rows"] if r["path"].startswith("sequences-paper/")]
+        want = (sum(r["class"] == "validated" for r in rows), len(rows))
+        pat = re.compile(r"(\d+) of the hunter's (\d+) saved attacks")
+        for f in ("README.md", "ARENA.md"):
+            found = pat.findall((ROOT / f).read_text())
+            self.assertTrue(found, f"{f} has no hunter sentence")
+            for g in found:
+                self.assertEqual(tuple(int(x) for x in g), want, f"{f} quotes {g}, manifest says {want}")
+
     def test_validated_rows_really_validated(self):
         # every validated row's stamp re-judges from stored runs (rederive), never a copied word
         for r in self.m["attacks"]["rows"]:

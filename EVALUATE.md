@@ -341,11 +341,12 @@ vault-a and should print `UNAUTHORISED PAYOUT = 0`. About 15 s each.
 
 To add an attack by hand, see `docs/ADD-AN-ATTACK.md`.
 
-**What has not happened yet:** `.github/workflows/hunt.yml` schedules the hunter to run on GitHub
-every day. That schedule has **never run**, because this repo has not been on GitHub. All 7 hunt
-records come from runs on one Mac. The "hours from paper to attack" figure in
-`evidence/response-time-2026-11-11.md` is a replay of what the schedule would do, not a
-measurement of it.
+**On GitHub:** `.github/workflows/hunt.yml` has run the hunter on GitHub since the owner switched it on
+on 2026-11-13, four times a day. Of the 9 hunt records, 2 come from GitHub runs
+(`2026-11-13-papers-abc826`, `2026-11-13-news-c87c9e`); the other 7 ran on one Mac. The first scheduled
+run (2026-11-14, 01:17 UTC) failed a self-check before hunting and was fixed (`ARENA.md`). The "hours
+from paper to attack" figure in `evidence/response-time-2026-11-11.md` is still a replay of what the
+schedule would do, not a measurement of it.
 
 The design borrows ideas from AutoRedTeamer (Andy Zhou et al., NeurIPS 2025, arXiv 2503.15754). No
 code was copied. See `docs/DESIGN-CREDIT.md`.
