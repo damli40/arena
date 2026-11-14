@@ -123,6 +123,8 @@ if (lib.validated > 0 && runsSeen.length !== 1) throw new Error(`evidence/MANIFE
 const gateRuns = runsSeen.length ? Number(runsSeen[0]) : null;
 const hidden = { count: num(MAN.hidden_set.attack_count, "hidden_set.attack_count"), date: String(MAN.hidden_set.created_at || "").slice(0, 10) };
 const hunts = { runs: num(MAN.hunts.runs, "hunts.runs"), proposed: num(MAN.hunts.attacks_proposed, "hunts.attacks_proposed"), saved: num(MAN.hunts.attacks_saved, "hunts.attacks_saved"), papers: num(MAN.hunts.papers_read, "hunts.papers_read") };
+const hunterRows = (MAN.attacks.rows || []).filter(r => String(r.path).startsWith("sequences-paper/"));
+const hunter = { saved: num(hunterRows.length, "hunter saved rows"), validated: num(hunterRows.filter(r => r.class === "validated").length, "hunter validated rows") };
 const mutants = { planted: num(MAN.mutants.planted, "mutants.planted"), caught: MAN.mutants.caught.length };
 
 // The library as `arena check` loads it (tools/hunter/catalog.py), less the honest-payment control. It must
@@ -620,7 +622,7 @@ const ev2 = (...paths) => `<p class="m-ev">Evidence: ${paths.join(", ")}</p>`;
 // The methods, in the order a reader needs them. Each names the file that backs it.
 const METHODS = [
   { k: "Attacks from papers, incidents and people",
-    d: `The hunter is a language model that reads new security papers and hack news and writes attacks as data: a list of steps from a small fixed vocabulary, never code. Real incidents and hand-written attacks fill in the rest. Each hunt can add attacks, which is how the arena keeps growing: ${plural(hunts.runs, "hunt", "hunts")} so far proposed ${hunts.proposed} attacks from ${hunts.papers} paper reads and the news, and Arena kept ${hunts.saved}.`,
+    d: `The hunter is a language model that reads new security papers and hack news and writes attacks as data: a list of steps from a small fixed vocabulary, never code. Real incidents and hand-written attacks fill in the rest. Each hunt can add attacks, which is how the arena keeps growing: ${plural(hunts.runs, "hunt", "hunts")} so far proposed ${hunts.proposed} attacks from ${hunts.papers} paper reads and the news, and Arena kept ${hunts.saved}. ${hunter.validated} of the hunter's ${hunter.saved} saved attacks in the library passed the admission gate, the same bar every other attack has to clear.`,
     e: [repoPath("evidence/hunts/"), repoPath("docs/ADD-AN-ATTACK.md")] },
   { k: "An admission gate",
     d: `An attack counts as validated only when it holds on a guard known to be good and breaks a copy with exactly one planted flaw, by the exact amount${gateRuns ? `, in ${gateRuns} runs each` : ""}. Partly validated means every run matched but a piece is missing, such as proof that two race calls overlapped. Unvalidated attacks still run on every guard. They stay out of the validated count.`,
@@ -858,7 +860,7 @@ ${topbar(null)}
     <div><div class="n">${lib.all}</div><div class="k">attacks in the library</div><div class="note">${lib.token} fit a guard that pays in tokens or NEAR</div></div>
     <div><div class="n">${lib.validated}</div><div class="k">validated</div><div class="note">shown to catch the one flaw they name</div></div>
     <div><div class="n">${hidden.count}</div><div class="k">hidden attacks</div><div class="note">kept off GitHub, published as a hash</div></div>
-    <div><div class="n">${hunts.runs}</div><div class="k">hunts so far</div><div class="note">${hunts.proposed} attacks proposed from papers and news</div></div>
+    <div><div class="n">${hunts.runs}</div><div class="k">hunts so far</div><div class="note">${hunts.proposed} attacks proposed; ${hunter.validated} of the hunter's saved attacks passed the gate</div></div>
   </div>
 </section>
 

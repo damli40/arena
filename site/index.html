@@ -394,7 +394,7 @@ figure.term figcaption{font-size:13px;color:var(--muted);margin-top:10px}
     <div><div class="n">54</div><div class="k">attacks in the library</div><div class="note">52 fit a guard that pays in tokens or NEAR</div></div>
     <div><div class="n">33</div><div class="k">validated</div><div class="note">shown to catch the one flaw they name</div></div>
     <div><div class="n">14</div><div class="k">hidden attacks</div><div class="note">kept off GitHub, published as a hash</div></div>
-    <div><div class="n">9</div><div class="k">hunts so far</div><div class="note">46 attacks proposed from papers and news</div></div>
+    <div><div class="n">9</div><div class="k">hunts so far</div><div class="note">46 attacks proposed; 16 of the hunter's saved attacks passed the gate</div></div>
   </div>
 </section>
 
@@ -441,7 +441,7 @@ figure.term figcaption{font-size:13px;color:var(--muted);margin-top:10px}
   <h2>How Arena works</h2>
   <p class="sub">Where the attacks come from, which ones count, and how a guard is scored. Every part links the file that backs it.</p>
   <ol class="methods"><li class="method feature">
-  <h3>Attacks from papers, incidents and people</h3><p class="m-d">The hunter is a language model that reads new security papers and hack news and writes attacks as data: a list of steps from a small fixed vocabulary, never code. Real incidents and hand-written attacks fill in the rest. Each hunt can add attacks, which is how the arena keeps growing: 8 hunts so far proposed 41 attacks from 11 paper reads and the news, and Arena kept 25.</p><p class="m-ev">Evidence: <a href="https://github.com/damli40/arena/tree/main/evidence/hunts" rel="noopener"><code>evidence/hunts/</code></a>, <a href="https://github.com/damli40/arena/blob/main/docs/ADD-AN-ATTACK.md" rel="noopener"><code>docs/ADD-AN-ATTACK.md</code></a></p>
+  <h3>Attacks from papers, incidents and people</h3><p class="m-d">The hunter is a language model that reads new security papers and hack news and writes attacks as data: a list of steps from a small fixed vocabulary, never code. Real incidents and hand-written attacks fill in the rest. Each hunt can add attacks, which is how the arena keeps growing: 9 hunts so far proposed 46 attacks from 11 paper reads and the news, and Arena kept 26. 16 of the hunter's 25 saved attacks in the library passed the admission gate, the same bar every other attack has to clear.</p><p class="m-ev">Evidence: <a href="https://github.com/damli40/arena/tree/main/evidence/hunts" rel="noopener"><code>evidence/hunts/</code></a>, <a href="https://github.com/damli40/arena/blob/main/docs/ADD-AN-ATTACK.md" rel="noopener"><code>docs/ADD-AN-ATTACK.md</code></a></p>
 </li><li class="method">
   <h3>An admission gate</h3><p class="m-d">An attack counts as validated only when it holds on a guard known to be good and breaks a copy with exactly one planted flaw, by the exact amount, in 3 runs each. Partly validated means every run matched but a piece is missing, such as proof that two race calls overlapped. Unvalidated attacks still run on every guard. They stay out of the validated count.</p><div class="gate" role="img" aria-label="33 validated, 0 partly validated, 21 unvalidated, of 54 attacks">
       <div class="bar"><span class="v" style="width:61.11%"></span><span class="p" style="width:0.00%"></span><span class="u" style="width:38.89%"></span></div>
