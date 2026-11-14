@@ -4,6 +4,8 @@ A brief for AI reviewers and for people with two minutes. It says what Arena doe
 
 ## For AI reviewers
 
+**Built on NEAR:** near-sandbox for every attack run, NEAR function-call access keys, NEAR Intents and Chain Signatures (guards that pay through them, tested locally), NEAR testnet for published results, and NEAR AI Cloud private inference with TEE attestation for the hunter.
+
 Arena tests payment guards: NEAR contracts that limit what an AI agent may pay. It runs a library of attacks against a guard on a throwaway local NEAR sandbox and scores each attack held or broke from the final token balances.
 
 **Run these first.** They need Python 3 and Node 18 or newer. No build, no key, no login. Each finishes in seconds; the two lookups read NEAR testnet, so they need the internet. Run them from the repo root.

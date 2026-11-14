@@ -10,6 +10,8 @@
 
 **Can your guard survive the arena?**
 
+**Built on NEAR:** near-sandbox for every attack run, NEAR function-call access keys, NEAR Intents and Chain Signatures (guards that pay through them, tested locally), NEAR testnet for published results, and NEAR AI Cloud private inference with TEE attestation for the hunter.
+
 Your AI agent pays your bills, and a payment guard (a NEAR contract that limits what the agent may pay) stops it spending too much. Arena attacks such guards on a throwaway local NEAR sandbox and scores each attack held or broke from the final token balances, never from what the guard or the agent reports. It finds two ways you still lose money: NEAR runs one call across several blocks, so a guard that records a payment after the transfer comes back can pay one bill twice; and an agent fooled by an email can pay bills you never meant to pay, inside the guard's rules. A hunter adds attacks from new papers and hack news as data, never code, and an admission gate checks that each attack catches the flaw it names.
 
 **Headline result:** on NEAR testnet, a guard with a flaw planted on purpose paid 200 tokens on one 100-token invoice in 5 of 5 trials, and the fixed guard paid 100 in 5 of 5 (`evidence/testnet-2026-11-11.md`).
