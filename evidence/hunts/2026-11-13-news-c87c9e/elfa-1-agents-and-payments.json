@@ -1,0 +1,179 @@
+{
+  "success": true,
+  "data": [
+    {
+      "summary": "A circulated Google DeepMind paper reportedly used an automated 'Agentic Optimizer' swarm to test prompt injection against tool-use tasks; one tweet said the strongest attacker beat Gemini 4 Argon on 34% of tasks while open-weight Kimi K3, GLM-5.3, and DeepSeek-V4.1-Flash resisted only 1%. Another tweet summarized the same work as hijacking those models in roughly 99% of prompt-injection tests.",
+      "sourceLinks": [
+        "https://x.com/rohanpaul_ai/status/2121253582146281819",
+        "https://x.com/themerklehash/status/2120804227979108585"
+      ],
+      "tweetIds": [
+        "2121253582146281819",
+        "2120804227979108585"
+      ]
+    },
+    {
+      "summary": "Security researchers tweeted that they compromised OpenAI Codex through a chain starting with prompt injection, then sandbox escape, secret exfiltration, and a path to control what could be published to the official openai/codex npm package. Other posts praised the technical write-up and described it as a prompt-injection-to-supply-chain-compromise exploit chain.",
+      "sourceLinks": [
+        "https://x.com/LiveOverflow/status/2120666644192407657",
+        "https://x.com/julianor/status/2120564710479421871",
+        "https://x.com/zeyu1337/status/2120761200757661696"
+      ],
+      "tweetIds": [
+        "2120666644192407657",
+        "2120564710479421871",
+        "2120761200757661696"
+      ]
+    },
+    {
+      "summary": "A reposted security claim said Profero found an apparently unfixed Grok Bot agent flaw where a hostile command delivered via prompt injection or a poisoned package could give an attacker root on a customer's cloud machine through a Docker API that did not require login; the post also claimed imported browser cookies, including payment-site cookies, were stored in plaintext.",
+      "sourceLinks": [
+        "https://x.com/IntCyberDigest/status/2121252997711986992",
+        "https://x.com/OKIN_17/status/2121348696868520155"
+      ],
+      "tweetIds": [
+        "2121252997711986992",
+        "2121348696868520155"
+      ]
+    },
+    {
+      "summary": "Tweets described NVIDIA's open-sourced SkillSpector scanner for AI agent skills, saying its README claims that in a 31,132-skill subset, 26.1% contained vulnerabilities and 5.2% showed likely malicious intent. The tool was described as combining static analysis with an optional LLM pass and an MCP server mode; one post cautioned the numbers are NVIDIA's claims and that no accuracy paper or benchmark was linked.",
+      "sourceLinks": [
+        "https://x.com/HeyGurisaroy/status/2121165369029341276",
+        "https://x.com/itsharmanjot/status/2120751586750378394"
+      ],
+      "tweetIds": [
+        "2121165369029341276",
+        "2120751586750378394"
+      ]
+    },
+    {
+      "summary": "Users debated the boundary between prompt injection and social engineering. One argued prompt injection means steering an AI onto a different task, while social engineering is using context such as a fake vulnerability report; others replied that both are prompt injection or indirect prompt injection, and one warned that casual users running agents without sandboxes may eventually have a bad outcome.",
+      "sourceLinks": [
+        "https://x.com/nateberkopec/status/2120988983736103218",
+        "https://x.com/TimHaines/status/2120997422260510979",
+        "https://x.com/bweiner/status/2120994059988939181"
+      ],
+      "tweetIds": [
+        "2120988983736103218",
+        "2120997422260510979",
+        "2120994059988939181"
+      ]
+    },
+    {
+      "summary": "A builder presented [hackathon project 1], an allowance wallet for AI agents on NEAR testnet that keeps spending rules in a smart contract so a prompt-injected agent can still be blocked. The posts described demo attacks such as redirect and overcharge attempts being refused, while noting the project was testnet-only and unaudited.",
+      "sourceLinks": [
+        "[link removed]",
+        "[link removed]"
+      ],
+      "tweetIds": [
+        "2121337895952978100",
+        "2121299063543071126"
+      ]
+    },
+    {
+      "summary": "A builder described [hackathon project 2], a NEAR smart-contract vault for agent payments with allowlists, per-payment and daily limits, and owner approval. The post claimed a self-hijack prompt-injection test tried 12 ways to steal funds and all were blocked on-chain, with the code and attack demo open source on NEAR testnet.",
+      "sourceLinks": [
+        "[link removed]",
+        "[link removed]"
+      ],
+      "tweetIds": [
+        "2120758833106526695",
+        "2120683021720306089"
+      ]
+    },
+    {
+      "summary": "A builder presented [hackathon project 3] for the SERV Hackathon as an independent check on what an x402 data seller delivered before or after payment. The posts said [hackathon project 3] reads the seller's 402 advertisement, uses SERV reasoning to turn seller text into typed claims, uses code to count rows and fields, and treats broken promises as disputes on Kite testnet.",
+      "sourceLinks": [
+        "[link removed]",
+        "[link removed]"
+      ],
+      "tweetIds": [
+        "2120793645301305586",
+        "2120774281101516803"
+      ]
+    },
+    {
+      "summary": "A builder described [hackathon project 4], a research agent for the SERV Hackathon that pays per call in USDC on Base and is designed not to overspend. The posts said SERV reasoning decides whether a call is worth paying for and Kite Passport refuses anything over the cap.",
+      "sourceLinks": [
+        "[link removed]",
+        "[link removed]"
+      ],
+      "tweetIds": [
+        "2121315829136695607",
+        "2121305950984294449"
+      ]
+    },
+    {
+      "summary": "A builder presented [hackathon project 5], a Hermes plugin for the NousResearch hackathon that runs at the pre-tool hook before an agent acts on a Robinhood Chain address. The posts said it reads multiple public sources, applies user rules such as go, ask, stop, or note, and emphasized that a hook enforces the gate even when the model is confident.",
+      "sourceLinks": [
+        "[link removed]",
+        "[link removed]"
+      ],
+      "tweetIds": [
+        "2120580385071600042",
+        "2120564992592277750"
+      ]
+    },
+    {
+      "summary": "An update attributed to Unicity Labs described AOS, an operating system for AI agents with audit records and permission controls, plus CodeWall, a firewall for coding agents said to block prompt injection, secret leaks, and rogue commands. The posts also mentioned real-time agent monitoring and upcoming agent payments and confidential tokenization work.",
+      "sourceLinks": [
+        "https://x.com/0xM0RA/status/2120778583157154146",
+        "https://x.com/emelucrypto/status/2120793942383886568"
+      ],
+      "tweetIds": [
+        "2120778583157154146",
+        "2120793942383886568"
+      ]
+    },
+    {
+      "summary": "Posts described TermiX's C724 Security Agents initiative on BNB Chain as an effort to build 24/7 monitoring and response agents with participants such as GoPlus Security and Salus. The author said AI must be permissioned and human-supervised because false alarms, missed detections, and prompt injection could create new risks, and described C724 as an industry-building initiative rather than a finished product.",
+      "sourceLinks": [
+        "https://x.com/luke102579/status/2120675442940334361",
+        "https://x.com/luke102579/status/2120803682673697005"
+      ],
+      "tweetIds": [
+        "2120675442940334361",
+        "2120803682673697005"
+      ]
+    },
+    {
+      "summary": "A user reported running 900 queries across Claude, Gemini, and GPT models and hiding a 10% discount code for AI-referred shoppers. According to the post, GPT picked that shop 29 of 30 times, Gemini 14 of 30, and Claude 0 of 30, with Claude calling it a prompt-injection attempt to manipulate its recommendation.",
+      "sourceLinks": [
+        "https://x.com/medeana/status/2120608305693315556",
+        "https://x.com/medeana/status/2120614372162544032"
+      ],
+      "tweetIds": [
+        "2120608305693315556",
+        "2120614372162544032"
+      ]
+    },
+    {
+      "summary": "A post described a discussion with Google Search's VP of Engineering about defending personalized search against prompt injections and RAG poisoning, alongside topics such as AI Mode, user intent, and agents as Search users. A quote-post repeated the same summary of the discussion.",
+      "sourceLinks": [
+        "https://x.com/liangsays/status/2121324609266151770",
+        "https://x.com/ayushkhd/status/2121293263231434793"
+      ],
+      "tweetIds": [
+        "2121324609266151770",
+        "2121293263231434793"
+      ]
+    },
+    {
+      "summary": "Verafy-related posts outlined groundwork for 'actually smart contracts,' including an explorer, a harness-based validator, inter-agent contracts, DAO constitution enforcement, and a prompt guard intended to prevent prompt-injection attacks. The posts said the next step is commercial proving with real use cases and real usage.",
+      "sourceLinks": [
+        "https://x.com/rexstjohn/status/2121282497258631547",
+        "https://x.com/verafyfoundtn/status/2121282583556444653"
+      ],
+      "tweetIds": [
+        "2121282497258631547",
+        "2121282583556444653"
+      ]
+    }
+  ],
+  "metadata": {
+    "total": 231,
+    "total_summarized": 100,
+    "summaries": 15
+  }
+}

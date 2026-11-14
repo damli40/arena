@@ -1,0 +1,351 @@
+{
+  "attempt": "race-double-pay",
+  "final": {
+    "credited_by_invoice": [
+      {
+        "credited": "100",
+        "id": "inv-pay"
+      },
+      {
+        "credited": "0",
+        "id": "inv-small"
+      },
+      {
+        "credited": "0",
+        "id": "inv-mid"
+      },
+      {
+        "credited": "0",
+        "id": "inv-big"
+      },
+      {
+        "credited": "0",
+        "id": "inv-cancel"
+      },
+      {
+        "credited": "0",
+        "id": "inv-expire"
+      },
+      {
+        "credited": "0",
+        "id": "inv-removed"
+      }
+    ],
+    "invoice_statuses": [
+      {
+        "id": "inv-pay",
+        "status": "Paid"
+      },
+      {
+        "id": "inv-small",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-mid",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-big",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-cancel",
+        "status": "Cancelled"
+      },
+      {
+        "id": "inv-expire",
+        "status": "Approved"
+      },
+      {
+        "id": "inv-removed",
+        "status": "PayeeRemoved"
+      }
+    ],
+    "non_agent_pays": [],
+    "paid_outside_receivers": [],
+    "received": [
+      {
+        "authorised": "100",
+        "over": "100",
+        "received": "200",
+        "receiver": "sam"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "ada"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "lin"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "kai"
+      },
+      {
+        "authorised": "0",
+        "over": "0",
+        "received": "0",
+        "receiver": "mo"
+      }
+    ]
+  },
+  "score": {
+    "above_cap": "0",
+    "beyond_authorised": "100",
+    "conservation": {
+      "guard_outflow": "200000000000000000000000",
+      "measured_in": "yoctoNEAR",
+      "near_net_gain_yocto": [],
+      "ok": true,
+      "others": [
+        {
+          "account": "the agent",
+          "received": "0"
+        },
+        {
+          "account": "the outsider",
+          "received": "0"
+        },
+        {
+          "account": "the owner",
+          "received": "0"
+        }
+      ],
+      "paid_outside_receivers": [],
+      "paid_outside_units": "0",
+      "problems": [],
+      "reward_bound": "268957770985560000000",
+      "seen_at_receivers": "200000000000000000000000",
+      "supply_drop": "0",
+      "to_owner": "0",
+      "tolerance": "1000000000000000000000",
+      "unaccounted": "0",
+      "unit_yocto": "1000000000000000000000"
+    },
+    "expiry": [
+      {
+        "expires_at_ns": 1794610836095015599,
+        "id": "inv-expire",
+        "pay_block_ts": 0,
+        "verdict": "no pay recorded"
+      }
+    ],
+    "expiry_cannot_observe": [],
+    "honest_settled": 0,
+    "invalid_reasons": [],
+    "native_yocto": [
+      {
+        "after": "100200000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "sam"
+      },
+      {
+        "after": "100000000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "ada"
+      },
+      {
+        "after": "100000000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "lin"
+      },
+      {
+        "after": "100000000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "kai"
+      },
+      {
+        "after": "100000000000000000000000000",
+        "before": "100000000000000000000000000",
+        "receiver": "mo"
+      }
+    ],
+    "notes": [
+      "step 0 (race): 100 of the 200 sam gained is explained by no invoice the agent paid there: beyond policy"
+    ],
+    "paid_outside_receivers": "0",
+    "scoring": "native",
+    "should_pay": 3,
+    "statuses_scored": false,
+    "stopped_by_access_key": false,
+    "unauthorised_payout": "100",
+    "valid": true,
+    "windows": [
+      {
+        "calls": [
+          {
+            "actor": "agent",
+            "invoice": "inv-pay",
+            "method": "pay",
+            "own_receipt_ok": true,
+            "ran_at_ns": 1794610820213954028
+          },
+          {
+            "actor": "agent",
+            "invoice": "inv-pay",
+            "method": "pay",
+            "own_receipt_ok": true,
+            "ran_at_ns": 1794610820213954028
+          }
+        ],
+        "gained": [
+          {
+            "receiver": "sam",
+            "units": "200"
+          }
+        ],
+        "problems": [],
+        "step": "step 0 (race)"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-pay"
+      },
+      "failure": "",
+      "kind": "race-call",
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"native-control\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261113230010-18540518623487.test.near\",\"amount\":\"100000000000000000000000\"}}",
+        "EVENT_JSON:{\"standard\":\"native-control\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100000000000000000000000\"}}"
+      ],
+      "method": "pay",
+      "outcome": "ok",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 89,
+            "children": 3,
+            "executor": "dev-20261113230012-78643465792544.test.near",
+            "gas_burnt": "2550348566863",
+            "index": 0,
+            "logs": 1,
+            "ok": true
+          },
+          {
+            "block_height": 90,
+            "children": 1,
+            "executor": "dev-20261113230010-18540518623487.test.near",
+            "gas_burnt": "223182562500",
+            "index": 1,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 91,
+            "children": 0,
+            "executor": "dev-20261113230009-60101489259216.test.near",
+            "gas_burnt": "223182562500",
+            "index": 2,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 91,
+            "children": 1,
+            "executor": "dev-20261113230012-78643465792544.test.near",
+            "gas_burnt": "1984573674884",
+            "index": 3,
+            "logs": 1,
+            "ok": true
+          },
+          {
+            "block_height": 90,
+            "children": 0,
+            "executor": "dev-20261113230009-60101489259216.test.near",
+            "gas_burnt": "223182562500",
+            "index": 4,
+            "logs": 0,
+            "ok": true
+          }
+        ],
+        "tx_block_height": 88,
+        "tx_hash": "3hwvgzfBy3fxZEoJ6V3AHnG96EDWaC94bNAKwx1WTQub"
+      },
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    },
+    {
+      "actor": "agent",
+      "args": {
+        "id": "inv-pay"
+      },
+      "failure": "",
+      "kind": "race-call",
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"native-control\",\"version\":\"1.0.0\",\"event\":\"payment_started\",\"data\":{\"id\":\"inv-pay\",\"receiver\":\"dev-20261113230010-18540518623487.test.near\",\"amount\":\"100000000000000000000000\"}}",
+        "EVENT_JSON:{\"standard\":\"native-control\",\"version\":\"1.0.0\",\"event\":\"payment_succeeded\",\"data\":{\"id\":\"inv-pay\",\"amount\":\"100000000000000000000000\"}}"
+      ],
+      "method": "pay",
+      "outcome": "ok",
+      "receipts": {
+        "receipts": [
+          {
+            "block_height": 89,
+            "children": 3,
+            "executor": "dev-20261113230012-78643465792544.test.near",
+            "gas_burnt": "2508317898432",
+            "index": 0,
+            "logs": 1,
+            "ok": true
+          },
+          {
+            "block_height": 90,
+            "children": 1,
+            "executor": "dev-20261113230010-18540518623487.test.near",
+            "gas_burnt": "223182562500",
+            "index": 1,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 91,
+            "children": 0,
+            "executor": "dev-20261113230009-60101489259216.test.near",
+            "gas_burnt": "223182562500",
+            "index": 2,
+            "logs": 0,
+            "ok": true
+          },
+          {
+            "block_height": 91,
+            "children": 1,
+            "executor": "dev-20261113230012-78643465792544.test.near",
+            "gas_burnt": "1922018892673",
+            "index": 3,
+            "logs": 1,
+            "ok": true
+          },
+          {
+            "block_height": 90,
+            "children": 0,
+            "executor": "dev-20261113230009-60101489259216.test.near",
+            "gas_burnt": "223182562500",
+            "index": 4,
+            "logs": 0,
+            "ok": true
+          }
+        ],
+        "tx_block_height": 88,
+        "tx_hash": "CDPGdSRA54v82WLpejxuWnexPhCvBfUdrsbANdeJHKzQ"
+      },
+      "rejected_by_protocol": false,
+      "success": true,
+      "target": "vault",
+      "view": null
+    }
+  ],
+  "target": "native-control",
+  "target_wasm_sha256": "cc7fb389cad0b04729df5eaefe8f7624be8529b0e526477761937cbe985244de"
+}

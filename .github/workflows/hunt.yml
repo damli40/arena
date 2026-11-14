@@ -99,18 +99,20 @@ jobs:
             harness/target
           key: rust-${{ runner.os }}-${{ hashFiles('contracts/Cargo.lock', 'harness/Cargo.lock', 'contracts/guard/src/**', 'contracts/test-token/src/**', 'harness/src/**') }}
 
+      - name: Build
+        run: bash tools/hunter/ci-steps.sh build
+
+      - name: Self-checks
+        run: bash tools/hunter/ci-steps.sh test
+
+      # After Self-checks: the restored list differs from the committed file, and the
+      # evidence-unchanged test (tools/admission/tests) must see the committed bytes.
       - name: Restore the used-paper list
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: evidence/hunts/used-papers.json
           key: used-papers-${{ github.run_id }}
           restore-keys: used-papers-
-
-      - name: Build
-        run: bash tools/hunter/ci-steps.sh build
-
-      - name: Self-checks
-        run: bash tools/hunter/ci-steps.sh test
 
       - name: Hunt
         env:

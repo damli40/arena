@@ -606,16 +606,16 @@
   "set_sha256": "9748cbedd7a58c4c746901f1af3fd350e425ef86d72657b16213a703c2b1d47b"
  },
  "hunts": {
-  "attacks_deduped": 10,
-  "attacks_proposed": 41,
-  "attacks_rejected": 1,
-  "attacks_run": 62,
-  "attacks_saved": 25,
+  "attacks_deduped": 12,
+  "attacks_proposed": 46,
+  "attacks_rejected": 3,
+  "attacks_run": 63,
+  "attacks_saved": 26,
   "papers_read": 11,
-  "runs": 8,
-  "runs_with_runnable_attacks": 6,
+  "runs": 9,
+  "runs_with_runnable_attacks": 7,
   "saved_broke": 2,
-  "saved_valid_nothing_broke": 23
+  "saved_valid_nothing_broke": 24
  },
  "inputs_sha256": {
   "evidence/hunts/2026-11-10-library-5303da.json": "b7669d00e4735114f4f2c7d4670ea5525c9cbd7fd464be9c93ba6d3cbfc3ddca",
@@ -625,6 +625,7 @@
   "evidence/hunts/2026-11-10-papers-c1bea9.json": "cb615b81ca88da687029a39f7159cdbc1c1353fd342c37c966afa43e40439f72",
   "evidence/hunts/2026-11-11-news-d340fd.json": "d6a0fe2beb8dbb5ad7d93c0df432aaaf139412c3b22cc62608cc563a6e6bc634",
   "evidence/hunts/2026-11-11-papers-e3db55.json": "ac6e7e3ed3ab167fff3b240989ea2071e17c7b881b5b90f74ba1c5dbd7807e6c",
+  "evidence/hunts/2026-11-13-news-c87c9e.json": "862a230eaccc33c7659934e26a9b3cfd4e5f0041bcde9c338d8c48f62e192b0c",
   "evidence/hunts/2026-11-13-papers-abc826.json": "a0ae559da669141646170e1bbb38a8f9101cd9380f4cc82c0dfda8b225edf64d",
   "evidence/mutation-2026-11-12/summary.tsv": "8d13af78efe4079e919a05ca8fa12dcf3ab99da9f05b62ab3055ac2b47339ab1",
   "hidden-set/COMMITMENT.json": "5eca7108d192e5c5cab17b91a70881130631fdcdc4e09edce12c83b24d0fd74a",

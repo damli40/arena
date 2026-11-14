@@ -1,0 +1,1 @@
+{"doesnt_map": "The hack relies on unauthenticated Docker API access giving cloud root and plaintext-stored browser cookies, which have no analogue in the invoice payee, single-pay, and daily-cap policy and cannot be expressed with pay/view steps.", "attacks": []}

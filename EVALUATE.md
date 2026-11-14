@@ -299,7 +299,7 @@ What is in the repo:
   prompt-injection scenarios.
 - **7 hunt records** in `evidence/hunts/`, one `.md` and one `.json` per run.
 - **Saved is not validated.** Attack admission: **33 of 54** attacks validated, 0 partially validated, 21 unvalidated
-  (`evidence/MANIFEST.md`). Saving admits nothing: of the 25 saved hunter attacks, only those the manifest lists as validated count. Validated means
+  (`evidence/MANIFEST.md`). Saving admits nothing: of the 25 hunter attacks in `sequences-paper/`, only those the manifest lists as validated count. Validated means
   `tools/admission/admit.py` ran the attack three times on a known-good guard (held) and three times on
   a copy with the one flaw the attack names (broke by the exact amount, through the named mechanism),
   on pinned wasm bytes, and kept the raw runs in `evidence/admission/`. Re-check any stamp without a
@@ -322,8 +322,8 @@ attack must break the three planted-flaw guards and must not break the three fix
 hunt's results are not trusted. One record has no known-answer result:
 `2026-11-11-news-d340fd`, a news-only hunt that found nothing to run, so it ran no attack at all.
 
-What the 8 hunt records add up to (`evidence/MANIFEST.md`, "Hunts"): the model proposed 41 attacks from 10 papers and 4 news items, 25
-were saved, and **2 of the 25 broke a guard**. Both broke only guards we built to be broken
+What the 9 hunt records add up to (`evidence/MANIFEST.md`, "Hunts"): the model proposed 46 attacks from papers and news items, 26
+were saved, and **2 of the 26 broke a guard**. Both broke only guards we built to be broken
 (`guard-vulnerable`, `leaky-control-v2`, `native-control`). None broke a fixed guard. Most paper
 attacks found nothing, and the records say so. The two Nov 11 hunts saved nothing new and broke
 nothing; one of them ran on NEAR AI Cloud and its attestation can be re-checked (claim 13).

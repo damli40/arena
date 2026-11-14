@@ -26,7 +26,7 @@ Then, with Rust installed: `./verify.sh fast` (about 8 minutes on a cold machine
 |---|---|
 | planted-flaw guard paid 200 on one 100 invoice, 5 of 5 on testnet; the fix paid 100, 5 of 5 | `evidence/testnet-2026-11-11.md` |
 | 33 of 54 attacks validated by the admission gate | `evidence/MANIFEST.md` |
-| 8 hunt records: 41 attacks proposed, 25 saved, 2 broke a guard (both built to be broken) | `evidence/MANIFEST.md`, section "Hunts" |
+| 9 hunt records: 46 attacks proposed, 26 saved, 2 broke a guard (both built to be broken) | `evidence/MANIFEST.md`, section "Hunts" |
 | 7 of 10 planted mistakes caught | `evidence/mutation-table-2026-11-11.md` |
 | `proofs/run.sh` 33 passed; near-tla 25 of 25 as planned | `evidence/proofs-all-2026-11-11.md`, row 5 |
 | 500 tokens against the owner's intent in the worst single run, 0 beyond policy | `evidence/proofs-2026-11-10.md` |
@@ -89,12 +89,12 @@ The same rules live in three places:
 
 ### Where can I see the attacks and what the hunter did?
 
-- `sequences-paper/`: the 25 attacks the hunter saved, each a short list of steps.
+- `sequences-paper/`: 25 of the 26 attacks the hunter saved, each a short list of steps. The 26th, from the Nov 13 news hunt, sits in that hunt's folder (`evidence/hunts/2026-11-13-news-c87c9e/attacks/`) and has not been through the admission gate.
 - `evidence/hunts/`: one record per hunt. Each shows which paper or news item it read, what the model proposed, and what the validator rejected and why.
 - `evidence/nearai-2026-11-11.md`: how the model on NEAR AI Cloud was chosen and checked.
 - To replay a saved attack against your own guard: `./run-arena.sh replay sequences-paper/<file>.json --wasm your_guard.wasm`.
 
-The repo holds 8 hunt records. Together they proposed 41 attacks from 10 papers and 4 news items; 25 were saved, and 2 broke a guard. Both of those guards were built to be broken (`evidence/MANIFEST.md`, "Hunts"). The news hunt that ran on GitHub on 2026-11-13 is not in these counts: its record sits in that run's downloadable artifact (https://github.com/damli40/arena/actions/runs/43522805712), not in this repo.
+The repo holds 9 hunt records. Together they proposed 46 attacks from papers and news; 26 were saved, and 2 broke a guard. Both of those guards were built to be broken (`evidence/MANIFEST.md`, "Hunts"). The news hunt that ran on GitHub on 2026-11-13 is included as a redacted copy (`evidence/hunts/2026-11-13-news-c87c9e.md`): it names five projects from other hackathons by number only, and its one new attack ran against Arena's own reference guards.
 
 ### Why are some results proved and others only measured?
 
@@ -113,7 +113,7 @@ Two things stay out of this repo on purpose.
 
 ### Where does the hunter run, and what limits the damage?
 
-The hunter runs as a GitHub Actions workflow (`.github/workflows/hunt.yml`), and the owner switched it on on 2026-11-13. Its schedule runs four hunts a day: papers and news at 01:17 UTC, news only at 07:17, 13:17 and 19:17. Two runs have happened so far, both started by hand on 2026-11-13: a paper hunt (https://github.com/damli40/arena/actions/runs/43466826430, record `evidence/hunts/2026-11-13-papers-abc826.md`) and a news hunt that read Elfa news summaries (https://github.com/damli40/arena/actions/runs/43522805712; record in the run's artifact only).
+The hunter runs as a GitHub Actions workflow (`.github/workflows/hunt.yml`), and the owner switched it on on 2026-11-13. Its schedule runs four hunts a day: papers and news at 01:17 UTC, news only at 07:17, 13:17 and 19:17. Two runs have happened so far, both started by hand on 2026-11-13: a paper hunt (https://github.com/damli40/arena/actions/runs/43466826430, record `evidence/hunts/2026-11-13-papers-abc826.md`) and a news hunt that read Elfa news summaries (https://github.com/damli40/arena/actions/runs/43522805712, redacted record `evidence/hunts/2026-11-13-news-c87c9e.md`). The first scheduled run, on 2026-11-14 at 01:17 UTC (https://github.com/damli40/arena/actions/runs/43533436641), failed its self-checks before hunting: the workflow restored the cached used-paper list before the test that checks committed evidence files are unchanged, and the news run had changed that list. The workflow now restores the list after the self-checks.
 
 How it limits damage:
 
